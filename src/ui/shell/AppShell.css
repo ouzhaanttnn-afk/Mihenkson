@@ -1330,7 +1330,9 @@
 .dayCloseDialog h2 { margin: 0 0 18px; font: 600 24px/1.25 var(--font-display); }
 .dayCloseDialog p { margin: 14px 0; font-size: 14px; line-height: 1.55; color: var(--text-light-2); }
 .dayCloseDialog__stats { margin: 0; border: 1px solid var(--line-light); border-radius: 16px; overflow: hidden; }
-.dayCloseDialog__stats > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line-light); font-size: 13px; }
+.dayCloseDialog__stats > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line-light); font-size: 13px; }
+/* C6 · satırın altına düşen açıklama; dt/dd hizasını bozmasın diye tam satır. */
+.dayCloseDialog__rowNote { flex: 0 0 100%; margin: 0; font-size: 12px; line-height: 1.45; color: var(--text-light-2); }
 .dayCloseDialog__stats > div:last-child { border-bottom: 0; }
 .dayCloseDialog dt { color: var(--text-light-2); }
 .dayCloseDialog dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; flex-shrink: 0; }

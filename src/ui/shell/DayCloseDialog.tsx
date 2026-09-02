@@ -38,7 +38,21 @@ export function DayCloseDialog() {
         {(report.scaleMaintenanceExpense ?? 0) > 0 && <Row label="Terazi bakım gideri" value={tl(report.scaleMaintenanceExpense ?? 0)} />}
         {(report.scaleMaintenanceDeferred ?? 0) > 0 && <Row label="Bakım borcuna aktarıldı" value={tl(report.scaleMaintenanceDeferred ?? 0)} tone="negative" />}
         {(report.scaleMaintenanceDebtPaid ?? 0) > 0 && <Row label="Eski bakım borcu ödendi" value={tl(report.scaleMaintenanceDebtPaid ?? 0)} />}
-        <Row label="Kasa değişimi" value={tlSigned(report.netCashChange)} tone={report.netCashChange >= 0 ? 'positive' : 'negative'} />
+        {/*
+          C6 — "Kasa değişimi −77.336 ₺" 1. günde felaket gibi okunuyordu; oysa
+          o paranın 76.136 ₺'si stoğa dönmüştü. Kasadan çıkan para ile
+          KAYBEDİLEN para ayrı şeylerdir; alt satır bunu söylüyor.
+        */}
+        <Row
+          label="Kasa değişimi"
+          value={tlSigned(report.netCashChange)}
+          tone={report.netCashChange >= 0 ? 'positive' : 'negative'}
+          note={
+            (report.stockPurchaseSpend ?? 0) > 0
+              ? `Bunun ${tl(report.stockPurchaseSpend ?? 0)} kadarı stoğa girdi — harcanmadı, mala döndü.`
+              : undefined
+          }
+        />
         <Row label="Kapanış nakdi" value={tl(report.closingCash ?? s.store.cash)} />
         <Row label="Stok net çıkış farkı" value={tlSigned(report.stockPotential)} tone={report.stockPotential >= 0 ? 'positive' : 'negative'} />
         <Row label="Nakit Durumu" value={pct(report.liquidity)} />
@@ -68,6 +82,15 @@ export function DayCloseDialog() {
   </dialog>;
 }
 
-function Row({ label, value, tone }: { label: string; value: string; tone?: 'positive' | 'negative' }) {
-  return <div><dt>{label}</dt><dd className={tone ? `dayCloseDialog__${tone}` : undefined}>{value}</dd></div>;
+function Row({ label, value, tone, note }: {
+  label: string;
+  value: string;
+  tone?: 'positive' | 'negative';
+  note?: string;
+}) {
+  return <div>
+    <dt>{label}</dt>
+    <dd className={tone ? `dayCloseDialog__${tone}` : undefined}>{value}</dd>
+    {note && <p className="dayCloseDialog__rowNote">{note}</p>}
+  </div>;
 }

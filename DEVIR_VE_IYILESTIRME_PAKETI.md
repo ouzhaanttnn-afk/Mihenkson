@@ -63,6 +63,8 @@ Referans depolar:
 | YENİ · Ayarlar baloncuğu (Dükkan ekranı) | ✅ yapıldı |
 | A8 · Karşı Teklif sınırsız basılıyordu | ✅ yapıldı |
 | A3-2 · HAS tezgâhı katlanır oldu | ✅ yapıldı |
+| C3 · "Alımı Bitir" hiçbir şey almıyordu | ✅ yapıldı |
+| C6 · Gün raporu 1. günde felaket gibi okunuyordu | ✅ yapıldı |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -78,7 +80,7 @@ Düzeltmeler eski tabanda (292467e) teşhis edilmişti; yeni tabanda hepsi başt
 | A6 kırılım | ✓ tarayıcıda: `Kondisyon/Risk −%2 · −431 ₺` · `Oynaklık +%1` · not satırı var |
 | A7 | çelişkili metin clone `de16ae1` ile kökten kalkmış; "Canlandır" kilidi duruyor |
 | A9 etiketler | ✓ tarayıcıda: kırpılma yok, kap taşmıyor |
-| C1 vitrin | domain testleri ✓ · tarayıcı doğrulaması hâlâ açık |
+| C1 vitrin | ✓ tarayıcıda uçtan uca: "Vitrine Koy" seçilen mal `Vitrin 0/8 → 1/8`, "Toptancıya Çıkar" seçilen mal `Arka stok 0 → 1` |
 | A8 karşı teklif | ✅ yapıldı — bütçe sabırdan türüyor |
 | A10 ses | ✗ clone tabanında ses altyapısı hiç yok (`public/assets/audio` klasörü de yok) |
 
@@ -88,6 +90,11 @@ tarayıcı doğrulamalarının takılma sebebi spawn değil, C5'ti.
 
 **Kalan tek madde:** A10 (ses) — bu tabanda ses altyapısı hiç yok; dosya eklemek ya da
 ayarı kapatmak kullanıcının kararı. Cila maddeleri kapsam dışı.
+
+**Karar bekleyen iki madde** (kullanıcı onayı olmadan dokunulmayacak): C4 · Market sekmesi
+oyun içi TL harcıyor ve günlük 1.000–60.000 ₺ gider yazıyor — "Market boş rotadır" kuralıyla
+çelişiyor. B2 · otomatik perakende kanalı işçilikli malı vitrin müşterisinin ödediğinden
+yükseğe satıyor, vitrin mekaniğini ekonomik olarak gereksiz kılıyor.
 
 ---
 
@@ -531,6 +538,20 @@ yoksa mal arka stokta kalıyor ve oyuncuya balonla söyleniyor — sessizce yutu
 taşınması, vitrine girenin hedeflenebilir olması, arka stoktakinin hedeflenememesi (kırılan
 halkanın kendisi) ve **konumun maliyet/nakit matematiğini değiştirmediği**.
 
+**Tarayıcı doğrulaması (390×844, gerçek oyun akışı) — artık kapalı.** Bu madde uzun süre
+"domain testleri geçiyor ama UI yolu hiç görülmedi" durumundaydı; sebebi C5'ti: satıcıyı
+eleyip sıradaki müşteriye geçmenin yolu yoktu, harness işçilikli satıcıya hiç ulaşamıyordu.
+C5 kapandıktan sonra iki koşu yapıldı — biri düzeltmeyi, diğeri düzeltmenin **fazla iş
+yapmadığını** gösteriyor:
+
+| koşu | seçilen çıkış planı | Stok başlığı önce | sonra |
+|---|---|---|---|
+| deney | Vitrine Koy | `Vitrin 0/8 · Arka stok 0/16` | `Vitrin 1/8 · Arka stok 0/16` |
+| kontrol | Toptancıya Çıkar | `Vitrin 0/8 · Arka stok 0/16` | `Vitrin 0/8 · Arka stok 1/16` |
+
+Yani mal vitrine yalnız vitrin tezi seçilince giriyor; yönlendirme tezden türüyor, "her mal
+vitrine" değil. Konsol hatası yok.
+
 **Kalan (ayrı iş):** Stok satırına "Vitrinde değil" rozeti ve tek dokunuşla taşıma; ayrıca
 `displayStock` hâlâ yalnız işçilikliyi kabul ediyor — sarrafiye için vitrin zaten anlamsız
 olduğundan bu doğru, ama Hızlı Stok penceresi `Vitrin 0/8`'in neden 0 kaldığını söylemiyor.
@@ -543,11 +564,13 @@ lacivert. Üçüncü satırın kaydırıcısı alttaki çubuğun altında kalıy
 **Yapılacak:** tek kontrol tipi (`− değer +`), kaydırıcı kaldırılsın, pencere koyu temaya
 alınsın, alt boşluk eklensin.
 
-#### C3 · A · "Alımı Bitir" hiçbir şey almıyor
-Satın alma satır satır "Al" ile yapılıyor; "Alımı Bitir" yalnızca pencereyi kapatıyor.
-İsim, yapmadığı şeyi vaat ediyor.
+#### C3 · A · "Alımı Bitir" hiçbir şey almıyordu — ✅ YAPILDI
+`src/ui/screens/ShopScreen.tsx` · `QuickStockSheet`
+Satın alma satır satır "Al" ile yapılıyor; "Alımı Bitir" yalnızca pencereyi kapatıyordu.
+İsim, yapmadığı şeyi vaat ediyordu.
 
-**Yapılacak:** düğme adı **"Kapat"**.
+**Yapıldı:** düğme adı **"Kapat"**. Tarayıcıda doğrulandı — pencerede 6 satır "Al"
+düğmesi, altta tek "Kapat".
 
 #### C4 · A · Market'in 18 ürününden 11'i hiçbir yerde görünmüyor
 Kodda yalnız 7 ürünün kuşanma yuvası var (3 çerçeve, 2 tema, 2 rozet); rozetlerin CSS'i yok,
@@ -583,12 +606,26 @@ tıkanıyordu.
 **Kalan:** bedeli düğmenin yanında yazmak ("Semt itibarın 1 puan düşer") henüz yok; itibar
 farkı ziyaret muhasebesinden geliyor ama oyuncuya önceden söylenmiyor.
 
-#### C6 · A · Gün raporu 1. günde felaket gibi okunuyor
-"Kasa değişimi −77.336 ₺" yazıyor; bunun 76.136 ₺'si stoğa giden para. Hiçbir satır bunu
-söylemiyor.
+#### C6 · A · Gün raporu 1. günde felaket gibi okunuyordu — ✅ YAPILDI
+`src/domain/settlement.ts` · `DayReport.stockPurchaseSpend` · `src/ui/shell/DayCloseDialog.tsx`
+"Kasa değişimi −77.336 ₺" yazıyordu; bunun 76.136 ₺'si stoğa giden paraydı. Hiçbir satır bunu
+söylemiyordu — ilk gününü normal oynayan oyuncu batmış gibi görünüyordu.
 
-**Öneri (ikisine de):** kasa değişimi satırının altına "bunun 76.136 ₺'si stoğa girdi" alt
-satırı.
+**Yapıldı:** kasa değişimi satırının altına alt satır geldi: *"Bunun 11.159 ₺ kadarı stoğa
+girdi — harcanmadı, mala döndü."*
+
+**Ayrı defter tutulmadı.** Sayı günün kendi hareketlerinden türüyor: içeri mal giren
+(`itemsIn.length > 0`) ve kasayı eksilten işlemler. Mutabakat yolu değişmedi,
+`applyTransaction` tek yol olmayı sürdürüyor.
+
+**Testler:** `src/domain/day-report-stock-spend.test.ts` — 6 test. Kritik olan ikincisi:
+**mal girmeyen nakit çıkışı stok sayılmaz** (ayrımın kendisi bu). Ayrıca gün sonu giderinin
+paya karışmadığı — `kasa = stok + gider` eşitliği — ve önceki günün alımının bugüne
+yazılmadığı.
+
+**Tarayıcıda ölçüldü (390×844, 1. gün, iki satır alım):**
+`Kasa değişimi −12.359 ₺` · alt satır `Bunun 11.159 ₺ kadarı stoğa girdi` ·
+`Günlük gider −1.200 ₺` → 11.159 + 1.200 = 12.359. Not kendi satırında, kaba taşmıyor.
 
 #### C7 · Clone'dan bize alınabilecekler
 - **Gün raporundaki ek satırlar:** "Personel payı (gidere dahil)", "Kaçırılan Misafir",

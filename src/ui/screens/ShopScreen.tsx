@@ -488,7 +488,11 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
         <div className="quickStockSheet__scroll">
           <BullionCatalog />
         </div>
-        <button type="button" className="quickStockSheet__done" onClick={onClose}>Alımı Bitir</button>
+        {/*
+          C3 — düğme yapmadığı şeyi vaat etmemeli. Alım satır satır "Al" ile
+          yapılıyor; buranın tek işi pencereyi kapatmak.
+        */}
+        <button type="button" className="quickStockSheet__done" onClick={onClose}>Kapat</button>
       </section>
     </div>
   );

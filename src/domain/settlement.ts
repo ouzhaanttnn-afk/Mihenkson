@@ -546,6 +546,19 @@ export interface DayReport {
   realizedTradeProfit: Money;
   overhead: Money;
   netCashChange: Money;
+  /**
+   * Bugün kasadan çıkıp MAL OLARAK içeri giren para (C6).
+   *
+   * `netCashChange` tek başına 1. günde felaket gibi okunuyordu: −77.336 ₺'nin
+   * 76.136 ₺'si aslında stoğa dönmüş parayken rapor bunu hiçbir yerde
+   * söylemiyordu. Ayrı bir defter tutmuyoruz — sayı günün kendi
+   * hareketlerinden türüyor: içeri mal giren ve kasayı eksilten işlemler.
+   *
+   * Takas (hem `itemsIn` hem `itemsOut`) tek bir net tutar taşır; o tutarın
+   * tamamı buraya yazılır, çünkü kasadan çıkan net para karşılığında içeri mal
+   * girmiştir.
+   */
+  stockPurchaseSpend?: Money;
   stockPotential: Money;
   liquidity: number;
   liquidityBand: LiquidityBand;
@@ -614,6 +627,7 @@ export function closeDay(
     : outcome.state;
   const wealth = summarizeWealth(nextState);
   const ratio = liquidityRatio(nextState.store.cash, nextState.inventory);
+  const todayTransactions = nextState.ledger.transactions.filter(tx => tx.day === day);
 
   return {
     applied: outcome.applied,
@@ -628,7 +642,13 @@ export function closeDay(
       day,
       realizedTradeProfit: nextState.ledger.realizedProfitToday,
       overhead,
-      netCashChange: roundMoney(nextState.ledger.transactions.filter(tx => tx.day === day).reduce((sum, tx) => sum + tx.cashDelta, 0)),
+      netCashChange: roundMoney(todayTransactions.reduce((sum, tx) => sum + tx.cashDelta, 0)),
+      stockPurchaseSpend: roundMoney(
+        todayTransactions
+          .filter(tx => tx.itemsIn.length > 0 && tx.cashDelta < 0)
+          // İşareti toplama sırasında çeviriyoruz: dışarıdan `-0` dönmesin.
+          .reduce((sum, tx) => sum - tx.cashDelta, 0),
+      ),
       closingCash: nextState.store.cash,
       stockPotential: wealth.stockPotential,
       liquidity: ratio,
