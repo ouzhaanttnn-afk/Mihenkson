@@ -23,6 +23,7 @@ import { SettingsDialog } from '@ui/shell/SettingsDialog';
 import { DayCloseDialog } from '@ui/shell/DayCloseDialog';
 import { overdueJobs, readyJobs } from '@domain/service';
 import { playSound, preloadAudio, unlockAudio, type SoundId } from '@ui/audio';
+import { playHaptic, stopHaptics } from '@ui/haptics';
 
 import '@ui/tokens.css';
 import '@ui/shell/AppShell.css';
@@ -61,6 +62,12 @@ export function App() {
     İlk dokunuş/tuşta açıp dosyaları önden çözüyoruz; dinleyici bir kez
     çalışıp kendini kaldırır.
   */
+  /* Titreşim ayardan kapatılınca elde süren darbe kalmasın. */
+  const vibrationEnabled = useGame((s) => s.preferences.vibrationEnabled);
+  useEffect(() => {
+    if (!vibrationEnabled) stopHaptics();
+  }, [vibrationEnabled]);
+
   useEffect(() => {
     const ac = () => { unlockAudio(); preloadAudio(); };
     const opts = { once: true, passive: true } as const;
@@ -81,11 +88,14 @@ export function App() {
     let sonSeviye = useGame.getState().store.level;
 
     return useGame.subscribe((state) => {
-      const { soundEnabled, soundVolume } = state.preferences;
+      const { soundEnabled, soundVolume, vibrationEnabled } = state.preferences;
       const cue = state.soundCue;
       if (cue && cue.n !== sonN) {
         sonN = cue.n;
         playSound(cue.id as SoundId, soundEnabled, soundVolume);
+        // Titreşim SESTEN BAĞIMSIZ: sesi kapatıp titreşimi açık tutmak
+        // (toplu taşımada oynayan oyuncu) geçerli ve yaygın bir tercihtir.
+        playHaptic(cue.id as SoundId, vibrationEnabled);
       }
       /*
         Seviye atlama alan katmanında (`applyTransaction`) oluyor ve orası
@@ -95,6 +105,7 @@ export function App() {
       if (state.store.level > sonSeviye) {
         sonSeviye = state.store.level;
         playSound('levelup', soundEnabled, soundVolume);
+        playHaptic('levelup', vibrationEnabled);
       } else if (state.store.level < sonSeviye) {
         sonSeviye = state.store.level;   // yeni oyun / kayıt yükleme
       }

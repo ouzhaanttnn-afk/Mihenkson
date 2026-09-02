@@ -75,7 +75,8 @@ Referans depolar:
 | B4 · Vitrin yaşlanması | ✅ yapıldı |
 | C4 · Market | ✅ yapıldı — sekme kalıyor (kullanıcı kararı), koleksiyon eklendi |
 | C7 · Clone'dan alınacaklar | ✅ bu tabanda zaten mevcut — alınacak bir şey yok |
-| YENİ · Ayarlarda ses, titreşim, dil ve ses düzeyi | ✅ tercih saklanıyor · davranış sonra bağlanacak |
+| YENİ · Ayarlar: ses, ses düzeyi, titreşim | ✅ tercih saklanıyor **ve çalışıyor** |
+| YENİ · Ayarlar: dil | ✅ tercih saklanıyor · çeviri katmanı bekliyor |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -561,6 +562,43 @@ ikisi de geri geldi; ses tekrar açılınca düzey %30 olarak yerinde. Dokunma h
 kutu 607px/667px içinde ve kaydırılabilir, "Kapat" ulaşılabilir. Konsol hatası yok.
 
 **Bağlanınca yapılacak tek şey** "hazırlanıyor" ibarelerini kaldırmak; tercih zaten yerinde.
+
+##### TİTREŞİM BAĞLANDI — `src/ui/haptics.ts` (yeni)
+
+Olay → desen tablosu; sesle aynı `soundCue` akışından besleniyor ama **sesten
+bağımsız**: sesi kapatıp titreşimi açık tutmak (toplu taşımada oynamak) geçerli bir
+tercihtir, ikisi ayrı ayarlardır.
+
+| olay | desen (ms) | neden |
+|---|---|---|
+| `deal` | 18 | anlaşma kapandı — tek, net |
+| `deny` | 22 · 40 · 22 | reddedildi — **çift darbe**, fark elde hissedilsin |
+| `coins` | 12 | alım onayı — hafif tık |
+| `customer` | 12 | müşteri geldi |
+| `chime` | 30 | gün kapandı |
+| `levelup` | 14·45·14·45·26 | kutlama ritmi |
+| `test` | **YOK** | mihenk/ölçüm araçları HER dokunuşta tetikleniyor; titreşim koymak telefonu sürekli titretirdi |
+
+**PLATFORM GERÇEĞİ — oyuncuya söyleniyor.** `navigator.vibrate` Android/Chrome'da var,
+**iOS Safari'de YOK** ve Apple'ın web'e açtığı bir haptik API'si de yok. Bu bir hata değil,
+platform sınırı. Ayar satırı cihaza göre konuşuyor: desteklemeyen telefonda
+*"Bu cihaz titreşimi desteklemiyor"* yazıyor. Aksi hâlde oyuncu açık bir anahtarın neden
+hiçbir şey yapmadığını anlamazdı — tam da bu pencerede kaçındığımız şey.
+
+*(Chromium'da ölçüldü; iOS bu ortamda test edilemiyor, oradaki davranış API'nin
+yokluğundan biliniyor.)*
+
+Ayardan kapatılınca elde süren darbe kesiliyor (`stopHaptics`).
+
+**Testler:** `src/ui/haptics.test.ts` — 9 test. API yokken çökmeme, tarayıcı reddederse
+oyunun etkilenmemesi, kapalıyken titreşmeme, **ölçüm aracının titreşmemesi**, ret deseninin
+kabul deseninden farklı olması, art arda gelen olayların tek uzun titreşime dönüşmemesi ve
+bütün desenlerin 200 ms altında kalması.
+
+**Tarayıcıda ÖLÇÜLDÜ:** `navigator.vibrate` sarmalanıp çağrılar toplandı. Gün kapanışında
+tam olarak bir çağrı gitti, deseni **`[30]`** — tablodaki `chime` deseniyle birebir.
+Titreşim kapatılınca yeni çağrı **olmadı**; yalnız kapatma komutu (`0`) göründü. Konsol
+hatası yok.
 
 ##### EKRAN GÖRÜNTÜSÜNÜN YAKALADIĞI, SAYILARIN KAÇIRDIĞI HATA
 

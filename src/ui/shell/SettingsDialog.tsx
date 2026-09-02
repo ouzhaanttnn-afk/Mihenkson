@@ -6,7 +6,7 @@
  *   Profil            → kuyumcunun adı ve portresi (ProfileDialog'a devreder)
  *   Öğretici ipuçları → açık / kapalı, iki yöne de çalışır
  *   Ses               → tek anahtar + düzey kaydırıcısı · GERÇEKTEN ÇALIŞIR
- *   Titreşim          → tercih SAKLANIR, davranış sonra bağlanacak
+ *   Titreşim          → GERÇEKTEN ÇALIŞIR (destekleyen cihazda; iOS'ta API yok)
  *   Dil               → tercih SAKLANIR, çeviri katmanı sonra bağlanacak
  *   Yeni oyun         → kaydı siler (onaylı)
  *
@@ -33,6 +33,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { LANGUAGES, VOLUME_MAX, VOLUME_MIN, VOLUME_STEP } from '@domain/preferences';
+import { hapticsSupported } from '@ui/haptics';
 import { useGame } from '@state/gameStore';
 
 export function SettingsDialog() {
@@ -48,6 +49,8 @@ export function SettingsDialog() {
   const setPreference = useGame((s) => s.setPreference);
 
   const [confirmReset, setConfirmReset] = useState(false);
+  // Cihaz desteği render sırasında sabittir; her çizimde sormaya gerek yok.
+  const [titresimVar] = useState(hapticsSupported);
   const boxRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLButtonElement>(null);
 
@@ -169,25 +172,27 @@ export function SettingsDialog() {
         </button>
 
         {/*
-          Not artık YALNIZ titreşim ve dilin üstünde: ses bağlandı, onlar hâlâ
-          bağlanmadı. Notu olduğu yerde bırakmak, çalışan sesi de çalışmıyor
-          göstermek olurdu.
-        */}
-        <p className="settingsNote" id="settings-pending">
-          Aşağıdaki ikisi kaydedilir, ama etkileri henüz bağlanmadı.
-        </p>
+          TİTREŞİM ARTIK BAĞLI — ama her cihazda çalışmaz.
 
+          `navigator.vibrate` Android/Chrome'da var, **iOS Safari'de YOK** ve
+          Apple'ın web'e açtığı bir haptik API'si de yok. Bu bir hata değil,
+          platform sınırı. Alt metin bunu cihaza göre SÖYLÜYOR: desteklemeyen
+          telefonda "bu cihaz desteklemiyor" yazıyor. Aksi hâlde oyuncu açık
+          bir anahtarın neden hiçbir şey yapmadığını anlamazdı — tam da bu
+          pencerede kaçındığımız şey.
+        */}
         <button
           type="button"
           className="settingsRow"
           aria-pressed={preferences.vibrationEnabled}
-          aria-describedby="settings-pending"
           onClick={() => setPreference('vibrationEnabled', !preferences.vibrationEnabled)}
         >
           <span className="settingsRow__copy">
             <strong>Titreşim</strong>
             <small>
-              {preferences.vibrationEnabled ? 'Açık' : 'Kapalı'} · dokunsal geri bildirim
+              {!titresimVar
+                ? 'Bu cihaz titreşimi desteklemiyor'
+                : `${preferences.vibrationEnabled ? 'Açık' : 'Kapalı'} · işlem ve gün olayları`}
             </small>
           </span>
           <span
@@ -236,6 +241,10 @@ export function SettingsDialog() {
           segment. `radiogroup` kullanılıyor ki ekran okuyucu "iki seçenekten
           biri" desin; anahtar taklidi yapmak yanlış olurdu.
         */}
+        <p className="settingsNote" id="settings-pending">
+          Dil tercihi kaydedilir, ama çeviri katmanı henüz bağlanmadı.
+        </p>
+
         <div className="settingsRow settingsRow--static">
           <span className="settingsRow__copy">
             <strong>Dil</strong>
