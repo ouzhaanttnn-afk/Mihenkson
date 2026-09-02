@@ -1654,6 +1654,54 @@
 .marketProduct--legendary { --tier-color: #f0bf4c; }
 .marketProduct--locked { filter: saturate(0.45); opacity: 0.72; }
 
+/* C4 · sahip olunan ürünlerin görülebildiği katlanır koleksiyon. */
+.marketOwned {
+  margin: 0 var(--gutter) var(--sp-2);
+  border: 1px solid var(--page-line);
+  border-radius: var(--r-md);
+  background: var(--page-card);
+  overflow: hidden;
+}
+
+.marketOwned__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  width: 100%;
+  /* GDD 23.22 — 44 px dokunma hedefi. */
+  min-height: 44px;
+  padding: 0 var(--sp-3);
+  border: 0;
+  background: none;
+  color: var(--text-dark-1);
+  font: inherit;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+.marketOwned__list {
+  margin: 0;
+  padding: 0 var(--sp-3) var(--sp-2);
+  list-style: none;
+}
+
+.marketOwned__list li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 32px;
+  border-top: 1px solid var(--page-line);
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+}
+
+.marketOwned__mark { color: var(--brass-300); }
+.marketOwned__name { flex: 1; min-width: 0; color: var(--text-dark-1); }
+.marketOwned__badge { color: var(--brass-300); }
+.marketOwned__upkeep { color: var(--text-dark-3); white-space: nowrap; }
+
 .marketProduct__visual {
   display: flex;
   flex-direction: column;

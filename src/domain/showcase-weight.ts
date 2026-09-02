@@ -20,31 +20,20 @@
  * AZALTIR, yok etmez.
  *
  * ───────────────────────────────────────────────────────────────────────────
- * AYAR (B3) BURAYA GİRMEDİ — ÖLÇÜM SONUCU
+ * B3 — AYARIN HIZ YARISI
  *
- * İlk hâlinde bu dosyada bir `KARAT_LIQUIDITY` tablosu vardı: yüksek ayar
- * hızlı döner, düşük ayar yavaş. B3'ün "hız" yarısı buydu ve marj yarısıyla
- * (`CRAFTED_BANDS`) BİRLİKTE anlamlıydı — yavaşlığın karşılığı geniş marj
- * olacaktı.
+ * Yüksek ayarda metal payı baskındır: alıcı bulmak kolaydır, mal hızlı döner.
+ * Düşük ayarda işçilik payı ağır basar: doğru müşteriyi beklemek gerekir.
  *
- * Marj yarısı denendi ve GERİ ALINDI: tezin vaadi ile müşterinin ödediği
- * arasındaki uyum bozuluyordu. Ölçüm (ayar başına, vaat/ödeme):
- *
- *     mevcut hâl        8K +%40,0   14K −%9,5   18K +%2,6
- *     denemeden sonra   8K +%13,1   14K −%25,8  18K −%29,0
- *
- * Yani ayar bantları ayrışmadan ÖNCE bile vaat ile ödeme tutmuyor; `estMetal`
- * içinde ürüne göre değişen (~0,76–0,79) ayrı bir temkin indirimi var ve
- * müşteri fiyatı formülüyle aynı tabana oturmuyor. Bu çözülmeden ayarı
- * ayrıştırmak uyumu daha da bozuyor.
- *
- * Hız yarısını TEK BAŞINA bırakmak ise daha kötüydü: marj farkı olmadan
- * yüksek ayar düpedüz üstün olurdu — B3'ün şikâyet ettiği eşitlikten de kötü.
- * Bu yüzden ayar buraya girmedi; yaşlanma tek başına tutarlı ve yeterli.
+ * MARJ YARISI OLMADAN BU TABLO ZARARLIDIR ve bir ara öyle denendi: marj
+ * farkı yokken yüksek ayar düpedüz üstün oluyordu — B3'ün şikâyet ettiği
+ * eşitlikten de kötü bir durum. Karşılığı `customer-pricing · CRAFTED_BANDS`
+ * içinde kuruldu (işçilik payı milyemle ölçeklenmez → düşük ayar geniş marj).
+ * İkisi birlikte anlamlıdır; biri kaldırılırsa öbürü de kaldırılmalıdır.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import type { InventoryPosition } from './types';
+import type { InventoryPosition, ItemInstance, Karat } from './types';
 
 /**
  * İlginin tabana indiği gün. Stok ekranındaki "ölü stok" eşiğiyle aynı
@@ -57,16 +46,40 @@ export const SHOWCASE_STALE_AGE = 6;
 export const SHOWCASE_STALE_FLOOR = 0.35;
 
 /**
- * Vitrindeki ürünün ilgi çarpanı.
- *
- * 0. günde 1,0'dan başlar, `SHOWCASE_STALE_AGE` gününde tabana
- * (`SHOWCASE_STALE_FLOOR`) iner ve orada kalır — sonsuza dek azalmaz, çünkü
- * ürünü tamamen görünmez kılmak oyuncuya çıkışı olmayan bir slot bırakırdı.
+ * Ayarın likiditesi — dar marjın karşılığı hızlı devir.
+ * Marj tarafı için bkz. `customer-pricing · CRAFTED_BANDS`.
  */
-export function showcaseWeight(position: InventoryPosition): number {
+export const KARAT_LIQUIDITY: Partial<Record<Karat, number>> = {
+  '8K': 0.75,
+  '14K': 0.95,
+  '18K': 1.1,
+  '22K': 1.3,
+};
+
+/** Ayarı bilinmeyen (ya da sarrafiye) ürün ortalama likidite sayılır. */
+export const DEFAULT_LIQUIDITY = 1;
+
+/** Yalnız yaşlanma bileşeni — testlerin ve arayüzün ayrı ayrı okuyabilmesi için. */
+export function ageFactor(position: InventoryPosition): number {
   const age = Math.max(0, position.age);
   const wear = Math.min(1, age / SHOWCASE_STALE_AGE);
   return 1 - (1 - SHOWCASE_STALE_FLOOR) * wear;
+}
+
+/**
+ * Vitrindeki ürünün ilgi çarpanı: yaşlanma × ayar likiditesi.
+ *
+ * Yaşlanma 0. günde 1,0'dan başlar, `SHOWCASE_STALE_AGE` gününde tabana
+ * (`SHOWCASE_STALE_FLOOR`) iner ve orada kalır — sonsuza dek azalmaz, çünkü
+ * ürünü tamamen görünmez kılmak oyuncuya çıkışı olmayan bir slot bırakırdı.
+ *
+ * BEYAN EDİLEN AYAR KULLANILIR, gerçek ayar değil: vitrine bakan müşteri de
+ * oyuncu gibi etiketi görür, malın içini bilmez. Gerçek ayarı kullanmak,
+ * müşteriye mihenk taşından geçmiş bilgi vermek olurdu.
+ */
+export function showcaseWeight(item: ItemInstance, position: InventoryPosition): number {
+  const liquidity = KARAT_LIQUIDITY[item.declared.claimedKarat] ?? DEFAULT_LIQUIDITY;
+  return ageFactor(position) * liquidity;
 }
 
 /** Bayat mı — arayüzde "ilgisi düştü" demek için. */

@@ -71,9 +71,9 @@ Referans depolar:
 | B5 · Vitrin slot seyrelmesi gösterilmiyordu | ✅ yapıldı |
 | YENİ · Sarrafiyede "Vitrin" planı ve vitrin slotu şartı | ✅ yapıldı |
 | B2 · İşçilikli ürün ekonomik olarak baskılanmış | ❌ **ölçümle çürütüldü** |
-| B3 · Ayar bantları ayrışmıyor | ⏸ **denendi ve GERİ ALINDI** — önce değerleme/müşteri fiyatı uyumu çözülmeli |
+| B3 · Ayar bantları ayrışmıyor | ✅ **yapıldı** — sebebi milyem orantısıymış |
 | B4 · Vitrin yaşlanması | ✅ yapıldı |
-| C4 · Market'te İngilizce kod adları | ✅ ekran tarafı yapıldı · ekonomi tarafı karar bekliyor |
+| C4 · Market | ✅ yapıldı — sekme kalıyor (kullanıcı kararı), koleksiyon eklendi |
 | C7 · Clone'dan alınacaklar | ✅ bu tabanda zaten mevcut — alınacak bir şey yok |
 | YENİ · Ayarlarda ses, titreşim, dil ve ses düzeyi | ✅ tercih saklanıyor · davranış sonra bağlanacak |
 
@@ -652,7 +652,7 @@ kalibre; sistematik bir yalan yok.
 yazmışım. Bu maddeye dayanarak "otomatik perakendeyi sarrafiyeye kısıtla" değişikliği
 yapılsaydı, var olmayan bir sorun için ekonomi bozulacaktı.
 
-#### B3 · T · Ayar bantları birbirinden ayrışmıyor — ⏸ DENENDİ VE GERİ ALINDI
+#### B3 · T · Ayar bantları birbirinden ayrışmıyor — ✅ YAPILDI
 `src/domain/customer-pricing.ts` · `CRAFTED_BANDS`
 
 Bu taban üzerinde yeniden ölçüldü ve **doğru çıktı**:
@@ -667,7 +667,77 @@ Bu taban üzerinde yeniden ölçüldü ve **doğru çıktı**:
 Dördü 0,2 puan içinde. Ayar kârlılık açısından hiçbir şey ifade etmiyor; 8K almakla 22K
 almak arasındaki tek fark ölçek.
 
-**DENENDİ VE GERİ ALINDI — asıl engel başkaymış.**
+**ÖNCE YANLIŞ TEŞHİS KOYDUM, SONRA KULLANICI YAPIYI ANLATTI VE ÇÖZÜLDÜ.**
+
+##### Yanlış teşhisim ve nasıl düzeldi
+
+"Ayarı ayrıştırmak vaat/ödeme uyumunu bozuyor" demiş, engel olarak
+`estimateBand`in temkin indirimini göstermiştim. Ölçümü **gerçek ayara göre**
+gruplamıştım ve 8K'da +%40 sapma görmüştüm. Yanlıştı: `ring_8k` diye bir şablon yok —
+o 8K malların **hepsi sahteydi** (18K/14K beyanlı, gerçekte 8K). Yani ölçtüğüm şey
+kalibrasyon hatası değil, **sahtecilik cezasıydı** — oyunun tam olarak yapması gereken şey.
+
+Beyan ile gerçeği ayırınca tablo netleşti:
+
+| | n | tez vaadi − müşteri ödemesi |
+|---|---|---|
+| **dürüst mal** (beyan = gerçek) | 401 | **−%4,7** |
+| sahte mal (beyan ≠ gerçek) | 66 | +%35,1 |
+
+Dürüst malda uyum zaten sağlamdı; ortalama hafif temkinli (eksi yönde), ki tahmin için
+doğru yön. Ortada düzeltilecek bir "ekonomi çekirdeği hatası" yoktu.
+
+##### Asıl sebep: milyem orantısı
+
+Kullanıcı yapıyı anlattı — "milyem olarak kodlamıştık, 14'ün milyemine göre diğerlerine
+entegre etmiştik" — ve doğrulandı (sapma %0,5 altında):
+
+    alış(k)  = milyem(k) × 0,876
+    satış(k) = milyem(k) × 1,171
+
+Marj `satış / alış` olduğu için **milyem sadeleşiyor**. Yani dört ayarın aynı marjı vermesi
+bir ayar hatası değil, yapının **matematiksel zorunluluğuydu**. Bu anlaşılmadan yapılan her
+deneme kaçınılmaz olarak başarısız oluyordu.
+
+##### Çözüm: işçilik milyemle ölçeklenmez
+
+Bir yüzüğü işlemenin emeği, içindeki altının ayarına bağlı değildir; aynı model 8K da olsa
+22K da olsa tezgâhta aynı işi ister. O hâlde satış fiyatının işçilikten gelen kısmı milyemle
+orantılı OLMAMALI:
+
+    satış(k) = milyem(k) × taban + işçilik payı        (işçilik payı sabit)
+
+Marj farkı buradan **kendiliğinden** çıkıyor — elle ayarlanmış bir tablo değil:
+
+| ayar | marj eski → yeni | metal üstü kat |
+|---|---|---|
+| 8K | %33,8 → **%41,9** | 1,242 |
+| 14K | %33,7 → **%33,7** (çıpa, değişmedi) | 1,171 |
+| 18K | %33,7 → **%31,3** | 1,150 |
+| 22K | %33,6 → **%29,2** | 1,137 |
+
+**14K aynen korundu** çünkü ekonominin tamamı onun milyemine göre kurulmuştu; çıpayı
+oynatmak her şeyi oynatmak olurdu. **Alış bantlarına hiç dokunulmadı**: dükkânın satıcıya
+ödediği fiyat değişmedi, değişen müşterinin ödediği.
+
+**Hız yarısı geri geldi** (`showcase-weight · KARAT_LIQUIDITY`, 8K 0,75 → 22K 1,30): dar
+marjın karşılığı hızlı devir. İkisi birlikte anlamlıdır; biri kaldırılırsa öbürü de
+kaldırılmalıdır — bu, dosya başlıklarına da yazıldı. Vitrin ağırlığında **beyan edilen ayar**
+kullanılıyor: vitrine bakan müşteri de oyuncu gibi etiketi görür, malın içini bilmez.
+
+##### Değişiklik sonrası ölçüm
+
+Dürüst malda uyum **−%4,7 → −%3,8** (hafif iyileşti), sahte mal cezası **+%35,1 → +%28,9**
+(yerinde duruyor). **863 test geçiyor** — 47 invariant ve 6 uzun vadeli ekonomi testi dâhil.
+
+**Testler:** `src/domain/karat-margin.test.ts` — 7 test. Marjın ayarla daralması, 14K
+çıpasının aynen korunması, alış tarafının hâlâ saf milyem orantılı olması, satış tarafının
+ARTIK OLMAMASI (karşı-olgu: saf orantılı olsaydı `satış/milyem` dört ayarda da eşit çıkardı —
+eski yapıda oran 1,004 idi, şimdi 1,09) ve hiçbir ayarda satışın alışın altına düşmemesi.
+
+---
+
+##### (Eski kayıt — geri alınan ilk deneme)
 
 Önceki turda "hız yarısının dayanacağı mekanik yok" demiştim; **yanılmışım**, `pickWeighted`
 zaten vardı ve B4 onun üstüne kuruldu. Engel orada değilmiş. İki yarı da denendi:
@@ -888,8 +958,21 @@ doğrulandı: 6 kategori, 19 kart, kalan iç kimlik etiketi **0**.
 Ayrıca bir ürün açıklamasındaki geliştirici jargonu düzeltildi: *"End-game serveti için…"* →
 *"Oyunun ileri aşamasındaki servet için…"*.
 
-**Ekonomi tarafı hâlâ karar bekliyor** — aşağıdaki kapsam uyarısı geçerli. Görsel karşılığı
-olmayan ürünlerin gizlenmesi ve koleksiyon ekranı da bu karara bağlı: sekme kalacak mı?
+**SEKME KALIYOR — kullanıcı kararı.** Dolayısıyla oyun içi TL harcaması ve günlük şahsi
+bakım gideri olduğu gibi bırakıldı; aşağıdaki kapsam uyarısı artık bir uyarı değil, kabul
+edilmiş bir tasarım.
+
+**Koleksiyon — ✅ YAPILDI.** Kataloğun 19 ürününden yalnız 8'inin kuşanma yuvası var
+(çerçeve, tema, rozet); dekorasyon, koleksiyon ve şahsi hedefler satın alınıp yalnız bir
+SAYACI artırıyordu — 25.000.000 ₺'lik villanın oyundaki karşılığı "sahip olunan: 1" idi.
+
+Market özetinin altına katlanır **"Koleksiyonum"** bölümü eklendi: sahip olunan her ürün
+adıyla, kullanılıyorsa rozetiyle, günlük bakım gideri varsa tutarıyla listeleniyor. Katlanır,
+çünkü koleksiyon büyüdükçe katalogla arasına girmemeli; koleksiyon boşken hiç basılmıyor.
+
+**Tarayıcıda doğrulandı:** boşken bölüm yok (0), "Kurucu Rozeti" alındıktan sonra
+*"Koleksiyonum · 1 ürün"* çıkıyor, açılınca `◆ Kurucu Rozeti · Kullanılıyor` listeleniyor.
+Yatay taşma ve konsol hatası yok.
 
 **Kapsam uyarısı:** bu sekme oyun içi TL harcıyor ve şahsi ürünler günde 1.000–60.000 ₺
 gider yazıyor (`lifestyleDailyExpense`, gün kapanışına bağlı). Orijinaldeki "Market boş rota

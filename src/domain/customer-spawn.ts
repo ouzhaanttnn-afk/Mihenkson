@@ -97,19 +97,19 @@ export function spawnCustomer(
     const display = showcaseStock(stock.inventory, stock.items);
     const showcaseRng = new Rng(deriveSeed(rootSeed, 'customer/showcase', spawnIndex));
     /*
-      Hedef DÜZGÜN DAĞILIMLA seçiliyordu; artık yaşlanmaya göre ağırlıklı
-      (B4 — showcase-weight). `pickWeighted` tam olarak `pick` kadar, yani BİR
+      Hedef DÜZGÜN DAĞILIMLA seçiliyordu; artık yaşlanma ve ayara göre
+      ağırlıklı (B4 + B3 — showcase-weight). `pickWeighted` tam olarak `pick` kadar, yani BİR
       çekim harcar: tohum zinciri aynen korunur (GDD 28.3).
 
       Toplam ilgi (`SHOWCASE_TARGET_CHANCE`) DEĞİŞMEDİ — yalnız ürünler
       arasında nasıl bölüşüldüğü değişti. Vitrini doldurmanın bedeli hâlâ
-      aynı; artık taze mal payın büyüğünü alıyor.
+      aynı; artık taze ve yüksek ayarlı mal payın büyüğünü alıyor.
     */
     if (display.length && showcaseRng.chance(SHOWCASE_TARGET_CHANCE)) {
       const target = showcaseRng.pickWeighted(
         display.map((position) => ({
           value: position,
-          weight: showcaseWeight(position),
+          weight: showcaseWeight(stock.items[position.itemId]!, position),
         })),
       );
       demand = { ...showcaseDemand(stock.items[target.itemId]!), fallbackDemand: demand };

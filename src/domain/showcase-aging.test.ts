@@ -11,23 +11,26 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from './rng';
 import {
+  ageFactor,
   isShowcaseStale,
+  KARAT_LIQUIDITY,
   showcaseWeight,
   SHOWCASE_STALE_AGE,
   SHOWCASE_STALE_FLOOR,
 } from './showcase-weight';
 import { SHOWCASE_TARGET_CHANCE } from './purchase';
-import type { InventoryPosition } from './types';
+import type { InventoryPosition, ItemInstance } from './types';
 
 const poz = (age: number) => ({ age }) as unknown as InventoryPosition;
+const mal = (karat = '18K') => ({ declared: { claimedKarat: karat } }) as unknown as ItemInstance;
 
 describe('B4 · vitrin yaşlanması', () => {
   it('taze mal tam ilgi görür', () => {
-    expect(showcaseWeight(poz(0))).toBe(1);
+    expect(ageFactor(poz(0))).toBe(1);
   });
 
   it('bekledikçe ilgi DÜŞER — mekaniğin kendisi bu', () => {
-    const agirliklar = [0, 1, 2, 3, 4, 5, 6].map((g) => showcaseWeight(poz(g)));
+    const agirliklar = [0, 1, 2, 3, 4, 5, 6].map((g) => ageFactor(poz(g)));
 
     for (let i = 1; i < agirliklar.length; i++) {
       expect(agirliklar[i]!).toBeLessThan(agirliklar[i - 1]!);
@@ -35,7 +38,7 @@ describe('B4 · vitrin yaşlanması', () => {
   });
 
   it('eşik gününde tabana iner', () => {
-    expect(showcaseWeight(poz(SHOWCASE_STALE_AGE))).toBeCloseTo(SHOWCASE_STALE_FLOOR, 10);
+    expect(ageFactor(poz(SHOWCASE_STALE_AGE))).toBeCloseTo(SHOWCASE_STALE_FLOOR, 10);
   });
 
   /*
@@ -44,12 +47,12 @@ describe('B4 · vitrin yaşlanması', () => {
     kilitlemez.
   */
   it.each([6, 10, 30, 365])('%i gün sonra bile ilgi tabanda kalır, sıfırlanmaz', (gun) => {
-    expect(showcaseWeight(poz(gun))).toBe(SHOWCASE_STALE_FLOOR);
-    expect(showcaseWeight(poz(gun))).toBeGreaterThan(0);
+    expect(ageFactor(poz(gun))).toBe(SHOWCASE_STALE_FLOOR);
+    expect(showcaseWeight(mal(), poz(gun))).toBeGreaterThan(0);
   });
 
   it('bozuk yaş çökertmez', () => {
-    expect(showcaseWeight(poz(-5))).toBe(1);
+    expect(ageFactor(poz(-5))).toBe(1);
   });
 
   it('bayat rozeti eşikle aynı günde yanar — ekran ile mekanik ayrışmaz', () => {
@@ -70,7 +73,7 @@ describe('B4 · gerçek seçim dağılımı', () => {
 
     for (let i = 0; i < N; i++) {
       const secilen = new Rng(i + 1).pickWeighted(
-        vitrin.map((p, idx) => ({ value: idx, weight: showcaseWeight(p) })),
+        vitrin.map((p, idx) => ({ value: idx, weight: showcaseWeight(mal(), p) })),
       );
       sayac[secilen]! += 1;
     }
@@ -88,7 +91,7 @@ describe('B4 · gerçek seçim dağılımı', () => {
     // Hedefleme olasılığı `chance(SHOWCASE_TARGET_CHANCE)` ile ayrı belirlenir;
     // ağırlık yalnız o pay içinde kimin seçileceğini değiştirir.
     const vitrin = [poz(0), poz(3), poz(SHOWCASE_STALE_AGE)];
-    const paylar = vitrin.map((p) => showcaseWeight(p));
+    const paylar = vitrin.map((p) => showcaseWeight(mal(), p));
     const toplam = paylar.reduce((a, b) => a + b, 0);
 
     const dagilim = paylar.map((w) => (w / toplam) * SHOWCASE_TARGET_CHANCE);
@@ -98,8 +101,38 @@ describe('B4 · gerçek seçim dağılımı', () => {
 
   it('hepsi aynı yaştaysa dağılım düzgün kalır — eski davranış korunur', () => {
     const vitrin = [poz(2), poz(2), poz(2), poz(2)];
-    const w = vitrin.map((p) => showcaseWeight(p));
+    const w = vitrin.map((p) => showcaseWeight(mal(), p));
 
     expect(new Set(w).size).toBe(1);
+  });
+});
+
+describe('B3 · ayarın hız yarısı', () => {
+  it('yüksek ayar daha hızlı döner — dar marjın karşılığı bu', () => {
+    const sira = (['8K', '14K', '18K', '22K'] as const).map((k) => showcaseWeight(mal(k), poz(0)));
+
+    for (let i = 1; i < sira.length; i++) expect(sira[i]!).toBeGreaterThan(sira[i - 1]!);
+  });
+
+  /*
+    BEYAN EDİLEN AYAR KULLANILIR. Vitrine bakan müşteri de oyuncu gibi etiketi
+    görür; gerçek ayarı kullanmak müşteriye mihenk taşından geçmiş bilgi
+    vermek olurdu.
+  */
+  it('sahte malda BEYAN geçerlidir, gerçek ayar değil', () => {
+    const sahte = { declared: { claimedKarat: '22K' }, truth: { actualKarat: '8K' } } as unknown as ItemInstance;
+
+    expect(showcaseWeight(sahte, poz(0))).toBe(KARAT_LIQUIDITY['22K']);
+  });
+
+  it('ayarı bilinmeyen ürün ortalama likidite alır — çökmez', () => {
+    const bilinmeyen = { declared: { claimedKarat: 'AG925' } } as unknown as ItemInstance;
+
+    expect(showcaseWeight(bilinmeyen, poz(0))).toBe(1);
+  });
+
+  it('yaşlanma ve ayar BİRLİKTE çarpılır', () => {
+    expect(showcaseWeight(mal('22K'), poz(SHOWCASE_STALE_AGE)))
+      .toBeCloseTo(SHOWCASE_STALE_FLOOR * KARAT_LIQUIDITY['22K']!, 10);
   });
 });

@@ -5,6 +5,7 @@ import {
   isUnlocked,
   lifestyleDailyExpense,
   marketPurchaseCashRequirement,
+  productById,
   type MarketCategory,
   type MarketProduct,
 } from '@domain/marketplace';
@@ -20,6 +21,7 @@ export function MarketPlaceholderScreen() {
   const s = useGame();
   const [category, setCategory] = useState<MarketCategory>('profile');
   const [pending, setPending] = useState<MarketProduct | null>(null);
+  const [collectionOpen, setCollectionOpen] = useState(false);
   const products = MARKET_CATALOG.filter((product) => product.category === category);
   const upkeep = lifestyleDailyExpense(s.playerMarket);
 
@@ -49,6 +51,53 @@ export function MarketPlaceholderScreen() {
         <span><IconCollection size={17} /><b>{s.playerMarket.owned.length}</b> sahip olunan</span>
         <span><IconCash size={17} /><b>{tl(upkeep)}</b> günlük şahsi bakım</span>
       </div>
+
+      {/*
+        C4 — SAHİP OLUNAN 11 ÜRÜNÜN GİDECEK YERİ YOKTU.
+
+        Kataloğun 19 ürününden yalnız 8'inin kuşanma yuvası var (çerçeve, tema,
+        rozet); dekorasyon, koleksiyon ve şahsi hedefler satın alınıp yalnız
+        bir SAYACI artırıyordu. 25.000.000 ₺'lik villanın oyundaki karşılığı
+        "sahip olunan: 1" idi.
+
+        Katlanır tutuldu: koleksiyon büyüdükçe katalogla arasına girmesin,
+        ama bir dokunuşla görülebilsin. Boşken hiç basılmaz.
+      */}
+      {s.playerMarket.owned.length > 0 && (
+        <section className="marketOwned">
+          <button
+            type="button"
+            className="marketOwned__toggle"
+            aria-expanded={collectionOpen}
+            aria-controls="market-owned-list"
+            onClick={() => setCollectionOpen((open) => !open)}
+          >
+            <span>Koleksiyonum · {s.playerMarket.owned.length} ürün</span>
+            <span aria-hidden="true">{collectionOpen ? '▲' : '▼'}</span>
+          </button>
+          {collectionOpen && (
+            <ul className="marketOwned__list" id="market-owned-list">
+              {s.playerMarket.owned.map((id) => {
+                const product = productById(id);
+                if (!product) return null;
+                const slotta = product.equipSlot
+                  ? s.playerMarket.equipped[product.equipSlot] === product.id
+                  : false;
+                return (
+                  <li key={id}>
+                    <span className="marketOwned__mark" aria-hidden="true">{PRODUCT_MARK[product.category]}</span>
+                    <span className="marketOwned__name">{product.name}</span>
+                    {slotta && <span className="marketOwned__badge">Kullanılıyor</span>}
+                    {product.dailyUpkeep ? (
+                      <span className="marketOwned__upkeep num">{tl(product.dailyUpkeep)}/gün</span>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
 
       <nav className="marketCategories" aria-label="Market kategorileri">
         {MARKET_CATEGORIES.map((item) => (
