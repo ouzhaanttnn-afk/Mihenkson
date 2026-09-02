@@ -72,7 +72,7 @@ Referans depolar:
 | YENİ · Sarrafiyede "Vitrin" planı ve vitrin slotu şartı | ✅ yapıldı |
 | B2 · İşçilikli ürün ekonomik olarak baskılanmış | ❌ **ölçümle çürütüldü** |
 | B3 · Ayar bantları ayrışmıyor | ✅ **ölçümle doğrulandı** · düzeltmesi karar bekliyor |
-| YENİ · Ayarlarda ses, titreşim ve dil | ✅ tercih saklanıyor · davranış sonra bağlanacak |
+| YENİ · Ayarlarda ses, titreşim, dil ve ses düzeyi | ✅ tercih saklanıyor · davranış sonra bağlanacak |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -527,7 +527,48 @@ geri geldi.** iPhone SE'de (375×667) kutu 607px, taşma yok, "Kapat" görünür
 denetimi dolaşıp başa dönüyor. 360×500'de kutu kaydırmaya geçiyor ve "Kapat" ulaşılabilir
 kalıyor. Konsol hatası yok.
 
+**SES DÜZEYİ KAYDIRICISI (ikinci tur).** Kullanıcı ses/efekt ayrımı istemedi — tek "Ses"
+anahtarı kaldı — ve düzey için kaydırıcı istedi.
+
+*C2 ile çelişmiyor:* orada hızlı stok penceresindeki kaydırıcılar KALDIRILMIŞTI, çünkü
+oradaki değer kesin bir sayıydı (kaç çeyrek) ve yazmak doğruydu. Ses düzeyi sürekli ve
+yaklaşık bir tercihtir; kimse "%65 istiyorum" diye düşünmez, kulağıyla ayarlar. Kaydırıcının
+tam yeri burası.
+
+- Değer **0–100 tam sayı**, ondalık oran değil: kayda yazılan ondalıklar sürüm sürüm kayar
+  (0.7000000000000001). Sesi bağlarken çevirmek tek bölme: `gain = soundVolume / 100`.
+- Varsayılan **%70** — hem yukarı hem aşağı yer bırakır; tam açık başlamak oyunu sessiz
+  ortamda ilk kez açanı şaşırtır.
+- `VOLUME_STEP` yalnız kaydırıcının davranışı; normalizasyon adıma **yuvarlamaz**, yani
+  başka yoldan gelen 73 geçerli kalır.
+- **Ses kapalıyken kaydırıcı devre dışı** ve alt metin nedenini söyler. Kapalı sesin düzeyini
+  ayarlatmak, tam da bu pencerede kaçındığımız "hiçbir şey yapmayan denetim" olurdu.
+- Odak tuzağının seçicisi düzeltildi: yalnız `button` arıyordu, kaydırıcı bir `input` ve
+  listeye girmiyordu. Şimdilik ortada durduğu için tuzak yine de tutuyordu, ama ilk ya da son
+  denetim hâline geldiği gün sessizce kırılırdı.
+
+**Testler:** `settings.test.ts` toplam 39. Sınırlar (0 ve 100), aralık dışı (−40 → 0,
+999 → 100), ondalık yuvarlama (70,4 → 70 · 70,6 → 71), geçersiz tipler (metin, NaN, Infinity,
+null, nesne) varsayılana düşer, adımın katı olmayan 73 korunur, eski kayıtta alan yokken
+komşu tercihler bozulmaz ve **sesi kapatmak düzeyi silmez** (tekrar açınca eski düzey yerinde).
+
+**Tarayıcıda doğrulandı (375×667):** düzey %70 → %30, kayda `soundVolume:30` yazıldı; ses
+kapatılınca kaydırıcı `disabled` ve satır *"Ses kapalıyken ayarlanamaz"*; yenilemeden sonra
+ikisi de geri geldi; ses tekrar açılınca düzey %30 olarak yerinde. Dokunma hedefi 44 px,
+kutu 607px/667px içinde ve kaydırılabilir, "Kapat" ulaşılabilir. Konsol hatası yok.
+
 **Bağlanınca yapılacak tek şey** "hazırlanıyor" ibarelerini kaldırmak; tercih zaten yerinde.
+
+##### ÖLÇÜM TUZAĞI — `localStorage` anahtarını regex'le arama
+
+Kaydı `Object.keys(localStorage).find(k => /save/i.test(k))` ile okuyan bir doğrulama
+betiği, ses kapatıldığı hâlde kayıtta `soundEnabled: true` gösterdi. Kodda hata yoktu:
+`save.ts` **iki** anahtar tutuyor — `mihenkaynak.save.v1` ve `mihenkaynak.save.v1.backup` —
+ve yedeğin işi tam olarak BİR ÖNCEKİ kaydı saklamaktır. Betik yedeği yakalamış, yani kasten
+eski olan veriyi okumuş. Anahtarı açıkça yazan koşu her adımda doğru çıktı
+(`{"soundEnabled":false,"soundVolume":30,...}`).
+
+**Kural:** bu projede kayıt doğrulaması yapılırken anahtar **tam adıyla** okunmalı.
 
 #### A10 · A · Ses altyapısı bağlı, dosya yok
 `src/ui/audio.ts` · `public/assets/audio/{sfx,music}/`

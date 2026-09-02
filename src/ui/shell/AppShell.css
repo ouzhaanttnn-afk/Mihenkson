@@ -1736,6 +1736,35 @@
 .settingsRow--static { cursor: default; }
 .settingsRow--static:hover { border-color: var(--line-light); }
 
+/*
+  Ses düzeyi satırı: metin üstte, kaydırıcı altta tam genişlikte. Yan yana
+  koymak 375 px'lik ekranda kaydırıcıyı kullanılamayacak kadar daraltırdı.
+*/
+.settingsRow--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.settingsSlider {
+  width: 100%;
+  /* GDD 23.22 — 44 px dokunma hedefi. */
+  min-height: 44px;
+  accent-color: var(--amethyst-500);
+  cursor: pointer;
+}
+
+/* Kapalı ses: denetim hem soluk hem tıklanamaz; alt metin nedenini söyler. */
+.settingsSlider:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.settingsSlider:focus-visible {
+  outline: 3px solid var(--brass-500);
+  outline-offset: 2px;
+}
+
 .settingsSegment {
   flex: 0 0 auto;
   display: flex;

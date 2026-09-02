@@ -32,9 +32,31 @@ export type LanguageId = (typeof LANGUAGES)[number]['id'];
 
 export const DEFAULT_LANGUAGE: LanguageId = 'tr';
 
+export const VOLUME_MIN = 0;
+export const VOLUME_MAX = 100;
+/*
+  Varsayılan düzey %70: alışıldık bir başlangıç, hem yukarı hem aşağı yer
+  bırakır. Tam açık başlamak, oyunu ilk kez sessiz bir ortamda açanı şaşırtır.
+*/
+export const DEFAULT_VOLUME = 70;
+/** Kaydırıcının adımı; 21 durak, başparmakla ayarlanabilir bir hassasiyet. */
+export const VOLUME_STEP = 5;
+
 export interface PlayerPreferences {
-  /** Ses efektleri ve müzik. */
+  /**
+   * Ses — TEK anahtar. Müzik ve efekt AYRI AYRILMADI: bu tabanda hiç ses
+   * dosyası yok, ikiye bölmek oyuncuya var olmayan bir ayrım sunmak olurdu.
+   */
   soundEnabled: boolean;
+  /**
+   * Ses düzeyi, 0–100 tam sayı.
+   *
+   * ONDALIK ORAN (0–1) DEĞİL, BİLEREK: değer kayda yazılıyor ve ondalık
+   * sayılar kayıt dosyasında sürüm sürüm kayabilir (0.7000000000000001).
+   * Tam sayı hem kayıtta kararlı hem ekranda doğrudan okunur. Sesi bağlarken
+   * çevirmek tek bölme işlemi: `gain = soundVolume / 100`.
+   */
+  soundVolume: number;
   /** Dokunsal geri bildirim (haptik). */
   vibrationEnabled: boolean;
   language: LanguageId;
@@ -46,7 +68,24 @@ export interface PlayerPreferences {
  * kadar bunun görünür bir etkisi olmaz.
  */
 export function defaultPreferences(): PlayerPreferences {
-  return { soundEnabled: true, vibrationEnabled: true, language: DEFAULT_LANGUAGE };
+  return {
+    soundEnabled: true,
+    soundVolume: DEFAULT_VOLUME,
+    vibrationEnabled: true,
+    language: DEFAULT_LANGUAGE,
+  };
+}
+
+/**
+ * Ses düzeyini güvenli aralığa çeker.
+ *
+ * SNAP YAPILMAZ: değer `VOLUME_STEP`in katına yuvarlanmaz. Adım yalnız
+ * kaydırıcının davranışıdır; ileride adım değişirse ya da başka bir yoldan
+ * 73 yazılırsa o değer geçerli kalmalı, sessizce oynatılmamalı.
+ */
+export function normalizeVolume(raw: unknown): number {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return DEFAULT_VOLUME;
+  return Math.min(VOLUME_MAX, Math.max(VOLUME_MIN, Math.round(raw)));
 }
 
 /** Bilinmeyen dil kimliğini varsayılana çeker — bozuk kayıt çökertmez. */
@@ -71,6 +110,7 @@ export function normalizePreferences(raw: unknown): PlayerPreferences {
   return {
     soundEnabled:
       typeof source.soundEnabled === 'boolean' ? source.soundEnabled : fallback.soundEnabled,
+    soundVolume: normalizeVolume(source.soundVolume),
     vibrationEnabled:
       typeof source.vibrationEnabled === 'boolean'
         ? source.vibrationEnabled

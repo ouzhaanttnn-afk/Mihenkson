@@ -5,7 +5,8 @@
  *
  *   Profil            → kuyumcunun adı ve portresi (ProfileDialog'a devreder)
  *   Öğretici ipuçları → açık / kapalı, iki yöne de çalışır
- *   Ses · Titreşim    → tercih SAKLANIR, davranış sonra bağlanacak
+ *   Ses               → tek anahtar (müzik/efekt AYRILMADI) + düzey kaydırıcısı
+ *   Titreşim          → tercih SAKLANIR, davranış sonra bağlanacak
  *   Dil               → tercih SAKLANIR, çeviri katmanı sonra bağlanacak
  *   Yeni oyun         → kaydı siler (onaylı)
  *
@@ -31,7 +32,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { LANGUAGES } from '@domain/preferences';
+import { LANGUAGES, VOLUME_MAX, VOLUME_MIN, VOLUME_STEP } from '@domain/preferences';
 import { useGame } from '@state/gameStore';
 
 export function SettingsDialog() {
@@ -69,8 +70,14 @@ export function SettingsDialog() {
       if (e.key !== 'Tab') return;
       const box = boxRef.current;
       if (!box) return;
+      /*
+        Yalnız `button` aranıyordu; ses düzeyi kaydırıcısı bir `input` ve
+        listeye girmiyordu. Şu an pencerenin ortasında durduğu için tuzak
+        yine de tutuyordu — ama ilk ya da son denetim hâline geldiği gün
+        sessizce kırılırdı. Odaklanabilir her denetim sayılır.
+      */
       const stops = Array.from(
-        box.querySelectorAll<HTMLElement>('button:not([disabled])'),
+        box.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])'),
       );
       if (stops.length === 0) return;
       const first = stops[0]!;
@@ -185,6 +192,41 @@ export function SettingsDialog() {
             <span className="settingsRow__knob" />
           </span>
         </button>
+
+        {/*
+          SES DÜZEYİ — kaydırıcı burada doğru denetim.
+
+          C2'de hızlı stok penceresindeki kaydırıcıları KALDIRMIŞTIK; burada
+          eklemek onunla çelişmiyor. Oradaki değer kesin bir sayıydı (kaç
+          çeyrek), yazmak doğruydu. Ses düzeyi sürekli ve yaklaşık bir
+          tercihtir; kimse "%65 istiyorum" diye düşünmez, kulağıyla ayarlar.
+
+          SES KAPALIYKEN DEVRE DIŞI: kapalı sesin düzeyini ayarlatmak, tam da
+          bu pencerede kaçındığımız şey olurdu — hiçbir şey yapmayan bir
+          denetim. Alt metin nedenini de söyler.
+        */}
+        <div className="settingsRow settingsRow--static settingsRow--stack">
+          <span className="settingsRow__copy">
+            <strong>Ses düzeyi</strong>
+            <small>
+              {preferences.soundEnabled
+                ? `%${preferences.soundVolume}`
+                : 'Ses kapalıyken ayarlanamaz'}
+            </small>
+          </span>
+          <input
+            className="settingsSlider"
+            type="range"
+            min={VOLUME_MIN}
+            max={VOLUME_MAX}
+            step={VOLUME_STEP}
+            value={preferences.soundVolume}
+            disabled={!preferences.soundEnabled}
+            aria-label="Ses düzeyi"
+            aria-describedby="settings-pending"
+            onChange={(e) => setPreference('soundVolume', Number(e.target.value))}
+          />
+        </div>
 
         {/*
           Dil bir AÇIK/KAPALI değil, bir seçim — o yüzden anahtar değil

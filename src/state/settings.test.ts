@@ -14,9 +14,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useGame } from './gameStore';
 import { deserialize, readSave, serialize } from './save';
 import {
+  DEFAULT_VOLUME,
   defaultPreferences,
   LANGUAGES,
   normalizePreferences,
+  normalizeVolume,
+  VOLUME_MAX,
+  VOLUME_MIN,
 } from '@domain/preferences';
 
 const initial = useGame.getState();
@@ -114,10 +118,20 @@ describe('kayıt uyumu', () => {
  * unutmuyorsa oyuncu yalan söylenmiş olmaz.
  */
 describe('sunum tercihleri', () => {
-  it('varsayılanlar: ses ve titreşim açık, dil Türkçe', () => {
+  it('varsayılanlar: ses ve titreşim açık, düzey %70, dil Türkçe', () => {
     const p = defaultPreferences();
 
-    expect(p).toEqual({ soundEnabled: true, vibrationEnabled: true, language: 'tr' });
+    expect(p).toEqual({
+      soundEnabled: true,
+      soundVolume: DEFAULT_VOLUME,
+      vibrationEnabled: true,
+      language: 'tr',
+    });
+  });
+
+  it('ses TEK anahtar — müzik/efekt diye ayrı bir alan yok', () => {
+    expect(Object.keys(defaultPreferences()).filter((k) => /sound|music|effect/i.test(k)))
+      .toEqual(['soundEnabled', 'soundVolume']);
   });
 
   it('değiştirilen tercih durumda ve kayıtta durur', () => {
@@ -128,6 +142,7 @@ describe('sunum tercihleri', () => {
     expect(useGame.getState().preferences.language).toBe('en');
     expect(readSave()?.preferences).toEqual({
       soundEnabled: false,
+      soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
       language: 'en',
     });
@@ -146,6 +161,7 @@ describe('sunum tercihleri', () => {
 
     expect(geri.preferences).toEqual({
       soundEnabled: true,
+      soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: false,
       language: 'tr',
     });
@@ -204,6 +220,77 @@ describe('sunum tercihleri', () => {
 
     expect(useGame.getState().store.cash).toBe(nakit);
     expect(useGame.getState().store.level).toBe(seviye);
+    expect(useGame.getState().inventory).toHaveLength(stok);
+  });
+});
+
+describe('ses düzeyi', () => {
+  it('değiştirilen düzey durumda ve kayıtta durur', () => {
+    useGame.getState().setPreference('soundVolume', 35);
+
+    expect(useGame.getState().preferences.soundVolume).toBe(35);
+    expect(readSave()?.preferences?.soundVolume).toBe(35);
+  });
+
+  it('sınırlar kabul edilir: sessiz ve tam açık', () => {
+    useGame.getState().setPreference('soundVolume', VOLUME_MIN);
+    expect(useGame.getState().preferences.soundVolume).toBe(0);
+
+    useGame.getState().setPreference('soundVolume', VOLUME_MAX);
+    expect(useGame.getState().preferences.soundVolume).toBe(100);
+  });
+
+  it.each([
+    [-40, 0],
+    [999, 100],
+    [70.4, 70],
+    [70.6, 71],
+  ])('aralık dışı / ondalık değer %s → %s', (giren, beklenen) => {
+    expect(normalizeVolume(giren)).toBe(beklenen);
+  });
+
+  it.each([
+    ['metin', '70'],
+    ['NaN', NaN],
+    ['sonsuz', Infinity],
+    ['null', null],
+    ['tanımsız', undefined],
+    ['nesne', {}],
+  ])('geçersiz düzey (%s) varsayılana düşer', (_ad, giren) => {
+    expect(normalizeVolume(giren)).toBe(DEFAULT_VOLUME);
+  });
+
+  /*
+    ADIMA YUVARLANMAZ. `VOLUME_STEP` yalnız kaydırıcının davranışıdır;
+    başka bir yoldan gelen 73 geçerli kalmalı, sessizce 75'e oynatılmamalı.
+  */
+  it('adımın katı olmayan geçerli değer korunur', () => {
+    expect(normalizeVolume(73)).toBe(73);
+  });
+
+  it('ESKİ KAYITTA düzey yok — varsayılana düşer, komşu tercihler korunur', () => {
+    const p = normalizePreferences({ soundEnabled: false, language: 'en' });
+
+    expect(p.soundVolume).toBe(DEFAULT_VOLUME);
+    expect(p.soundEnabled).toBe(false);
+    expect(p.language).toBe('en');
+  });
+
+  it('sesi kapatmak düzeyi SİLMEZ — tekrar açınca eski düzey yerinde', () => {
+    useGame.getState().setPreference('soundVolume', 25);
+    useGame.getState().setPreference('soundEnabled', false);
+    useGame.getState().setPreference('soundEnabled', true);
+
+    expect(useGame.getState().preferences.soundVolume).toBe(25);
+  });
+
+  it('düzey oyun gücü vermez — nakit ve stok değişmez', () => {
+    const nakit = useGame.getState().store.cash;
+    const stok = useGame.getState().inventory.length;
+
+    useGame.getState().setPreference('soundVolume', 10);
+
+    expect(useGame.getState().store.cash).toBe(nakit);
     expect(useGame.getState().inventory).toHaveLength(stok);
   });
 });
