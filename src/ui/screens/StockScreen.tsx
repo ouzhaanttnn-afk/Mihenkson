@@ -418,15 +418,24 @@ function StockRow({ position }: { position: InventoryPosition }) {
 }
 
 /**
- * HAS HESABI — KOMPAKT TEZGÂH.
+ * HAS HESABI — KATLANIR KOMPAKT TEZGÂH.
  *
- * Panel eskiden tam boy çiziliyor ve Stok sekmesinin ilk ekranını tek başına
- * dolduruyordu: oyuncu "Stok"a basınca stoğunu değil bir altın alım-satım
- * tezgâhını görüyordu (390 × 844'te ölçüldü). Clone tarafı bunu `hasCompact`
- * düzenine geçirerek çözdü; A3 için ayrıca katlanır yapmaya gerek kalmadı.
+ * `hasCompact` düzeni her satırı küçülttü ama panel hâlâ TAM BOY açık
+ * çiziliyordu: telefonda ölçüldü, Stok sekmesinin ilk ekranını tek başına
+ * dolduruyor ve stok listesini katın altına itiyordu. Oyuncu "Stok"a basınca
+ * stoğunu değil bir altın alım-satım tezgâhını görüyordu.
+ *
+ * Artık ekrandaki diğer iki tezgâhla (`Sarrafiye Al`, `Toptancıya Sat`) AYNI
+ * desende: başlık bir düğme, gövde katlanır, kapalı açılır. Üçü bir set gibi
+ * okunuyor ve ilk ekran stoğun kendisine kalıyor.
+ *
+ * Başlık kapalıyken de bilgilendirici — bakiye, değeri ve günün alış/satış
+ * kotasyonu orada duruyor; açmak yalnız işlem yapmak isteyene gerekiyor.
  */
 function HasCounter() {
   const s = useGame();
+  // Panelin katlanma durumu; aşağıdaki `open` "bugün HAS işlemi açık mı"dır.
+  const [expanded, setExpanded] = useState(false);
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amountMg, setAmountMg] = useState(0);
   const [pending, setPending] = useState<string | null>(null);
@@ -439,15 +448,26 @@ function HasCounter() {
   const valid = selectedMg > 0 && selectedMg <= maxMg && total > 0;
   const signature = `${s.market.day}:${side}:${selectedMg}:${total}:${s.ledger.transactions.length}`;
   const changeSide = (next: 'buy' | 'sell') => { setSide(next); setAmountMg(0); setPending(null); };
-  return <section className="group hasCompact" aria-label="HAS hesabı">
-    <div className="hasCompact__head">
-      <div>
-        <h2 className="hasCompact__title">HAS · {preciseGrams(fromMg(s.store.hasBalanceMg ?? 0))}</h2>
-        <span className="hasCompact__value">Değer {tl(fromMg(s.store.hasBalanceMg ?? 0) * s.market.goldSpot)}</span>
-      </div>
-      <span className="hasCompact__quote num">Al {tl(quote.buy)}/g<br />Sat {tl(quote.sell)}/g</span>
-    </div>
-    <div className="hasCompact__body">
+  return <section className="counter hasCompact" aria-label="HAS hesabı">
+    <button
+      type="button"
+      className="counter__toggle"
+      onClick={() => setExpanded((current) => !current)}
+      aria-expanded={expanded}
+      aria-controls="has-counter"
+    >
+      <span>HAS · {preciseGrams(fromMg(s.store.hasBalanceMg ?? 0))}</span>
+      <span className="counter__meta">
+        <span className="counter__hint num">
+          Al {tl(quote.buy)}/g · Sat {tl(quote.sell)}/g
+        </span>
+        <span className={`counter__chevron ${expanded ? 'counter__chevron--open' : ''}`} aria-hidden="true">▼</span>
+      </span>
+    </button>
+    {expanded && <div className="hasCompact__body" id="has-counter">
+      <p className="hasCompact__value">
+        Değer {tl(fromMg(s.store.hasBalanceMg ?? 0) * s.market.goldSpot)}
+      </p>
       <div className="hasCompact__segments" role="group" aria-label="HAS işlem yönü">
         <button type="button" className="hasCompact__segment" aria-pressed={side === 'buy'} onClick={() => changeSide('buy')}>HAS Al</button>
         <button type="button" className="hasCompact__segment" aria-pressed={side === 'sell'} onClick={() => changeSide('sell')}>HAS Sat</button>
@@ -474,7 +494,7 @@ function HasCounter() {
         }}>Onayla</button>
         <button type="button" className="hasCompact__cancel" onClick={() => setPending(null)}>Vazgeç</button>
       </div>}
-    </div>
+    </div>}
   </section>;
 }
 

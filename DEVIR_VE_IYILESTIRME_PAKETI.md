@@ -62,6 +62,7 @@ Referans depolar:
 | C5 · Karşılanan satıcıdan vazgeçilemiyordu | ✅ yapıldı |
 | YENİ · Ayarlar baloncuğu (Dükkan ekranı) | ✅ yapıldı |
 | A8 · Karşı Teklif sınırsız basılıyordu | ✅ yapıldı |
+| A3-2 · HAS tezgâhı katlanır oldu | ✅ yapıldı |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -71,7 +72,7 @@ Düzeltmeler eski tabanda (292467e) teşhis edilmişti; yeni tabanda hepsi başt
 |---|---|
 | A1 balon ömrü | ✓ tarayıcıda: 3 gün üst üste kapatıldı, 5,5 sn sonra **0** balon |
 | A2 alt rota | ✓ tarayıcıda: Piyasa ve İşlem Defteri'nden sekmeyle köke dönüş |
-| A3 HAS paneli | clone `45a499b` ile kendi çözmüş (`hasCompact`) — benimki geri çekildi |
+| A3 HAS paneli | ✅ katlanır yapıldı — `hasCompact` her satırı küçültmüştü ama panel hâlâ tam boy açıktı; telefonda ölçüldü, ilk ekranı tek başına dolduruyordu |
 | A4 chip yüksekliği | ✓ tarayıcıda: 46 px, filtre çipiyle eşit |
 | A5 `AÇIK` | ✓ tarayıcıda: pazarlık rozeti "AÇIK" |
 | A6 kırılım | ✓ tarayıcıda: `Kondisyon/Risk −%2 · −431 ₺` · `Oynaklık +%1` · not satırı var |

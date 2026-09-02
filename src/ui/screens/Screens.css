@@ -868,11 +868,20 @@
   color: var(--brass-600);
 }
 
-.hasCompact {
-  padding: var(--sp-3);
-}
+/*
+  HAS tezgâhı artık `.counter` çerçevesini paylaşıyor (bkz. StockScreen ·
+  HasCounter). Çerçeveyi, kenarlığı ve zemini `.counter` veriyor; buradaki
+  kurallar yalnız gövdenin iç düzenini kuruyor.
 
-.hasCompact__head,
+  ESKİDEN OKUNMUYORDU: panel `.group` idi, yani KOYU bir yüzeydi, ama
+  metinleri `--text-light-*` jetonlarını taşıyordu. Telefonda "Değer 0 ₺",
+  "Seçilen: 0 g" ve "Tutar 0 ₺" neredeyse görünmüyordu. `.counter` açık bir
+  yüzey olduğu için jetonlar artık zeminle uyuşuyor — ayrı bir renk yaması
+  gerekmedi, çelişki kalktı.
+
+  `.hasCompact__head`, `__title` ve `__quote` kuralları kaldırıldı: başlık
+  artık `.counter__toggle`, kotasyon da `.counter__hint` içinde.
+*/
 .hasCompact__sliderHead,
 .hasCompact__actions,
 .hasCompact__confirm {
@@ -882,29 +891,21 @@
   gap: var(--sp-2);
 }
 
-.hasCompact__title {
-  margin: 0;
-  color: var(--text-light-1);
-  font-size: var(--fs-label);
-}
-
 .hasCompact__value,
-.hasCompact__quote,
 .hasCompact__sliderHead,
 .hasCompact__confirm {
   color: var(--text-light-3);
   font-size: var(--fs-micro);
 }
 
-.hasCompact__quote {
-  text-align: right;
-  line-height: 1.45;
+.hasCompact__value {
+  margin: 0;
 }
 
 .hasCompact__body {
   display: grid;
   gap: var(--sp-2);
-  margin-top: var(--sp-2);
+  padding: var(--sp-3);
 }
 
 .hasCompact__segments {
