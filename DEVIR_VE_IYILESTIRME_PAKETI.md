@@ -652,7 +652,7 @@ kalibre; sistematik bir yalan yok.
 yazmışım. Bu maddeye dayanarak "otomatik perakendeyi sarrafiyeye kısıtla" değişikliği
 yapılsaydı, var olmayan bir sorun için ekonomi bozulacaktı.
 
-#### B3 · T · Ayar bantları birbirinden ayrışmıyor — ✅ ÖLÇÜMLE DOĞRULANDI · düzeltmesi karar bekliyor
+#### B3 · T · Ayar bantları birbirinden ayrışmıyor — ⏸ DENENDİ VE GERİ ALINDI
 `src/domain/customer-pricing.ts` · `CRAFTED_BANDS`
 
 Bu taban üzerinde yeniden ölçüldü ve **doğru çıktı**:
@@ -870,7 +870,7 @@ Satın alma satır satır "Al" ile yapılıyor; "Alımı Bitir" yalnızca pencer
 **Yapıldı:** düğme adı **"Kapat"**. Tarayıcıda doğrulandı — pencerede 6 satır "Al"
 düğmesi, altta tek "Kapat".
 
-#### C4 · A · Market'in 18 ürününden 11'i hiçbir yerde görünmüyor
+#### C4 · A · Market'in 18 ürününden 11'i hiçbir yerde görünmüyor — ✅ EKRAN TARAFI YAPILDI · ekonomi tarafı karar bekliyor
 Kodda yalnız 7 ürünün kuşanma yuvası var (3 çerçeve, 2 tema, 2 rozet); rozetlerin CSS'i yok,
 ekrana çıplak bir `◆` karakteri çiziliyor. Dekorasyon, koleksiyon ve tüm şahsi yaşam
 hedefleri — 11 ürün — yalnız bir sayacı artırıyor. 25.000.000 ₺'lik villanın karşılığı
@@ -935,7 +935,7 @@ yazılmadığı.
 `Kasa değişimi −12.359 ₺` · alt satır `Bunun 11.159 ₺ kadarı stoğa girdi` ·
 `Günlük gider −1.200 ₺` → 11.159 + 1.200 = 12.359. Not kendi satırında, kaba taşmıyor.
 
-#### C7 · Clone'dan bize alınabilecekler
+#### C7 · Clone'dan bize alınabilecekler — ✅ KONU KAPANDI (bu tabanda hepsi zaten var)
 - **Gün raporundaki ek satırlar:** "Personel payı (gidere dahil)", "Kaçırılan Misafir",
   "Stok net çıkış farkı". Bizim raporumuzda yok, faydalı.
 - **Profil çipinde XP okuması:** clone `0/580` gösteriyor, biz `%0`. Clone'unki daha bilgilendirici.
