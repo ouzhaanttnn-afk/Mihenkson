@@ -52,6 +52,7 @@ Referans depolar:
 | A3 · Stok sekmesi stoğu göstermiyor | ✅ yapıldı |
 | A4 · Stok düğmeleri yumurta gibi duruyor | ✅ yapıldı |
 | A9 · Stok marjı hangi kanala göre, yazmıyor | ✅ yapıldı |
+| C1 · Vitrin tezi seçilince mal vitrine girmiyordu | ✅ yapıldı |
 | Geri kalanı | ⏳ sırada (aşağıdaki "Önerilen sıra") |
 
 ---
@@ -383,14 +384,46 @@ hiçbir yerden göremiyor, dolayısıyla vitrini doldurmanın bir bedeli olduğu
 Clone'a **dokunulmaz**; bu maddeler ya oraya taşınacak düzeltmeler ya da bizim tarafa
 alınacak fikirler olarak listelendi. Ayrıntılı gerekçeler yayımlanmış raporda.
 
-#### C1 · E · Alınan mal vitrine değil arka stoğa düşüyor
-"İlk Stoğunu Al" ile 11 çeyrek alındı; Stok sekmesi `Vitrin 0/8 · Arka stok 1/16` gösterdi.
-Oyuncunun ilk alımı vitrini boş bırakıyor, vitrin müşterisi geldiğinde satacak şey olmuyor
-ve nedeni hiçbir yerde yazmıyor. **Clone'un en can alıcı mekaniği ilk otuz saniyede sessizce
-devre dışı kalıyor.**
+#### C1 · E · Vitrin tezi seçilince mal vitrine girmiyordu — ✅ YAPILDI
+`src/state/gameStore.ts` · `settleLine`
 
-**Yapılacak:** hızlı stoktan alınan mal vitrin dolana kadar vitrine gitsin, kalanı arkaya.
-Stok satırına "Vitrinde değil" uyarısı ve tek dokunuşla taşıma düğmesi.
+**Maddenin ilk hâli yanlıştı, düzeltmesi:** "İlk Stoğunu Al ile alınan çeyrek vitrine değil
+arka stoğa düşüyor, vitrin mekaniği devre dışı kalıyor" yazmıştım. Ekrandaki
+`Vitrin 0/8 · Arka stok 1/16` satırına bakıp yorumlamıştım; kodu okumadan. Kod şunu
+söylüyor:
+
+- `purchase.ts · showcaseStock` vitrin hedefini seçerken **`isCrafted`** şartı arıyor —
+  sarrafiye (çeyrek, gram, yatırım bileziği) **hiçbir zaman** vitrin hedefi olamaz.
+- `purchase.ts:207` sıradan talep `display` VE `backStock` pozisyonlarının ikisini de
+  eşleştiriyor — yani arka stoktaki sarrafiye zaten sorunsuz satılıyor.
+
+Yani alınan sarrafiyenin arka stoğa düşmesi bir hata değil. Kalan gerçek sorun anlaşılırlık:
+oyuncu `Vitrin 0/8` görüp bir şeyin ters gittiğini sanıyor.
+
+**Asıl kırık halka başkaymış.** Müşteriden alınan **işçilikli** ürün de `backStock`a
+düşüyordu (`settleLine` · `location: 'backStock'` sabitti). Vitrin müşterisi yalnız
+`location === 'display'` olan işçilikli ürünü hedeflediği için, oyuncu işlem sırasında
+**"Vitrin" çıkış planını seçse bile** mekanik kendiliğinden hiç çalışmıyordu; vitrini
+doldurmanın tek yolu Stok ekranında satırı açıp "Vitrine Koy"a basmaktı ve bunu hiçbir yer
+söylemiyordu.
+
+Alan katmanı zaten bu varsayımla yazılmış:
+- `thesis.ts:144` "Vitrin"i ancak **boş slot varken** seçenek olarak sunuyor (`displayFree > 0`).
+- `settlement.ts:152` gelen kalemin `display` konumunu zaten taşıyor.
+
+Eksik olan tek halka, mağazanın kalemi `display` yazmamasıydı.
+
+**Yapıldı:** `settleLine` artık tez `retail` ve ürün işçilikliyse, boş slot varsa kalemi
+doğrudan vitrine koyuyor. Slot işlem sırasında dolmuş olabileceği için tekrar bakılıyor; yer
+yoksa mal arka stokta kalıyor ve oyuncuya balonla söyleniyor — sessizce yutulmuyor.
+
+**Testler:** `src/domain/showcase-routing.test.ts` — 6 test. Konumun kaleme ve pozisyona
+taşınması, vitrine girenin hedeflenebilir olması, arka stoktakinin hedeflenememesi (kırılan
+halkanın kendisi) ve **konumun maliyet/nakit matematiğini değiştirmediği**.
+
+**Kalan (ayrı iş):** Stok satırına "Vitrinde değil" rozeti ve tek dokunuşla taşıma; ayrıca
+`displayStock` hâlâ yalnız işçilikliyi kabul ediyor — sarrafiye için vitrin zaten anlamsız
+olduğundan bu doğru, ama Hızlı Stok penceresi `Vitrin 0/8`'in neden 0 kaldığını söylemiyor.
 
 #### C2 · A · Hızlı Stok penceresi üç farklı giriş biçimi kullanıyor
 Gram Altın satırı serbest yazı kutusu, Çeyrek satırı `− 1 +` sayacı, Bilezik satırı

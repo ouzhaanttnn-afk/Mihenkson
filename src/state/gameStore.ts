@@ -2125,12 +2125,35 @@ function settleLine(
   let economy = economyOf(s);
 
   if (accepted) {
+    /*
+      VİTRİN TEZİ SEÇİLDİYSE MAL VİTRİNE GİRER.
+
+      Alınan her şey `backStock`a düşüyordu; vitrini dolduran tek yol Stok
+      ekranında satırı açıp "Vitrine Koy"a basmaktı ve bunu hiçbir yer
+      söylemiyordu. Oysa vitrin müşterisi YALNIZ `location === 'display'`
+      olan işçilikli ürünü hedefler (purchase.ts · pickShowcaseTarget), yani
+      oyuncu işlem sırasında "Vitrin" çıkış planını seçse bile mekanik
+      kendiliğinden hiç çalışmıyordu.
+
+      Alan katmanı zaten bu varsayımla çalışıyor: `thesis.ts` "Vitrin"i ancak
+      BOŞ VİTRİN SLOTU varken seçenek olarak sunuyor (`displayFree > 0`).
+      Eksik olan tek halka, mutabakatın o kararı taşımamasıydı.
+
+      Slot işlem sırasında dolmuş olabilir (aynı gün başka bir mal vitrine
+      girmiş olabilir), o yüzden burada tekrar bakılır; yer yoksa mal arka
+      stokta kalır ve oyuncuya söylenir — sessizce yutulmaz.
+    */
+    const displayUsed = s.inventory.filter((p) => p.location === 'display').length;
+    const wantsDisplay = line.selectedThesis === 'retail' && isCrafted(item);
+    const displayHasRoom = displayUsed < s.store.displaySlots;
+    const goesToDisplay = wantsDisplay && displayHasRoom;
+
     const stored: ItemInstance = {
       ...item,
       buyCost: price,
       acquiredDay: s.market.day,
       thesis: line.selectedThesis,
-      location: 'backStock',
+      location: goesToDisplay ? 'display' : 'backStock',
     };
 
     const actual = trueValue(item, s.market);
@@ -2164,6 +2187,17 @@ function settleLine(
       return;
     }
     economy = outcome.state;
+
+    // Oyuncu "Vitrin" dedi ama vitrin doluysa mal arka stokta kaldı; bunu
+    // söylemezsek vitrin müşterisinin neden gelmediği anlaşılmaz.
+    if (wantsDisplay && !displayHasRoom) {
+      pushToast(
+        set,
+        get,
+        `Vitrin dolu (${s.store.displaySlots}/${s.store.displaySlots}) — ${item.displayName} arka stoğa girdi.`,
+        'negative',
+      );
+    }
   }
 
   // --- DealRecord (GDD 22.2) ---
