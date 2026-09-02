@@ -11,9 +11,15 @@ Tarih: 2 Eylül 2026 · Depo: `ouzhaanttnn-afk/Mihenkson` · Dal: `main`
 
 ## BÖLÜM 0 — BU DEPO NEREDEN GELDİ
 
-`Mihenkson` boş bir depoydu. İçeriği, `ouzhaanttnn-afk/clonemihenk` deposunun
-`292467e` commit'indeki izlenen ağacının birebir kopyasıdır (`git archive` ile salt
-okunur alındı; **kaynak depoya dokunulmadı ve dokunulmayacak**).
+`Mihenkson` boş bir depoydu. İçeriği `ouzhaanttnn-afk/clonemihenk` deposundan salt okunur
+alındı (`git archive`; **kaynak depoya dokunulmadı ve dokunulmayacak**).
+
+⚠️ **İlk import yanlış commit'ten yapıldı.** Elimdeki eski checkout'un işaret ettiği
+`292467e` alınmış, kopyanın doğruluğu ona karşı ölçülmüş ama kopyalananın deponun HEAD'i
+olup olmadığı kontrol edilmemişti. Deponun varsayılan dalı
+`claude/mobile-game-shop-system-8kyrmi`, HEAD'i **`45a499b`**. Eksik kalan 11 commit
+(35 dosya, +1055/−370) `f413950` ile getirildi; ağaç hash'i clone'unkiyle birebir
+(`52566a6d…`). **Bundan sonra her oturumda clone'un HEAD'i kontrol edilmeli.**
 
 **Düzeltmeler bundan sonra bu depoda yürütülür.** `Mihenkaynak` ve `clonemihenk`
 değişmeden duruyor.
@@ -22,7 +28,7 @@ Bu tabanın `Mihenkaynak`'tan farkı:
 
 - **Var olanlar:** hafta sonu takvimi (`src/domain/calendar.ts`) ve √t tavan
   ölçeklemesi (`src/domain/market.ts:119`) bu tabanda zaten mevcut.
-- **Olmayanlar:** Mihenkaynak tarafında yazılan ~217 ek test (hafta sonu testleri
+- **Olmayanlar:** Mihenkaynak tarafında yazılan ek testler (hafta sonu testleri
   dâhil), pazarlıkta alış tarafı çıpası (`referenceBuy`), talep ağırlıklandırması
   (`demandWeightFor` / `stockAffinityPool`), eski kayıt kimliği göçü
   (`stock-pools.ts`) ve depolama erişilemediğinde günün kilitlenmesini önleyen
@@ -78,7 +84,9 @@ Düzeltmeler eski tabanda (292467e) teşhis edilmişti; yeni tabanda hepsi başt
 **Spawn ölçümü** (800 müşteri, tohum 12345): `sell 349 · buy 362 · service 57 · appraisal 32`;
 satıcıların **%24,9'u işçilikli** → tüm müşterilerin ~%11'i. Yani işçilikli satıcı bol;
 tarayıcı doğrulamalarının takılma sebebi spawn değil, C5'ti.
-| Geri kalanı | ⏳ sırada (aşağıdaki "Önerilen sıra") |
+
+**Kalan tek madde:** A10 (ses) — bu tabanda ses altyapısı hiç yok; dosya eklemek ya da
+ayarı kapatmak kullanıcının kararı. Cila maddeleri kapsam dışı.
 
 ---
 
