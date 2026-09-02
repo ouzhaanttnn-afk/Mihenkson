@@ -301,6 +301,22 @@ export interface GameState {
 
   toasts: ToastMessage[];
 
+  /**
+   * ZATEN AÇIK OLAN SEKMEYE YENİDEN DOKUNMA SAYACI.
+   *
+   * Kök ekranlar alt rotalarını kendi içlerinde tutar (İşletme'nin Piyasa,
+   * Toptancı, Kayıt… sayfaları gibi). Alt rotadayken alt navigasyonda aynı
+   * sekmeye basmak `setTab`'i çağırıyor ama `tab` zaten o değer olduğu için
+   * hiçbir şey değişmiyordu: oyuncu alt rotada kilitli kalıyor, tek çıkış
+   * "← İşletme" bağlantısı oluyordu (tarayıcıda ölçüldü).
+   *
+   * Bu sayaç her "aynı sekmeye tekrar dokunuldu" olayında bir artar. Kök
+   * ekranlar sayacı izleyip kendi alt rotalarını köke döndürür. Sayaç
+   * KAYDEDİLMEZ — `SaveFile` alanlarını tek tek saydığı için oyuncunun
+   * kaydına dokunmaz.
+   */
+  tabHomeSignal: number;
+
   // --- Aksiyonlar ---
   setTab: (tab: RootTab) => void;
   setSpeed: (speed: SpeedStep) => void;
@@ -468,13 +484,20 @@ export const useGame = create<GameState>((set, get) => {
     customerMessage: '',
     lastReview: null,
     toasts: [],
+    tabHomeSignal: 0,
 
     // Kayıt varsa VARSAYILANLARIN ÜSTÜNE yazar. Sıra kritik: varsayılanları
     // sonra koymak, yüklenen oyunu sessizce yeni oyuna çevirirdi.
     ...(restored ?? {}),
 
     // -----------------------------------------------------------------------
-    setTab: (tab) => set({ tab }),
+    /*
+      Başka bir sekmeye geçmek sekmeyi değiştirir. AYNI sekmeye yeniden
+      dokunmak ise "köke dön" demektir — telefon uygulamalarının alışılmış
+      davranışı. İkisini ayırmasaydık alt rotadan çıkış yolu kalmıyordu.
+    */
+    setTab: (tab) =>
+      set((s) => (s.tab === tab ? { tabHomeSignal: s.tabHomeSignal + 1 } : { tab })),
     // Ana Dükkan'daki hızlı alım, oyuncuyu bağlamından koparmadan sheet açar.
     // Stok ekranındaki aynı katalog kendi açılır tezgâhı olarak yaşamaya devam eder.
     openStockCatalog: () => set({ stockCatalogOpen: true }),

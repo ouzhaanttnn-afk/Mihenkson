@@ -9,7 +9,7 @@
  * `overflow: hidden`; ikincil ekranlar kendi scroll'unu yönetir.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useGame } from '@state/gameStore';
 import { BottomNav } from '@ui/shell/BottomNav';
@@ -26,6 +26,9 @@ import '@ui/tokens.css';
 import '@ui/shell/AppShell.css';
 import '@ui/workbench/Workbench.css';
 import '@ui/screens/Screens.css';
+
+/** Bir bildirim balonunun ekranda kalma süresi. */
+const TOAST_LIFETIME_MS = 4000;
 
 export function App() {
   const tab = useGame((s) => s.tab);
@@ -62,15 +65,49 @@ export function App() {
     return () => { disposed = true; unsubscribe(); window.removeEventListener('pagehide', flush); document.removeEventListener('visibilitychange', onHide); };
   }, []);
 
-  // Toast'lar kısa geri bildirimdir; kendiliğinden kapanır.
+  /*
+    TOAST ÖMRÜ — HER BALON KENDİ SÜRESİNİ SAYAR.
+
+    Eskiden tek bir zamanlayıcı vardı ve `toasts` her değiştiğinde effect yeniden
+    kurulduğu için o zamanlayıcı SIFIRLANIYORDU. Sonuç: balonlar 4 saniyeden sık
+    geldiğinde hiçbiri kapanmıyordu. Tarayıcıda ölçüldü — 7. günde ekranda hâlâ
+    "Gün 5 kapandı" duruyor ve balon dükkân kartının başlığını örtüyordu.
+
+    Zamanlayıcılar artık balon kimliğine göre bir ref'te tutuluyor: yeni bir balon
+    gelmesi öncekinin ömrünü uzatmaz, her balon kurulduğu andan TOAST_LIFETIME_MS
+    sonra düşer.
+  */
+  const toastTimers = useRef(new Map<string, number>());
+
   useEffect(() => {
-    if (toasts.length === 0) return;
-    const id = window.setTimeout(() => {
-      const first = toasts[0];
-      if (first) dismissToast(first.id);
-    }, 4000);
-    return () => window.clearTimeout(id);
+    const live = new Set(toasts.map((t) => t.id));
+
+    // Ekrandan düşmüş balonların zamanlayıcılarını bırak (sızıntı olmasın).
+    for (const [id, handle] of toastTimers.current) {
+      if (live.has(id)) continue;
+      window.clearTimeout(handle);
+      toastTimers.current.delete(id);
+    }
+
+    // Yeni gelenlere kendi zamanlayıcısını kur; var olanlara DOKUNMA.
+    for (const toast of toasts) {
+      if (toastTimers.current.has(toast.id)) continue;
+      const handle = window.setTimeout(() => {
+        toastTimers.current.delete(toast.id);
+        dismissToast(toast.id);
+      }, TOAST_LIFETIME_MS);
+      toastTimers.current.set(toast.id, handle);
+    }
   }, [toasts, dismissToast]);
+
+  // Bileşen sökülürken bekleyen zamanlayıcı kalmasın.
+  useEffect(() => {
+    const timers = toastTimers.current;
+    return () => {
+      for (const handle of timers.values()) window.clearTimeout(handle);
+      timers.clear();
+    };
+  }, []);
 
   return (
     <div className="deviceFrame">
@@ -100,12 +137,10 @@ export function App() {
         )}
 
         {/*
-          En fazla İKİ toast görünür.
-          Kapatma zamanlayıcısı `toasts` her değiştiğinde sıfırlandığı için
-          arka arkaya yapılan işlemlerde balonlar birikiyordu; üst üste binen
-          üç balon Stok özetini tamamen gömüyordu. Sınır, biriktirmeyi
-          içeriğin üstünü kapatmadan durdurur — sıradakiler yine gösterilir,
-          yalnız öndekiler düştükçe.
+          En fazla İKİ balon çizilir. Ömür sorunu yukarıda kökünden çözüldü
+          (her balon kendi süresini sayar); bu sınır ayrı bir işe yarıyor:
+          aynı anda üç balon üst üste gelirse yığın Stok özetini gömüyordu.
+          Sıradakiler kaybolmaz, öndekiler düştükçe görünürler.
         */}
         {toasts.length > 0 && (
           <div className="toastLayer">

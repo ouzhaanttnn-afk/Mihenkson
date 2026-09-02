@@ -11,7 +11,7 @@
  */
 
 import { TERM } from '@ui/terms';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PERSONNEL_MONTHLY, PERSONNEL_SALARIES, PERSONNEL_UNLOCK_LEVELS, canSetPersonnel, personnelCount, personnelDaily, queueCapacity } from '@domain/v5-rules';
 
 import { MARKET_REGIME, WHOLESALE } from '@domain/balance';
@@ -78,6 +78,22 @@ type Route = 'root' | 'market' | 'journal' | 'wholesaler' | 'network' | 'store' 
 
 export function BusinessScreen() {
   const [route, setRoute] = useState<Route>('root');
+
+  /*
+    ALT NAVİGASYONDAKİ "İŞLETME"YE TEKRAR DOKUNMAK KÖKE DÖNDÜRÜR.
+
+    Rota bu bileşenin kendi state'inde durduğu için, alt rotadayken alt
+    navigasyona basmak hiçbir şey yapmıyordu: `setTab('business')` çağrılıyor
+    ama sekme zaten 'business' olduğundan durum değişmiyor, bileşen yeniden
+    çizilmiyordu. Oyuncunun tek çıkışı "← İşletme" bağlantısıydı.
+
+    `tabHomeSignal` her "aynı sekmeye tekrar dokunuldu" olayında artar; bu
+    effect onu izleyip rotayı köke çeker (bkz. gameStore.setTab).
+  */
+  const tabHomeSignal = useGame((s) => s.tabHomeSignal);
+  useEffect(() => {
+    setRoute('root');
+  }, [tabHomeSignal]);
 
   if (route === 'market') return <MarketRoute onBack={() => setRoute('root')} />;
   if (route === 'journal') return <JournalRoute onBack={() => setRoute('root')} />;
