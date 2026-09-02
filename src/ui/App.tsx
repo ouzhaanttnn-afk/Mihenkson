@@ -22,6 +22,7 @@ import { ProfileDialog } from '@ui/shell/ProfileDialog';
 import { SettingsDialog } from '@ui/shell/SettingsDialog';
 import { DayCloseDialog } from '@ui/shell/DayCloseDialog';
 import { overdueJobs, readyJobs } from '@domain/service';
+import { playSound, preloadAudio, unlockAudio, type SoundId } from '@ui/audio';
 
 import '@ui/tokens.css';
 import '@ui/shell/AppShell.css';
@@ -48,6 +49,57 @@ export function App() {
     return ids.size;
   });
   const shopQueueCount = useGame((s) => s.queue.length);
+
+  /*
+    SES — SUNUM KATMANINDA BAĞLANIR.
+
+    Mağaza yalnız "şu oldu" der (`soundCue`); sesi burası çalar. Böylece alan
+    ve mağaza katmanları tarayıcı ses API'sine hiç dokunmaz ve node
+    testlerinde hiçbir şey değişmez.
+
+    KİLİT AÇMA: tarayıcı, kullanıcı sayfaya dokunmadan ses çalmaya izin vermez.
+    İlk dokunuş/tuşta açıp dosyaları önden çözüyoruz; dinleyici bir kez
+    çalışıp kendini kaldırır.
+  */
+  useEffect(() => {
+    const ac = () => { unlockAudio(); preloadAudio(); };
+    const opts = { once: true, passive: true } as const;
+    window.addEventListener('pointerdown', ac, opts);
+    window.addEventListener('keydown', ac, opts);
+    return () => {
+      window.removeEventListener('pointerdown', ac);
+      window.removeEventListener('keydown', ac);
+    };
+  }, []);
+
+  useEffect(() => {
+    /*
+      Sayaç (`n`) üstünden dinleniyor, `id` üstünden değil: aynı ses arka
+      arkaya iki kez gerekebilir ve yalnız `id` izlenseydi ikincisi kaçardı.
+    */
+    let sonN = useGame.getState().soundCue?.n ?? 0;
+    let sonSeviye = useGame.getState().store.level;
+
+    return useGame.subscribe((state) => {
+      const { soundEnabled, soundVolume } = state.preferences;
+      const cue = state.soundCue;
+      if (cue && cue.n !== sonN) {
+        sonN = cue.n;
+        playSound(cue.id as SoundId, soundEnabled, soundVolume);
+      }
+      /*
+        Seviye atlama alan katmanında (`applyTransaction`) oluyor ve orası
+        SAF kalmalı — oradan işaret veremeyiz. Arayüzde seviyenin artışını
+        izlemek aynı sonucu katman ayrımını bozmadan verir.
+      */
+      if (state.store.level > sonSeviye) {
+        sonSeviye = state.store.level;
+        playSound('levelup', soundEnabled, soundVolume);
+      } else if (state.store.level < sonSeviye) {
+        sonSeviye = state.store.level;   // yeni oyun / kayıt yükleme
+      }
+    });
+  }, []);
 
   // v5 resumes active negotiations and deterministic queue state, not just a day checkpoint.
   useEffect(() => {

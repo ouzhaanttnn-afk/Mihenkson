@@ -5,7 +5,7 @@
  *
  *   Profil            → kuyumcunun adı ve portresi (ProfileDialog'a devreder)
  *   Öğretici ipuçları → açık / kapalı, iki yöne de çalışır
- *   Ses               → tek anahtar (müzik/efekt AYRILMADI) + düzey kaydırıcısı
+ *   Ses               → tek anahtar + düzey kaydırıcısı · GERÇEKTEN ÇALIŞIR
  *   Titreşim          → tercih SAKLANIR, davranış sonra bağlanacak
  *   Dil               → tercih SAKLANIR, çeviri katmanı sonra bağlanacak
  *   Yeni oyun         → kaydı siler (onaylı)
@@ -151,20 +151,15 @@ export function SettingsDialog() {
           okusun; her satıra ayrı ayrı "çalışmıyor" yazmak hem gürültü olur
           hem de gözden kaçardı.
         */}
-        <p className="settingsNote" id="settings-pending">
-          Aşağıdakiler kaydedilir, ama etkileri henüz bağlanmadı.
-        </p>
-
         <button
           type="button"
           className="settingsRow"
           aria-pressed={preferences.soundEnabled}
-          aria-describedby="settings-pending"
           onClick={() => setPreference('soundEnabled', !preferences.soundEnabled)}
         >
           <span className="settingsRow__copy">
             <strong>Ses</strong>
-            <small>{preferences.soundEnabled ? 'Açık' : 'Kapalı'} · ses dosyaları henüz yok</small>
+            <small>{preferences.soundEnabled ? 'Açık' : 'Kapalı'} · işlem ve gün sesleri</small>
           </span>
           <span
             className={`settingsRow__switch ${preferences.soundEnabled ? 'settingsRow__switch--on' : ''}`}
@@ -172,6 +167,15 @@ export function SettingsDialog() {
             <span className="settingsRow__knob" />
           </span>
         </button>
+
+        {/*
+          Not artık YALNIZ titreşim ve dilin üstünde: ses bağlandı, onlar hâlâ
+          bağlanmadı. Notu olduğu yerde bırakmak, çalışan sesi de çalışmıyor
+          göstermek olurdu.
+        */}
+        <p className="settingsNote" id="settings-pending">
+          Aşağıdaki ikisi kaydedilir, ama etkileri henüz bağlanmadı.
+        </p>
 
         <button
           type="button"
@@ -223,7 +227,6 @@ export function SettingsDialog() {
             value={preferences.soundVolume}
             disabled={!preferences.soundEnabled}
             aria-label="Ses düzeyi"
-            aria-describedby="settings-pending"
             onChange={(e) => setPreference('soundVolume', Number(e.target.value))}
           />
         </div>

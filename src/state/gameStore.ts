@@ -152,6 +152,7 @@ import {
   type SkillProgress,
 } from '@domain/skill-tree';
 import { clearSave, persistPreferences, persistProfile, readSave, writeSave } from './save';
+import type { SoundId } from '@ui/audio';
 import type {
   ActiveDeal,
   AppraisalSession,
@@ -331,6 +332,17 @@ export interface GameState {
    * kaydına dokunmaz.
    */
   tabHomeSignal: number;
+  /**
+   * SES İŞARETİ — yalnız arayüz durumu, KAYDA GİRMEZ (`tabHomeSignal` deseni).
+   *
+   * Mağaza ses API'sini import ETMEZ: burada yalnız "şu oldu" denir, sesi
+   * sunum katmanı çalar. Böylece alan/mağaza katmanı tarayıcıya bağlanmaz ve
+   * node testlerinde hiçbir şey değişmez.
+   *
+   * `n` sayacı şart: aynı ses arka arkaya iki kez gerekebilir ve yalnız `id`
+   * bakılsaydı ikincisi kaçardı.
+   */
+  soundCue: { id: SoundId; n: number } | null;
 
   // --- Aksiyonlar ---
   setTab: (tab: RootTab) => void;
@@ -514,6 +526,7 @@ export const useGame = create<GameState>((set, get) => {
     lastReview: null,
     toasts: [],
     tabHomeSignal: 0,
+    soundCue: null,
 
     // Kayıt varsa VARSAYILANLARIN ÜSTÜNE yazar. Sıra kritik: varsayılanları
     // sonra koymak, yüklenen oyunu sessizce yeni oyuna çevirirdi.
@@ -732,6 +745,7 @@ export const useGame = create<GameState>((set, get) => {
 
     // -----------------------------------------------------------------------
     greetCustomer: () => {
+      cue(set, get, 'customer');
       const s = get();
       if (s.activeDeal && !isDealFinished(s.activeDeal)) return;
 
@@ -1205,6 +1219,7 @@ export const useGame = create<GameState>((set, get) => {
 
     // -----------------------------------------------------------------------
     runTest: (toolId) => {
+      cue(set, get, 'test');
       const s = get();
       const deal = s.activeDeal;
       const customer = s.activeCustomer;
@@ -1435,6 +1450,8 @@ export const useGame = create<GameState>((set, get) => {
       });
 
       if (isTerminal(session.state)) {
+        // Ses YALNIZ dönüm noktalarında: anlaşma kapandı ya da kapanmadı.
+        cue(set, get, session.state === 'ACCEPTED' ? 'deal' : 'deny');
         if (isPurchase) settlePurchase(set, get, session.settledPrice ?? 0, session.state);
         else settleLine(set, get, line.lineId);
       }
@@ -1576,6 +1593,7 @@ export const useGame = create<GameState>((set, get) => {
       if (!outcome.applied) { pushToast(set, get, outcome.reason ?? 'Alım uygulanamadı.', 'negative'); return; }
       set(economyToState({ ...outcome.state, inventory: revalueInventory(outcome.state.inventory, outcome.state.items, thesisContext(s)) }));
       writeSave(get());
+      cue(set, get, 'coins');
       pushToast(set, get, `Sarrafiye alındı · ${fmt(quote.totalPrice)}`, 'positive');
     },
     /**
@@ -1943,6 +1961,7 @@ export const useGame = create<GameState>((set, get) => {
       set({ dayReportOpen: false });
     },
     advanceDay: () => {
+      cue(set, get, 'chime');
       const s = get();
       if (s.dayReportOpen) return;
       const { state: closed, report, applied } = closeDay(
@@ -2138,6 +2157,15 @@ export const useGame = create<GameState>((set, get) => {
  * Aynı kalem iki kez settle edilemez; bir kalemin reddi diğerinin cost basis'ini
  * bozmaz.
  */
+/** Sunum katmanına "şu oldu" der; sesi o çalar. */
+function cue(
+  set: (partial: Partial<GameState>) => void,
+  get: () => GameState,
+  id: SoundId,
+): void {
+  set({ soundCue: { id, n: (get().soundCue?.n ?? 0) + 1 } });
+}
+
 function settleLine(
   set: (partial: Partial<GameState>) => void,
   get: () => GameState,

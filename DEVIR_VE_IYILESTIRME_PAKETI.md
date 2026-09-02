@@ -93,7 +93,7 @@ Düzeltmeler eski tabanda (292467e) teşhis edilmişti; yeni tabanda hepsi başt
 | A9 etiketler | ✓ tarayıcıda: kırpılma yok, kap taşmıyor |
 | C1 vitrin | ✓ tarayıcıda uçtan uca: "Vitrine Koy" seçilen mal `Vitrin 0/8 → 1/8`, "Toptancıya Çıkar" seçilen mal `Arka stok 0 → 1` |
 | A8 karşı teklif | ✅ yapıldı — bütçe sabırdan türüyor |
-| A10 ses | ✗ clone tabanında ses altyapısı hiç yok (`public/assets/audio` klasörü de yok) |
+| A10 ses | ✅ yapıldı — sesler SENTEZLE üretildi, altyapı kuruldu, olaylara bağlandı |
 
 **Spawn ölçümü** (800 müşteri, tohum 12345): `sell 349 · buy 362 · service 57 · appraisal 32`;
 satıcıların **%24,9'u işçilikli** → tüm müşterilerin ~%11'i. Yani işçilikli satıcı bol;
@@ -597,7 +597,63 @@ eski olan veriyi okumuş. Anahtarı açıkça yazan koşu her adımda doğru ç�
 
 **Kural:** bu projede kayıt doğrulaması yapılırken anahtar **tam adıyla** okunmalı.
 
-#### A10 · A · Ses altyapısı bağlı, dosya yok
+#### A10 · A · Ses — ✅ YAPILDI (sentezle üretildi)
+`tools/synth-audio.py` (yeni) · `public/assets/audio/` (yeni) · `src/ui/audio.ts` (yeni)
+
+**Dosyalar kayıt değil, ÜRETİLMİŞ.** Sekiz efekt Python + numpy ile sentezlendi; kaynağı
+`tools/synth-audio.py`. Telif sorunu yok, tını bir parametre: sayıyı değiştirip yeniden
+çalıştırmak yeterli.
+
+| ses | ne zaman | tasarım notu |
+|---|---|---|
+| `coins` | sarrafiye alındı | Metal disk modları HARMONİK DEĞİLDİR; oranlar bilerek uyumsuz (1 / 2,36 / 3,91 / 5,12). Harmonik seri "şıngırtı" değil "flüt" verirdi. İki çeyrek arka arkaya — tek vuruş "para" değil "zil" gibi duyuluyor. |
+| `deal` / `deny` | pazarlık kapandı / kapanmadı | Do→Sol beşlisi · alçak ve inen |
+| `chime` | gün kapanışı | çan modları, uzun sönüm |
+| `customer` | müşteri karşılandı | kapı zili, iki nota |
+| `test` | mihenk / test aracı | tonal değil, dar bantlı gürültü — sürtünme tınısı |
+| `levelup` | seviye atlandı | yükselen üçlü |
+| `tap` | (bağlanmadı) | her tuşa ses yorucu olurdu; dosya hazır, karar sizin |
+
+**NYQUIST KORUMASI — sessizce cızırtı üreten hata sınıfı.** İlk üretimde `coins` sesinin
+kısmî tonları 26 kHz'e çıkıyordu ama dosya 22 kHz'de yazılıyordu: Nyquist üstü her bileşen
+ALIAS yapar, geriye katlanıp cızırtı olur. Üretece koruma eklendi; 44,1 kHz'e çıkarınca bile
+üç kısmî tonun sınırı aştığını **koruma yakaladı ve üretimi durdurdu**. Mod sayısı buna göre
+seçildi. Artık biri frekansı yükseltirse ses sessizce bozulmaz, betik hata verir.
+
+Toplam **215 KB** (WAV). `coins` 44,1 kHz — yüksek kısmî tonlar tınının kendisi; kalanı
+22 kHz. ffmpeg olmadığı için WAV; aynı adlarla `.ogg` konursa yalnız `AUDIO_FILES` tablosu
+değişir, kodda başka değişiklik gerekmez.
+
+**Oynatıcı üç gerçek çökme sebebine göre yazıldı:**
+1. *Tarayıcı otomatik oynatmayı engeller* — ilk dokunuşta açılır; o ana kadarki istekler
+   yutulur, KUYRUĞA ALINMAZ (üç dakika sonra topluca çalan sesler hata gibi duyulurdu).
+2. *Dosya olmayabilir* — eksik/bozuk dosya oyunu durdurmaz, o ses sessiz kalır ve bir daha
+   denenmez.
+3. *Testte `window` yok* — modül import edilebilir ve çağrılabilir kalır.
+
+**Katman ayrımı korundu:** mağaza ses API'sini import ETMEZ, yalnız `soundCue` bırakır
+(`tabHomeSignal` deseni, kayda girmez); sesi sunum katmanı çalar. Seviye atlama alan
+katmanında olduğu ve orası SAF kalmalı olduğu için, arayüzde seviye artışı izlenerek
+yakalanıyor.
+
+**Testler:** `src/ui/audio.test.ts` (7) sessiz çökmeme sözleşmesi;
+`settings.test.ts`e 5 test daha — işaretin kayda SIZMAMASI ve sayacın aynı sesi arka arkaya
+çalabilmesi (art arda iki gün kapatan oyuncu ikinci çanı duymalı).
+
+**Tarayıcıda ÖLÇÜLDÜ (iddia değil):** `AudioContext` sarmalanıp çözülen dosyalar ve
+başlatılan kaynaklar sayıldı.
+- 8 dosyanın 8'i çözüldü, süreleri üretilenle birebir (0,055 / 0,495 / 0,3 / 0,55 / 1,15 /
+  0,7 / 0,38 / 0,85 sn), tepe genlik 0,70 (kırpma yok).
+- Gün kapanışında **1 kaynak çaldı** (çan).
+- **Ses kapatılınca sayı artmadı** — anahtar gerçekten çalışıyor.
+- Otomatik oynatma bayrağı OLMADAN: dokunmadan önce `AudioContext` hiç oluşmuyor, ilk
+  dokunuşta oluşup `running` oluyor, sonra ses çalıyor.
+- Konsol hatası yok.
+
+**Yapamadıklarım:** gerçek kayıt (gerçek kasa, gerçek altın şıngırtısı) ve fon müziği —
+sentezle yapılan müzik yapay duyulur. Müzik dışarıdan gelirse bağlanması kolay.
+
+#### (eski kayıt) A10 · A · Ses altyapısı bağlı, dosya yok
 `src/ui/audio.ts` · `public/assets/audio/{sfx,music}/`
 
 9 SFX ve müzik için yollar tanımlı, klasörler **boş**. İşletme ekranı ise "Müzik açık ·

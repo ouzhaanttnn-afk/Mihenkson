@@ -294,3 +294,50 @@ describe('ses düzeyi', () => {
     expect(useGame.getState().inventory).toHaveLength(stok);
   });
 });
+
+/**
+ * SES İŞARETİ — mağaza sözleşmesi.
+ *
+ * Mağaza ses ÇALMAZ, yalnız "şu oldu" der. Kritik olan iki şey: işaret kayda
+ * SIZMAMALI (arayüz durumudur) ve sayaç sayesinde aynı ses arka arkaya iki
+ * kez istenebilmeli.
+ */
+describe('ses işareti', () => {
+  it('başlangıçta işaret yoktur', () => {
+    expect(useGame.getState().soundCue).toBeNull();
+  });
+
+  it('KAYDA SIZMAZ — arayüz durumu, oyun durumu değil', () => {
+    useGame.setState({ soundCue: { id: 'deal', n: 3 } });
+
+    expect('soundCue' in serialize(useGame.getState())).toBe(false);
+  });
+
+  it('gün kapanışı işaret bırakır', () => {
+    useGame.getState().advanceDay();
+
+    expect(useGame.getState().soundCue?.id).toBe('chime');
+  });
+
+  /*
+    SAYAÇ ŞART. Aynı ses arka arkaya gerekebilir; yalnız `id` izlenseydi
+    ikincisi kaçardı — art arda iki gün kapatan oyuncu ikinci çanı duymazdı.
+  */
+  it('aynı ses tekrar istendiğinde SAYAÇ artar', () => {
+    useGame.getState().advanceDay();
+    const ilk = useGame.getState().soundCue!;
+    useGame.getState().startNewDay();
+    useGame.getState().advanceDay();
+    const ikinci = useGame.getState().soundCue!;
+
+    expect(ikinci.id).toBe(ilk.id);
+    expect(ikinci.n).toBeGreaterThan(ilk.n);
+  });
+
+  it('işaret oyun gücü vermez — nakit ve stok değişmez', () => {
+    const nakit = useGame.getState().store.cash;
+    useGame.setState({ soundCue: { id: 'levelup', n: 99 } });
+
+    expect(useGame.getState().store.cash).toBe(nakit);
+  });
+});
