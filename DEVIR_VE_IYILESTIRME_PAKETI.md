@@ -71,7 +71,10 @@ Referans depolar:
 | B5 · Vitrin slot seyrelmesi gösterilmiyordu | ✅ yapıldı |
 | YENİ · Sarrafiyede "Vitrin" planı ve vitrin slotu şartı | ✅ yapıldı |
 | B2 · İşçilikli ürün ekonomik olarak baskılanmış | ❌ **ölçümle çürütüldü** |
-| B3 · Ayar bantları ayrışmıyor | ✅ **ölçümle doğrulandı** · düzeltmesi karar bekliyor |
+| B3 · Ayar bantları ayrışmıyor | ⏸ **denendi ve GERİ ALINDI** — önce değerleme/müşteri fiyatı uyumu çözülmeli |
+| B4 · Vitrin yaşlanması | ✅ yapıldı |
+| C4 · Market'te İngilizce kod adları | ✅ ekran tarafı yapıldı · ekonomi tarafı karar bekliyor |
+| C7 · Clone'dan alınacaklar | ✅ bu tabanda zaten mevcut — alınacak bir şey yok |
 | YENİ · Ayarlarda ses, titreşim, dil ve ses düzeyi | ✅ tercih saklanıyor · davranış sonra bağlanacak |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
@@ -664,25 +667,71 @@ Bu taban üzerinde yeniden ölçüldü ve **doğru çıktı**:
 Dördü 0,2 puan içinde. Ayar kârlılık açısından hiçbir şey ifade etmiyor; 8K almakla 22K
 almak arasındaki tek fark ölçek.
 
-**Önerilen düzeltme neden tek başına yapılamadı.** Öneri "düşük ayar: marj geniş ama yavaş /
-yüksek ayar: marj dar ama hızlı" idi. Marj yarısı `CRAFTED_BANDS` ile kolay; **hız yarısının
-dayanacağı bir mekanik yok**:
+**DENENDİ VE GERİ ALINDI — asıl engel başkaymış.**
 
-- `demandLevel` yalnızca bir ETİKET — risk metnini değiştiriyor, satış hızını değil.
-- Vitrin hedefi düzgün dağılımla seçiliyor (`showcaseRng.pick`), ürüne göre ağırlık yok.
-- `daysToCash` kanal sabiti; ayara bağlı değil. Ayara bağlasak bile ekranda görünen tahmin
-  değişir, gerçek hız değişmez — yani oyuncuya yalan söylemiş oluruz.
+Önceki turda "hız yarısının dayanacağı mekanik yok" demiştim; **yanılmışım**, `pickWeighted`
+zaten vardı ve B4 onun üstüne kuruldu. Engel orada değilmiş. İki yarı da denendi:
 
-Sadece marj yarısını yapmak düşük ayarı **düpedüz üstün** kılardı; şu anki eşitlikten daha
-kötü. Düzgün yapılışı, vitrin hedeflemesini ağırlıklandıran yeni bir mekanik gerektiriyor —
-bu ayrı bir tasarım işi, karar sizin.
+*Marj yarısı:* bantlar %40 / %36 / %31 / %28 olacak şekilde ayrıştırıldı (ortalama %33,75,
+eskisi %33,7 — toplam güç korunuyor), alış bantlarına dokunulmadan.
 
-#### B4 · T · Vitrin yaşlanması yok
-Vitrine konan işçilikli ürün süresiz olarak aynı çekiciliği koruyor. Vitrin bir karar değil,
-bir depo.
+*Uyum yarısı:* tezin vaadi de aynı tablodan türetildi.
 
-**Öneri:** vitrindeki ürünün hedeflenme olasılığı günlerle düşsün; oyuncu "bunu indireyim mi,
-eritip sarrafiyeye mi döneyim" diye düşünsün. Ölü stok kavramı zaten var, bağlanabilir.
+**Kırılan yer:** vitrin tezinin vaat ettiği net ile müşterinin gerçekten ödediği tutmuyor —
+üstelik **değişiklikten ÖNCE de tutmuyordu**:
+
+| ayar | mevcut hâl | deneme sonrası |
+|---|---|---|
+| 8K | **+%40,0** | +%13,1 |
+| 14K | −%9,5 | **−%25,8** |
+| 18K | +%2,6 | **−%29,0** |
+
+Sebebi ölçüldü: `estimateBand`in ürettiği `estMetal`, ağırlık değerinin ayar oranı kadarı
+DEĞİL — içinde ürüne göre değişen (~0,76–0,79) ayrı bir **temkin indirimi** var
+(18K'da 0,572 / metal oranı 0,75; 14K'da 0,464 / 0,585). Müşteri fiyatı formülüyle aynı
+tabana oturmuyor. Bu çözülmeden ayarı ayrıştırmak uyumu iyileştirmiyor, bozuyor.
+
+**Hız yarısını tek başına bırakmak daha kötüydü:** marj farkı olmadan yüksek ayar düpedüz
+üstün olurdu — B3'ün şikâyet ettiği eşitlikten de kötü bir durum. Bu yüzden ayar
+`showcase-weight`e de girmedi; orada yalnız yaşlanma var.
+
+**Sıradaki iş bu değil, altındaki:** `estimateBand` ile `customerPriceBand` aynı tabana
+oturtulmalı. O yapılmadan ayar bantlarına dokunmak, ölçülebilir biçimde zarar veriyor.
+
+#### B4 · T · Vitrin yaşlanması — ✅ YAPILDI
+`src/domain/showcase-weight.ts` (yeni) · `customer-spawn.ts` · `StockScreen.tsx`
+
+Vitrin müşterisi hedefini **düzgün dağılımla** seçiyordu, yani vitrine konan ürün süresiz
+olarak aynı çekiciliği koruyordu. Koy ve unut: vitrin bir karar değil, depoydu.
+
+**Eksik sandığım mekanik zaten varmış.** Önceki turda "hızın dayanacağı bir mekanik yok"
+demiştim; `Rng.pickWeighted` projede mevcut ve **`pick` ile tam olarak aynı sayıda (bir)
+çekim harcıyor**. Determinizm (GDD 28.3) bu yüzden korundu: tohum zinciri değişmedi, yalnız
+hangi ürünün seçildiği değişti. 852 testin tamamı geçmeye devam ediyor.
+
+**Ağırlık:** 0. günde 1,0 → 6. günde 0,35 (ölü stok eşiğiyle aynı gün) → sonra sabit.
+
+| gün | 0 | 1 | 2 | 3 | 4 | 6+ |
+|---|---|---|---|---|---|---|
+| ağırlık | 1,000 | 0,892 | 0,783 | 0,675 | 0,567 | 0,350 |
+
+**Sıfıra inmiyor, bilerek.** Sıfır ağırlık ürünü ulaşılamaz kılardı; oyuncu satamadığı bir
+malı slot işgal ederken seyrederdi. Yaşlanma cezalandırır, kilitlemez.
+
+**Ölçülen etki** (20.000 çekim, 4 ürünlük vitrin, biri 6 günlük): bayat mal **%10,7**, taze
+eşi **%31,4** — düzgün dağılımda ikisi de %25 olurdu. Aynı mal beklemekle ilgisinin üçte
+ikisini kaybediyor.
+
+**Oyuncuya görünüyor:** stok satırında **"Vitrinde bayatladı"** rozeti, mekanik eşikle aynı
+günde yanıyor. Söylenmeseydi B5'te düzelttiğimiz hatanın aynısı olurdu — işleyen ama
+görünmeyen mekanik.
+
+**Testler:** `src/domain/showcase-aging.test.ts` — 12 test. İlgi asla sıfırlanmaz, toplam
+ilgi büyümez (ağırlık payı dağıtır, yaratmaz), rozet ile mekanik aynı gün, hepsi aynı yaştaysa
+dağılım düzgün kalır (eski davranış).
+
+**Not:** B5'in başlık satırı artık "ürün başına **ortalama**" diyor. Toplam sabit olduğu için
+ortalama hâlâ tam olarak %20/n; ama tek tek ürünler ayrıştığı için "ortalama" demek şart.
 
 #### B5 · T · Vitrin slot seyrelmesi gösterilmiyordu — ✅ YAPILDI
 `src/domain/purchase.ts` · `src/ui/screens/StockScreen.tsx`
@@ -828,9 +877,19 @@ hedefleri — 11 ürün — yalnız bir sayacı artırıyor. 25.000.000 ₺'lik 
 "sahip olunan: 1" ve günde 8.000 ₺ gider. İkonların altında `WATCH · SEDAN · SPORTSCAR ·
 FOUNDER` gibi İngilizce kod adları duruyor. Sekmeyi ilk açan 18 üründen 17'sini kilitli görüyor.
 
-**Yapılacak (clone'da tutulacaksa):** İngilizce kod adları ekrandan kaldırılsın; görsel
-karşılığı olmayan ürünler gizlensin; şahsi hedefler için bir koleksiyon/vitrin ekranı
-eklensin; ikonlar ürüne özgü olsun.
+**Ekran tarafı — ✅ YAPILDI.** İngilizce kod adlarının kaynağı bulundu: kart görselinde
+`product.assetReference.split(':')[1]` **doğrudan ekrana basılıyordu** ve CSS'te
+`text-transform: uppercase` vardı. Yani `lifestyle:watch` → **"WATCH"**,
+`lifestyle:private-jet` → **"PRIVATE JET"**, `badge:first-5kg-has-placeholder` →
+**"PLACEHOLDER"**. Satır hiçbir bilgi taşımıyordu: ürünün gerçek adı hemen altında zaten
+yazılıydı ("İsviçre Saati"). Satır ve artık kullanılmayan stili kaldırıldı — tarayıcıda
+doğrulandı: 6 kategori, 19 kart, kalan iç kimlik etiketi **0**.
+
+Ayrıca bir ürün açıklamasındaki geliştirici jargonu düzeltildi: *"End-game serveti için…"* →
+*"Oyunun ileri aşamasındaki servet için…"*.
+
+**Ekonomi tarafı hâlâ karar bekliyor** — aşağıdaki kapsam uyarısı geçerli. Görsel karşılığı
+olmayan ürünlerin gizlenmesi ve koleksiyon ekranı da bu karara bağlı: sekme kalacak mı?
 
 **Kapsam uyarısı:** bu sekme oyun içi TL harcıyor ve şahsi ürünler günde 1.000–60.000 ₺
 gider yazıyor (`lifestyleDailyExpense`, gün kapanışına bağlı). Orijinaldeki "Market boş rota

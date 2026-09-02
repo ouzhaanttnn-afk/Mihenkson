@@ -74,7 +74,21 @@ export function MarketPlaceholderScreen() {
             const requiresServerClaim = Boolean(product.serverClaim);
             return (
               <article key={product.id} className={`marketProduct marketProduct--${product.tier} ${!unlocked ? 'marketProduct--locked' : ''}`}>
-                <div className="marketProduct__visual" aria-hidden="true"><span>{PRODUCT_MARK[product.category]}</span><small>{product.assetReference.split(':')[1]?.replaceAll('-', ' ')}</small></div>
+                {/*
+                  C4 — İÇ ASSET KİMLİĞİ EKRANA BASILIYORDU.
+
+                  Burada `assetReference`in ikinci yarısı yazdırılıyordu:
+                  `lifestyle:watch` → "WATCH", `lifestyle:private-jet` →
+                  "PRIVATE JET" (CSS `text-transform: uppercase`). Yani
+                  oyunun geri kalanı Türkçeyken kartın üstünde İngilizce kod
+                  adları duruyordu — üstelik hemen altında ürünün gerçek adı
+                  ZATEN yazılıydı ("İsviçre Saati"). Biri de
+                  `badge:first-5kg-has-placeholder` idi: ekranda "PLACEHOLDER"
+                  kelimesi görünüyordu.
+
+                  Satır bilgi taşımıyor, yalnız iç kimliği sızdırıyordu.
+                */}
+                <div className="marketProduct__visual" aria-hidden="true"><span>{PRODUCT_MARK[product.category]}</span></div>
                 <div className="marketProduct__body">
                   <div className="marketProduct__topline"><span>{tierLabel(product)}</span>{product.dailyUpkeep ? <em>+{tl(product.dailyUpkeep)}/gün</em> : null}</div>
                   <h2>{product.name}</h2><p>{product.description}</p>

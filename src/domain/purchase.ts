@@ -348,10 +348,15 @@ export const SHOWCASE_TARGET_CHANCE = 0.20;
 /**
  * B5 — vitrine bir ürün daha koymanın görünmeyen bedeli.
  *
- * Vitrinde n ürün varsa her birinin hedeflenme şansı `%20 / n`'dir; oyuncu
- * bunu hiçbir yerden göremediği için vitrini doldurmanın bir bedeli olduğunu
+ * Vitrinde n ürün varsa toplam ilgi (%20) aralarında bölüşülür; oyuncu bunu
+ * hiçbir yerden göremediği için vitrini doldurmanın bir bedeli olduğunu
  * bilmiyordu. Sayı burada türetiliyor ki ekranda yazan oran spawn kuralıyla
  * aynı yerden gelsin; sabit değişirse ekran da onunla değişir.
+ *
+ * DÖNEN DEĞER ORTALAMADIR. Hedef seçimi B3/B4 ile AĞIRLIKLANDI
+ * (`showcase-weight`): taze ve yüksek ayarlı mal payın büyüğünü alır. Ama
+ * toplam sabit olduğu için ürün başına ORTALAMA hâlâ tam olarak `%20 / n`'dir
+ * — ağırlıklar payı yeniden dağıtır, büyütmez. Arayüz de "ortalama" der.
  */
 export function showcaseTargetChancePerItem(displayCount: number): number {
   return displayCount > 0 ? SHOWCASE_TARGET_CHANCE / displayCount : 0;

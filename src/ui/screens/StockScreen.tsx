@@ -17,6 +17,7 @@ import { fromMg, toMg, roundMoney, isHasTradingDay } from '@domain/v5-rules';
 import { hasQuote, maxHasBuyMg } from '@domain/has-account';
 import { poolForTemplate } from '@domain/stock-pools';
 import { isBullion } from '@data/bullion';
+import { isShowcaseStale } from '@domain/showcase-weight';
 import { showcaseTargetChancePerItem } from '@domain/purchase';
 
 import { KARAT_LABEL } from '@domain/balance';
@@ -95,7 +96,7 @@ export function StockScreen() {
           <p className="pageHead__note">
             {counts.display === 1
               ? `Vitrindeki tek ürün her alıcıda ${pct(showcaseTargetChancePerItem(1), 1)} ilgi görür`
-              : `Vitrindeki ${counts.display} ürün aynı ilgiyi paylaşır · her alıcıda ürün başına ${pct(showcaseTargetChancePerItem(counts.display), 1)}`}
+              : `Vitrindeki ${counts.display} ürün aynı ilgiyi paylaşır · ürün başına ortalama ${pct(showcaseTargetChancePerItem(counts.display), 1)} · bekleyen mal daha az`}
           </p>
         )}
 
@@ -392,6 +393,20 @@ function StockRow({ position }: { position: InventoryPosition }) {
               ? `${TERM.thesisShort}: ${channelShort(position.thesis, isBullion(item.templateId))}`
               : `${TERM.thesis} yok`}
           </span>
+          {/*
+            B4 — VİTRİNDE BEKLEYEN MALIN İLGİSİ DÜŞTÜ.
+
+            Mekanik olmayan bir rozet değil: `showcase-weight` gerçekten
+            ağırlığı tabana indirdi ve müşteri artık bu malı belirgin biçimde
+            daha az hedefliyor. Söylenmezse B5'te düzelttiğimiz hatanın
+            aynısı olurdu — işleyen ama görünmeyen mekanik.
+
+            Yalnız VİTRİNDEKİ mal için: arka stoktaki mal zaten vitrin
+            müşterisinin hedefi değil, orada "ilgisi düştü" demek yanlış olurdu.
+          */}
+          {position.location === 'display' && isShowcaseStale(position) && (
+            <span className="tag tag--warn">Vitrinde bayatladı</span>
+          )}
         </div>
 
         {/*

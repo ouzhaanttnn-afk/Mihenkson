@@ -270,6 +270,14 @@
   border-color: var(--line-light-strong);
 }
 
+/* B4 · vitrinde bekleyip ilgisi düşen mal. Uyarı tonu, hata tonu değil:
+   mal hâlâ satılabilir, yalnız daha az görülüyor. */
+.tag--warn {
+  background: rgba(214, 158, 46, 0.18);
+  color: var(--warning);
+  border-color: rgba(214, 158, 46, 0.45);
+}
+
 /* Menü grubu — İşletme ekranı (GDD 23.19: "büyük kartlar yerine kısa özet
    satırları ve menü grupları") */
 .group {
@@ -1663,17 +1671,6 @@
   font-family: var(--font-display);
   font-size: 36px;
   filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.45));
-}
-
-.marketProduct__visual small {
-  max-width: 72px;
-  overflow: hidden;
-  color: var(--text-dark-3);
-  font-size: 8px;
-  letter-spacing: 0.06em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .marketProduct__body {
