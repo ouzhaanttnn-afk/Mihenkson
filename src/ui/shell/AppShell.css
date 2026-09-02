@@ -1664,6 +1664,21 @@
   font-weight: var(--fw-semibold);
 }
 
+/*
+  SATIRLAR EZİLMESİN — KUTU KAYDIRSIN.
+
+  `.settingsBox` bir flex kolonu ve `max-height` taşıyor. Flex öğelerinin
+  varsayılanı `flex-shrink: 1` olduğu için, içerik kutuya sığmadığı anda
+  BÜTÜN satırlar eziliyordu. Tek satırlık satırlar `min-height: 58px`
+  sayesinde kurtuluyordu, ama ses düzeyi satırı iki katlı: doğal yüksekliği
+  100 px iken 58 px'e eziliyor ve kaydırıcı satırdan 43 px taşıp "Dil"
+  satırının üstüne biniyordu (375×667'de ölçüldü).
+
+  Doğru davranış: satır kendi boyunu korur, kutu kaydırılır — `max-height` ve
+  `overflow-y: auto` bunun için zaten yerinde.
+*/
+.settingsBox > * { flex-shrink: 0; }
+
 .settingsRow {
   display: flex;
   align-items: center;

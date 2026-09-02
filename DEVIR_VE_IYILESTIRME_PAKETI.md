@@ -559,6 +559,30 @@ kutu 607px/667px içinde ve kaydırılabilir, "Kapat" ulaşılabilir. Konsol hat
 
 **Bağlanınca yapılacak tek şey** "hazırlanıyor" ibarelerini kaldırmak; tercih zaten yerinde.
 
+##### EKRAN GÖRÜNTÜSÜNÜN YAKALADIĞI, SAYILARIN KAÇIRDIĞI HATA
+
+Kaydırıcının dokunma hedefini (44 px), değerini ve kayda yazılışını ölçmüş, hepsi doğru
+çıkmıştı. Ekran görüntüsüne bakınca **kaydırıcının kendi satırının dışına taşıp "Dil"
+satırının üstüne bindiği** görüldü. Ölçtüğüm şey kaydırıcının kendi boyuydu; ölçmediğim
+şey **satırının içinde durup durmadığıydı**.
+
+Sebep genel bir yerleşim hatasıydı, yalnız yeni satırın değil: `.settingsBox` bir flex
+kolonu ve `max-height` taşıyor; flex öğelerinin varsayılanı `flex-shrink: 1` olduğu için
+içerik kutuya sığmadığı anda BÜTÜN satırlar eziliyordu. Tek satırlık satırlar
+`min-height: 58px` sayesinde kurtuluyordu, iki katlı ses düzeyi satırı kurtulmuyordu:
+
+| | doğal yükseklik | çizilen | sonuç |
+|---|---|---|---|
+| önce | 100 px | **58 px** | kaydırıcı satırdan **43 px** taştı |
+| sonra | 112 px | 114 px | taşma yok |
+
+Düzeltme `.settingsBox > * { flex-shrink: 0; }` — satır kendi boyunu korur, kutu kaydırılır
+(`max-height` + `overflow-y: auto` bunun için zaten yerindeydi). 375×667 ve 390×844'te
+çakışan satır 0, en alta kaydırınca "Kapat" erişilebilir.
+
+**Kural:** yerleşim doğrulamasında bir öğenin kendi ölçüsü yetmez; **kabına göre** konumu da
+ölçülmeli. Ekran görüntüsüne bakmak pazarlık konusu değil.
+
 ##### ÖLÇÜM TUZAĞI — `localStorage` anahtarını regex'le arama
 
 Kaydı `Object.keys(localStorage).find(k => /save/i.test(k))` ile okuyan bir doğrulama
