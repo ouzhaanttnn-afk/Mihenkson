@@ -836,6 +836,10 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
               id: 'counter',
               label: 'Karşı Teklif',
               icon: <IconCounter size={19} />,
+              // Müşteri son sözünü söylediyse bir daha karşı teklif istemek
+              // anlamsız: cevap değişmez, yalnız sabır yakılır. Jestteki
+              // "tükendi" işaretiyle aynı desen.
+              used: session.state === 'FINAL_OFFER',
               onPress: () => s.negotiationMove({ kind: 'requestCounter', atRound: session.round }),
             },
           ]}
@@ -1055,6 +1059,8 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           id: 'counter',
           label: 'Karşı Teklif',
           icon: <IconCounter size={19} />,
+          // Bkz. yukarısı: son teklifte karşı teklif istemek yalnız sabır yakar.
+          used: session.state === 'FINAL_OFFER',
           onPress: () => s.negotiationMove({ kind: 'requestCounter', atRound: session.round }),
         },
       ];

@@ -55,6 +55,7 @@ Referans depolar:
 | C1 · Vitrin tezi seçilince mal vitrine girmiyordu | ✅ yapıldı |
 | C5 · Karşılanan satıcıdan vazgeçilemiyordu | ✅ yapıldı |
 | YENİ · Ayarlar baloncuğu (Dükkan ekranı) | ✅ yapıldı |
+| A8 · Karşı Teklif sınırsız basılıyordu | ✅ yapıldı |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -71,7 +72,7 @@ Düzeltmeler eski tabanda (292467e) teşhis edilmişti; yeni tabanda hepsi başt
 | A7 | çelişkili metin clone `de16ae1` ile kökten kalkmış; "Canlandır" kilidi duruyor |
 | A9 etiketler | ✓ tarayıcıda: kırpılma yok, kap taşmıyor |
 | C1 vitrin | domain testleri ✓ · tarayıcı doğrulaması hâlâ açık |
-| A8 karşı teklif | ✗ hâlâ açık — tur bütçesi yok |
+| A8 karşı teklif | ✅ yapıldı — bütçe sabırdan türüyor |
 | A10 ses | ✗ clone tabanında ses altyapısı hiç yok (`public/assets/audio` klasörü de yok) |
 
 **Spawn ölçümü** (800 müşteri, tohum 12345): `sell 349 · buy 362 · service 57 · appraisal 32`;
@@ -358,14 +359,50 @@ kapanışında donuk. Stok, atölye ve toptancı açık."
 "Canlandır" yerinde ✓ · Pazar "Kapı açık" yok, "Canlandır" yok, kapalı cümlesi tam **1**
 kez ✓.
 
-#### A8 · A · "Karşı Teklif" sınırsız basılıyor
-`src/ui/workbench/NegotiateStage.tsx`
+#### A8 · A · "Karşı Teklif" sınırsız basılıyor — ✅ YAPILDI
+`src/domain/negotiation.ts` · `handleRequestCounter` + `src/ui/screens/ShopScreen.tsx`
 
 Ölçüm: karşı teklif 74.744 → 74.638 ₺'ye indi, sonra üç turda hiç kımıldamadı. Düğme hâlâ
 aktif ve hiçbir geri bildirim vermiyor.
 
-**Yapılacak:** karşı teklif turu bir bütçeye bağlansın (örn. 3 tur) ve bütçe bitince düğme
-gerekçesiyle kilitlensin: "Müşteri son sözünü söyledi."
+**Kök sebep (ilk teşhisimden farklı çıktı):** sabır ZATEN harcanıyordu
+(`requestCounterPatienceCost: 1`) ve mağaza da uyguluyordu. Eksik olan, **durum makinesinin
+buna hiç tepki vermemesiydi** — `handleRequestCounter` her çağrıda `state: session.state`
+döndürüyordu, yani sabır sıfırlansa bile müşteri sonsuza dek karşı teklif veriyordu.
+
+**Yapıldı:** geçiş `handleOffer` ile aynı sabır oranı üstünden çalışıyor. **Bütçe sabit bir
+tur sayısı DEĞİL, müşterinin sabrı** — "Tatlı Dil" yeteneği `patienceMax`'i büyüttükçe
+pazarlık alanı kendiliğinden genişliyor (`skill-tree · startingPatience`), ayrı bir yetenek
+kancası gerekmedi. Ayrıca SON TEKLİF'te "Karşı Teklif" aracı jestteki gibi "tükendi"
+işaretini alıyor.
+
+**Ölçüm bir hatamı yakaladı.** İlk hâlde kuralı `handleOffer` ile birebir aynı yaptım.
+Gerçek müşterilerle ölçtüm (400 spawn, 180 satıcı): **177'si SON TEKLİF'i hiç görmeden
+reddediyordu.** Sebep `finalOfferPatienceRatio` (0,28) — sabrı 3–4 olan müşteride tam sayı
+sabır o pencereye hiç düşmüyor. Karşı teklif istemek hakaret değil, oyuncunun soru
+sormasıdır; alışın o soruyla uyarısız kapanması hem sert hem öğretici değil. Kuralı
+yumuşattım: tükenme RED'e ancak müşteri **zaten** son sözünü söylediyse dönüşüyor.
+
+| Ölçüm (400 spawn · 180 satıcı) | İlk hâl | Düzeltilmiş |
+|---|---|---|
+| Tur dağılımı | 2:35 · 3:142 · 4:3 | 3:35 · 4:145 |
+| İlk turda red | 0 | 0 |
+| **Uyarısız red** | **177** | **0** |
+| Hiç kapanmayan | 0 | 0 |
+
+**Testler:** `src/domain/counter-budget.test.ts` — 16 test. Aralık taraması (sabır
+2–14) her değerde RED öncesi SON TEKLİF geldiğini sabitliyor; yetenek testi bütçenin
+`patienceMax` üstünden büyüdüğünü doğruluyor.
+
+**Tarayıcıda doğrulandı:**
+
+```
+tur | durum      | sabır      | düğme
+  0 | AÇIK       | Sabır: 2/3 | aktif
+  1 | AÇIK       | Sabır: 1/3 | aktif
+  2 | SON TEKLİF | Sabır: 0/3 | tükendi
+mesaj: "Son sözüm 28.108 ₺. Daha fazla uzatmayalım."
+```
 
 #### A9 · A · Stok marjı hangi kanala göre, yazmıyor — ✅ YAPILDI
 `src/ui/screens/StockScreen.tsx`

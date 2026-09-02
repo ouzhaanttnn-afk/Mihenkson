@@ -596,16 +596,87 @@ function handleGesture(
  * GDD 11.2 — "Karşı teklif iste: Sabır tüketir. Müşterinin gerçek rezervasyon
  * bandına dair sinyal verir." Rezervasyonun kendisini asla göstermez (GDD 6.6).
  */
+/**
+ * "Karşı teklif iste" — SABIR BİTİNCE DURUM DEĞİŞİR.
+ *
+ * Sabır zaten harcanıyordu (`requestCounterPatienceCost`) ve mağaza da
+ * uyguluyordu; eksik olan, DURUM MAKİNESİNİN buna tepki vermemesiydi. Bu
+ * fonksiyon her çağrıda `state: session.state` döndürdüğü için müşteri sabrı
+ * sıfırlansa bile sonsuza dek karşı teklif vermeye devam ediyordu. Tarayıcıda
+ * ölçüldü: karşı teklif 74.744 → 74.638 ₺'ye indi, sonra üç turda hiç
+ * kımıldamadı; düğme hâlâ aktifti ve hiçbir geri bildirim yoktu.
+ *
+ * Geçiş kuralı `handleOffer` ile AYNI — yeni bir eşik uydurmuyoruz:
+ *
+ *   sabır oranı ≤ 0                        → RED
+ *   sabır oranı ≤ finalOfferPatienceRatio  → SON TEKLİF
+ *
+ * Bütçe sabit bir tur sayısı DEĞİL, müşterinin sabrıdır. Böylece "Tatlı Dil"
+ * yeteneği `patienceMax`'i büyüttükçe pazarlık alanı da kendiliğinden
+ * genişler (skill-tree · `startingPatience`); ayrı bir yetenek kancası
+ * gerekmez.
+ */
 function handleRequestCounter(
   session: NegotiationSession,
   ctx: NegotiationContext,
   move: NegotiationMove,
 ): { session: NegotiationSession; response: NegotiationResponse } {
+  const { customer } = ctx;
   const threshold = effectiveReservation(ctx, session);
+  const patienceCost = NEGOTIATION.requestCounterPatienceCost;
+  const patienceAfter = customer.patience - patienceCost;
+  const patienceRatioAfter = patienceAfter / Math.max(1, customer.patienceMax);
+
+  const round = session.round + 1;
+  const exhausted = patienceRatioAfter <= 0;
+
+  /*
+    SON TEKLİF GÖRÜLMEDEN RED YOK.
+
+    İlk hâlde kural `handleOffer` ile birebir aynıydı: sabır oranı 0'a
+    inince RED. Gerçek müşterilerle ölçtüm — 180 satıcının **177'si** SON
+    TEKLİF aşamasını hiç görmeden reddediyordu. Sebep `finalOfferPatienceRatio`
+    (0,28): sabrı 3–4 olan bir müşteride tam sayı sabır o pencereye hiç
+    düşmüyor, ikinci karşı teklifte 1–2 (oran 0,33–0,50), üçüncüde doğrudan 0.
+
+    Karşı teklif istemek bir HAKARET DEĞİL, oyuncunun soru sormasıdır; alışın
+    o soruyla, uyarısız kapanması hem sert hem öğretici değil. Bu yüzden
+    tükenme RED'e ancak müşteri ZATEN son sözünü söylediyse dönüşür; aksi
+    hâlde bu tur SON TEKLİF olur ve oyuncu bir tur uyarı alır.
+
+    Bu, bütçeyi bir tur uzatır ve bütçe hâlâ sabırdan türer — "Tatlı Dil"
+    yeteneği `patienceMax`'i büyüttükçe alan yine kendiliğinden genişler.
+  */
+  if (exhausted && session.state === 'FINAL_OFFER') {
+    return {
+      session: {
+        ...session,
+        state: 'REJECTED',
+        round,
+        moveHistory: [...session.moveHistory, move],
+      },
+      response: {
+        state: 'REJECTED',
+        message: 'Son sözümü söyledim. Başka yere bakacağım.',
+        counterOffer: null,
+        patienceDelta: -patienceCost,
+        trustDelta: -TRUST.rejectPenalty,
+        suspicionDelta: 0,
+        wasRepeatOffer: false,
+        settledPrice: null,
+      },
+    };
+  }
+
+  const nextState: NegotiationState =
+    exhausted || patienceRatioAfter <= NEGOTIATION.finalOfferPatienceRatio
+      ? 'FINAL_OFFER'
+      : session.state;
+
   const counter = deriveCounter(
     session,
     ctx,
-    session.state,
+    nextState,
     session.offerHistory[session.offerHistory.length - 1] ?? threshold,
     threshold,
   );
@@ -613,15 +684,22 @@ function handleRequestCounter(
   return {
     session: {
       ...session,
-      round: session.round + 1,
+      state: nextState,
+      round,
       activeCounter: counter,
+      // SON TEKLİF'e geçtiysek karşı teklif artık bağlayıcıdır; `finalOffer`
+      // dolu olmadan `handleAcceptCounter` masada teklif göremezdi.
+      finalOffer: nextState === 'FINAL_OFFER' ? counter : session.finalOffer,
       moveHistory: [...session.moveHistory, move],
     },
     response: {
-      state: session.state,
-      message: `Benim beklentim ${formatTl(counter)} civarı.`,
+      state: nextState,
+      message:
+        nextState === 'FINAL_OFFER'
+          ? `Son sözüm ${formatTl(counter)}. Daha fazla uzatmayalım.`
+          : `Benim beklentim ${formatTl(counter)} civarı.`,
       counterOffer: counter,
-      patienceDelta: -NEGOTIATION.requestCounterPatienceCost,
+      patienceDelta: -patienceCost,
       trustDelta: 0,
       suspicionDelta: 0,
       wasRepeatOffer: false,
