@@ -492,10 +492,16 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
   const shopOpen = isShopOpen(s.market.day);
 
   if (!shopOpen) {
+    /*
+      "Dükkân kapalı" cümlesini alttaki Karar Dock'u söylüyor ("Dükkân ve
+      müşteri akışı kapalı"); burada TEKRARLAMAYIZ. Bu satırın işi, kapalı
+      günün ne getirdiğini söylemek: piyasa da donuk, ama gün boş değil —
+      stok, atölye ve toptancı açık.
+    */
     alerts.push({
       key: 'closed',
-      title: 'Dükkân bugün kapalı',
-      detail: `${weekdayLabel(s.market.day)} · müşteri gelmez; piyasa cuma kapanışında donuk.`,
+      title: `${weekdayLabel(s.market.day)} · piyasa da kapalı`,
+      detail: 'Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.',
       tone: 'warning',
       Icon: IconClock,
     });
@@ -661,8 +667,14 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
        * GDD 23.10.1 — "Müşteri yokken Karar Dock'unda ana akışı bozmayan
        * ikincil 'Dükkânı Canlandır' rewarded CTA'sı gösterilebilir."
        * Ayrı banner veya büyük reklam kartı kullanılmaz.
+       *
+       * DÜKKÂN KAPALIYKEN GÖSTERİLMEZ. Pazar günü müşteri akışı zaten yok;
+       * "geliş aralığını kısaltan" bir düğme o gün hiçbir şey yapmaz. Karar
+       * Dock'u "Dükkân ve müşteri akışı kapalı" derken çalışmayan bir çağrıyı
+       * ekranda tutmak oyuncunun ekrana duyduğu güveni yer (tarayıcıda
+       * görüldü: pazar günü düğme yerinde duruyordu).
        */}
-      {s.queue.length === 0 && (
+      {shopOpen && s.queue.length === 0 && (
         <button type="button" className="rewardedLine" onClick={s.triggerCustomerRush}>
           <IconVideo size={13} />
           Dükkânı Canlandır

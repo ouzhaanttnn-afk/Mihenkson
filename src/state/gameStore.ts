@@ -302,6 +302,22 @@ export interface GameState {
 
   toasts: ToastMessage[];
 
+  /**
+   * ZATEN AÇIK OLAN SEKMEYE YENİDEN DOKUNMA SAYACI.
+   *
+   * Kök ekranlar alt rotalarını kendi içlerinde tutar (İşletme'nin Piyasa,
+   * Toptancı, Kayıt… sayfaları gibi). Alt rotadayken alt navigasyonda aynı
+   * sekmeye basmak `setTab`'i çağırıyor ama `tab` zaten o değer olduğu için
+   * hiçbir şey değişmiyordu: oyuncu alt rotada kilitli kalıyor, tek çıkış
+   * "← İşletme" bağlantısı oluyordu (tarayıcıda ölçüldü).
+   *
+   * Bu sayaç her "aynı sekmeye tekrar dokunuldu" olayında bir artar. Kök
+   * ekranlar sayacı izleyip kendi alt rotalarını köke döndürür. Sayaç
+   * KAYDEDİLMEZ — `SaveFile` alanlarını tek tek saydığı için oyuncunun
+   * kaydına dokunmaz.
+   */
+  tabHomeSignal: number;
+
   // --- Aksiyonlar ---
   setTab: (tab: RootTab) => void;
   setSpeed: (speed: SpeedStep) => void;
@@ -469,13 +485,20 @@ export const useGame = create<GameState>((set, get) => {
     customerMessage: '',
     lastReview: null,
     toasts: [],
+    tabHomeSignal: 0,
 
     // Kayıt varsa VARSAYILANLARIN ÜSTÜNE yazar. Sıra kritik: varsayılanları
     // sonra koymak, yüklenen oyunu sessizce yeni oyuna çevirirdi.
     ...(restored ?? {}),
 
     // -----------------------------------------------------------------------
-    setTab: (tab) => set({ tab }),
+    /*
+      Başka bir sekmeye geçmek sekmeyi değiştirir. AYNI sekmeye yeniden
+      dokunmak ise "köke dön" demektir — telefon uygulamalarının alışılmış
+      davranışı. İkisini ayırmasaydık alt rotadan çıkış yolu kalmıyordu.
+    */
+    setTab: (tab) =>
+      set((s) => (s.tab === tab ? { tabHomeSignal: s.tabHomeSignal + 1 } : { tab })),
     // Ana Dükkan'daki hızlı alım, oyuncuyu bağlamından koparmadan sheet açar.
     // Stok ekranındaki aynı katalog kendi açılır tezgâhı olarak yaşamaya devam eder.
     openStockCatalog: () => set({ stockCatalogOpen: true }),
@@ -2105,12 +2128,35 @@ function settleLine(
   let economy = economyOf(s);
 
   if (accepted) {
+    /*
+      VİTRİN TEZİ SEÇİLDİYSE MAL VİTRİNE GİRER.
+
+      Alınan her şey `backStock`a düşüyordu; vitrini dolduran tek yol Stok
+      ekranında satırı açıp "Vitrine Koy"a basmaktı ve bunu hiçbir yer
+      söylemiyordu. Oysa vitrin müşterisi YALNIZ `location === 'display'`
+      olan işçilikli ürünü hedefler (purchase.ts · pickShowcaseTarget), yani
+      oyuncu işlem sırasında "Vitrin" çıkış planını seçse bile mekanik
+      kendiliğinden hiç çalışmıyordu.
+
+      Alan katmanı zaten bu varsayımla çalışıyor: `thesis.ts` "Vitrin"i ancak
+      BOŞ VİTRİN SLOTU varken seçenek olarak sunuyor (`displayFree > 0`).
+      Eksik olan tek halka, mutabakatın o kararı taşımamasıydı.
+
+      Slot işlem sırasında dolmuş olabilir (aynı gün başka bir mal vitrine
+      girmiş olabilir), o yüzden burada tekrar bakılır; yer yoksa mal arka
+      stokta kalır ve oyuncuya söylenir — sessizce yutulmaz.
+    */
+    const displayUsed = s.inventory.filter((p) => p.location === 'display').length;
+    const wantsDisplay = line.selectedThesis === 'retail' && isCrafted(item);
+    const displayHasRoom = displayUsed < s.store.displaySlots;
+    const goesToDisplay = wantsDisplay && displayHasRoom;
+
     const stored: ItemInstance = {
       ...item,
       buyCost: price,
       acquiredDay: s.market.day,
       thesis: line.selectedThesis,
-      location: 'backStock',
+      location: goesToDisplay ? 'display' : 'backStock',
     };
 
     const actual = trueValue(item, s.market);
@@ -2144,6 +2190,17 @@ function settleLine(
       return;
     }
     economy = outcome.state;
+
+    // Oyuncu "Vitrin" dedi ama vitrin doluysa mal arka stokta kaldı; bunu
+    // söylemezsek vitrin müşterisinin neden gelmediği anlaşılmaz.
+    if (wantsDisplay && !displayHasRoom) {
+      pushToast(
+        set,
+        get,
+        `Vitrin dolu (${s.store.displaySlots}/${s.store.displaySlots}) — ${item.displayName} arka stoğa girdi.`,
+        'negative',
+      );
+    }
   }
 
   // --- DealRecord (GDD 22.2) ---

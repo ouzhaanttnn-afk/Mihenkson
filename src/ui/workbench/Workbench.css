@@ -387,6 +387,18 @@
   color: var(--negative-soft);
 }
 
+/*
+  Kırılımın altındaki kural notu. Satırlardan daha sönük ve daha küçük:
+  bu bir kalem değil, tabloyu okuma talimatı.
+*/
+.breakdown__note {
+  margin: 2px 0 0;
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-micro);
+  line-height: 1.4;
+  color: var(--text-dark-3);
+}
+
 /* ------------------------------------------------------------------ */
 /* TEZ (GDD 23.7)                                                      */
 /* ------------------------------------------------------------------ */

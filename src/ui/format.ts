@@ -20,9 +20,15 @@ const DEC2 = new Intl.NumberFormat('tr-TR', {
   maximumFractionDigits: 2,
 });
 
-/** 145.000 ₺ */
+/**
+ * 145.000 ₺ · −685 ₺
+ *
+ * Eksi imi `tlSigned` ve `pctSigned` ile AYNI karakterdir (U+2212), tire
+ * değil. Ekspertiz kırılımında aynı satırda "−%7" ile "-685 ₺" yan yana
+ * düşüyordu: iki farklı eksi, farklı genişlikte ve farklı yükseklikte.
+ */
 export function tl(n: number): string {
-  return `${TL.format(Math.round(n))} ₺`;
+  return `${TL.format(Math.round(n)).replace('-', '−')} ₺`;
 }
 
 /** 145.000 — sembolsüz, büyük rakam gösterimleri için. */
@@ -55,6 +61,19 @@ export function preciseGrams(n: number): string {
 /** %19 */
 export function pct(ratio: number, digits = 0): string {
   return `%${(ratio * 100).toFixed(digits).replace('.', ',')}`;
+}
+
+/**
+ * −%7 · +%2 — işaret YÜZDE İMİNİN ÖNÜNDE.
+ *
+ * `pct(-0.07)` "%-7" üretirdi; Türkçede işaret yüzde iminden önce yazılır.
+ * Sıfır işaretsiz kalır: "+%0" bir yönü varmış gibi okunur, oysa yoktur.
+ * Eksi imi `tlSigned` ile aynı karakterdir (U+2212), tire değil.
+ */
+export function pctSigned(ratio: number, digits = 0): string {
+  const shown = Number((ratio * 100).toFixed(digits));
+  if (shown === 0) return pct(0, digits);
+  return `${shown < 0 ? '−' : '+'}${pct(Math.abs(ratio), digits)}`;
 }
 
 /** ▲ %0,38 — yön işareti dahil. */

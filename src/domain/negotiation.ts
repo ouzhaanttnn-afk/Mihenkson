@@ -716,8 +716,16 @@ export function isTerminal(state: NegotiationState): boolean {
   return state === 'ACCEPTED' || state === 'REJECTED';
 }
 
+/**
+ * Pazarlık durumunun oyuncuya görünen adı.
+ *
+ * ANAHTARLAR İNGİLİZCE, DEĞERLER TÜRKÇE — anahtar durum makinesinin kimliği,
+ * değer ekranda okunan kelime. `OPEN` uzun süre çevrilmeden kalmıştı ve
+ * pazarlık ekranının tam ortasında, dört Türkçe etiketin yanında tek başına
+ * İngilizce duruyordu (tarayıcıda görüldü).
+ */
 export const STATE_LABEL: Record<NegotiationState, string> = {
-  OPEN: 'OPEN',
+  OPEN: 'AÇIK',
   HARDENING: 'SERTLEŞTİ',
   FINAL_OFFER: 'SON TEKLİF',
   ACCEPTED: 'KABUL',

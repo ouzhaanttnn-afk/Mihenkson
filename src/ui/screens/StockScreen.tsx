@@ -85,8 +85,12 @@ export function StockScreen() {
             <span className="summaryRow__label">Maliyet</span>
             <span className="summaryRow__value num">{tl(wealth.stockCost)}</span>
           </div>
+          {/*
+            Bu da satır bazındaki "Hızlı Çıkışta Marj"ın toplamıdır; "Net
+            Çıkış" adı hangi kanala göre olduğunu söylemiyordu.
+          */}
           <div className="summaryRow__item">
-            <span className="summaryRow__label">Net Çıkış</span>
+            <span className="summaryRow__label">Hızlı Çıkışta</span>
             <span
               className={`summaryRow__value num ${
                 wealth.stockPotential >= 0
@@ -337,17 +341,36 @@ function StockRow({ position }: { position: InventoryPosition }) {
           </span>
         </div>
 
+        {/*
+          RAKAMLARIN HANGİ KANALA AİT OLDUĞU ARTIK ETİKETTE YAZIYOR.
+
+          Eskiden "Net Satış Tahmini" ve "Tahmini Marj" yazıyordu. İkisi de
+          `liquidationEstimate` üzerinden BUGÜN ERİŞİLEBİLEN EN HIZLI çıkışa
+          göre hesaplanır — genelde toptancıya. Toptancı makası yüzünden taze
+          alınmış sağlam bir malın marjı da eksi çıkar; etiket bunu
+          söylemediği için oyuncu birinci günde açılış stoğunun üçüne birden
+          bakıp "stoğum zararda" diye okuyordu (tarayıcıda ölçüldü: −3.640,
+          −4.062, −4.244 ₺). Rakam doğruydu, eksik olan cümleydi.
+
+          KANAL ADI ETİKETTE DEĞİL, ALTTAKİ CÜMLEDE. Üç etiket 256 px'lik
+          satıra sığmıyor: ölçüldü, üçü de kırpılıyordu ve kap 11 px taşıyordu
+          ("Gerçek Alış Maliyeti" 84 px yuvada 97 px istiyordu — bu kırpılma
+          değişiklikten önce de vardı). Kanal adı zaten değişken uzunlukta
+          ("Toptancı" ile "Servis + satış" arasında), yani etikete sığdırmak
+          baştan kırılgandı. Kısa etiketler yuvaya giriyor, kanal adı da altta
+          yeri olan cümlede tam hâliyle duruyor.
+        */}
         <div className="row__figures">
           <span className="figure">
-            <span className="figure__label">Gerçek Alış Maliyeti</span>
+            <span className="figure__label">Maliyet</span>
             <span className="figure__value num">{tl(position.costBasis)}</span>
           </span>
           <span className="figure">
-            <span className="figure__label">Net Satış Tahmini</span>
+            <span className="figure__label">Bugün</span>
             <span className="figure__value num">{tl(liquidation.value)}</span>
           </span>
           <span className="figure">
-            <span className="figure__label">Tahmini Marj</span>
+            <span className="figure__label">Marj</span>
             <span
               className={`figure__value num ${
                 delta >= 0 ? 'figure__value--positive' : 'figure__value--negative'
@@ -359,7 +382,8 @@ function StockRow({ position }: { position: InventoryPosition }) {
         </div>
 
         <div className="row__exitEstimate">
-          Hızlı çıkış: <strong>{liquidation.channel}</strong> · Tahmini süre {liquidation.time}
+          Bugünkü en hızlı çıkış: <strong>{liquidation.channel}</strong> · tahmini süre{' '}
+          {liquidation.time}. Beklemek daha iyi bir kanal açabilir.
         </div>
 
         {/* Satır uyarısı — tek satır durum (GDD 23.15) */}
@@ -393,6 +417,14 @@ function StockRow({ position }: { position: InventoryPosition }) {
   );
 }
 
+/**
+ * HAS HESABI — KOMPAKT TEZGÂH.
+ *
+ * Panel eskiden tam boy çiziliyor ve Stok sekmesinin ilk ekranını tek başına
+ * dolduruyordu: oyuncu "Stok"a basınca stoğunu değil bir altın alım-satım
+ * tezgâhını görüyordu (390 × 844'te ölçüldü). Clone tarafı bunu `hasCompact`
+ * düzenine geçirerek çözdü; A3 için ayrıca katlanır yapmaya gerek kalmadı.
+ */
 function HasCounter() {
   const s = useGame();
   const [side, setSide] = useState<'buy' | 'sell'>('buy');

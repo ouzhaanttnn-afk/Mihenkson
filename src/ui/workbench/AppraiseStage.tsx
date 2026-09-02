@@ -12,7 +12,7 @@
 
 import { TERM } from '@ui/terms';
 import { CONFIDENCE_LABEL } from '@domain/valuation';
-import { tl, tlBare, pct } from '@ui/format';
+import { tl, tlBare, pct, pctSigned } from '@ui/format';
 import type { ValuationBand } from '@domain/types';
 
 const SEGMENTS = 5;
@@ -73,14 +73,35 @@ export function AppraiseStage({ band }: Props) {
             </span>
           </div>
         ))}
+
+        {/*
+          Payların toplamı %100 etmez ve bu bir hata değildir (bkz. buildRows).
+          Oyuncunun tabloyu bir toplam sanıp tutmadığını görmesi, tabloya
+          duyduğu güveni yiyordu; kuralı burada açıkça söylüyoruz.
+        */}
+        <p className="breakdown__note">
+          Paylar band ortasına orandır; toplamları %100 olmak zorunda değildir.
+        </p>
       </div>
     </div>
   );
 }
 
 /**
- * Kırılım satırları. Pay sütunu, kalemin bandın orta noktasına oranıdır —
- * oyuncuya "değer nereden geliyor?" sorusunu tek bakışta cevaplar.
+ * Kırılım satırları. Pay sütunu, kalemin bandın ORTA NOKTASINA oranıdır.
+ *
+ * PAYLAR NEDEN %100 ETMEZ: her kalem aynı paydaya (band ortası) bölünür ama
+ * bir kısmı değeri artırır, bir kısmı düşürür; üstelik piyasa oynaklığı satırı
+ * bilgilendiricidir, toplama girmez. Bu yüzden toplam %100'ün üstüne de altına
+ * da çıkabilir. Ekranda ölçülen bir örnek: 78 + 24 + 5 + 7 + 2 = %116.
+ *
+ * ESKİDEN OKUNMUYORDU: değeri DÜŞÜREN kalem `Math.abs` ile ARTI yüzde
+ * gösteriliyordu — "Kondisyon / Risk %7" satırının tutarı −999 ₺ idi. Oyuncu
+ * tabloyu bir toplam sanıyor, tutmuyor, tabloya güvenmeyi bırakıyordu.
+ *
+ * Artık işaret yüzdeye de taşınıyor (−%7): satırın yüzdesi ile tutarı aynı
+ * yöne bakıyor. Toplamın neden %100 olmadığını da tablonun altındaki not
+ * söylüyor; oyuncuya tahmin ettirmiyoruz.
  */
 function buildRows(band: ValuationBand) {
   const b = band.breakdown;
@@ -98,18 +119,20 @@ function buildRows(band: ValuationBand) {
     rows.push({ name: 'Nadirlik Primi', value: b.rarityPremium, share: pct(b.rarityPremium / base) });
   }
   if (b.riskDeduction < 0) {
+    // Değeri DÜŞÜREN kalem: yüzde de eksi yazılır, tutarla aynı yöne baksın.
     rows.push({
       name: 'Kondisyon / Risk',
       value: b.riskDeduction,
-      share: pct(Math.abs(b.riskDeduction) / base),
+      share: pctSigned(b.riskDeduction / base),
     });
   }
 
-  // Piyasa etkisi bilgilendiricidir: rejim bandı ne kadar oynatıyor.
+  // Piyasa etkisi bilgilendiricidir: rejim bandı ne kadar oynatıyor. İki yöne
+  // de gidebildiği için işaretli gösterilir.
   rows.push({
     name: 'Piyasa Oynaklığı',
     value: b.marketInfluence,
-    share: pct(b.marketInfluence / base),
+    share: pctSigned(b.marketInfluence / base),
   });
 
   return rows;

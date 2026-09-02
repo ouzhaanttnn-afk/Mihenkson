@@ -291,7 +291,20 @@
   line-height: 1.5;
 }
 .v5Controls p { margin: 0 0 var(--sp-2); }
-.v5Controls .chip { min-height: 44px; margin: 2px; }
+
+/*
+  DOKUNMA HEDEFİ İÇİN EK YÜKSEKLİK VERİLMEZ — `.chip` bunu zaten sağlıyor.
+
+  Burada `min-height: 44px` vardı ve `.chip`in `box-sizing: content-box`
+  olması yüzünden 44 px İÇERİK kutusuna uygulanıyordu: 44 + 14 padding + 2
+  kenarlık = 60 px. Aynı sınıfın filtre şeridindeki hâli 46 px'ken buradaki
+  60 px'e çıkıyordu; "HAS Al" gibi kısa etiketler yumurta gibi duruyordu
+  (tarayıcıda ölçüldü: 64 × 60).
+
+  `.chip`in kendi ölçüsü 30 içerik + 14 padding + 2 kenarlık = 46 px, yani
+  GDD 23.22'nin istediği 44 px'in zaten üstünde. Override gereksizdi.
+*/
+.v5Controls .chip { margin: 2px; }
 .v5Controls input {
   width: 100%;
   min-width: 0;
