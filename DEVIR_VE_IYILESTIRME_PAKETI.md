@@ -65,6 +65,8 @@ Referans depolar:
 | A3-2 · HAS tezgâhı katlanır oldu | ✅ yapıldı |
 | C3 · "Alımı Bitir" hiçbir şey almıyordu | ✅ yapıldı |
 | C6 · Gün raporu 1. günde felaket gibi okunuyordu | ✅ yapıldı |
+| C2 · Hızlı Stok penceresi üç farklı giriş biçimi kullanıyordu | ✅ yapıldı |
+| YENİ · HAS gövdesindeki sayılar okunmuyordu (1,05:1) | ✅ yapıldı |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -556,13 +558,53 @@ vitrine" değil. Konsol hatası yok.
 `displayStock` hâlâ yalnız işçilikliyi kabul ediyor — sarrafiye için vitrin zaten anlamsız
 olduğundan bu doğru, ama Hızlı Stok penceresi `Vitrin 0/8`'in neden 0 kaldığını söylemiyor.
 
-#### C2 · A · Hızlı Stok penceresi üç farklı giriş biçimi kullanıyor
-Gram Altın satırı serbest yazı kutusu, Çeyrek satırı `− 1 +` sayacı, Bilezik satırı
-`− 10 g +` sayacı; üçünün de altında ayrıca kaydırıcı. Pencere krem, oyunun geri kalanı
-lacivert. Üçüncü satırın kaydırıcısı alttaki çubuğun altında kalıyor.
+#### C2 · A · Hızlı Stok penceresi üç farklı giriş biçimi kullanıyordu — ✅ YAPILDI
+`src/ui/screens/StockScreen.tsx` · `BullionOffer` · `Screens.css` · `Workbench.css`
 
-**Yapılacak:** tek kontrol tipi (`− değer +`), kaydırıcı kaldırılsın, pencere koyu temaya
-alınsın, alt boşluk eklensin.
+Gram Altın satırı serbest yazı kutusu, diğerleri `− değer +` sayacıydı; ÜSTELİK her satırın
+altında ayrıca bir kaydırıcı vardı. Pencere krem, oyunun geri kalanı lacivert.
+
+**Tarayıcıda ölçülen asıl maliyet** (390×844): her satır **184 px**, altı satırlık liste
+**1106 px**, pencerenin listesi ise **505 px**. Yani ilk satırdan sonrası katlanın altında
+kalıyordu — kaydırıcıların çoğuna **erişilemiyordu bile**. Tam görünen satır sayısı: **1**.
+
+**Yapıldı:**
+- Her satırda tek kontrol: `− [yazılabilir değer] birim +`. Kaydırıcının tek gerçek faydası
+  (büyük miktara hızlıca ulaşmak) değeri yazabilmekle zaten karşılanıyor; 100 g'ı yazmak
+  kaydırıcıyla nişan almaktan doğrudur.
+- Birim SAYININ YANINDA: bilezikte sayı adettir (`× 10 g`), gram altında gramdır. Eski
+  kontrol bileziğin yanında "20 g" yazıp değeri 2 tutuyordu — yazılabilir kutuda bu
+  yanıltıcı olurdu.
+- Erişilebilir üst sınır kaybolmasın diye meta satırına taşındı: `Stokta 0 adet · en çok 146 adet`.
+- Kaydırıcı ve `.poolAmount` / `.poolSlider` kuralları tamamen kaldırıldı.
+- Pencere koyu temaya alındı (yeni renk uydurulmadı; `.page`'in kendi tokenları verildi),
+  listeye alt boşluk eklendi.
+
+**Sonuç (aynı ölçüm):** satır **184 → 99 px**, liste **1106 → 603 px**, tam görünen satır
+**1 → 5**. Dokunma hedefleri 44 px. Yazarak giriş doğrulandı: 12,5 g → 52.565 ₺, `+` → 13,5 g
+→ 56.768 ₺; bilezik 3 → 116.805 ₺. Konsol hatası yok.
+
+#### YENİ · HAS gövdesindeki sayılar okunmuyordu — ✅ YAPILDI
+`src/ui/screens/Screens.css` · `.hasCompact__*`
+
+A3'te paneli `.group`tan `.counter`a taşıyınca **başlık** düzeldi ama **gövde** geride kaldı:
+`.page` içindeki `.counter` da koyu olduğu için gövdenin `--text-light-*` tokenları koyu
+zemine düştü. Şeffaflığı gerçekten bindirerek ölçüldü:
+
+| metin | önce | sonra |
+|---|---|---|
+| `Seçilen: 0 g` | **1,05:1** | 10,71:1 |
+| `Tutar 0 ₺` | **1,05:1** | 10,71:1 |
+| `Değer 0 ₺` · `En çok …` | 2,76:1 | 5,54:1 |
+| `HAS Al` · `HAS Sat` · `MAX` | krem düğme, koyu panelde yabancı | 4,75–5,95:1 |
+
+Oyuncunun ayarladığı iki sayı neredeyse görünmezdi (WCAG asgarisi 4,5:1). Artık gövdenin
+tamamı 4,5:1 üstünde. Akış yeniden oynandı: MAX → Devam Et → onay satırı → Vazgeç → katlama,
+hepsi çalışıyor.
+
+**Genel token değiştirilmedi.** `--text-dark-3` bu zeminde 2,76:1 veriyor ve bu bütün
+ekranlardaki soluk mikro metinler için geçerli — palet kararı, kullanıcıya sorulmadan
+verilmemeli. Burada yalnız ilgili satırlar bir kademe yukarı alındı.
 
 #### C3 · A · "Alımı Bitir" hiçbir şey almıyordu — ✅ YAPILDI
 `src/ui/screens/ShopScreen.tsx` · `QuickStockSheet`

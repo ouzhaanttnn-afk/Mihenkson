@@ -12,10 +12,10 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { applyTransaction, closeDay, createLedger } from './settlement';
+import { applyTransaction, closeDay, createLedger, type EconomyState } from './settlement';
 import { createMarketForDay } from './market';
 import { poolSupplyItem, poolSupplyQuote } from './pool-supply';
-import type { EconomyState, SettlementTransaction } from './types';
+import type { SettlementTransaction } from './types';
 import { useGame } from '@state/gameStore';
 
 function baseState(): EconomyState {
@@ -32,7 +32,7 @@ function baseState(): EconomyState {
 
 /** Toptancıdan çeyrek alımı — kasadan para çıkar, içeri MAL girer. */
 function stockIntake(state: EconomyState, quantity: number, txId = 'intake'): SettlementTransaction {
-  const total = poolSupplyQuote('quarter_gold', quantity, state.market, state.store)!.totalPrice;
+  const total = poolSupplyQuote('quarter_gold', quantity, state.market!, state.store)!.totalPrice;
   return {
     txId, dealId: txId, day: 1, cashDelta: -total, poolPurchase: { quantity },
     itemsIn: [{ ...poolSupplyItem('quarter_gold'), id: `${txId}-item`, location: 'backStock', buyCost: total / quantity }],
@@ -98,7 +98,7 @@ describe('C6 · kasa değişiminin stoğa giden kısmı', () => {
   it('önceki günün alımı bugünün raporuna yazılmaz', () => {
     const state = baseState();
     const dun = applyTransaction(state, { ...stockIntake(state, 10), txId: 'dun', dealId: 'dun', day: 1 }).state;
-    const bugun = { ...dun, market: { ...dun.market, day: 2 } } as EconomyState;
+    const bugun = { ...dun, market: { ...dun.market!, day: 2 } } as EconomyState;
 
     const { report } = closeDay(bugun, 2);
 

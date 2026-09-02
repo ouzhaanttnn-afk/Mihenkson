@@ -234,9 +234,38 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
   };
   const lot = poolSupplyQuote(templateId, qty, s.market, s.store);
   const max = useMemo(() => maxPoolSupplyQuantity(templateId, s.market, s.store), [templateId, s.market, s.store]);
-  const sliderStep = templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1;
-  const sliderValue = Number.isFinite(qty) ? Math.min(max, Math.max(0, qty)) : 0;
   const unitQuote = lot ?? poolSupplyQuote(templateId, 1, s.market, s.store)!;
+
+  /*
+    C2 — TEK KONTROL TİPİ.
+
+    Eskiden Gram Altın satırı serbest yazı kutusu, diğerleri `− değer +`
+    sayacıydı; ÜSTELİK her satırın altında ayrıca bir kaydırıcı vardı. Üç ayrı
+    idiom, aynı işi yapmak için. Kaydırıcı ölçüldü: satırı 184 px'e çıkarıyor,
+    6 satırlık liste 1106 px oluyor, 505 px'lik pencerede ilk satırdan sonra
+    hepsi katlanın altında kalıyordu — yani kaydırıcıların çoğuna ulaşılamıyordu
+    bile.
+
+    Yerine: her satırda aynı `− [yazılabilir değer] +`. Kaydırıcının tek gerçek
+    faydası (büyük miktara hızlı ulaşmak) değeri yazabilmekle zaten karşılanıyor;
+    üstelik 100 g'ı yazmak kaydırıcıyla nişan almaktan doğrudur. Ulaşılabilir üst
+    sınır kaybolmasın diye "en çok" bilgisi meta satırına taşındı.
+
+    Birim SAYININ YANINDA yazıyor: bilezik satırında sayı ADET'tir (her biri
+    10 g), gram altında GRAM'dır. Eski kontrol bileziğin yanında "20 g" yazıp
+    değeri 2 tutuyordu; yazılabilir kutuda bu yanıltıcı olurdu.
+  */
+  const minQty = templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1;
+  const stepQty = 1;
+  const unitSuffix = templateId === 'gram_gold_1' ? 'g' : gramsPerUnit ? `× ${gramsPerUnit} g` : 'adet';
+  const maxLabel = templateId === 'gram_gold_1'
+    ? preciseGrams(max)
+    : `${max} ${gramsPerUnit ? 'bilezik' : 'adet'}`;
+  const shift = (delta: number) => {
+    const base = Number.isFinite(qty) ? qty : minQty;
+    const next = Math.min(max, Math.max(minQty, base + delta));
+    setQty(templateId === 'gram_gold_1' ? next.toFixed(1) : String(Math.round(next)));
+  };
   const poolId = poolForTemplate(templateId);
   const held = s.inventory.filter(p => p.poolId === poolId)
     .reduce((sum, p) => sum + (p.quantityMg === undefined ? p.quantity : fromMg(p.quantityMg)), 0);
@@ -256,28 +285,33 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
       <span className="offerRow__name">{name}</span>
       <span className="offerRow__unit num">{tlBare(unitQuote.unitPrice / (gramsPerUnit || 1))} TL/{gramsPerUnit ? 'g' : 'adet'}</span>
     </div>
-    <div className="offerRow__meta">Stokta {gramsPerUnit ? preciseGrams(held) : `${held} adet`}</div>
+    <div className="offerRow__meta">
+      Stokta {gramsPerUnit ? preciseGrams(held) : `${held} adet`}
+      {max > 0 && <> · en çok {maxLabel}</>}
+    </div>
     <div className="offerRow__controls">
-      {templateId === 'gram_gold_1'
-        ? <label className="poolAmount">Gram <input aria-label="Gram Altın miktarı" type="number" inputMode="decimal" min={GRAM_SUPPLY_STEP} step={GRAM_SUPPLY_STEP} value={amount}
-            onChange={e => setQty(e.target.value)} onBlur={() => setQty(formatGramAmount(amount))} /></label>
-        : <div className="qtyStep" role="group" aria-label={`${name} miktarı`}>
-          <button type="button" className="qtyStep__btn" aria-label={gramsPerUnit ? '10 gram azalt' : 'Bir adet azalt'}
-            disabled={qty <= 1} onClick={() => setQty(String(Math.max(1, qty - 1)))}>−</button>
-          <span className="qtyStep__value num">{gramsPerUnit ? `${qty * gramsPerUnit} g` : qty}</span>
-          <button type="button" className="qtyStep__btn" aria-label={gramsPerUnit ? '10 gram artır' : 'Bir adet artır'}
-            disabled={qty + 1 > max || !space} onClick={() => setQty(String(qty + 1))}>+</button>
-        </div>}
+      <div className="qtyStep" role="group" aria-label={`${name} miktarı`}>
+        <button type="button" className="qtyStep__btn" aria-label={`${name} miktarını azalt`}
+          disabled={!Number.isFinite(qty) || qty <= minQty} onClick={() => shift(-stepQty)}>−</button>
+        <input
+          className="qtyStep__value num"
+          aria-label={`${name} miktarı`}
+          type="number"
+          inputMode="decimal"
+          min={minQty}
+          max={max || undefined}
+          step={templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1}
+          value={amount}
+          onChange={e => setQty(e.target.value)}
+          onBlur={() => templateId === 'gram_gold_1' && setQty(formatGramAmount(amount))}
+        />
+        <span className="qtyStep__unit">{unitSuffix}</span>
+        <button type="button" className="qtyStep__btn" aria-label={`${name} miktarını artır`}
+          disabled={!space || !Number.isFinite(qty) || qty + stepQty > max} onClick={() => shift(stepQty)}>+</button>
+      </div>
       <span className="offerRow__total num">{lot ? tl(lot.totalPrice) : '—'}</span>
       <button type="button" className="offerRow__buy" disabled={!affordable} onClick={buy}>{expensive && confirmed ? 'Onayla' : 'Al'}</button>
     </div>
-    <label className="poolSlider">
-      <span>Seçilen: {gramsPerUnit ? `${(sliderValue * gramsPerUnit).toFixed(1)} g` : `${sliderValue} adet`}</span>
-      <input type="range" aria-label={`${name} miktar sliderı`} min={0} max={max} step={sliderStep} value={sliderValue}
-        disabled={max <= 0 || !space}
-        onChange={e => setQty(templateId === 'gram_gold_1' ? Number(e.target.value).toFixed(1) : String(Math.round(Number(e.target.value))))} />
-      <span className="poolSlider__range">0 — {gramsPerUnit ? `${(max * gramsPerUnit).toFixed(1)} g` : `${max} adet`}</span>
-    </label>
     {expensive && confirmed && <p className="offerRow__confirm" role="status">Yüksek tutar: {tl(lot.totalPrice)}. Satın almak için tekrar onayla.</p>}
     {!lot && <p className="offerRow__shortfall">Pozitif, geçerli bir miktar seçin. Gram altın hassasiyeti 0,1 g.</p>}
     {lot && !affordable && <p className="offerRow__shortfall">{!space

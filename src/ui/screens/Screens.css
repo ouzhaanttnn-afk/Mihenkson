@@ -891,10 +891,26 @@
   gap: var(--sp-2);
 }
 
+/*
+  HAS gövdesi KOYU YÜZEYDE duruyor.
+
+  Panel `.group`ken (koyu) gövde metinleri `--text-light-*` kullanıyordu; A3'te
+  başlığı `.counter`a taşıyınca başlık düzeldi ama GÖVDE geride kaldı — `.page`
+  içindeki `.counter` da koyu olduğu için açık tema tokenları koyu zemine düştü.
+  Tarayıcıda ölçüldü: oyuncunun ayarladığı iki sayı, "Seçilen: 0 g" ve
+  "Tutar 0 ₺", 1,05:1 kontrastla neredeyse görünmezdi (WCAG asgarisi 4,5:1);
+  "Değer" ve "En çok" satırları 3,41:1'de kalıyordu. Cila değil, okunmayan sayı.
+*/
 .hasCompact__value,
 .hasCompact__sliderHead,
 .hasCompact__confirm {
-  color: var(--text-light-3);
+  /*
+    `--text-dark-3` bu zeminde 2,76:1 veriyor (ölçüldü). Bunlar süs değil,
+    oyuncunun okuduğu sayılar: "Değer 0 ₺" ve "En çok 234 g". Bir kademe
+    yukarısı 4,75:1'e çıkıyor. GENEL TOKEN DEĞİŞTİRİLMEDİ — o bütün ekranları
+    ilgilendiren bir palet kararı, burada tek başına verilemez.
+  */
+  color: var(--text-dark-2);
   font-size: var(--fs-micro);
 }
 
@@ -920,22 +936,22 @@
 .hasCompact__confirmButton,
 .hasCompact__cancel {
   min-height: 44px;
-  border: 1px solid var(--line-light);
+  border: 1px solid var(--page-line, var(--line-dark));
   border-radius: var(--r-sm);
-  background: var(--stone-50);
-  color: var(--text-light-2);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dark-2);
   font-size: var(--fs-caption);
   font-weight: var(--fw-semibold);
 }
 
 .hasCompact__segment[aria-pressed="true"] {
   border-color: var(--brass-500);
-  background: color-mix(in srgb, var(--brass-500) 16%, var(--stone-50));
-  color: var(--brass-700);
+  background: rgba(196, 141, 43, 0.18);
+  color: var(--brass-300);
 }
 
 .hasCompact__sliderHead strong {
-  color: var(--text-light-1);
+  color: var(--text-dark-1);
 }
 
 .hasCompact__actions {
@@ -947,13 +963,13 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  color: var(--text-light-3);
+  color: var(--text-dark-2);
   font-size: var(--fs-micro);
 }
 
 .hasCompact__total strong {
   overflow: hidden;
-  color: var(--text-light-1);
+  color: var(--text-dark-1);
   font-size: var(--fs-label);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -975,7 +991,7 @@
 
 .hasCompact__confirm {
   padding-top: var(--sp-2);
-  border-top: 1px solid var(--line-light);
+  border-top: 1px solid var(--page-line, var(--line-dark));
 }
 
 .hasCompact__confirm > span {
@@ -1257,6 +1273,52 @@
 .counter .qtyStep__btn { color: var(--brass-700); width: 32px; }
 .counter .qtyStep__value { color: var(--text-light-1); }
 
+/*
+  C2 · sarrafiye satırındaki tek kontrol: − [yazılabilir değer] birim +
+  Kutu, satırın kalan genişliğini yemesin diye sabit; birim etiketi sayının
+  hemen yanında durur ki "2" ile "2 × 10 g" karışmasın.
+*/
+.offerRow .qtyStep { border-left: none; padding: 0; gap: 0; }
+.offerRow .qtyStep__btn { width: 34px; }
+.offerRow input.qtyStep__value {
+  width: 62px;
+  padding: 0 var(--sp-1);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+}
+.offerRow input.qtyStep__value::-webkit-outer-spin-button,
+.offerRow input.qtyStep__value::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.offerRow .qtyStep__unit {
+  padding: 0 4px 0 5px;
+  font-size: var(--fs-micro);
+  color: var(--text-light-3);
+  white-space: nowrap;
+}
+.page .offerRow .qtyStep__unit { color: var(--text-dark-3); }
+
+/*
+  C2 · HIZLI STOK PENCERESİ KOYU TEMAYA GEÇTİ.
+
+  Aynı `BullionCatalog` iki yerde görünüyor: Stok ekranında (koyu `.page`) ve
+  Dükkan'daki hızlı stok penceresinde. Pencere krem, oyunun geri kalanı
+  laciverttir — aynı liste iki farklı oyun gibi okunuyordu. Aşağısı `.page`
+  kurallarının ikizi: yeni bir renk uydurulmadı, var olan koyu tema tokenları
+  pencereye de veriliyor.
+*/
+.quickStockSheet .offerRow__name,
+.quickStockSheet .offerRow__total,
+.quickStockSheet .qtyStep__value { color: var(--text-dark-1); }
+
+.quickStockSheet .offerRow__meta,
+.quickStockSheet .qtyStep__unit { color: var(--text-dark-3); }
+
+.quickStockSheet .offerRow { border-color: var(--page-line, rgba(201, 157, 66, 0.28)); }
+
+.quickStockSheet .offerRow__unit,
+.quickStockSheet .offerRow__buy,
+.quickStockSheet .qtyStep__btn { color: var(--brass-300); }
+
 /* ------------------------------------------------------------------ */
 /* GERÇEKÇİ GÖRSEL YUVALARI (asset paketi v6.0.0)                      */
 /* ------------------------------------------------------------------ */
@@ -1351,13 +1413,8 @@
 .pageHead--withArt .pageHead__sub {
   padding-right: 104px;
 }
-.poolAmount { display: flex; flex: 0 1 auto; align-items: center; gap: 5px; min-width: 0; white-space: nowrap; }
-.poolAmount input { width: 72px; min-height: 44px; padding: 6px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-variant-numeric: tabular-nums; }
 .hasSlider { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .hasSlider input[type="range"] { width: 100%; min-height: 44px; accent-color: #bf902f; }
-.poolSlider { display: grid; gap: 4px; margin-top: 8px; font-size: var(--fs-caption); }
-.poolSlider input[type="range"] { width: 100%; min-height: 32px; accent-color: #bf902f; }
-.poolSlider__range { color: var(--text-light-3); font-size: var(--fs-micro); }
 
 /* Dosyanın sonundaki özel bileşen kuralları birleşik koyu temayı ezmesin. */
 .page .offerRow__name,
@@ -1367,7 +1424,6 @@
 }
 
 .page .offerRow__meta,
-.page .poolSlider__range,
 .page .masterLine__text,
 .page .statLine__label,
 .page .menuLine__sub,

@@ -1529,10 +1529,13 @@
   border: 1px solid rgba(215, 170, 74, 0.62);
   border-bottom: 0;
   border-radius: 26px 26px 0 0;
+  /* C2 · pencere oyunun geri kalanıyla aynı lacivertte; krem yüzey
+     aynı listeyi iki farklı oyun gibi gösteriyordu. */
+  --page-line: rgba(201, 157, 66, 0.28);
   background:
-    radial-gradient(circle at 85% 0%, rgba(104, 63, 160, 0.09), transparent 34%),
-    var(--stone-50);
-  color: var(--text-light-1);
+    radial-gradient(circle at 84% -4%, rgba(104, 63, 160, 0.22), transparent 34%),
+    linear-gradient(180deg, #121b28 0%, #0b1119 100%);
+  color: var(--text-dark-1);
   box-shadow: 0 -22px 70px rgba(0, 0, 0, 0.48);
   animation: quickStockIn 180ms var(--ease-standard);
 }
@@ -1568,9 +1571,10 @@
   flex: 0 0 var(--touch-min);
   width: var(--touch-min);
   height: var(--touch-min);
-  border: 1px solid var(--line-light-strong);
+  border: 1px solid var(--page-line);
   border-radius: var(--r-pill);
-  background: var(--stone-100);
+  color: var(--text-dark-1);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-light-2);
   font-size: 24px;
   line-height: 1;
@@ -1578,7 +1582,7 @@
 
 .quickStockSheet__intro {
   margin: var(--sp-2) 0 var(--sp-3);
-  color: var(--text-light-2);
+  color: var(--text-dark-2);
   font-size: var(--fs-caption);
   line-height: 1.4;
 }
@@ -1587,10 +1591,12 @@
   min-height: 0;
   flex: 1 1 auto;
   overflow-y: auto;
+  /* C2 · son satır "Al" düğmesiyle alt kenara yapışmasın. */
+  padding-bottom: var(--sp-2);
   overscroll-behavior: contain;
-  border: 1px solid var(--line-light);
+  border: 1px solid var(--page-line);
   border-radius: var(--r-md);
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(10, 15, 22, 0.5);
 }
 
 .quickStockSheet__scroll .counter__list {
