@@ -1,0 +1,1588 @@
+/*
+ * MIHENKAYNAK — Global ekran kabuğu
+ * Kaynak: GDD 23.9.2 "Global ekran kabuğu" — BAĞLAYICI ÜRETİM SÖZLEŞMESİ.
+ *
+ * 390×844 referans tuvalde safe-area dışı ~763 px şu dağılımla dolar:
+ *   Durum 52 + Piyasa 44 + Müşteri 50 + Aşama 32 + Masa 337 + Ray 56
+ *   + Dock 128 + Nav 64 = 763
+ *
+ * GDD 23.22 "Aktif Dükkan: Dikey scroll YOK." Bu, `overflow: hidden` ile
+ * yapısal olarak zorlanır — ana CTA hiçbir cihazda scroll altında kalamaz.
+ */
+
+.device {
+  /* Mobil cihazda tam ekran; masaüstünde ortalanmış portrait çerçeve. */
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  min-width: 320px;
+  height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--stone-100);
+  overflow: hidden;
+  /* Notch / Dynamic Island ve home indicator alanı (GDD 23.5). */
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+/* Masaüstünde bir cihaz çerçevesi hissi ver; oyun hâlâ portrait kalır. */
+@media (min-width: 520px) and (min-height: 720px) {
+  .deviceFrame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    background:
+      radial-gradient(120% 90% at 50% 0%, #171d26 0%, #0b0f14 62%, #070a0e 100%);
+    padding: 24px 0;
+  }
+
+  .device {
+    height: min(880px, calc(100dvh - 48px));
+    border-radius: 34px;
+    box-shadow:
+      0 0 0 1px rgba(196, 141, 43, 0.18),
+      0 0 0 10px #12161d,
+      0 30px 90px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/*
+ * Ekran gövdesi. Aktif Dükkan'da scroll kapalı; ikincil ekranlarda serbest
+ * (GDD 23.22 — "Stok / Piyasa / Toptancı / Atölye / İşletme: dikey scroll
+ * serbest; kritik üst filtre/özet sticky olabilir").
+ */
+.screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen--noScroll {
+  overflow: hidden;
+}
+
+.screen--scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page {
+  animation: screenFade var(--t-normal) var(--ease-decel) both;
+}
+
+.workbench {
+  animation: screenEnter var(--t-normal) var(--ease-decel) both;
+}
+
+@keyframes screenFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes screenEnter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ------------------------------------------------------------------ */
+/* A — Durum Şeridi · 52 px (GDD 23.9.2)                              */
+/* ------------------------------------------------------------------ */
+
+/*
+ * BOŞLUK 12 → 8 px: ÖLÇÜLEREK değiştirildi.
+ * 360 px genişlikte şerit tam doluydu (içerik 280 + boşluk 48 + padding 32
+ * = 360, artan 0). Profil bloğu marka işaretinin 24 px'i yerine 34 px avatar
+ * + 6 px aralık istiyor, yani +16 px. Dört aralığın her birinden 4 px almak
+ * tam olarak o 16 px'i verir ve tek esneyen blok olan SAAT 37 px'te kalır —
+ * "Gün 1"in iki satıra kırılma sınırı orası.
+ */
+.statusStrip {
+  flex: 0 0 var(--h-status-strip);
+  height: var(--h-status-strip);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--gutter);
+  background: var(--ink-800);
+  color: var(--text-dark-1);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.dock__disabledReason {
+  margin: 4px var(--gutter) 0;
+  color: var(--negative-soft);
+  font-size: var(--fs-micro);
+  line-height: 1.3;
+  text-align: center;
+}
+
+/*
+ * PROFİL ÇİPİ — avatar + kuyumcu adı + seviye, tek dokunma hedefi.
+ * Şeridin 52 px'i içinde: 34 px avatar, yanında üç satır (ad / seviye / XP
+ * çubuğu) toplam ~34 px. Yükseklik büyümez.
+ */
+/*
+ * `flex: 0 1 auto` + `min-width: 0` — ÖLÇÜLEREK düzeltildi.
+ * Önce `0 0 auto` idi: 24 karakterlik bir adda çip 99 px'ten 132 px'e
+ * büyüyor, tek esneyen blok olan saat 45 px'ten 12 px'e çöküyor ve
+ * "Gün 1" iki satıra kırılıyordu. Çip artık BASKI ALTINDA KÜÇÜLEBİLİR;
+ * kırpılacak şey uzun bir addır, ekranın saati değil.
+ */
+.profileChip {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  /* Dokunma hedefi şeridin tamamı kadar yüksek (GDD 23.22 · 44 px). */
+  height: 64px;
+  border-radius: var(--r-sm);
+  text-align: left;
+}
+
+.profileChip:active {
+  background: var(--ink-700);
+}
+
+.profileChip__avatar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: linear-gradient(160deg, var(--ink-600), var(--ink-900));
+  border: 1px solid var(--brass-700);
+  color: var(--brass-500);
+  overflow: hidden;
+}
+
+/* Brief: avatar bileşenlerinde object-fit: contain. */
+.profileChip__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/*
+ * Düzenleme kalemi avatarın köşesinde. Kendi dokunma hedefi YOK — bilerek:
+ * 12 px'lik ayrı bir düğme 44 px kuralını çiğnerdi. Çipin tamamı zaten
+ * aynı işi yapan tek ve büyük bir hedef; kalem yalnız "burası
+ * düzenlenebilir" diyen işaret.
+ */
+.profileChip__pencil {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 13px;
+  height: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--surface-brass);
+  color: var(--ink-900);
+  border: 1px solid var(--ink-800);
+}
+
+.profileChip__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* Kırpma zincirinin çalışması için her ara katmanın küçülebilmesi şart. */
+  overflow: hidden;
+}
+
+/*
+ * Ad, seviye satırıyla AYNI genişliği paylaşır ve taşarsa üç noktaya iner.
+ * 24 karakterlik bir ad bile şeridi itemez: itmesi gereken yer yok.
+ */
+/*
+ * TAVAN 110 px, TABAN yok — genişlik artık çipin küçülmesiyle ayarlanır.
+ *
+ * Sabit 62 px denendi ve geniş ekranda da gereksiz kırpıyordu. Doğru
+ * davranış: dar ekranda saatin 46 px tabanı çipe baskı yapar ve ad üç
+ * noktaya iner; geniş ekranda baskı yoktur ve ad 110 px'e kadar açılır.
+ * Yani kırpma bir SABİT değil, gerçekten yer olmadığında olan bir şey.
+ */
+.profileChip__name {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--brass-300);
+  line-height: 1.1;
+}
+
+.statusStrip__levelRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+}
+
+.statusStrip__levelNum {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.01em;
+}
+
+.statusStrip__xp {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.statusStrip__xpBar {
+  display: block;
+  margin-top: 2px;
+  width: 54px;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--ink-500);
+  overflow: hidden;
+}
+
+.statusStrip__xpFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--amethyst-500), var(--amethyst-300));
+  border-radius: var(--r-pill);
+  transition: width var(--t-normal) var(--ease-standard);
+}
+
+/*
+ * min-width 46 px — SAATİN ÇÖKME TABANI.
+ * "Gün 1" 11 px yazıyla 43-45 px'te tek satıra sığıyor; 46 px o ölçümün
+ * hemen üstünde güvenli bir taban. Bu taban olmadan flexbox, komşu blok
+ * büyüdüğünde bütün kaybı buradan alıyor ve satırı kırıyordu.
+ */
+.statusStrip__clock {
+  flex: 1 1 auto;
+  /* Not: burada bir `min-width: 0` vardı ve bu tabanı eziyordu — kaldırıldı. */
+  min-width: 46px;
+  text-align: center;
+}
+
+.statusStrip__day {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.profileChip__avatar--frame_brass {
+  border: 2px solid var(--brass-300);
+  box-shadow: 0 0 0 2px var(--brass-700), 0 0 12px rgba(215, 170, 74, 0.38);
+}
+
+.profileChip__avatar--frame_amethyst {
+  border: 2px solid var(--amethyst-300);
+  box-shadow: 0 0 0 2px var(--brass-500), 0 0 14px rgba(140, 109, 204, 0.55);
+}
+
+.profileChip__avatar--frame_crown {
+  border: 2px solid #f2d27d;
+  box-shadow: 0 0 0 2px var(--amethyst-500), 0 0 18px rgba(242, 210, 125, 0.62);
+}
+
+.statusStrip__weekday {
+  margin-block: 1px;
+  color: var(--brass-400);
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.statusStrip__time {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  line-height: 1.05;
+}
+
+.statusStrip__cash {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.statusStrip__cashLabel {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.statusStrip__cashValue {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-bold);
+  color: var(--brass-300);
+}
+
+/* Kompakt 1x / 2x / 4x hız kontrolü — ayrı kart açmaz (GDD 23.9.2). */
+.speed {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  background: var(--ink-600);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--r-pill);
+  padding: 2px;
+  gap: 1px;
+}
+
+/*
+ * GDD 23.22 — dokunma hedefi 44 px altına inmez.
+ * Görsel yükseklik 22 px kalır (hız kontrolü durum şeridini şişirmesin) ama
+ * dokunma alanı dikey dolguyla 44 px'e çıkar: göze küçük, parmağa doğru.
+ * Aynı çözüm filtre çiplerinde de kullanılıyor (.chip).
+ */
+.speed__step {
+  position: relative;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: background var(--t-fast) var(--ease-standard);
+}
+
+/*
+ * Dokunma alanı görsel pilin dışına taşar ama DÜZENİ ETKİLEMEZ.
+ *
+ * Önce dikey dolguyla denendi: buton 44 px'e çıkınca 52 px'lik durum
+ * şeridini patlattı ve komşu yazıların üstüne bindi. Mutlak konumlu bir
+ * sözde-öge, kutu modelini hiç kıpırdatmadan aynı hedefi verir.
+ */
+.speed__step::after {
+  content: '';
+  position: absolute;
+  inset: -11px -3px;
+}
+
+.speed__step--active {
+  background: var(--amethyst-500);
+  color: #fff;
+}
+
+.speed__step--locked {
+  color: var(--text-dark-3);
+  opacity: 0.75;
+}
+
+/* ------------------------------------------------------------------ */
+/* B — Piyasa Şeridi · 44 px (GDD 23.9.2)                             */
+/* ------------------------------------------------------------------ */
+
+.marketStrip {
+  /*
+   * `content-box`: 44 px'lik yükseklik İÇERİĞİN payıdır, alt çizgi onun
+   * dışında kalır. Aksi hâlde 1 px'lik kenarlık içeriden düşülüyor ve
+   * varlık butonları 43 px'te kalıyordu — GDD 23.22'nin 44 px hedefinin
+   * bir piksel altı. 23.9.2'nin 44 px'i kullanılabilir bandı tarif eder,
+   * çizgiyi değil.
+   */
+  box-sizing: content-box;
+  flex: 0 0 var(--h-market-strip);
+  height: var(--h-market-strip);
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--ink-700);
+  border-bottom: 1px solid var(--line-dark);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* GDD 23.9.2 "yatay swipe" — kaydırma varlık sınırlarında dursun. */
+  scroll-snap-type: x proximity;
+  width: 100%;
+  text-align: left;
+  /*
+   * Sağ kenarda solma: şeridin devam ettiğini SÖYLER. Bu işaret olmadan
+   * oyuncu Gümüş ve Dolar'ın var olduğunu bilemiyordu — veri oradaydı,
+   * görünmüyordu.
+   */
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 22px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 22px), transparent 100%);
+}
+
+/* Her şey sığıyorsa solmaya gerek yok. */
+@media (min-width: 620px) {
+  .marketStrip {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+.marketStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.marketStrip__asset {
+  flex: 1 0 auto;
+  min-width: 76px;
+  padding: 5px var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  border-right: 1px solid var(--ink-600);
+  white-space: nowrap;
+  scroll-snap-align: start;
+  /* Artık gerçek bir buton: varsayılan buton görünümü sıfırlanır. */
+  background: transparent;
+  border-top: 0;
+  border-bottom: 0;
+  border-left: 0;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.marketStrip__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  letter-spacing: 0.02em;
+}
+
+.marketStrip__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.marketStrip__price {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.marketStrip__change {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+}
+
+.marketStrip__change--up {
+  color: var(--positive-soft);
+}
+.marketStrip__change--down {
+  color: var(--negative-soft);
+}
+.marketStrip__change--flat {
+  color: var(--text-dark-3);
+}
+
+.marketStrip--closed .marketStrip__price {
+  opacity: 0.72;
+}
+
+.marketStrip--closed .marketStrip__regimeValue,
+.marketStrip--closed .marketStrip__change {
+  color: var(--text-dark-3);
+}
+
+.marketStrip--closed .marketStrip__change {
+  font-style: italic;
+}
+
+.marketStrip__regime {
+  flex: 0 0 auto;
+  min-width: 82px;
+  padding: 5px var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  background: var(--ink-600);
+  scroll-snap-align: start;
+  border: 0;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.marketStrip__regimeLabel {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.marketStrip__regimeValue {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--brass-400);
+}
+
+/* ------------------------------------------------------------------ */
+/* C — Müşteri / Kuyruk Şeridi · 50 px (GDD 23.9.2)                   */
+/* ------------------------------------------------------------------ */
+
+.customerStrip {
+  flex: 0 0 var(--h-customer-strip);
+  height: var(--h-customer-strip);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--gutter);
+  background: var(--stone-50);
+  border-bottom: 1px solid var(--line-light);
+}
+
+.customerStrip__avatar {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(160deg, var(--ink-600), var(--ink-800));
+  color: var(--brass-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  border: 1px solid var(--brass-700);
+}
+
+.customerStrip__main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.customerStrip__name {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--text-light-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.customerStrip__intent {
+  font-size: var(--fs-micro);
+  color: var(--text-light-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.customerStrip__meta {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.customerStrip__demeanor {
+  font-size: var(--fs-micro);
+  color: var(--text-light-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Sabır göstergesi — nokta dizisi, sayısal skor gösterilmez (GDD 11.3). */
+.patience {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 3px;
+  justify-content: flex-end;
+}
+
+.patience__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--stone-300);
+}
+
+.patience__dot--on {
+  background: var(--brass-500);
+}
+
+.patience__dot--low {
+  background: var(--warning);
+}
+
+.patience__dot--critical {
+  background: var(--negative);
+}
+
+/* ------------------------------------------------------------------ */
+/* D — Aşama Şeridi · 32 px (GDD 23.9.2)                              */
+/* ------------------------------------------------------------------ */
+
+.stageStrip {
+  flex: 0 0 var(--h-stage-strip);
+  height: var(--h-stage-strip);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-2);
+  background: var(--stone-200);
+  border-bottom: 1px solid var(--line-light);
+}
+
+.stageStrip__step {
+  flex: 1 1 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+  color: var(--text-light-3);
+  position: relative;
+  transition: color var(--t-fast) var(--ease-standard);
+}
+
+.stageStrip__step--active {
+  color: var(--amethyst-500);
+  font-weight: var(--fw-bold);
+}
+
+.stageStrip__step--done {
+  color: var(--brass-600);
+}
+
+.stageStrip__step--locked {
+  color: var(--stone-400);
+}
+
+.stageStrip__num {
+  width: 17px;
+  height: 17px;
+  border-radius: var(--r-pill);
+  border: 1px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  flex: 0 0 auto;
+}
+
+.stageStrip__step--active .stageStrip__num {
+  background: var(--amethyst-500);
+  border-color: var(--amethyst-500);
+  color: #fff;
+}
+
+.stageStrip__step--done .stageStrip__num {
+  background: var(--brass-600);
+  border-color: var(--brass-600);
+  color: var(--stone-50);
+}
+
+/* ------------------------------------------------------------------ */
+/* E — İşlem Masası · 337 px referans, esneyen tek bölge               */
+/* ------------------------------------------------------------------ */
+
+.workbench {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  background: var(--surface-workbench);
+  color: var(--text-dark-1);
+  display: flex;
+  flex-direction: column;
+  /*
+   * GDD 23.22: "Aktif Dükkan: Dikey scroll yok. Workbench içerik taşarsa
+   * yoğunluk azaltılır veya detay sheet'e taşınır."
+   */
+  overflow: hidden;
+}
+
+/* Tezgâh dokusu — ince pirinç ışık çizgisi, dekorasyon verinin önüne geçmez. */
+.workbench::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: var(--hairline-brass);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* F — Bağlamsal Araç Rayı · 56 px (GDD 23.11)                        */
+/* ------------------------------------------------------------------ */
+
+.toolRail {
+  flex: 0 0 var(--h-tool-rail);
+  height: var(--h-tool-rail);
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2);
+  /*
+   * Dikey dolgu 8 → 4 px. Ray 56 px'ken 8 px'lik dolgu test butonlarını
+   * 38 px'e düşürüyordu — GDD 23.22'nin 44 px hedefinin altı, üstelik
+   * oyuncunun en çok dokunduğu yüzeyde. 4 px dolgu butonları 46 px'e
+   * çıkarır ve rayın kendi yüksekliğine dokunmaz.
+   */
+  padding: 4px var(--sp-3);
+  background: var(--ink-600);
+  border-top: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--ink-900);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.toolRail::-webkit-scrollbar {
+  display: none;
+}
+
+.toolRail--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.toolRail__empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+/* Her araç: ikon + KISA METİN ETİKETİ (GDD 23.24 — ikon tek başına yetmez). */
+.tool {
+  flex: 0 0 auto;
+  min-width: 62px;
+  min-height: var(--touch-min);
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-md);
+  background: var(--ink-700);
+  border: 1px solid var(--line-dark);
+  color: var(--text-dark-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  position: relative;
+  transition:
+    background var(--t-fast) var(--ease-standard),
+    border-color var(--t-fast) var(--ease-standard),
+    color var(--t-fast) var(--ease-standard);
+}
+
+.tool:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.tool--used {
+  border-color: var(--brass-700);
+  color: var(--brass-400);
+}
+
+.tool--selected {
+  background: var(--amethyst-600);
+  border-color: var(--amethyst-400);
+  color: #fff;
+}
+
+.tool--locked {
+  opacity: 0.45;
+}
+
+.tool__label {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.tool__badge {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  font-size: var(--fs-micro);
+  color: var(--brass-500);
+}
+
+/* ------------------------------------------------------------------ */
+/* G — Karar Dock'u · 128 px (GDD 23.12)                              */
+/* ------------------------------------------------------------------ */
+
+.dock {
+  flex: 0 0 auto;
+  min-height: var(--h-decision-dock);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--gutter);
+  background: var(--stone-50);
+  border-top: 1px solid var(--line-light-strong);
+  box-shadow: var(--sh-dock);
+  position: relative;
+  z-index: 5;
+}
+
+.dock__lossWarning {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 6px var(--sp-3);
+  border: 1px solid rgba(198, 40, 40, 0.3);
+  border-radius: var(--r-sm);
+  background: rgba(198, 40, 40, 0.07);
+  color: var(--negative);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+}
+
+/* Üst özet satırı — "bu karar kabul edilirse ne değişecek?" (GDD 23.12) */
+.dock__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: 18px;
+}
+
+.dock__summaryLabel {
+  font-size: var(--fs-micro);
+  color: var(--text-light-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dock__summaryValue {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-light-1);
+}
+
+.dock__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* Ana CTA — her aşamada aynı fiziksel bölgede (GDD 23.12). */
+.cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex: 1 1 auto;
+  height: var(--cta-h);
+  min-height: var(--cta-h);
+  border-radius: var(--r-md);
+  border: 1px solid rgba(111, 72, 12, 0.55);
+  background: linear-gradient(180deg, #efc45a 0%, #cf9526 56%, #aa7617 100%);
+  color: #241a06;
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 2px 8px rgba(168, 130, 58, 0.28);
+  transition: transform var(--t-instant) var(--ease-standard);
+}
+
+.cta:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.cta:disabled {
+  background: var(--stone-300);
+  color: var(--text-light-3);
+  box-shadow: none;
+}
+
+/* İkincil eylem — en fazla 2 (GDD 23.9.2). */
+.secondary {
+  flex: 0 0 auto;
+  height: var(--secondary-h);
+  min-width: var(--touch-min);
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-light-strong);
+  background: var(--stone-100);
+  color: var(--text-light-2);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+}
+
+.secondary--danger {
+  color: var(--negative);
+  border-color: rgba(198, 40, 40, 0.35);
+}
+
+.secondary:disabled {
+  opacity: 0.45;
+}
+
+.dock__secondaryRow {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.dock__secondaryRow .secondary {
+  flex: 1 1 0;
+}
+
+/* Kısa cihazda Dock sıkışır ama CTA yüksekliği korunur (GDD 23.22). */
+@media (max-height: 760px) {
+  .dock {
+    padding: var(--sp-2) var(--gutter-narrow);
+    gap: var(--sp-1);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* H — Alt Navigasyon · 64 px, tam 4 kök (GDD 23.9.1)                 */
+/* ------------------------------------------------------------------ */
+
+.bottomNav {
+  flex: 0 0 var(--h-bottom-nav);
+  height: var(--h-bottom-nav);
+  display: flex;
+  align-items: stretch;
+  background: var(--ink-800);
+  border-top: 1px solid var(--brass-700);
+  position: relative;
+  z-index: 6;
+}
+
+.bottomNav__item {
+  min-width: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--text-dark-3);
+  position: relative;
+  transition: color var(--t-fast) var(--ease-standard);
+}
+
+.bottomNav__item--active {
+  color: var(--brass-400);
+}
+
+.bottomNav__item--active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 2px;
+  border-radius: var(--r-pill);
+  background: var(--brass-500);
+}
+
+.bottomNav__label {
+  font-size: 10px;
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.01em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Toast — kısa geri bildirim (GDD 3.x "1–5 saniyede okunur")          */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Toast EKRANIN ÜSTÜNDE durur, altında değil.
+ *
+ * Önce alta, "nav + dock + araç rayı" kadar yukarıya konmuştu ve yine
+ * rayın butonlarını örtüyordu. Sebep: `--h-decision-dock` bir MIN-HEIGHT'tir;
+ * pazarlık Dock'u teklif satırı, kaydırıcı ve önizlemeyle birlikte o
+ * sayıdan belirgin biçimde uzundur. Yani alt kenardan yapılan token
+ * aritmetiği gerçeği tutturamaz — her aşamada farklı bir yere düşer.
+ *
+ * Üst kenar ise güvenilir: durum ve piyasa şeritlerinin yüksekliği sabittir
+ * ve her ekranda vardır. Toast artık hiçbir kontrolün üstüne binmez;
+ * en kötü ihtimalle müşteri şeridinin üstünde birkaç saniye durur — o da
+ * etkileşimli değil, okunabilir ve kalıcı bir bilgi.
+ */
+.toastLayer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--h-status-strip) + var(--h-market-strip) + 1px + var(--sp-3) + var(--safe-top));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  pointer-events: none;
+  z-index: 40;
+  padding: 0 var(--gutter);
+}
+
+.toast {
+  pointer-events: auto;
+  max-width: 100%;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-pill);
+  background: var(--ink-800);
+  color: var(--text-dark-1);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  border: 1px solid var(--line-dark-strong);
+  box-shadow: 0 6px 20px rgba(8, 11, 15, 0.4);
+  text-align: center;
+}
+
+.toast--positive {
+  border-color: rgba(78, 158, 82, 0.5);
+}
+.toast--negative {
+  border-color: rgba(217, 86, 79, 0.5);
+}
+
+/* GDD 10.3 — tanıdık müşteri etiketi. */
+.customerStrip__tie--good { color: var(--positive-soft); }
+.customerStrip__tie--bad { color: var(--negative-soft); }
+.customerStrip__tie--neutral { color: var(--brass-400); }
+
+/* ------------------------------------------------------------------ */
+/* ÖĞRETİM ŞERİDİ (GDD 25)                                             */
+/*                                                                     */
+/* Overlay DEĞİL: İşlem Masası ile araç rayının arasında kendi yerini   */
+/* tutar. Bu ekranda üste binen katmanlar tekrar tekrar kontrolleri     */
+/* gizledi; ders şeridi o hatayı tekrarlamaz.                          */
+/* ------------------------------------------------------------------ */
+
+.coach {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--gutter);
+  background: var(--ink-700);
+  border-top: 1px solid var(--brass-700);
+  border-bottom: 1px solid var(--ink-900);
+}
+
+.coach__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.coach__title {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--brass-300);
+}
+
+.coach__text {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+  line-height: 1.35;
+}
+
+/* GDD 23.22 — 44 px dokunma hedefi. Tek eylem, komşusu yok. */
+.coach__ok {
+  flex: 0 0 auto;
+  min-height: var(--touch-min);
+  min-width: 72px;
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-pill);
+  background: var(--surface-brass);
+  border: 0;
+  color: #241a06;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/*
+ * Yıkıcı eylem: AYRI SÜTUNDA ve yalnız ilk derste. "Anladım"ın yanına
+ * konsaydı ıskalanan dokunuş tüm öğretimi silerdi.
+ */
+.coach__skip {
+  min-height: var(--touch-min);
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dark-3);
+  font-size: var(--fs-micro);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+
+/*
+ * Müşteri portresi yüklenemezse eski baş harf rozeti çizilir. Yuva ölçüsü
+ * <Art> tarafından korunduğu için şerit hangi durumda olursa olsun aynı
+ * yükseklikte kalır — görselin gelip gelmemesi düzeni oynatmaz.
+ */
+.customerStrip__initial {
+  font-family: var(--font-display);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--brass-400);
+}
+
+/*
+ * Dükkan boş ekranı — kimlik görseli başlıkla aynı satırda.
+ * Satır yüksekliği görselin (64 px) ve iki metin satırının büyüğü kadardır;
+ * yani görsel eklemek ekranı UZATMAZ.
+ */
+.idle__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.idle__art {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 62px;
+  height: 56px;
+}
+
+.bottomNav__art {
+  width: 29px;
+  height: 29px;
+  object-fit: contain;
+  filter: saturate(0.8) brightness(0.82);
+  transition: filter var(--t-fast) var(--ease-standard), transform var(--t-fast) var(--ease-standard);
+}
+
+/* Gerçekçi mikro ikonlar: tüm eski Icon* çağrıları aynı semantik dosya adına gider. */
+.microIcon {
+  display: inline-block;
+  flex: 0 0 auto;
+  object-fit: contain;
+  vertical-align: middle;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28));
+}
+
+.bottomNav__item--active .bottomNav__art {
+  filter: saturate(1.08) brightness(1.08) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  transform: translateY(-1px);
+}
+
+.cta::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 1px 35% 48% 1px;
+  border-radius: inherit;
+  background: linear-gradient(110deg, rgba(255, 255, 255, 0.28), transparent 72%);
+  pointer-events: none;
+}
+
+.idle__headText {
+  min-width: 0;
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════
+ * PROFİLİ DÜZENLE PENCERESİ
+ *
+ * Palet paketin tokenlarından: fildişi gövde (stone-50), antrasit bölümler
+ * (ink-800), seçili durumda derin mor (amethyst), altın çerçeve ve CTA.
+ *
+ * Pencere CİHAZ ÇERÇEVESİNİ kaplar, sayfayı değil: oyunun ana ekranı
+ * arkada yerinde kalır ve pencere kapanınca hiçbir şey kaymaz.
+ * ═══════════════════════════════════════════════════════════════════════
+ */
+.profileScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+  background: rgba(8, 11, 15, 0.66);
+  backdrop-filter: blur(2px);
+}
+
+.profileDialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 340px;
+  /*
+    Pencerenin kendisi ekranı AŞAMAZ. Yükseklik sınırı burada; taşan tek
+    bölge avatar ızgarasıdır ve o kendi içinde kayar (aşağıda). Böylece
+    başlık, ad alanı ve butonlar her zaman görünür kalır.
+  */
+  max-height: 100%;
+  padding: var(--sp-4);
+  border-radius: var(--r-sheet);
+  background: var(--stone-50);
+  color: var(--text-light-1);
+  border: 1px solid var(--brass-500);
+  box-shadow:
+    0 18px 48px rgba(8, 11, 15, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.profileDialog__title {
+  margin: 0 0 var(--sp-3);
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-semibold);
+  color: var(--text-light-1);
+}
+
+.profileDialog__label {
+  display: block;
+  margin-bottom: var(--sp-1);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-light-2);
+}
+
+.profileDialog__input {
+  width: 100%;
+  height: var(--touch-min);
+  padding: 0 var(--sp-3);
+  margin-bottom: var(--sp-3);
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-light-strong);
+  background: #fff;
+  color: var(--text-light-1);
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+}
+
+.profileDialog__input:focus {
+  outline: none;
+  border-color: var(--brass-500);
+  box-shadow: 0 0 0 3px rgba(196, 141, 43, 0.22);
+}
+
+.profileDialog__input--error {
+  border-color: var(--negative);
+}
+
+.profileDialog__input--error:focus {
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.18);
+}
+
+.profileDialog__error {
+  margin: -8px 0 var(--sp-3);
+  font-size: var(--fs-caption);
+  color: var(--negative);
+}
+
+.dayCloseDialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(440px, calc(100% - 32px));
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid var(--brass-500);
+  border-radius: 26px;
+  background: var(--stone-50);
+  color: var(--text-light-1);
+  box-shadow: 0 20px 60px #0008;
+}
+.dayCloseDialog::backdrop { background: #080d13b8; backdrop-filter: blur(5px); }
+.dayCloseDialog h2 { margin: 0 0 18px; font: 600 24px/1.25 var(--font-display); }
+.dayCloseDialog p { margin: 14px 0; font-size: 14px; line-height: 1.55; color: var(--text-light-2); }
+.dayCloseDialog__stats { margin: 0; border: 1px solid var(--line-light); border-radius: 16px; overflow: hidden; }
+.dayCloseDialog__stats > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line-light); font-size: 13px; }
+.dayCloseDialog__stats > div:last-child { border-bottom: 0; }
+.dayCloseDialog dt { color: var(--text-light-2); }
+.dayCloseDialog dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; flex-shrink: 0; }
+.dayCloseDialog__positive { color: #2e7d32; }
+.dayCloseDialog__negative { color: #b92828; }
+.dayCloseDialog__actions { display: flex; gap: 10px; margin-top: 18px; }
+.dayCloseDialog button { min-height: 48px; padding: 12px; border-radius: 15px; font: inherit; font-weight: 600; cursor: pointer; }
+.dayCloseDialog__primary { width: 100%; border: 1px solid var(--brass-500); background: linear-gradient(#dcaf45, #ac7e1e); color: #20170a; }
+.dayCloseDialog__cancel { width: 100%; border: 1px solid var(--line-light); background: transparent; color: var(--text-light-1); }
+.dayCloseDialog button:focus-visible { outline: 3px solid var(--brass-500); outline-offset: 3px; }
+
+/* Kuyruk varken aşırı kısa ekran: boş ray ve özet yerine tam müşteri kartı. */
+@media (max-height: 560px) {
+  .toolRail--idle {
+    display: none;
+  }
+
+  .coach--queuePriority {
+    padding-block: 4px;
+  }
+
+  .coach--queuePriority .coach__text,
+  .coach--queuePriority .coach__skip {
+    display: none;
+  }
+}
+
+@media (max-height: 450px) {
+  .dock--idle {
+    min-height: 60px;
+    padding-block: 4px;
+  }
+
+  .dock--idle .dock__summary,
+  .coach--queuePriority {
+    display: none;
+  }
+}
+
+.stageNotice {
+  flex: 0 0 auto;
+  padding: 5px var(--sp-3);
+  background: color-mix(in srgb, var(--warning) 14%, var(--ink-800));
+  border-bottom: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  color: var(--stone-100);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.bottomNav__badge {
+  position: absolute;
+  top: 7px;
+  left: calc(50% + 8px);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--negative);
+  color: #fff;
+  border: 1px solid var(--ink-800);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.profileDialog__hint {
+  margin-top: 4px;
+  color: var(--text-light-3);
+  font-size: var(--fs-micro);
+  line-height: 1.3;
+}
+
+/*
+ * Avatar ızgarası — pencerenin taşabilen TEK bölgesi.
+ * `min-height: 0` olmadan flex çocuğu kendi içeriğinden küçülmez ve
+ * kaydırma hiç devreye girmez; pencere ekranı aşardı.
+ */
+.avatarGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 84px;
+  gap: var(--sp-3);
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--sp-2);
+  margin-bottom: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--ink-800);
+  border: 1px solid var(--line-dark);
+  -webkit-overflow-scrolling: touch;
+}
+
+.avatarCard {
+  position: relative;
+  display: block;
+  height: 100%;
+  border-radius: var(--r-md);
+  background: linear-gradient(160deg, var(--ink-600), var(--ink-900));
+  border: 2px solid var(--line-dark);
+  color: var(--brass-500);
+  overflow: hidden;
+  transition:
+    border-color var(--t-fast) var(--ease-standard),
+    box-shadow var(--t-fast) var(--ease-standard);
+}
+
+.avatarCard__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-mask-image: linear-gradient(to bottom, #000 76%, transparent 99%);
+  mask-image: linear-gradient(to bottom, #000 76%, transparent 99%);
+}
+
+/* Seçili: derin mor zemin + altın çerçeve. */
+.avatarCard--selected {
+  border-color: var(--brass-400);
+  background: linear-gradient(160deg, var(--amethyst-500), var(--amethyst-600));
+  box-shadow:
+    0 0 0 1px var(--brass-600),
+    0 0 18px rgba(215, 170, 74, 0.35);
+}
+
+.avatarCard:focus-visible {
+  outline: 2px solid var(--brass-300);
+  outline-offset: 2px;
+}
+
+.avatarCard__check {
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--surface-brass);
+  color: var(--ink-900);
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+}
+
+.profileDialog__actions {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.profileDialog__cancel,
+.profileDialog__save {
+  height: var(--touch-min);
+  border-radius: var(--r-md);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+}
+
+.profileDialog__cancel {
+  flex: 0 0 auto;
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--line-light-strong);
+  color: var(--text-light-2);
+  background: transparent;
+}
+
+.profileDialog__save {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 var(--sp-3);
+  background: var(--surface-brass);
+  color: var(--ink-900);
+  border: 1px solid var(--brass-300);
+  box-shadow: 0 0 18px rgba(215, 170, 74, 0.22);
+}
+
+.profileDialog__cancel:focus-visible,
+.profileDialog__save:focus-visible {
+  outline: 2px solid var(--amethyst-400);
+  outline-offset: 2px;
+}
+
+@media (max-width: 374px) {
+  .avatarGrid {
+    grid-auto-rows: 72px;
+  }
+}
+
+/* Kısa ekranda kartlar küçülür; pencere yine ekrana sığar. */
+@media (max-height: 700px) {
+  .avatarGrid {
+    grid-auto-rows: 72px;
+  }
+
+  .profileDialog__title {
+    font-size: var(--fs-subtitle);
+    margin-bottom: var(--sp-2);
+  }
+}
+
+/* Visual polish: premium mor-altın kök navigasyon. */
+.bottomNav {
+  padding: 5px 4px;
+  background: linear-gradient(180deg, rgba(27, 22, 35, 0.96), rgba(12, 16, 22, 1));
+}
+
+.bottomNav__item {
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+.bottomNav__item--active {
+  color: #fff6dc;
+  border-color: rgba(215, 170, 74, 0.48);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(215, 170, 74, 0.2), transparent 48%),
+    linear-gradient(145deg, rgba(104, 63, 160, 0.92), rgba(49, 25, 86, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 4px 14px rgba(34, 17, 58, 0.28);
+}
+
+.bottomNav__item--active::before {
+  top: -5px;
+  width: 22px;
+}
+
+.bottomNav__item--active .bottomNav__label {
+  color: var(--brass-300);
+  font-weight: var(--fw-semibold);
+}
+
+/* Masaüstünde telefon maketi yerine dengeli, iki kolon kullanabilen oyun alanı. */
+@media (min-width: 900px) and (min-height: 720px) {
+  .deviceFrame {
+    padding: 28px;
+  }
+
+  .device {
+    width: min(820px, calc(100vw - 56px));
+    max-width: 820px;
+    height: min(920px, calc(100dvh - 56px));
+    border-radius: 28px;
+  }
+
+  .statusStrip {
+    padding-inline: var(--sp-6);
+  }
+
+  .profileChip__name {
+    max-width: 180px;
+  }
+
+  .marketStrip__asset,
+  .marketStrip__regime {
+    min-width: 112px;
+  }
+}

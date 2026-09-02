@@ -1,0 +1,332 @@
+/*
+ * MIHENKAYNAK — Tasarım token katmanı
+ * Kaynak: spec/design_tokens.json (GDD EK H — tek token kaynağı).
+ * Bileşenlerde çıplak hex/px kullanılmaz; yalnız bu değişkenler tüketilir.
+ *
+ * ── PALET HİZALAMASI (asset paketi tokens/mihenk.css + mihenk.tokens.json) ──
+ *
+ * Nötr aileler (mürekkep, taş, pirinç, ametist) paketin değerleriyle BİREBİR
+ * hizalandı. Paket dört kademe tanımlıyor, oyunun ihtiyacı altı; aradaki
+ * kademeler paketin uçları arasında enterpolasyonla üretildi, yani hiçbir
+ * ton paketin dışına çıkmıyor.
+ *
+ * SEMANTİK RENKLERDE HİZALAMA KISMİDİR — ölçüldü:
+ *   Paketin `success #43a65d` KOYU İşlem Masası zemininde 5,82:1 (mevcut
+ *   #4e9e52'den iyi) → benimsendi (--positive-soft).
+ *   Aynı renk AÇIK taş kartta 2,89:1 → WCAG AA'nın (4,5:1) altında. Kâr /
+ *   zarar rakamları o kartlarda GÖVDE METNİDİR; oyuncunun okuduğu asıl
+ *   sayılar. Bu yüzden açık zeminin --positive/--negative değerleri
+ *   korundu (4,84:1 ve 5,30:1).
+ *   Paketin `danger #d34b43` her iki zeminde de mevcut değerin altında
+ *   kaldı (4,08 ve 4,13'e karşı 5,30 ve 4,59) → alınmadı.
+ * Paketin README'si zaten "altın rengi uzun metinde kontrastı düşürür"
+ * diyerek aynı ayrımı yapıyor: renk kimliği vurguda, okunabilirlik metinde.
+ */
+
+:root {
+  /* ---- Renk · Mürekkep (İşlem Masası zemini) ---- */
+  --ink-900: #0b0f14; /* paket ink-950 */
+  --ink-800: #111821; /* paket ink-900 */
+  --ink-700: #18212c; /* paket ink-800 */
+  --ink-600: #263241; /* paket ink-700 */
+  --ink-500: #33404f; /* ara kademe */
+  --ink-400: #435162; /* ara kademe */
+
+  /* ---- Renk · Taş (uygulama zemini) ---- */
+  --stone-50: #faf7f1; /* paket */
+  --stone-100: #f3efe6; /* paket */
+  --stone-200: #e5ddcf; /* paket */
+  --stone-300: #d3c9b6; /* ara kademe */
+  --stone-400: #b0a595; /* ara kademe */
+
+  /* ---- Renk · Pirinç / altın aksan ---- */
+  --brass-300: #e8c778; /* paket */
+  --brass-400: #d7aa4a; /* paket */
+  --brass-500: #c48d2b; /* paket */
+  --brass-600: #9d711f; /* ara kademe */
+  --brass-700: #775018; /* paket */
+
+  /* ---- Renk · Ametist (seçili durum vurgusu) ---- */
+  --amethyst-300: #a68ddb; /* ara kademe */
+  --amethyst-400: #8c6dcc; /* paket */
+  --amethyst-500: #5d3a92; /* paket amethyst-600 */
+  --amethyst-600: #352051; /* paket amethyst-800 */
+
+  /* ---- Renk · Semantik ---- */
+  --positive: #2e7d32; /* açık kart gövde metni — 4,84:1 */
+  --positive-soft: #43a65d; /* paket success — koyu zeminde 5,82:1 */
+  --negative: #c62828;
+  --negative-soft: #d9564f;
+  --warning: #c9822e;
+  --neutral: #6e6a63;
+
+  /* ---- Renk · Metin ---- */
+  --text-dark-1: #f2ecde;
+  --text-dark-2: #b3ab9b;
+  --text-dark-3: #7c7568;
+  --text-light-1: #131a24;
+  --text-light-2: #4a5462;
+  --text-light-3: #6e6a63;
+
+  /* ---- Renk · Çizgi ---- */
+  --line-dark: #263241;
+  --line-dark-strong: #33404f;
+  --line-light: #ded6c6;
+  --line-light-strong: #c8bfab;
+
+  /* ---- Güven seviyesi ---- */
+  --confidence-low: #c9822e;
+  --confidence-medium: #c48d2b;
+  --confidence-high: #4e9e52;
+
+  /* ---- Tipografi ---- */
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, ui-serif, serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-num: 'SF Mono', 'Roboto Mono', ui-monospace, 'DejaVu Sans Mono', monospace;
+
+  --fs-micro: 11px; /* GDD 23.22 — mutlak alt sınır */
+  --fs-caption: 12px;
+  --fs-label: 13px;
+  --fs-body: 15px;
+  --fs-subtitle: 17px;
+  --fs-title: 20px;
+  --fs-figure: 26px;
+  --fs-hero: 34px;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --lh-tight: 1.15;
+  --lh-normal: 1.35;
+  --lh-relaxed: 1.5;
+
+  /* ---- Boşluk (8 pt grid) ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+  --gutter: 16px;
+  --gutter-narrow: 12px;
+  --card-pad: 16px;
+  --card-pad-dense: 12px;
+
+  /* ---- Radius ---- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-card: 16px;
+  --r-card-lg: 18px;
+  --r-sheet: 24px;
+  --r-pill: 999px;
+
+  /* ---- Bölge yükseklikleri (GDD 23.9.2 — bağlayıcı) ---- */
+  --h-status-strip: 72px;
+  --h-market-strip: 44px;
+  --h-customer-strip: 50px;
+  --h-stage-strip: 32px;
+  --h-tool-rail: 56px;
+  --h-decision-dock: 128px;
+  --h-bottom-nav: 64px;
+  /* İşlem Masası (337px referans) esneyen tek bölgedir → flex: 1 */
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* ---- Dokunma hedefleri ---- */
+  --touch-min: 44px;
+  --cta-h: 54px;
+  --secondary-h: 44px;
+
+  /* ---- Hareket ---- */
+  --t-instant: 90ms;
+  --t-fast: 160ms;
+  --t-normal: 240ms;
+  --t-slow: 380ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+
+  /* ---- Yükseklik / gölge ---- */
+  --sh-raised: 0 1px 2px rgba(8, 11, 15, 0.1), 0 4px 12px rgba(8, 11, 15, 0.06);
+  --sh-dock: 0 -2px 16px rgba(8, 11, 15, 0.35);
+  --sh-sheet: 0 -8px 40px rgba(8, 11, 15, 0.45);
+  --inset-dark: inset 0 1px 0 rgba(242, 236, 222, 0.04);
+
+  /* ---- Kompozit yüzeyler ---- */
+  --surface-workbench: linear-gradient(180deg, var(--ink-700) 0%, var(--ink-800) 62%, var(--ink-900) 100%);
+  --surface-brass: linear-gradient(180deg, var(--brass-400) 0%, var(--brass-500) 52%, var(--brass-600) 100%);
+  --surface-glass: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012));
+  --surface-glass-strong: rgba(10, 15, 22, 0.9);
+  --line-glass: rgba(215, 170, 74, 0.28);
+  --sh-glass: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 12px 30px rgba(0, 0, 0, 0.2);
+  --hairline-brass: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(196, 141, 43, 0.45) 22%,
+    rgba(196, 141, 43, 0.75) 50%,
+    rgba(196, 141, 43, 0.45) 78%,
+    transparent 100%
+  );
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════
+ * KISA EKRAN KADEMESİ — GDD 23.9.2'den BİLİNÇLİ SAPMA
+ *
+ * 23.9.2'nin şerit sözleşmesi 390×844 için yazılmıştır; toplamı 763 px'dir
+ * (52+44+50+32+337+56+128+64). 640 px yüksekliğindeki bir telefonda 123 px
+ * eksiktir ve şeritler SABİT olduğu için eksiğin tamamı İşlem Masası'ndan
+ * kesilir. Ölçüm (360×640): içerik alanı 640 px'in yalnız 246 px'i — %38.
+ * Yani kararın verildiği bölge, onu çevreleyen çerçeveden küçüktü.
+ *
+ * Bu kademe şeritlerden 54 px geri alıp İşlem Masası'na verir.
+ *
+ * SAPMANIN SINIRLARI — nereye DOKUNULMADIĞI, ne kadar daraldığı kadar önemli:
+ *   · Aşama şeridi (32 px) sabit — 23.22'nin 44 px dokunma hedefiyle zaten
+ *     gergin; daraltmak o gerginliği hataya çevirirdi.
+ *   · Araç rayı (56 px) sabit — içindeki test butonları 44 px'e dayanıyor.
+ *   · Alt nav 56 px: öge yüksekliği şerit yüksekliğine eşit olduğu için
+ *     dokunma hedefi hâlâ 44 px'in üstünde.
+ *   · Karar Dock'u 104 px: içeriğin tam ölçüsü (12+18+8+54+12), kırpma yok.
+ * ═══════════════════════════════════════════════════════════════════════
+ */
+@media (max-height: 720px) {
+  :root {
+    --h-status-strip: 64px;
+    /*
+     * DURUM ŞERİDİ 52 px'TE KALIR — denendi ve geri alındı.
+     * 46 px'e indirildiğinde "GÜN 1" iki satıra kırılıyor, saat aşağı
+     * kayıyor ve NAKİT rakamının ÜSTÜNE biniyordu. Altı piksel için
+     * ekranın en çok okunan iki sayısını çakıştırmak kötü bir takas.
+     */
+    --h-customer-strip: 44px;
+    --h-decision-dock: 104px;
+    --h-bottom-nav: 56px;
+    /*
+     * PİYASA ŞERİDİ 44 px'TE KALIR — denendi ve geri alındı.
+     *
+     * 34 px'e indirildiğinde içindeki varlık butonları 33 px'e düşüyordu:
+     * GDD 23.22'nin 44 px dokunma hedefinin altı. Yer kazanmak için bir
+     * dokunma hedefini bozmak takas değil, gerilemedir. Şerit sözleşmesinden
+     * sapma yalnız dokunma hedefini AŞAĞI ÇEKMEYEN bölgelerde yapılır.
+     */
+  }
+}
+
+/* ===== Reset ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--ink-900);
+  color: var(--text-light-1);
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Sayısal alanlar hizalı okunur (GDD 23.3 — finansal okunabilirlik) */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Erişilebilirlik: hareket azaltma tercihi */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════
+ * GERÇEKÇİ GÖRSEL KATMANI (asset paketi v6.0.0)
+ *
+ * Paketin README'si: "Gerçekçi assetleri açık taş kartta drop-shadow ile
+ * gösterin." Gölge burada tanımlanır ki her çağrı yeri kendi gölgesini
+ * uydurmasın.
+ *
+ * object-fit: contain BAĞLAYICI — brief'in açık kuralı. Görseller farklı
+ * en-boy oranlarında (kırpma sonrası her biri kendi oranını korur); cover
+ * kullanılsaydı külçenin kenarı, portrenin çenesi kesilirdi.
+ * ═══════════════════════════════════════════════════════════════════════
+ */
+.art {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+  /* Yükleme sırasında yer tutar; layout zıplamaz. */
+  flex: 0 0 auto;
+}
+
+.art--fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brass-400);
+}
+
+/* Ana odak görselleri (≥64 px) — paketin önerdiği yumuşak gölge. */
+.art--hero {
+  filter: drop-shadow(0 12px 18px rgba(20, 12, 4, 0.22));
+}
+
+/* Koyu İşlem Masası zemininde gölge yerine sıcak bir hale okunur. */
+.art--onDark {
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.55));
+}
+
+/*
+ * Portre yuvası: dairesel, omuz hizalı. Paketin README'si
+ * "object-position: center top" öneriyor — portreler omuzdan kadrajlı,
+ * ortalanınca yüz aşağı kayıyor.
+ */
+.art--portrait {
+  object-fit: cover;
+  object-position: center top;
+  border-radius: var(--r-pill);
+  background: linear-gradient(160deg, var(--ink-600), var(--ink-800));
+}

@@ -1,0 +1,3153 @@
+/*
+ * MIHENKAYNAK — İşlem Masası (Workbench)
+ * Kaynak: GDD 23.6 "İşlem Masası kompozisyonu", 23.7 "Aşama davranışları".
+ *
+ * GDD 23.6: "Ana ekran üst üste büyük kartlardan oluşan dashboard olmamalıdır.
+ * Tek baskın 'İşlem Masası' yüzeyi aşama bazlı değişir."
+ *
+ * GDD 23.22: Bu yüzey dikey scroll KULLANMAZ. İçerik taşarsa yoğunluk azalır
+ * veya detay bottom-sheet'e taşınır.
+ */
+
+.wb {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-3) var(--gutter);
+  gap: var(--sp-3);
+  overflow: hidden;
+}
+
+/*
+ * GDD 23.22 — "Workbench içerik taşarsa YOĞUNLUK AZALTILIR veya detay sheet'e
+ * taşınır." Kırpmak yoğunluk azaltmak değildir; bu yüzden her çocuk
+ * küçülebilir olmalı ve dar cihazlarda ikincil bloklar aşağıdaki
+ * media query'lerle bilinçli olarak kaldırılır.
+ */
+.wb > * {
+  min-height: 0;
+}
+
+/* Çoklu ürün kalem şeridi — yatay pill (GDD 23.13) */
+.lineStrip {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.lineStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.linePill {
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-dark-strong);
+  background: var(--ink-700);
+  color: var(--text-dark-2);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.linePill--active {
+  border-color: var(--brass-500);
+  background: var(--ink-600);
+  color: var(--text-dark-1);
+}
+
+.linePill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--text-dark-3);
+}
+
+.linePill__dot--appraised { background: var(--brass-500); }
+.linePill__dot--offered { background: var(--amethyst-400); }
+.linePill__dot--accepted { background: var(--positive-soft); }
+.linePill__dot--rejected { background: var(--negative-soft); }
+
+/* ------------------------------------------------------------------ */
+/* İNCELE (GDD 23.7)                                                   */
+/* ------------------------------------------------------------------ */
+
+.inspect {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: var(--sp-4);
+  align-items: stretch;
+}
+
+/* Ürün görseli merkezde NÖTR ZEMİNDE (GDD 23.7 "İncele"). */
+.inspect__stage {
+  flex: 0 0 40%;
+  padding: var(--sp-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-card);
+  background:
+    radial-gradient(70% 60% at 50% 40%, rgba(196, 141, 43, 0.12) 0%, transparent 70%),
+    var(--ink-900);
+  border: 1px solid var(--line-dark);
+  color: var(--brass-400);
+  position: relative;
+  overflow: hidden;
+}
+
+.inspect__stage svg {
+  width: 92%;
+  height: auto;
+  max-height: 100%;
+}
+
+/*
+ * GDD 23.7: "Şüpheli durumda tüm ekran kırmızıya dönmez; ürün sınırı/uyarı
+ * satırı değişir." Şüphe yalnız bu kenarlıkta ve uyarı satırında görünür.
+ */
+.inspect__stage--suspect {
+  border-color: rgba(201, 130, 46, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(201, 130, 46, 0.18);
+}
+
+.inspect__stage--risky {
+  border-color: rgba(198, 40, 40, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(198, 40, 40, 0.2);
+}
+
+.inspect__fields {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: center;
+}
+
+.inspect__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  line-height: var(--lh-tight);
+  margin-bottom: 2px;
+}
+
+/* Doğrulama statüsü ürünün yakınında (GDD 23.7). */
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(58, 68, 80, 0.5);
+}
+
+.field:last-child {
+  border-bottom: none;
+}
+
+.field__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  letter-spacing: 0.02em;
+  flex: 0 0 auto;
+}
+
+.field__value {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  text-align: right;
+  min-width: 0;
+}
+
+/*
+ * GDD 23.3 — "Bilinmeyen veri '?' yerine 'doğrulanmadı / düşük güven' gibi
+ * anlamlı durumla gösterilir."
+ */
+.status {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.status--unverified {
+  background: rgba(124, 117, 104, 0.22);
+  color: var(--text-dark-2);
+}
+.status--partial {
+  background: rgba(196, 141, 43, 0.18);
+  color: var(--brass-300);
+}
+.status--verified {
+  background: rgba(78, 158, 82, 0.2);
+  color: var(--positive-soft);
+}
+.status--conflicting {
+  background: rgba(198, 40, 40, 0.2);
+  color: var(--negative-soft);
+}
+
+/* Şüphe sinyali satırı — ekranın tamamı değil, tek satır değişir. */
+.signals {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(201, 130, 46, 0.1);
+  border-left: 2px solid var(--warning);
+}
+
+.signals--strong {
+  background: rgba(198, 40, 40, 0.1);
+  border-left-color: var(--negative);
+}
+
+.signal {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+  line-height: 1.25;
+}
+
+.signal__mark {
+  flex: 0 0 auto;
+  color: var(--warning);
+  display: inline-flex;
+}
+
+.signals--strong .signal__mark {
+  color: var(--negative-soft);
+}
+
+/* Test sonucu — aynı masada güncellenir, yeni ekran açmaz (GDD 23.11). */
+.readout {
+  flex: 0 0 auto;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(196, 141, 43, 0.1);
+  border-left: 2px solid var(--brass-500);
+  font-size: var(--fs-micro);
+  color: var(--brass-300);
+  line-height: 1.3;
+}
+
+.readout__tool {
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--fs-micro);
+  display: block;
+}
+
+/* ------------------------------------------------------------------ */
+/* DEĞERLE (GDD 23.7)                                                  */
+/* ------------------------------------------------------------------ */
+
+.appraise {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+/* Ana sonuç tek fiyat DEĞİL, değer aralığı + güven seviyesi (GDD 23.7). */
+.bandCard {
+  flex: 0 0 auto;
+  text-align: center;
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  border-radius: var(--r-card);
+  background: var(--ink-900);
+  border: 1px solid var(--line-dark);
+}
+
+.bandCard__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bandCard__range {
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-size: var(--fs-figure);
+  font-weight: var(--fw-bold);
+  color: var(--brass-300);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+}
+
+.bandCard__sep {
+  color: var(--text-dark-3);
+  font-weight: var(--fw-regular);
+  margin: 0 2px;
+}
+
+.confidence {
+  margin-top: var(--sp-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+
+.confidence__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.confidence__bar {
+  display: flex;
+  gap: 2px;
+}
+
+.confidence__seg {
+  width: 15px;
+  height: 5px;
+  border-radius: 1px;
+  background: var(--ink-500);
+}
+
+.confidence__seg--on-low { background: var(--confidence-low); }
+.confidence__seg--on-medium { background: var(--confidence-medium); }
+.confidence__seg--on-high { background: var(--confidence-high); }
+
+.confidence__value {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-bold);
+}
+
+.confidence__value--low { color: var(--confidence-low); }
+.confidence__value--medium { color: var(--confidence-medium); }
+.confidence__value--high { color: var(--confidence-high); }
+
+/* Kırılım — metal / taş / işçilik / risk / piyasa kısa satırlara bölünür. */
+.breakdown {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+
+.breakdown__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 6px var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(8, 11, 15, 0.4);
+  font-size: var(--fs-caption);
+}
+
+.breakdown__name {
+  color: var(--text-dark-2);
+}
+
+.breakdown__share {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  min-width: 34px;
+  text-align: right;
+}
+
+.breakdown__value {
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  min-width: 72px;
+  text-align: right;
+}
+
+.breakdown__value--negative {
+  color: var(--negative-soft);
+}
+
+/* ------------------------------------------------------------------ */
+/* TEZ (GDD 23.7)                                                      */
+/* ------------------------------------------------------------------ */
+
+.thesis {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  overflow: hidden;
+}
+
+.thesisCard {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--stone-50);
+  border: 1px solid transparent;
+  color: var(--text-light-1);
+  text-align: left;
+  transition:
+    border-color var(--t-fast) var(--ease-standard),
+    box-shadow var(--t-fast) var(--ease-standard);
+}
+
+.thesisCard--selected {
+  border-color: var(--amethyst-500);
+  box-shadow: 0 0 0 1px var(--amethyst-500);
+}
+
+.thesisCard--suggested {
+  border-color: var(--brass-500);
+}
+
+.thesisCard__icon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: var(--ink-800);
+  color: var(--brass-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thesisCard--selected .thesisCard__icon {
+  background: var(--amethyst-500);
+  color: #fff;
+}
+
+.thesisCard__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.thesisCard__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.thesisCard__name {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thesisCard__figures {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.15;
+}
+
+.thesisCard__net {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-bold);
+  color: var(--brass-700);
+}
+
+/* Alış tavanı — kararı değiştiren ikinci sayı (GDD 6.4). */
+.thesisCard__ceiling {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  color: var(--text-light-3);
+  white-space: nowrap;
+}
+
+/* Her kanalda net değer, süre, risk ve likidite (GDD 23.7 "Tez"). */
+.thesisCard__metrics {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: 2px;
+}
+
+.metric {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: var(--fs-micro);
+  white-space: nowrap;
+}
+
+.metric__label {
+  color: var(--text-light-3);
+}
+
+.metric__value {
+  font-weight: var(--fw-semibold);
+  color: var(--text-light-2);
+}
+
+.metric__value--low { color: var(--positive); }
+.metric__value--medium { color: var(--warning); }
+.metric__value--high { color: var(--negative); }
+
+.thesisCard__badge {
+  position: absolute;
+  font-size: var(--fs-micro);
+}
+
+.thesisTag {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brass-700);
+  border: 1px solid var(--brass-500);
+  border-radius: var(--r-pill);
+  padding: 1px 5px;
+}
+
+/* ------------------------------------------------------------------ */
+/* PAZARLIK (GDD 23.7)                                                 */
+/* ------------------------------------------------------------------ */
+
+/*
+ * PAZARLIK EKRANI KENDİ İÇİNDE KAYAR.
+ *
+ * Ölçüm (390×664): içerik 222 px, kutu 179 px → 43 px taşma. 360×640'ta
+ * taşma 93 px. Taşan çocuklar hiçbir yere sığmadıkları için birbirinin ve
+ * araç rayının ÜSTÜNE çiziliyordu — "KARŞI TEKLİFİ", "TAHMİNİ DEĞER
+ * ARALIĞI" ve "Piyasa Referans Alış" üst üste biniyordu.
+ *
+ * Kutu neden bu kadar küçük: Karar Dock'u bu aşamada teklif satırı,
+ * kaydırıcı ve önizlemeyle birlikte token'daki 104 px'in çok üstüne çıkıyor
+ * ve İşlem Masası'ndan yiyor.
+ *
+ * NEDEN KAYDIRMA, NEDEN KÜÇÜLTME DEĞİL: buradaki dört bilgi de karar
+ * bilgisidir — karşı teklif, ölçülen band, piyasa referansı ve müşterinin
+ * sözü. Sığdırmak için birini atmak ya da yazıyı 11 px'in altına indirmek
+ * GDD 23.22'yi çiğnerdi. Kaydırma hiçbirini feda etmez.
+ *
+ * Ekran scroll'u KAPALI kalır (GDD 23.22 "Aktif Dükkan'da scroll kapalı");
+ * kayan şey ekran değil, sınırları belli tek bir içerik bölgesidir.
+ */
+.negotiate {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.negotiate::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * Alt kenarda solma: içeriğin DEVAM ETTİĞİNİ söyler. Bu işaret olmadan
+ * araç rayının hizasında yarım kalan bir satır ("TAHMİNİ DEĞER ARALIĞI"
+ * ortasından kesiliyordu) bozuk bir ekran gibi okunuyor.
+ */
+.negotiate {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 16px), transparent 100%);
+}
+
+/*
+ * Kısa ekranda üst blok daralır. Konuşma balonu ve durum rozeti karar
+ * bilgisi taşımaz — biri müşterinin sözü, öteki tek kelimelik bir durum.
+ * Sayılar (karşı teklif, band, referans) buradan yer kazanır.
+ */
+@media (max-height: 720px) {
+  .negotiate {
+    gap: var(--sp-2);
+  }
+
+  .speech {
+    padding: var(--sp-2) var(--sp-3);
+  }
+
+  .stateBadge {
+    width: 78px;
+    padding: 4px var(--sp-2);
+  }
+}
+
+/*
+ * Kaydırılan bir kutuda çocuklar KÜÇÜLMEZ. Varsayılan `flex-shrink: 1`
+ * panelleri ezip içeriklerini taşırıyordu — asıl çakışmayı üreten buydu.
+ */
+.negotiate > * {
+  flex-shrink: 0;
+}
+
+.negotiate__top {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--sp-3);
+  align-items: stretch;
+}
+
+/* Müşteri mesajı ve state AYNI YÜZEYDE değişir (GDD 23.24). */
+.speech {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  border-top-left-radius: var(--sp-1);
+  background: var(--stone-50);
+  color: var(--text-light-1);
+  font-size: var(--fs-caption);
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  font-style: italic;
+}
+
+.stateBadge {
+  flex: 0 0 auto;
+  width: 96px;
+  padding: var(--sp-2);
+  border-radius: var(--r-md);
+  background: var(--ink-900);
+  border: 1px solid var(--line-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.stateBadge__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stateBadge__value {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.03em;
+}
+
+.stateBadge__value--OPEN { color: var(--positive-soft); }
+.stateBadge__value--HARDENING { color: var(--warning); }
+.stateBadge__value--FINAL_OFFER { color: var(--negative-soft); }
+.stateBadge__value--ACCEPTED { color: var(--positive-soft); }
+.stateBadge__value--REJECTED { color: var(--negative-soft); }
+
+.stateBadge__dots {
+  display: flex;
+  gap: 3px;
+}
+
+.stateBadge__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--r-pill);
+  background: var(--ink-500);
+}
+
+.stateBadge__dot--on {
+  background: currentColor;
+}
+
+/* Karşı teklif — YENİ EKRAN AÇMAZ, bu satır güncellenir (GDD 23.24). */
+.counterRow {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  background: rgba(139, 92, 199, 0.14);
+  border: 1px solid var(--amethyst-600);
+}
+
+.counterRow--final {
+  background: rgba(198, 40, 40, 0.12);
+  border-color: rgba(198, 40, 40, 0.45);
+}
+
+.counterRow__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.counterRow__value {
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-bold);
+  color: var(--amethyst-300);
+}
+
+.counterRow--final .counterRow__value {
+  color: var(--negative-soft);
+}
+
+/* Seçili tez özeti — pazarlık sırasında bağlam kaybolmaz. */
+.contextRow {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(8, 11, 15, 0.45);
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+}
+
+.contextRow__key {
+  color: var(--text-dark-3);
+}
+
+.contextRow__val {
+  font-weight: var(--fw-semibold);
+  color: var(--brass-300);
+}
+
+.negotiate__spacer {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* İçi boşsa yer kaplamaz — bkz. NegotiateStage'deki gerekçe. */
+.negotiate__spacer--empty {
+  flex: 0 0 auto;
+}
+
+/*
+ * Ara bölge de ezilmez. `min-height: 0` + `flex: 1` ikilisi dar ekranda
+ * kutuyu sıfıra indiriyor, içindeki band paneli ise küçülmediği için
+ * dışarı taşıp komşularının üstüne biniyordu.
+ */
+.negotiate__spacer {
+  min-height: auto;
+}
+
+/*
+ * SCREEN NORTH STAR (GDD 23.24): "Oyuncu tek bakışta üç şeyi bulabilmeli:
+ * 'Ne biliyorum?', 'Şimdi hangi kararı veriyorum?', 'Bu karar kabul edilirse
+ * ne değişecek?'" Pazarlık aşamasında birinci soru bu panelle cevaplanır —
+ * oyuncu değer bandını görmek için Değerle aşamasına dönmek zorunda kalmaz.
+ */
+
+
+
+
+/* FINAL OFFER sonuç önizlemesi (GDD 23.12 "Final Offer" satırı). */
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: rgba(8, 11, 15, 0.5);
+  border: 1px solid var(--line-dark);
+}
+
+.preview__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-size: var(--fs-caption);
+}
+
+.preview__key { color: var(--text-dark-3); }
+
+.preview__val {
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.preview__val--positive { color: var(--positive-soft); }
+.preview__val--negative { color: var(--negative-soft); }
+.preview__val--warning { color: var(--warning); }
+
+/* Teklif geçmişi — anti-spam'in görünür kanıtı. */
+.history {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.history::-webkit-scrollbar { display: none; }
+
+.history__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 0 0 auto;
+}
+
+.history__chip {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--ink-700);
+  border: 1px solid var(--line-dark);
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+}
+
+.history__chip--repeat {
+  border-color: rgba(198, 40, 40, 0.45);
+  color: var(--negative-soft);
+}
+
+/* ------------------------------------------------------------------ */
+/* SONUÇ (GDD 23.10.2)                                                 */
+/* ------------------------------------------------------------------ */
+
+.result {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-3);
+}
+
+.result__headline {
+  font-family: var(--font-display);
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  color: var(--text-dark-1);
+}
+
+.result__badge {
+  align-self: flex-start;
+  padding: 3px var(--sp-3);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.result__badge--good {
+  background: rgba(78, 158, 82, 0.18);
+  color: var(--positive-soft);
+}
+.result__badge--bad {
+  background: rgba(198, 40, 40, 0.18);
+  color: var(--negative-soft);
+}
+.result__badge--neutral {
+  background: rgba(124, 117, 104, 0.2);
+  color: var(--text-dark-2);
+}
+
+.result__note {
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+  line-height: 1.4;
+  padding-left: var(--sp-3);
+  border-left: 2px solid var(--line-dark-strong);
+}
+
+.result__missed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(198, 40, 40, 0.1);
+  border-left: 2px solid var(--negative);
+}
+
+.result__missedTitle {
+  font-size: var(--fs-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--negative-soft);
+  font-weight: var(--fw-bold);
+}
+
+.result__missedItem {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+  line-height: 1.35;
+}
+
+/* ------------------------------------------------------------------ */
+/* IDLE (GDD 23.10.1)                                                  */
+/* ------------------------------------------------------------------ */
+
+.idle {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-3);
+  /*
+   * Orijinal sürümdeki mobil davranış: aktif işlem yokken tüm boş-dükkan
+   * sütunu tek parça kayar. Dock bu alanın dışında kaldığı için ana eylem
+   * sabittir; kimlik, pozisyon, uyarı ve müşteri kartları ise ezilmeden
+   * doğal yüksekliklerini korur.
+   */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overflow-anchor: none;
+  scroll-padding-block: var(--sp-3);
+}
+
+.workbench--idle {
+  background:
+    linear-gradient(180deg, rgba(10, 15, 22, 0.72), rgba(10, 15, 22, 0.9)),
+    url('/assets/realistic/backgrounds/shop-interior-liquid-v1.webp') center 42% / cover no-repeat;
+}
+
+.workbench--theme_nocturne {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(111, 64, 168, 0.26), transparent 38%),
+    linear-gradient(180deg, rgba(10, 12, 24, 0.74), rgba(8, 7, 18, 0.94)),
+    url('/assets/realistic/backgrounds/shop-interior-liquid-v1.webp') center 42% / cover no-repeat;
+}
+
+.workbench--theme_ivory {
+  background:
+    linear-gradient(180deg, rgba(102, 82, 52, 0.32), rgba(11, 14, 19, 0.88)),
+    url('/assets/realistic/backgrounds/shop-interior-liquid-v1.webp') center 42% / cover no-repeat;
+}
+
+.idle::-webkit-scrollbar {
+  display: none;
+}
+
+/* Flex çocukları küçülürse içerik taşmak yerine kartların üstüne biner. */
+.idle > * {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+/*
+ * ÖĞRETİM ŞERİDİ AÇIKKEN YOĞUNLUK — yalnız KISA EKRANDA azalır.
+ *
+ * GDD 23.22: "Workbench içerik taşarsa YOĞUNLUK AZALTILIR." Ders şeridi
+ * 127 px yer alıyor; 560–633 px'lik telefonlarda kalan alana marka başlığı,
+ * pozisyon paneli, uyarı satırları ve rewarded CTA hep birden sığmıyor ve
+ * içerik iki uçtan kırpılıyordu. Kırpmak yoğunluk azaltmak DEĞİLDİR.
+ *
+ * Neden CSS'te ve yüksekliğe bağlı: 844 px'lik bir ekranda hepsi rahat
+ * sığar; orada da gizlemek, ders yüzünden ekranı boşaltmak olurdu. Şeritler
+ * için kurulan kısa-ekran kademesiyle aynı eşik (720 px) kullanılır.
+ *
+ * Düşenlerin hepsi ikincil: marka adı (oyuncu zaten biliyor), semt itibarı
+ * satırı, uyarı satırları (şerit zaten konuşuyor) ve GDD 23.10.1'in
+ * "gösterilebilir" dediği rewarded CTA. Pozisyon paneli KALIR — o veri.
+ */
+.idle--coaching {
+  justify-content: flex-start;
+}
+
+/*
+ * Kuyruk dersi açıkken üst şerit zaten gün/nakit bilgisini gösterir ve ders
+ * müşteriyi karşılamayı ister. Geçici ders boyunca tekrar eden kimlik ve stok
+ * uyarısını saklayarak ilk müşteri kartının ders şeridi altında kırpılmasını
+ * engelleriz; ders kapanınca içerik eksiksiz geri gelir.
+ */
+.idle--coaching.idle--hasQueue .shopOverview,
+.idle--coaching.idle--hasQueue > .alert,
+.idle--coaching.idle--hasQueue .alerts,
+.idle--coaching.idle--hasQueue .rewardedLine {
+  display: none;
+}
+
+@media (max-height: 720px) {
+  .idle--coaching .idle__title,
+  .idle--coaching .idle__sub,
+  .idle--coaching .alerts,
+  .idle--coaching .rewardedLine {
+    display: none;
+  }
+}
+
+/*
+ * En dar uç (≤620 px, ör. 360×560): şeritten sonra 76 px kalıyor ve
+ * pozisyon paneli tek başına 110 px. Burada da bir şey vermek gerek ve
+ * verilecek olan paneldir: öğretim sürerken okunması gereken şey derstir,
+ * üstelik panel Stok ekranında ve ilk günde zaten sıfır.
+ */
+@media (max-height: 620px) {
+  .idle--coaching .position {
+    display: none;
+  }
+}
+
+.idle__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  color: var(--text-dark-1);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+}
+
+.idle__sub {
+  font-size: var(--fs-caption);
+  color: var(--text-dark-3);
+  margin-top: 2px;
+}
+
+.idle__badge {
+  display: inline-flex;
+  margin-left: 7px;
+  color: var(--brass-300);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  filter: drop-shadow(0 0 5px rgba(215, 170, 74, 0.55));
+  vertical-align: middle;
+}
+
+/* ---- Pozisyon paneli — sarrafın "kaç param, kaç malım var" sorusu ---- */
+
+.shopOverview {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid rgba(215, 170, 74, 0.38);
+  border-radius: var(--r-card);
+  background:
+    radial-gradient(circle at 8% 5%, rgba(104, 63, 160, 0.2), transparent 34%),
+    linear-gradient(145deg, rgba(29, 38, 50, 0.96), rgba(8, 11, 15, 0.88));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.shopOverview::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  opacity: 0.32;
+  pointer-events: none;
+  background-image:
+    linear-gradient(115deg, transparent 0 48%, rgba(215, 170, 74, 0.07) 49%, transparent 50%),
+    linear-gradient(65deg, transparent 0 48%, rgba(104, 63, 160, 0.06) 49%, transparent 50%);
+  background-size: 34px 34px;
+}
+
+.position {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px var(--sp-3);
+  padding: var(--sp-2) 0 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line-dark);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.position__cell {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.position__icon {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(215, 170, 74, 0.22);
+  border-radius: 7px;
+  background: rgba(196, 141, 43, 0.08);
+  color: var(--brass-400);
+}
+
+.position__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.position__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.position__value {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.position__unit {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-regular);
+  color: var(--text-dark-3);
+}
+
+/* Nakit–altın dengesi: dolu kısım altın, boş kısım nakit. */
+.position__bar {
+  grid-column: 1 / -1;
+  margin-top: var(--sp-2);
+  height: 5px;
+  border-radius: var(--r-pill);
+  background: rgba(242, 236, 222, 0.1);
+  overflow: hidden;
+}
+
+.position__barFill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--amethyst-500), var(--brass-400));
+  box-shadow: 0 0 9px rgba(215, 170, 74, 0.35);
+}
+
+.position__legend {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.position__go {
+  color: var(--brass-400);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+/* Kuyruk varken boş durum dekoru değil, müşteri listesi ana içeriktir. */
+.idle--hasQueue {
+  justify-content: flex-start;
+}
+
+/* ---- Bekleyen müşteri kuyruğu — FIFO sırasını görünür kılan kompakt liste ---- */
+
+.waitingQueue {
+  flex: 0 0 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.waitingQueue__head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--touch-min);
+  padding: 0 var(--sp-2);
+  border: 1px solid rgba(215, 170, 74, 0.2);
+  border-radius: var(--r-sm);
+  background:
+    linear-gradient(90deg, rgba(104, 63, 160, 0.13), transparent 45%),
+    rgba(8, 11, 15, 0.52);
+  color: var(--text-dark-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.waitingQueue__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.waitingQueue__heading strong {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.waitingQueue__heading small {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.waitingQueue__count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.waitingQueue__chevron {
+  display: inline-block;
+  color: var(--brass-400);
+  font-size: 18px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform var(--t-fast) var(--ease-standard);
+}
+
+.waitingQueue__chevron--open {
+  transform: rotate(180deg);
+}
+
+.waitingQueue__list {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  overflow: visible;
+  scrollbar-width: none;
+}
+
+/* Açılan kuyruk kendi içinde büyür ama karar dock'unu ekran dışına itemez. */
+.waitingQueue__head[aria-expanded='true'] + .waitingQueue__list {
+  max-height: min(248px, 32dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 2px;
+}
+
+@media (max-height: 720px) {
+  .idle {
+    gap: var(--sp-2);
+  }
+
+  .shopOverview {
+    padding: var(--sp-2) var(--sp-3);
+  }
+
+  .idle__art {
+    height: 48px;
+    max-width: 54px;
+  }
+
+  .idle__title {
+    font-size: var(--fs-subtitle);
+  }
+}
+
+.waitingQueue__list::-webkit-scrollbar {
+  display: none;
+}
+
+.waitingCustomer {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  border-radius: var(--r-md);
+  border: 1px solid rgba(242, 236, 222, 0.12);
+  background: linear-gradient(120deg, rgba(24, 31, 41, 0.94), rgba(8, 11, 15, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.waitingCustomer--next {
+  border-color: rgba(215, 170, 74, 0.58);
+  background:
+    radial-gradient(circle at 12% 50%, rgba(104, 63, 160, 0.18), transparent 38%),
+    linear-gradient(90deg, rgba(215, 170, 74, 0.12), rgba(8, 11, 15, 0.78));
+  box-shadow:
+    inset 3px 0 0 var(--brass-500),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.waitingCustomer__avatar {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-pill);
+  border: 2px solid var(--brass-600);
+  box-shadow:
+    0 0 0 2px rgba(104, 63, 160, 0.28),
+    0 4px 10px rgba(0, 0, 0, 0.24);
+  overflow: hidden;
+}
+
+.waitingCustomer__initial {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--brass-400);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+}
+
+.waitingCustomer__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.waitingCustomer__identity,
+.waitingCustomer__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.waitingCustomer__identity strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-dark-1);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waitingCustomer__identity > span {
+  flex: 0 0 auto;
+  color: var(--brass-400);
+  font-size: var(--fs-micro);
+  padding: 2px 6px;
+  border: 1px solid rgba(215, 170, 74, 0.25);
+  border-radius: var(--r-pill);
+  background: rgba(196, 141, 43, 0.08);
+}
+
+.waitingCustomer__body p {
+  overflow: hidden;
+  color: var(--text-dark-2);
+  font-size: var(--fs-micro);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waitingCustomer__meta {
+  margin-top: 2px;
+  color: var(--text-dark-3);
+  font-size: var(--fs-micro);
+}
+
+.waitingCustomer__greet {
+  flex: 0 0 auto;
+  min-width: 68px;
+  min-height: var(--touch-min);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--brass-600);
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, #e7ba50 0%, #c18b20 55%, #a97616 100%);
+  color: #241a06;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 4px 12px rgba(196, 141, 43, 0.22);
+}
+
+.waitingCustomer__greet:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 3px rgba(36, 26, 6, 0.22);
+}
+
+@media (max-width: 390px) {
+  .waitingCustomer {
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .waitingCustomer__avatar {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .waitingCustomer__greet {
+    min-width: 62px;
+    padding-inline: 10px;
+  }
+}
+
+@media (max-height: 450px) {
+  .waitingCustomer {
+    box-sizing: border-box;
+    height: 56px;
+    min-height: 56px;
+    padding: 4px 6px;
+  }
+
+  .waitingCustomer__avatar {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* En fazla 3 kompakt uyarı satırı; ayrı büyük kartlar kullanılmaz. */
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(8, 11, 15, 0.45);
+  border-left: 2px solid var(--line-dark-strong);
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+}
+
+.idle > .alert {
+  border: 1px solid rgba(104, 63, 160, 0.28);
+  border-left: 3px solid var(--amethyst-500);
+  background:
+    linear-gradient(90deg, rgba(104, 63, 160, 0.1), transparent 58%),
+    rgba(8, 11, 15, 0.54);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.idle > .alert .chip {
+  border-color: rgba(215, 170, 74, 0.46);
+  background: linear-gradient(180deg, #fbf6eb, #e8ddc8);
+  color: #2a2115;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+/* Ana Dükkan'dan ayrılmadan sarrafiye alımı. */
+.quickStockScrim {
+  position: absolute;
+  z-index: 75;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(5, 8, 12, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.quickStockSheet {
+  width: 100%;
+  max-height: min(82%, 700px);
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-4) var(--gutter) calc(var(--sp-4) + var(--safe-bottom));
+  border: 1px solid rgba(215, 170, 74, 0.62);
+  border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(104, 63, 160, 0.09), transparent 34%),
+    var(--stone-50);
+  color: var(--text-light-1);
+  box-shadow: 0 -22px 70px rgba(0, 0, 0, 0.48);
+  animation: quickStockIn 180ms var(--ease-standard);
+}
+
+@keyframes quickStockIn {
+  from { transform: translateY(18px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.quickStockSheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.quickStockSheet__eyebrow {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--amethyst-600);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quickStockSheet__head h2 {
+  margin: 0;
+  font: var(--fw-semibold) var(--fs-title)/var(--lh-tight) var(--font-display);
+}
+
+.quickStockSheet__close {
+  flex: 0 0 var(--touch-min);
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border: 1px solid var(--line-light-strong);
+  border-radius: var(--r-pill);
+  background: var(--stone-100);
+  color: var(--text-light-2);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.quickStockSheet__intro {
+  margin: var(--sp-2) 0 var(--sp-3);
+  color: var(--text-light-2);
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+}
+
+.quickStockSheet__scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line-light);
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.quickStockSheet__scroll .counter__list {
+  border: 0;
+  border-radius: 0;
+}
+
+.quickStockSheet__done {
+  flex: 0 0 auto;
+  min-height: var(--touch-min);
+  margin-top: var(--sp-3);
+  border: 1px solid var(--brass-600);
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, #efc45a, #bd851d);
+  color: #241a06;
+  font-weight: var(--fw-bold);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.38), 0 5px 16px rgba(168, 130, 58, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quickStockSheet { animation: none; }
+}
+
+.alert--warning {
+  border-left-color: var(--warning);
+}
+.alert--negative {
+  border-left-color: var(--negative);
+}
+.alert--positive {
+  border-left-color: var(--positive-soft);
+}
+
+.alert__icon {
+  flex: 0 0 auto;
+  color: var(--text-dark-3);
+  display: inline-flex;
+}
+
+.alert--warning .alert__icon { color: var(--warning); }
+.alert--negative .alert__icon { color: var(--negative-soft); }
+.alert--positive .alert__icon { color: var(--positive-soft); }
+
+.alert__body { flex: 1 1 auto; min-width: 0; }
+
+.alert__title {
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.alert__detail {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+/* Rewarded ikincil CTA — ana akışı bozmaz (GDD 23.10.1). */
+.rewardedLine {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  align-self: flex-start;
+  font-size: var(--fs-micro);
+  color: var(--brass-400);
+  border: 1px solid var(--brass-700);
+  border-radius: var(--r-pill);
+  /* GDD 23.22 — 44 px dokunma hedefi. Ölçüm 27 px'ti. */
+  min-height: var(--touch-min);
+  padding: 5px var(--sp-4);
+  background: transparent;
+}
+
+/*
+ * PC düzeni: ana kimlik/sermaye solda, kuyruk ve günlük durum sağda.
+ * Mobil DOM sırası değişmez; yalnız geniş ekranda boş alan işe koşulur.
+ */
+@media (min-width: 900px) and (min-height: 720px) {
+  .wb {
+    padding-inline: var(--sp-6);
+  }
+
+  .idle {
+    display: grid;
+    grid-template-columns: minmax(0, 1.06fr) minmax(300px, 0.94fr);
+    grid-auto-rows: max-content;
+    align-content: center;
+    justify-content: stretch;
+    column-gap: var(--sp-4);
+    row-gap: var(--sp-3);
+    overflow: hidden;
+  }
+
+  .idle .shopOverview {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .idle > .alert,
+  .idle > .rewardedLine {
+    grid-column: 1;
+  }
+
+  .idle .waitingQueue,
+  .idle .alerts {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: start;
+  }
+
+  .idle--hasQueue .alerts {
+    grid-row: 2;
+  }
+
+  .waitingQueue__head[aria-expanded='true'] + .waitingQueue__list {
+    max-height: 360px;
+  }
+
+  .shopOverview,
+  .waitingQueue__head,
+  .waitingCustomer,
+  .alert {
+    box-shadow: var(--sh-glass);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Teklif kontrolü — Dock içinde (GDD 23.12)                          */
+/* ------------------------------------------------------------------ */
+
+.offer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.offer__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* Teklif tutarı Dock'un EN BÜYÜK sayısal değeridir (GDD 23.12). */
+/*
+ * Birim fiyat satırı — tutarın hemen altında, ondan belirgin küçük.
+ * GDD 23.12: "Teklif tutarı Dock'un EN BÜYÜK sayısal değeri olur." Birim
+ * fiyat o hiyerarşiyi bozmadan, kararı doğrulayan ikinci satırdır.
+ */
+.offer__unit {
+  margin-top: 2px;
+  font-size: var(--fs-caption);
+  color: var(--text-light-3);
+  letter-spacing: 0.01em;
+}
+
+.offer__amount {
+  flex: 1 1 auto;
+  font-family: var(--font-display);
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-bold);
+  color: var(--text-light-1);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-align: left;
+  background: none;
+  padding: 0;
+}
+
+.offer__currency {
+  font-size: var(--fs-title);
+  color: var(--text-light-3);
+  font-weight: var(--fw-medium);
+  margin-left: 2px;
+}
+
+/* +/− ince ayar (GDD 23.12). */
+/*
+ * GDD 23.22 — 44 px dokunma hedefi. 38 px'ti ve bu ekranın EN ÇOK
+ * dokunulan kontrolü: fiyat bu iki butonla ayarlanıyor. Pazarlıkta
+ * ıskalanan dokunuş doğrudan yanlış teklife dönüşür.
+ */
+.offer__nudge {
+  flex: 0 0 auto;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-light-strong);
+  background: var(--stone-100);
+  color: var(--text-light-2);
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-bold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.offer__nudge:disabled { opacity: 0.4; }
+
+/* Slider kaba ayar sağlar (GDD 23.12). */
+.offer__slider {
+  width: 100%;
+  height: 20px;
+  appearance: none;
+  background: transparent;
+  margin: 0;
+}
+
+.offer__slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--stone-300);
+}
+
+.offer__slider::-moz-range-track {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--stone-300);
+}
+
+.offer__slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border-radius: var(--r-pill);
+  background: var(--amethyst-500);
+  border: 2px solid var(--stone-50);
+  box-shadow: 0 1px 4px rgba(8, 11, 15, 0.35);
+}
+
+.offer__slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-pill);
+  background: var(--amethyst-500);
+  border: 2px solid var(--stone-50);
+}
+
+.offer__bounds {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-micro);
+  color: var(--text-light-3);
+}
+
+/* Tahmini etki etiketleri — kesinlik iddiası taşımaz (GDD 23.12). */
+.impacts {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.impact {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: var(--fs-micro);
+}
+
+.impact__label {
+  color: var(--text-light-3);
+}
+
+.impact__value {
+  font-weight: var(--fw-semibold);
+}
+
+.impact__value--positive { color: var(--positive); }
+.impact__value--negative { color: var(--negative); }
+.impact__value--neutral { color: var(--text-light-2); }
+.impact__value--warning { color: var(--warning); }
+
+/*
+ * Dar cihaz — GDD 23.22: "İşlem Masası yüksekliği küçülür; CTA, teklif,
+ * müşteri ve aşama şeridi küçülmez/kaybolmaz."
+ *
+ * Kademeli yoğunluk azaltma. Kaldırılan her blok, bilgisi başka bir yerde
+ * zaten görünen ikincil bloktur — karar için gereken hiçbir şey kaybolmaz:
+ *   contextRow  → "Alış tavanı" Karar Dock'u özet satırında da var.
+ *   history     → anti-spam geri bildirimi müşteri mesajında zaten veriliyor.
+ *
+ * KARAR PANELİ (.refPanel) HİÇBİR KADEMEDE GİZLENMEZ.
+ * Eskiden değer bandı `knownPanel` içindeydi ve dar ekranda "Değerle
+ * aşamasında tek dokunuş uzakta" gerekçesiyle küçültülüyordu. O gerekçe
+ * artık geçerli değil: band, piyasa referansı ve teklif AYNI panelde ve
+ * pazarlık boyunca kalıcı olmak zorunda. Karar için gereken şey, kararın
+ * verildiği ekranda durur.
+ */
+@media (max-height: 760px) {
+  .wb {
+    padding: var(--sp-2) var(--gutter-narrow);
+    gap: var(--sp-2);
+  }
+  .bandCard__range {
+    font-size: var(--fs-title);
+  }
+  .offer__amount {
+    font-size: var(--fs-figure);
+  }
+  .contextRow {
+    display: none;
+  }
+  .stateBadge {
+    width: 84px;
+  }
+  .breakdown__row {
+    padding: 4px var(--sp-3);
+  }
+}
+
+@media (max-height: 680px) {
+  /* Geçmiş şeridi gider; anti-spam geri bildirimi müşteri mesajında zaten var. */
+  .history {
+    display: none;
+  }
+
+  .speech {
+    padding: var(--sp-2) var(--sp-3);
+  }
+  .inspect__title {
+    font-size: var(--fs-body);
+  }
+  .result__note:nth-of-type(2) {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* SERVİS KABUL AKIŞI (GDD 23.14)                                      */
+/* Dört adım da aynı Workbench yüzeyini kullanır; ayrı ekran açılmaz.   */
+/* ------------------------------------------------------------------ */
+
+.svc {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.svc__hero {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.svc__silhouette {
+  flex: 0 0 auto;
+  width: 94px;
+  height: 94px;
+  border-radius: var(--r-card);
+  background:
+    radial-gradient(70% 60% at 50% 40%, rgba(196, 141, 43, 0.12) 0%, transparent 70%),
+    var(--ink-900);
+  border: 1px solid var(--line-dark);
+  color: var(--brass-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svc__heroBody {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.svc__typeHead {
+  flex: 0 0 auto;
+}
+
+.svc__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  line-height: var(--lh-tight);
+}
+
+.svc__meta {
+  margin-top: 3px;
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+  line-height: 1.35;
+}
+
+.svc__target {
+  color: var(--positive-soft);
+  font-weight: var(--fw-semibold);
+}
+
+.svc__danger {
+  color: var(--negative-soft);
+}
+
+/* Tanılanan sorun — tek satır, ekran kırmızıya dönmez (GDD 23.7 ilkesi). */
+.svc__problem {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(201, 130, 46, 0.1);
+  border-left: 2px solid var(--warning);
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+}
+
+.svc__problemIcon {
+  flex: 0 0 auto;
+  color: var(--warning);
+  display: inline-flex;
+}
+
+.svc__note {
+  flex: 0 0 auto;
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  line-height: 1.45;
+}
+
+/* İkon akan metnin içinde satır kırmaz. */
+.svc__note svg {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
+.svc__note--center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* --- Teklif: kendi atölye vs dış usta (GDD 17.2) --- */
+
+.venues {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.venue {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--ink-900);
+  border: 1px solid var(--line-dark);
+  color: var(--text-dark-2);
+  text-align: left;
+  transition:
+    border-color var(--t-fast) var(--ease-standard),
+    box-shadow var(--t-fast) var(--ease-standard);
+}
+
+.venue--selected {
+  border-color: var(--amethyst-400);
+  box-shadow: 0 0 0 1px var(--amethyst-500);
+  background: var(--ink-800);
+}
+
+.venue--blocked {
+  opacity: 0.45;
+}
+
+.venue__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.venue__icon {
+  color: var(--brass-400);
+  display: inline-flex;
+}
+
+.venue--selected .venue__icon {
+  color: var(--amethyst-300);
+}
+
+.venue__name {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.venue__blocked {
+  font-size: var(--fs-micro);
+  color: var(--negative-soft);
+}
+
+.venue__fee {
+  font-family: var(--font-display);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-bold);
+  color: var(--brass-300);
+  line-height: 1;
+}
+
+.venue__feeLabel {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: -6px;
+}
+
+.venue__rows {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.venue__rationale {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  line-height: 1.3;
+  margin-top: auto;
+}
+
+.quoteRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font-size: var(--fs-micro);
+}
+
+.quoteRow__label {
+  color: var(--text-dark-3);
+}
+
+.quoteRow__value {
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  white-space: nowrap;
+}
+
+.quoteRow__value--positive { color: var(--positive-soft); }
+.quoteRow__value--negative { color: var(--negative-soft); }
+.quoteRow__value--warning { color: var(--warning); }
+
+/* --- Söz: teslim günü kararı (GDD 17.3) --- */
+
+.promise {
+  flex: 0 0 auto;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--sp-4) var(--sp-3);
+  border-radius: var(--r-card);
+  background: var(--ink-900);
+  border: 1px solid var(--line-dark);
+}
+
+.promise__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.promise__day {
+  font-family: var(--font-display);
+  font-size: var(--fs-figure);
+  font-weight: var(--fw-bold);
+  color: var(--brass-300);
+  line-height: var(--lh-tight);
+}
+
+.promise__hint {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.bufferRow {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--sp-2);
+}
+
+/* Söz aşamasında not, tampon seçiminin hemen altında kalır; kalan boşluk
+   aşağıya değil yukarı ve aşağıya eşit dağılır. */
+.bufferRow + .svc__note {
+  margin-bottom: auto;
+}
+
+.buffer {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: var(--touch-min);
+  padding: var(--sp-2);
+  border-radius: var(--r-sm);
+  background: var(--ink-700);
+  border: 1px solid var(--line-dark);
+  color: var(--text-dark-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.buffer--selected {
+  background: var(--amethyst-600);
+  border-color: var(--amethyst-400);
+  color: #fff;
+}
+
+.buffer__title {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+}
+
+.buffer__note {
+  font-size: var(--fs-micro);
+  opacity: 0.8;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* --- Kuyruk: iş emri özeti --- */
+
+.workOrder {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border-radius: var(--r-card);
+  background: var(--ink-900);
+  border: 1px solid var(--brass-700);
+}
+
+.workOrder__badge {
+  align-self: flex-start;
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.1em;
+  color: var(--brass-500);
+  border: 1px solid var(--brass-700);
+  border-radius: var(--r-pill);
+  padding: 1px 8px;
+}
+
+.workOrder__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: var(--sp-2);
+}
+
+.workOrder__rows .quoteRow {
+  font-size: var(--fs-caption);
+}
+
+/* Kısa cihazda yoğunluk azalır (GDD 23.22). */
+@media (max-height: 760px) {
+  .svc__silhouette {
+    width: 72px;
+    height: 72px;
+  }
+  .venue {
+    padding: var(--sp-2);
+  }
+  .promise {
+    padding: var(--sp-3);
+  }
+  .promise__day {
+    font-size: var(--fs-title);
+  }
+}
+
+@media (max-height: 680px) {
+  .svc__hero {
+    display: none;
+  }
+  .venue__rationale {
+    display: none;
+  }
+  .buffer__note {
+    display: none;
+  }
+}
+
+/* ===========================================================================
+   MÜŞTERİ ALIŞ AKIŞI — Stok seçimi / Paket (GDD 23.23)
+   Servis akışıyla aynı `.svc` kabuğunu paylaşır; yalnız gövde farklıdır.
+   =========================================================================== */
+
+.pkgDemand {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.pkgDemand__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  background: rgba(196, 141, 43, 0.12);
+  border: 1px solid var(--line-dark);
+  color: var(--brass-400);
+}
+
+/* --- Stok seçimi listesi --- */
+/*
+ * Stok listesi kayar — ama kaydığını SÖYLEMESİ gerekir.
+ *
+ * Playtest: liste bir satırın tam ortasından kesilmiş görünüyordu ("… 9 ·
+ * arka stok" satırın adı yukarıda kalmış). Kaydırma doğru çalışıyordu;
+ * eksik olan iki şeydi: kesilen yerin "devamı var" demesi ve kaydırma
+ * bittiğinde yarım satırda durmaması.
+ *
+ *   scroll-snap  → kaydırma satır sınırında oturur, yarım satır kalmaz
+ *   alt solma    → listenin devam ettiğini gösterir
+ *
+ * Aynı çözüm piyasa şeridinde ve filtre rayında da kullanılıyor; kaybolan
+ * içerik bu ekranlarda tekrar eden bir hataydı.
+ */
+.pickList {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  scroll-snap-type: y proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 18px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 18px), transparent 100%);
+}
+
+.pickList::-webkit-scrollbar {
+  display: none;
+}
+
+.pickList > * {
+  scroll-snap-align: start;
+}
+
+.pickRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line-dark);
+  border-radius: var(--r-sm);
+  background: var(--ink-700);
+  overflow: hidden;
+}
+
+.pickRow__pick {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* GDD 23.22 — dokunma hedefi 44 px altına inmez. */
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: none;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* §4.1 — sarrafiye adetle satılır; adet kontrolü satırın içinde yaşar. */
+.qtyStep {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: var(--sp-2);
+  border-left: 1px solid var(--line-dark);
+  padding-left: var(--sp-2);
+  align-self: stretch;
+}
+
+.qtyStep__btn {
+  /* GDD 23.22 — 44 px dokunma hedefi. */
+  width: 34px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  color: var(--brass-400);
+  font-size: var(--fs-subtitle);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.qtyStep__btn:disabled {
+  color: var(--text-dark-3);
+  opacity: 0.45;
+  cursor: default;
+}
+
+.qtyStep__value {
+  min-width: 26px;
+  text-align: center;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+input.qtyStep__value {
+  width: 76px;
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid var(--line-dark);
+  border-radius: 6px;
+}
+
+.pkgLines__qty {
+  margin-left: auto;
+  color: var(--brass-400);
+  font-weight: var(--fw-semibold);
+}
+
+.pickRow--on {
+  border-color: var(--brass-500);
+  background: rgba(196, 141, 43, 0.14);
+}
+
+.pickRow__art {
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  color: var(--text-dark-3);
+}
+
+.pickRow__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pickRow__name {
+  display: block;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pickRow__match {
+  display: block;
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.pickRow__match--exact {
+  color: var(--positive-soft);
+}
+
+.pickRow__match--off {
+  color: var(--negative-soft);
+}
+
+.pickRow__value {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  white-space: nowrap;
+}
+
+/* --- Paket özeti --- */
+.pkgLines {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.pkgLines__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+}
+
+.pkgFigures {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.pkgFigure {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.pkgFigure__label {
+  display: block;
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.pkgFigure__value {
+  display: block;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.pkgFigure--big .pkgFigure__value {
+  font-size: var(--fs-subtitle);
+}
+
+.pkgFigure__value--positive {
+  color: var(--positive-soft);
+}
+
+.pkgFigure__value--negative {
+  color: var(--negative-soft);
+}
+
+/* Dar ekranda paket rakamları sıkışmasın (360x640). */
+@media (max-height: 680px) {
+  .pkgFigure--big .pkgFigure__value {
+    font-size: var(--fs-label);
+  }
+
+  .pickRow__pick {
+    min-height: 44px;
+  }
+}
+
+/* §2 — teklif ekranında piyasa referansı. */
+.refPanel {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--r-sm);
+  background: var(--ink-700);
+}
+
+.refPanel__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.refPanel__row--total {
+  margin-top: 2px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line-dark);
+}
+
+.refPanel__key {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.refPanel__val {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+  white-space: nowrap;
+}
+
+.refPanel__val--positive { color: var(--positive-soft); }
+.refPanel__val--negative { color: var(--negative-soft); }
+.refPanel__val--neutral { color: var(--text-dark-2); }
+
+/*
+ * "Senin Analizin" panelin ÇAPASIDIR: altındaki her satır ona göre okunur.
+ * Pirinç kenar ve biraz nefes onu bir liste kalemi olmaktan çıkarır.
+ */
+.refPanel__row--analysis {
+  margin-bottom: 3px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.refPanel__row--analysis .refPanel__val {
+  color: var(--brass-300);
+}
+
+/* Güven etiketi anahtarın devamıdır; ayrı satıra düşmez. */
+.refPanel__conf {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════
+ * KARAR PANELİ · KISA EKRAN — İKİ SÜTUN
+ *
+ * NEDEN BURADA, YUKARIDAKİ KISA EKRAN BLOĞUNDA DEĞİL:
+ * ilk denemede bu kurallar dosyanın yukarısındaki @media bloğuna yazılmıştı
+ * ve HİÇ UYGULANMADI — medya sorgusu özgüllük eklemez, `.refPanel`ın temel
+ * kuralı dosyada daha AŞAĞIDA olduğu için kazanıyordu. Ölçüm bunu açıkça
+ * gösterdi: 360×640'ta panel hâlâ 119 px ve tek sütundu. Override, ezmek
+ * istediği kuralın ardında durmak zorunda.
+ *
+ * ÖLÇÜM (360×640): tek sütunda panel 119 px yer istiyordu, pazarlık
+ * kolonunun ise 155 px'i vardı ve panelin üstünde konuşma balonu da var.
+ * "Senin Teklifin" ve "Analize Göre Fark" — yani slider oynatıldıkça
+ * DEĞİŞEN iki satır — katlanın altında kalıyordu.
+ *
+ * Çözüm satır silmek değil, satırları yan yana koymak: anahtar değerin
+ * ÜSTÜNE geçer, dört zorunlu bilgi iki satıra sığar.
+ *
+ * Tek feda edilen "Referansa Göre Fark": o zaten üstünde duran iki satırın
+ * (referans ve teklif) çıkarması. Bilgi kaybolmuyor, yalnız hazır
+ * hesaplanmış hâli gidiyor.
+ * ═══════════════════════════════════════════════════════════════════════
+ */
+@media (max-height: 700px) {
+  .refPanel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px var(--sp-3);
+    padding: var(--sp-1) var(--sp-3);
+  }
+
+  .refPanel__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .refPanel__row--analysis {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  /*
+   * KISA EKRANDA GİZLENEN İKİ SATIR — ikisi de başka bir yerde zaten var:
+   *
+   *   Referansa Göre Fark → üstündeki iki satırın (referans ve teklif)
+   *                         çıkarması; sayılar duruyor, hazır fark gidiyor.
+   *   Toplam (g × ₺/g)    → Karar Dock'undaki teklif tutarı zaten ekranın
+   *                         EN BÜYÜK sayısı (GDD 23.12). Aynı rakamı iki
+   *                         kez yazmak için "Analize Göre Fark"ı katlanın
+   *                         altına itmek kötü bir takas olurdu.
+   *
+   * Ölçüm (390×664): altı satırlı sarrafiye panelinde 110 px → 78 px;
+   * "Analize Göre Fark" katlanın altından yukarı çıkıyor.
+   */
+  .refPanel__row--refGap,
+  .refPanel__row--total {
+    display: none;
+  }
+
+  .refPanel__key {
+    line-height: 1.05;
+  }
+
+  .refPanel__val {
+    font-size: var(--fs-micro);
+  }
+}
+
+/*
+ * ÇOK KISA EKRAN (≤660 px) — hücreler tek satıra iner.
+ *
+ * 360×640'ta pazarlık kolonu yalnız 133 px; iki satırlı hücrelerle panel
+ * 88 px istiyordu ve konuşma balonuyla birlikte taşıyordu. Anahtar ile
+ * değeri yan yana koymak panelin yüksekliğini yarıya indirir.
+ *
+ * Anahtarlar kısaltılMADI: "Piyasa Referans Alış" ne demek olduğunu
+ * söyleyen tek şey; kırpılmış bir etiket, görünmeyen bir satır kadar
+ * işe yaramaz. Bunun yerine anahtar gerekirse tek satırda üç nokta ile
+ * kısalır, değer ise asla kısalmaz — okunması gereken sayıdır.
+ */
+@media (max-height: 660px) {
+  .refPanel__row {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-1);
+  }
+
+  .refPanel__key {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .refPanel__val {
+    flex: 0 0 auto;
+  }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* EKSPERTİZ / DANIŞMA AKIŞI (GDD 23.23 beşinci akış)                  */
+/*                                                                     */
+/* Servis akışıyla aynı yüzey ve aynı ritim: dikey akış, 44 px          */
+/* dokunma hedefi (GDD 23.22), 11 px altına düşen metin yok.            */
+/* ------------------------------------------------------------------ */
+
+.apr {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+/* Akışın ne olduğunu söyleyen tek satırlık bant — İncele adımının üstünde. */
+.apr__intro {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(196, 141, 43, 0.09);
+  border-left: 2px solid var(--brass-400);
+  margin-bottom: var(--sp-3);
+}
+
+.apr__introIcon {
+  flex: 0 0 auto;
+  color: var(--brass-400);
+  display: inline-flex;
+}
+
+.apr__introText {
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+  line-height: 1.35;
+}
+
+/* --- Rapor duruşu --- */
+
+.apr__stances {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.stance {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* GDD 23.22 — 44 px dokunma hedefi; içerik üç satır olduğu için doğal
+     yükseklik zaten üstünde, min-height güvence olarak durur. */
+  min-height: 44px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--ink-900);
+  border: 1px solid var(--line-dark);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.stance--selected {
+  border-color: var(--brass-400);
+  background: rgba(196, 141, 43, 0.08);
+}
+
+.stance__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.stance__name {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.stance__fee {
+  font-size: var(--fs-caption);
+  color: var(--brass-400);
+  font-weight: var(--fw-semibold);
+}
+
+.stance__range {
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+}
+
+.stance__desc {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  line-height: 1.35;
+}
+
+/* --- Ücret --- */
+
+.apr__fee {
+  flex: 0 0 auto;
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--ink-900);
+  border: 1px solid var(--line-dark);
+}
+
+.apr__feeHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.apr__feeLabel {
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+}
+
+.apr__feeValue {
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.apr__feeRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.apr__feeBtn {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  background: var(--ink-800);
+  border: 1px solid var(--line-dark);
+  color: var(--text-dark-1);
+  font-size: var(--fs-subtitle);
+  cursor: pointer;
+}
+
+.apr__feeBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.apr__feeReset {
+  flex: 1 1 auto;
+  min-height: 44px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px dashed var(--line-dark);
+  color: var(--text-dark-2);
+  font-size: var(--fs-caption);
+  cursor: pointer;
+}
+
+.apr__feeReset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.apr__note {
+  flex: 0 0 auto;
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+  line-height: 1.45;
+  margin-top: var(--sp-2);
+}
+
+.apr__note--center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: 0;
+}
+
+.apr__warn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: rgba(201, 130, 46, 0.1);
+  border-left: 2px solid var(--warning);
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+  line-height: 1.4;
+}
+
+.apr__warnIcon {
+  flex: 0 0 auto;
+  color: var(--warning);
+  display: inline-flex;
+  margin-top: 1px;
+}
+
+/* --- Sonuç --- */
+
+.apr__verdict {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-caption);
+  line-height: 1.35;
+}
+
+.apr__verdict--ok {
+  background: rgba(74, 141, 106, 0.12);
+  border-left: 2px solid var(--positive);
+  color: var(--text-dark-1);
+}
+
+.apr__verdict--miss {
+  background: rgba(178, 74, 62, 0.12);
+  border-left: 2px solid var(--negative);
+  color: var(--text-dark-1);
+}
+
+.apr__verdictIcon {
+  flex: 0 0 auto;
+  display: inline-flex;
+}
+
+.apr__verdict--ok .apr__verdictIcon {
+  color: var(--positive-soft);
+}
+
+.apr__verdict--miss .apr__verdictIcon {
+  color: var(--negative-soft);
+}
+
+/* Söylenen ile gerçek yan yana — GDD 20 öğretici karşılaştırma. */
+.apr__compare {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.apr__compareCol {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--ink-900);
+  border: 1px solid var(--line-dark);
+}
+
+.apr__compareLabel {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-3);
+}
+
+.apr__compareValue {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--text-dark-1);
+}
+
+.apr__rows {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.apr__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.apr__rowLabel {
+  font-size: var(--fs-caption);
+  color: var(--text-dark-2);
+}
+
+.apr__rowValue {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+}
+
+.apr__ok {
+  color: var(--positive-soft);
+}
+
+.apr__miss {
+  color: var(--negative-soft);
+}
+
+/* ------------------------------------------------------------------ */
+/* GERÇEKÇİ GÖRSEL YUVALARI (asset paketi v6.0.0)                      */
+/* ------------------------------------------------------------------ */
+
+/*
+ * İncele — ürün cutout'u siluetle aynı yuvayı paylaşır. Silueti hedefleyen
+ * `.inspect__stage svg` kuralının aynısı görsele de uygulanır ki gerçekçi
+ * varlığa düşülünce ölçü zıplamasın.
+ */
+.inspect__stage .art {
+  width: 92%;
+  height: auto;
+  max-height: 100%;
+}
+
+/*
+ * Test okuması — cihaz görseli metnin solunda.
+ * Satır artık iki sütun: sabit görsel + akan metin. Görseli ve metni
+ * doğrudan aynı flex kutusuna koymak, ikisini ayrı ayrı sıkıştırıp
+ * okumayı iki satıra kırıyordu.
+ */
+.readout {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.readout__art {
+  width: 72px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.readout__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Tez — çıkış planı görseli kartın kimlik alanı. */
+.thesisCard__icon {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 100%;
+  max-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thesisCard__icon .art {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Pazarlık — konuşan müşterinin portresi.
+ * `align-items: stretch` taşıyan bir satırda kare yuva korunsun diye
+ * yükseklik sabitlenir; aksi halde portre balonun boyuna uzayıp
+ * yüzü deforme ederdi.
+ */
+.speech__portrait {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  align-self: flex-start;
+  border: 1px solid var(--line-dark-strong);
+}
+
+/*
+ * Pazarlık — hamle şeridi. İki hücre: son taktik hamle ve teklif seviyesi.
+ * `flex-shrink: 0` (bkz. `.negotiate > *`) bu satırı da korur; taşma
+ * durumunda `.negotiate` zaten kendi içinde kayar.
+ */
+.moveStrip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--r-sm);
+  background: rgba(196, 141, 43, 0.07);
+  border: 1px solid var(--line-dark);
+}
+
+.moveStrip__cell {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.moveStrip__cell--tier {
+  margin-left: auto;
+}
+
+/*
+ * 64 px — DENEDİM VE DÜZELTTİM: önce 44 px'e ayarlamıştım ve tarayıcıda
+ * ölçünce gerçekçi pazarlık görselleri 42–43 px çıktı. Bu, brief'in
+ * "16–32 px SVG / 64 px+ gerçekçi" ayrımının tam ortasına düşen ölü bir
+ * bant: fotoğraf gerçekçiliğini taşımayacak kadar küçük, ikon netliğini
+ * verecek kadar sade değil. Şerit birkaç piksel uzuyor; karşılığında
+ * görsel gerçekten görsel oluyor.
+ */
+.moveStrip__cell .art {
+  flex: 0 0 auto;
+  height: 64px;
+  width: auto;
+  max-width: 88px;
+}
+
+.moveStrip__label {
+  font-size: var(--fs-micro);
+  color: var(--text-dark-2);
+  line-height: 1.2;
+}
+
+.moveStrip__label strong {
+  color: var(--brass-300);
+  font-weight: var(--fw-semibold);
+}
+
+/*
+ * KISA EKRAN: hamle şeridi ve portre ilk kırpılacak yerlerdir.
+ * Pazarlıkta okunması ZORUNLU olan şey teklif, karşı teklif ve müşterinin
+ * mesajıdır; hamle şeridi bunların yanında bilgilendirici bir eklentidir.
+ * 620 px'in altında şerit kapanır, portre küçülür — kırpmak yerine.
+ */
+/*
+ * KISA EKRANDA ÖNCELİK SIRASI — ölçülerek belirlendi.
+ *
+ * 360×640'ta pazarlık kolonu 133 px. Oraya sığması GEREKEN şey Karar
+ * Paneli'dir: analiz, referans, teklif ve fark. Onunla yer için yarışan iki
+ * öge var ve ikisi de ikincil:
+ *
+ *   moveStrip (74 px) → az önce KENDİ bastığın düğmenin hatırlatması.
+ *                       Eşik 620'den 700'e çekildi: 640 px'lik telefonda
+ *                       teklif verilir verilmez açılıyor ve paneli katlanın
+ *                       altına itiyordu.
+ *   portre    (72 px) → müşteri kimliği; aynı bilgi müşteri şeridinde
+ *                       zaten var. 700 px altında 52 px'e iner.
+ *
+ * İkisinden de kısmak, kararın girdisini ekrandan atmaktan iyidir.
+ */
+@media (max-height: 700px) {
+  .moveStrip {
+    display: none;
+  }
+
+  .speech__portrait {
+    width: 52px;
+    height: 52px;
+  }
+}

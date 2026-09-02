@@ -1,0 +1,11 @@
+path,kind,source,usage,binding_gdd_ref
+public/assets/brand/mihenkaynak_logo_primary.png,PNG,Asset Pack v1,"Marka birincil logo — açılış/yükleme, İşletme başlığı, kimlik referansı",EK H.4
+public/assets/brand/mihenkaynak_mark_secondary.png,PNG,Asset Pack v1,"Monogram / ikincil marka işareti — kompakt başlık ve app icon türevi",EK H.4
+public/assets/reference/shop_4_stage_flow_reference.jpeg,JPEG,Asset Pack v1,"BAĞLAYICI görsel referans panosu: Dükkan 4 aşama akışı, bölge yükseklikleri, renk kodları. Raster olarak uygulamaya gömülmez.",EK H.1
+public/assets/reference/stock_screen_style_reference.png,PNG,Asset Pack v1,"Görsel dil referansı: kart/liste yoğunluğu, taş zemin, pirinç aksan. Alt navigasyon GDD 23.9.1 (Dükkan/Stok/Atölye/İşletme) ile değiştirilmiştir.",EK H.2
+src/ui/icons/index.tsx,SVG (kod),Üretim,"nav / status / tools / thesis / actions ikon seti — GDD EK H 'UI üretimi: kodla çizilir' kuralı gereği inline SVG",EK H
+spec/design_tokens.json,JSON,Üretim,"Tek renk + ölçü kaynağı; src/ui/tokens.css bundan türetilir",EK H
+src/data/item-templates.ts,TS veri,Üretim,"Ürün şablonları — içerik koddan ayrık veri tanımı",28.1
+src/data/archetypes.ts,TS veri,Üretim,"Müşteri arketip tanımları (GDD 9.2 / EK C şablonu)",9.2
+src/data/tools.ts,TS veri,Üretim,"Test aracı tanımları (GDD 7 / EK D şablonu)",7
+NOT_DELIVERED,—,Asset Pack v3,"GDD EK H.5'te tanımlı icons/ · profiles/ · products/ · textures/ klasörleri teslim edilen v1 paketinde yoktur. Ürün/persona görselleri kodla çizilen placeholder ile karşılanır; v3 teslim edildiğinde manifest genişletilir.",EK H.5

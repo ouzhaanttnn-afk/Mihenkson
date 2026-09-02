@@ -1,0 +1,139 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useGame } from './gameStore';
+import { deserialize, readSave, serialize } from './save';
+import { applyTransaction, closeDay, createLedger } from '@domain/settlement';
+import { createMarketForDay } from '@domain/market';
+import { canSetPersonnel, dailyOperatingCost, PERSONNEL_MONTHLY, personnelDaily, weekdayName } from '@domain/v5-rules';
+
+const initial = useGame.getState();
+beforeEach(() => {
+  const data = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => data.set(key, value),
+    removeItem: (key: string) => data.delete(key),
+  });
+  useGame.setState({ ...initial, store: { ...initial.store, cash: 1_000_000, dailyOverhead: 1200, level: 1, personnelCount: 0 },
+    market: createMarketForDay(initial.seed, 1), ledger: createLedger(), queue: [], inventory: [], items: {},
+    jobs: [], activeDeal: null, activeCustomer: null, profileOpen: false, lastDayReport: null,
+    dayCloseConfirmOpen: false, dayReportOpen: false }, true);
+});
+afterEach(() => { useGame.setState(initial, true); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+describe('personnel additive salaries and level gates', () => {
+  it.each([0, 1, 2, 3])('charges the cumulative monthly salary for %i personnel', count => {
+    const store = { ...initial.store, dailyOverhead: 1200, personnelCount: count };
+    const monthly = [0, 40000, 90000, 150000][count]!;
+    expect(PERSONNEL_MONTHLY[count]).toBe(monthly);
+    expect(personnelDaily(store)).toBe(monthly / 30);
+    expect(dailyOperatingCost(store)).toBe(Math.round(1200 + monthly / 30));
+  });
+  it.each([[1, 3], [2, 6], [3, 10]])('gates count %i at level %i in the state action as well as UI', (count, level) => {
+    useGame.setState({ store: { ...useGame.getState().store, level: level - 1 } });
+    useGame.getState().setPersonnelCount(count);
+    expect(useGame.getState().store.personnelCount).toBe(0);
+    useGame.setState({ store: { ...useGame.getState().store, level } });
+    useGame.getState().setPersonnelCount(count);
+    expect(useGame.getState().store.personnelCount).toBe(count);
+    expect(readSave()?.store.personnelCount).toBe(count);
+  });
+  it('retains existing staff below unlock levels but does not allow rehire above them', () => {
+    const store = { ...initial.store, level: 1, personnelCount: 3 };
+    expect(canSetPersonnel(store, 3)).toBe(true);
+    expect(canSetPersonnel(store, 2)).toBe(true);
+    expect(canSetPersonnel({ ...store, personnelCount: 2 }, 3)).toBe(false);
+    expect(deserialize(serialize({ ...useGame.getState(), store })).store.personnelCount).toBe(3);
+  });
+  it.each([-1, 4, 1.5, NaN, Infinity])('rejects invalid personnel count %s', count => {
+    expect(canSetPersonnel({ ...initial.store, level: 99 }, count)).toBe(false);
+  });
+});
+
+describe('shop quick stock disclosure', () => {
+  it('opens the shared catalog without navigating away from the shop', () => {
+    useGame.setState({ tab: 'shop', stockCatalogOpen: false });
+
+    useGame.getState().openStockCatalog();
+
+    expect(useGame.getState().tab).toBe('shop');
+    expect(useGame.getState().stockCatalogOpen).toBe(true);
+  });
+});
+
+describe('day confirmation and persistent summary', () => {
+  it('keeps simultaneous equal-length notification keys unique without game RNG', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(123);
+    for (let i = 0; i < 5; i++) useGame.getState().notify('Bildirim', 'info');
+    expect(new Set(useGame.getState().toasts.map(toast => toast.id)).size).toBe(3);
+  });
+  it('pauses at confirmation and cancellation makes no financial change', () => {
+    const before = useGame.getState();
+    before.requestDayClose();
+    useGame.getState().tick(60);
+    expect(useGame.getState().market).toEqual(before.market);
+    useGame.getState().cancelDayClose();
+    expect(useGame.getState().store.cash).toBe(before.store.cash);
+    expect(useGame.getState().ledger.transactions).toHaveLength(0);
+    expect(useGame.getState().dayCloseConfirmOpen).toBe(false);
+  });
+  it('deducts total expense once, persists the summary and acknowledges without charging again', () => {
+    useGame.setState({ store: { ...useGame.getState().store, personnelCount: 3, level: 10 } });
+    useGame.getState().requestDayClose();
+    useGame.getState().advanceDay();
+    const closed = useGame.getState();
+    expect(closed.store.cash).toBe(993800);
+    expect(closed.market.day).toBe(2);
+    expect(closed.lastDayReport).toMatchObject({ day: 1, overhead: 6200, personnelExpense: 5000, closingCash: 993800, netCashChange: -6200 });
+    expect(closed.dayReportOpen).toBe(true);
+    expect(closed.dayCloseConfirmOpen).toBe(false);
+    closed.advanceDay();
+    useGame.getState().tick(120);
+    expect(useGame.getState().store.cash).toBe(993800);
+    expect(useGame.getState().market).toEqual(closed.market);
+    const restored = readSave()!;
+    expect(restored.dayReportOpen).toBe(true);
+    expect(restored.lastDayReport).toEqual(closed.lastDayReport);
+    useGame.setState(restored);
+    useGame.getState().startNewDay();
+    useGame.getState().startNewDay();
+    expect(useGame.getState().dayReportOpen).toBe(false);
+    expect(readSave()?.dayReportOpen).toBe(false);
+    expect(useGame.getState().market.day).toBe(2);
+    expect(useGame.getState().store.cash).toBe(993800);
+    expect(useGame.getState().ledger.transactions.filter(tx => tx.txId === 'dayclose_1')).toHaveLength(1);
+  });
+  it('keeps the previous day on write failure', () => {
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => { throw new Error('full'); } });
+    useGame.getState().advanceDay();
+    expect(useGame.getState().market.day).toBe(1);
+    expect(useGame.getState().store.cash).toBe(1000000);
+    expect(useGame.getState().dayReportOpen).toBe(false);
+  });
+  it('keeps summary open if acknowledging cannot be saved', () => {
+    useGame.getState().advanceDay();
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => { throw new Error('full'); } });
+    useGame.getState().startNewDay();
+    expect(useGame.getState().dayReportOpen).toBe(true);
+    expect(useGame.getState().store.cash).toBe(998800);
+  });
+  it('old saves without the summary flag open normally', () => {
+    const old = serialize(useGame.getState());
+    delete old.dayReportOpen;
+    expect(deserialize(old).dayReportOpen).toBe(false);
+  });
+  it('reports cash movement separately from realized profit', () => {
+    const s = useGame.getState();
+    const bought = applyTransaction(s, { txId: 'cash-out', dealId: 'cash-out', day: 1, cashDelta: -10000,
+      itemsIn: [], itemsOut: [], trustDelta: 0, reputationDelta: 0, xpDelta: 0, label: 'cash movement' }).state;
+    const closed = closeDay(bought, 1);
+    expect(closed.report.netCashChange).toBe(-11200);
+    expect(closed.report.closingCash).toBe(988800);
+    expect(closeDay(closed.state, 1).state.store.cash).toBe(988800);
+  });
+  it('uses the same weekday convention as Friday HAS trading', () => {
+    expect(weekdayName(1)).toBe('Pazartesi');
+    expect(weekdayName(5)).toBe('Cuma');
+    expect(weekdayName(12)).toBe('Cuma');
+    expect(weekdayName(24)).toBe('Çarşamba');
+  });
+});

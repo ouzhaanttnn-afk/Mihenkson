@@ -1,0 +1,155 @@
+{
+  "$meta": {
+    "product": "MIHENKAYNAK",
+    "gdd": "v2.3 Final Production Edition",
+    "contract": "GDD EK H — 'Tek token kaynağı: spec/design_tokens.json'. Bu dosya UI'nin tek renk/ölçü kaynağıdır. src/ui/tokens.css bu dosyadan türetilir; kodda çıplak hex/px yazılmaz.",
+    "sources": {
+      "palette": "Asset Pack v1 · shop_4_stage_flow_reference (Tasarım Paleti & Renk Kodları) — görsel kimlik.",
+      "metrics": "GDD 23.5 Mobil ölçü sistemi + 23.9.2 Global ekran kabuğu — bağlayıcı üretim sözleşmesi.",
+      "note": "GDD 23.4 tablosu erken sürüm token setidir; v2.3 EK H ile asset pack paleti görsel kimlik olarak bağlanmıştır. GDD 23.4 semantik niyeti (mat metal, kırık beyaz taş, koyu mürekkep, kontrollü eskitilmiş altın) korunur."
+    }
+  },
+
+  "color": {
+    "ink": {
+      "900": "#080B0F",
+      "800": "#0E1117",
+      "700": "#151A22",
+      "600": "#1D242E",
+      "500": "#2A323D",
+      "400": "#3A4450"
+    },
+    "stone": {
+      "50": "#FBF8F2",
+      "100": "#F3EFE6",
+      "200": "#E9E3D6",
+      "300": "#D9D1BF",
+      "400": "#BDB3A0"
+    },
+    "brass": {
+      "300": "#E3C87F",
+      "400": "#D8B463",
+      "500": "#C9A04A",
+      "600": "#A8823A",
+      "700": "#80611F"
+    },
+    "amethyst": {
+      "300": "#A87FD6",
+      "400": "#8B5CC7",
+      "500": "#6B3FA0",
+      "600": "#4E2C77"
+    },
+    "semantic": {
+      "positive": "#2E7D32",
+      "positiveSoft": "#4E9E52",
+      "negative": "#C62828",
+      "negativeSoft": "#D9564F",
+      "warning": "#C9822E",
+      "neutral": "#6E6A63"
+    },
+    "text": {
+      "onDarkPrimary": "#F2ECDE",
+      "onDarkSecondary": "#B3AB9B",
+      "onDarkMuted": "#7C7568",
+      "onLightPrimary": "#131A24",
+      "onLightSecondary": "#4A5462",
+      "onLightMuted": "#6E6A63"
+    },
+    "line": {
+      "onDark": "#2A323D",
+      "onDarkStrong": "#3D4653",
+      "onLight": "#DED6C6",
+      "onLightStrong": "#C8BFAB"
+    },
+    "confidence": {
+      "low": "#C9822E",
+      "medium": "#C9A04A",
+      "high": "#4E9E52"
+    }
+  },
+
+  "typography": {
+    "family": {
+      "display": "\"Iowan Old Style\", \"Palatino Linotype\", Palatino, Georgia, ui-serif, serif",
+      "ui": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+      "numeric": "\"SF Mono\", \"Roboto Mono\", ui-monospace, \"DejaVu Sans Mono\", monospace"
+    },
+    "size": {
+      "micro": 11,
+      "caption": 12,
+      "label": 13,
+      "body": 15,
+      "subtitle": 17,
+      "title": 20,
+      "figure": 26,
+      "hero": 34
+    },
+    "weight": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "lineHeight": { "tight": 1.15, "normal": 1.35, "relaxed": 1.5 },
+    "rule": "GDD 23.22 — 11 px altı metin yasaktır. Yoğunluğu küçük fontla değil bilgi azaltarak çöz."
+  },
+
+  "space": {
+    "grid": 8,
+    "0": 0, "1": 4, "2": 8, "3": 12, "4": 16, "5": 20, "6": 24, "7": 32, "8": 40,
+    "gutter": 16,
+    "gutterNarrow": 12,
+    "cardPadding": 16,
+    "cardPaddingDense": 12
+  },
+
+  "radius": { "sm": 8, "md": 12, "card": 16, "cardLarge": 18, "sheet": 24, "pill": 999 },
+
+  "layout": {
+    "$contract": "GDD 23.9.2 — 390×844 referans tuvalde safe-area dışı ~763 px bu dağılımla doldurulur. Toplam: 52+44+50+32+337+56+128+64 = 763.",
+    "canvas": { "width": 390, "height": 844, "minWidth": 360, "maxWidth": 430 },
+    "safeArea": { "top": 47, "bottom": 34 },
+    "regions": {
+      "statusStrip": 52,
+      "marketStrip": 44,
+      "customerStrip": 50,
+      "stageStrip": 32,
+      "workbench": 337,
+      "toolRail": 56,
+      "decisionDock": 128,
+      "bottomNav": 64
+    },
+    "workbenchFlexes": true
+  },
+
+  "touch": {
+    "$contract": "GDD 23.5 / 23.22",
+    "minTarget": 44,
+    "primaryCtaHeight": 54,
+    "primaryCtaMin": 52,
+    "secondaryHeight": 44
+  },
+
+  "sheet": {
+    "$contract": "GDD 23.21 — katman kuralları",
+    "compact": 0.48,
+    "standard": 0.68,
+    "max": 0.8,
+    "scrimOpacity": 0.55
+  },
+
+  "motion": {
+    "$contract": "GDD 28.4 — UI input response < 100 ms",
+    "instant": 90,
+    "fast": 160,
+    "normal": 240,
+    "slow": 380,
+    "easing": {
+      "standard": "cubic-bezier(0.2, 0, 0, 1)",
+      "decel": "cubic-bezier(0.05, 0.7, 0.1, 1)"
+    }
+  },
+
+  "elevation": {
+    "flat": "none",
+    "raised": "0 1px 2px rgba(8,11,15,0.10), 0 4px 12px rgba(8,11,15,0.06)",
+    "dock": "0 -2px 16px rgba(8,11,15,0.35)",
+    "sheet": "0 -8px 40px rgba(8,11,15,0.45)",
+    "insetDark": "inset 0 1px 0 rgba(242,236,222,0.04)"
+  }
+}
