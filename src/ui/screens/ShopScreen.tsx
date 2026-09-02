@@ -97,6 +97,7 @@ import {
   IconWholesale,
   IconWorkshop,
   IconBusiness,
+  IconSettings,
 } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { customerArt, NAV_ART } from '@ui/assets';
@@ -198,6 +199,28 @@ export function ShopScreen() {
       />
 
       <MarketStrip market={s.market} onOpenMarket={() => s.setTab('business')} />
+
+      {/*
+        AYARLAR BALONCUĞU — Dükkan ekranında, sabit.
+
+        Oyunun hiçbir yerinde ayar yüzeyi yoktu: profil yalnız üst şeritteki
+        avatardan, kayıt yalnız İşletme'nin alt rotasından açılıyordu; ikisini
+        de bilmeyen oyuncunun gidecek yeri yoktu. Klasik yer burası — oyuncunun
+        en çok durduğu ekran.
+
+        Aktif işlem sırasında da görünür kalır: pencere oyun zamanını
+        durdurduğu için (gameStore · tick) açmak işlemi bozmaz, kapatınca
+        oyuncu tam bıraktığı yerden devam eder.
+      */}
+      <button
+        type="button"
+        className="settingsBubble"
+        onClick={s.openSettings}
+        aria-label="Ayarlar"
+        title="Ayarlar"
+      >
+        <IconSettings size={20} />
+      </button>
 
       {s.activeCustomer && (
         <CustomerStrip

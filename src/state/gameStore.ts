@@ -237,6 +237,13 @@ export interface GameState {
   skillProgress: SkillProgress;
   /** Profil düzenleme penceresi açık mı (yalnız arayüz durumu). */
   profileOpen: boolean;
+  /**
+   * Ayarlar penceresi açık mı (yalnız arayüz durumu).
+   *
+   * `SaveFile` alanlarını tek tek saydığı için buraya girmez; kaydı
+   * etkilemez, eski kayıtları bozmaz.
+   */
+  settingsOpen: boolean;
   customerRushUntilMinutes: number | null;
 
   /**
@@ -335,6 +342,16 @@ export interface GameState {
   updateProfile: (next: { jewelerName: string; avatarId: string }) => boolean;
   openProfile: () => void;
   closeProfile: () => void;
+  openSettings: () => void;
+  closeSettings: () => void;
+  /**
+   * Öğretici ipuçlarını geri açar — `skipOnboarding`'in karşılığı.
+   *
+   * Öğretiyi kapatmak tek yönlüydü: bir kez "Öğretimi kapat" diyen oyuncu
+   * ipuçlarını bir daha göremiyordu. Ayarlarda anahtar sunacaksak iki yöne
+   * de çalışması gerekir.
+   */
+  restoreOnboarding: () => void;
   triggerCustomerRush: () => void;
   buyMarketProduct: (productId: string) => boolean;
   equipMarketProduct: (productId: string) => boolean;
@@ -456,6 +473,7 @@ export const useGame = create<GameState>((set, get) => {
     speed4xUnlocked: false,
     customerRushUntilMinutes: null,
     seenLessons: [],
+    settingsOpen: false,
     profile: defaultProfile(),
     playerMarket: defaultPlayerMarket(),
     skillProgress: defaultSkillProgress(),
@@ -573,6 +591,10 @@ export const useGame = create<GameState>((set, get) => {
     openProfile: () => set({ profileOpen: true }),
     closeProfile: () => set({ profileOpen: false }),
 
+    openSettings: () => set({ settingsOpen: true }),
+    closeSettings: () => set({ settingsOpen: false }),
+    restoreOnboarding: () => set({ seenLessons: [] }),
+
     updateProfile: (next) => {
       const check = checkJewelerName(next.jewelerName);
       if (!check.ok) return false;
@@ -625,7 +647,9 @@ export const useGame = create<GameState>((set, get) => {
       const s = get();
       // Profil penceresi açıkken oyun dünyası donar; oyuncu seçim yaparken
       // günün ve müşteri kuyruğunun ilerlemesi cezaya dönüşmemeli.
-      if (s.profileOpen || s.dayCloseConfirmOpen || s.dayReportOpen) return;
+      // §4 — modal açıkken oyun zamanı durur. Oyuncu ayarlara bakarken
+      // saatin işlemesi, kuyruğun ilerlemesi ve günün akması cezaya dönerdi.
+      if (s.profileOpen || s.settingsOpen || s.dayCloseConfirmOpen || s.dayReportOpen) return;
       // Aktif pazarlık sırasında saat ilerlemez: oyuncu düşünürken müşteri
       // sabrı gerçek zamanla erimez (GDD 11 — refleks oyunu değildir).
       if (s.activeDeal && !isDealFinished(s.activeDeal)) return;

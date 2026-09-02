@@ -54,6 +54,7 @@ Referans depolar:
 | A9 · Stok marjı hangi kanala göre, yazmıyor | ✅ yapıldı |
 | C1 · Vitrin tezi seçilince mal vitrine girmiyordu | ✅ yapıldı |
 | C5 · Karşılanan satıcıdan vazgeçilemiyordu | ✅ yapıldı |
+| YENİ · Ayarlar baloncuğu (Dükkan ekranı) | ✅ yapıldı |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -188,6 +189,46 @@ Cila maddeleri (sayı biçimi tutarsızlıkları, satır kaymaları, tek ürün�
 Aşağıdaki her madde ya bir davranış hatası ya da bir tasarım kararı.
 
 Öncelik: **E** = engel (sunumda takılınır) · **A** = anlaşılırlık · **T** = tasarım/oynanış.
+
+---
+
+### Z. Ayarlar yüzeyi — ✅ YAPILDI
+`src/ui/shell/SettingsDialog.tsx` · `src/ui/screens/ShopScreen.tsx` · `src/ui/icons.tsx`
+
+Bu tabanda **hiç ayar yüzeyi yoktu**: ne Ayarlar rotası, ne ayar durumu, ne ses sistemi.
+Profil yalnız üst şeritteki avatardan, kayıt yalnız İşletme'nin alt rotasından açılıyordu;
+ikisini de bilmeyen oyuncunun gidecek yeri yoktu.
+
+**Yapıldı:** Dükkan ekranına, piyasa şeridinin altına sabit bir **ayarlar baloncuğu**
+(38 × 38, `aria-label="Ayarlar"`). Pencere cihaz seviyesinde çiziliyor — profil penceresiyle
+aynı sebep: ekranın içine konsa Dükkan'ın `overflow: hidden` gövdesine hapsolurdu.
+
+İçerik yalnız **gerçekten ayarlanabilen** üç şey:
+
+| Satır | Yaptığı |
+|---|---|
+| Profil | Kuyumcu adı ve portresi — `ProfileDialog`'a devreder |
+| Öğretici ipuçları | Açık/kapalı anahtar, **iki yöne de** çalışır |
+| Yeni oyun | Kaydı siler — onay adımlı, yıkıcı eylem tek dokunuşla olmaz |
+
+**Ses, müzik, titreşim ve dil anahtarları KOYULMADI.** Bu tabanda ses altyapısı hiç yok
+(`public/assets/audio` klasörü bile yok) ve arayüz tek dilli. Çalışmayan bir anahtar
+göstermek, oyuncuya kapattığını sandığı bir şeyi kapattırmak olurdu.
+
+Yeni `restoreOnboarding()` eklendi: `skipOnboarding` tek yönlüydü, bir kez öğretiyi kapatan
+oyuncu ipuçlarını bir daha göremiyordu. Anahtar sunacaksak iki yöne de çalışması gerekir.
+
+`settingsOpen` `SaveFile` alanlarına girmiyor — kayda sızmıyor, eski kayıtları bozmuyor.
+Dişli ikonu SVG çizildi: mikro-ikon setinde dişli asseti yok, var olmayan dosyaya işaret
+etmek yerine kodla çizildi.
+
+**Testler:** `src/state/settings.test.ts` — 8 test (aç/kapa, §4 zaman durması ve **tekrar
+akması**, öğreticinin iki yönlü çalışması, kayda sızmama).
+
+**Tarayıcıda doğrulandı:** baloncuk 38 × 38 ve tıklanabilir · pencere açıkken saat
+`09:02 → 09:02` **durdu**, kapanınca `09:03 → 09:07` **aktı** · öğretici anahtarı
+Açık → Kapalı → Açık · "Yeni oyun" onay adımı (Vazgeç / Kaydı sil) · Escape kapatıyor ·
+konsolda hata yok.
 
 ---
 

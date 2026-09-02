@@ -421,6 +421,36 @@ const SILHOUETTE_PATHS: Record<Silhouette, JSX.Element> = {
 };
 
 /**
+ * Ayarlar dişlisi.
+ *
+ * Diğer arayüz ikonları `assets/realistic/icons/micro/` altındaki WebP
+ * mikro-assetlerden gelir; dişli için öyle bir asset YOK. Var olmayan bir
+ * dosyaya işaret etmek yerine SVG olarak çizildi — ölçüsü ve çizgi kalınlığı
+ * mikro-ikon setiyle aynı okunacak şekilde ayarlandı.
+ *
+ * GDD 23.24 gereği tek başına anlam taşımaz: çağıran taraf `aria-label` ile
+ * eşler.
+ */
+export const IconSettings = ({ size = 22, className, style }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.7}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="3.1" />
+    <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4 17 7M7 17l-1.6 1.6M18.6 18.6 17 17M7 7 5.4 5.4" />
+  </svg>
+);
+
+/**
  * Ürün hero silüeti. Pirinç kontur + mürekkep zemin: asset paketindeki
  * "ürün görsel kahramandır" ilkesini (GDD 23.4) kodla karşılar.
  */

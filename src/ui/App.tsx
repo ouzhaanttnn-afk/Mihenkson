@@ -19,6 +19,7 @@ import { StockScreen } from '@ui/screens/StockScreen';
 import { WorkshopScreen } from '@ui/screens/WorkshopScreen';
 import { MarketPlaceholderScreen } from '@ui/screens/MarketPlaceholderScreen';
 import { ProfileDialog } from '@ui/shell/ProfileDialog';
+import { SettingsDialog } from '@ui/shell/SettingsDialog';
 import { DayCloseDialog } from '@ui/shell/DayCloseDialog';
 import { overdueJobs, readyJobs } from '@domain/service';
 
@@ -141,6 +142,13 @@ export function App() {
             onSave={updateProfile}
           />
         )}
+
+        {/*
+          Ayarlar da CİHAZ SEVİYESİNDE — profil penceresiyle aynı sebep:
+          ekranın içine konsaydı Dükkan'ın `overflow: hidden` gövdesine
+          hapsolur ve alt navigasyonun altında kalırdı.
+        */}
+        <SettingsDialog />
 
         {/*
           En fazla İKİ balon çizilir. Ömür sorunu yukarıda kökünden çözüldü
