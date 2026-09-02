@@ -1,17 +1,25 @@
 /**
  * AYARLAR penceresi.
  *
- * KAPSAM — yalnız GERÇEKTEN ayarlanabilen şeyler:
+ * KAPSAM:
  *
  *   Profil            → kuyumcunun adı ve portresi (ProfileDialog'a devreder)
  *   Öğretici ipuçları → açık / kapalı, iki yöne de çalışır
+ *   Ses · Titreşim    → tercih SAKLANIR, davranış sonra bağlanacak
+ *   Dil               → tercih SAKLANIR, çeviri katmanı sonra bağlanacak
  *   Yeni oyun         → kaydı siler (onaylı)
  *
- * NE YOK VE NEDEN: ses, müzik, titreşim ve dil anahtarları KOYULMADI. Bu
- * kod tabanında ses altyapısı hiç yok (`public/assets/audio` klasörü bile
- * yok) ve arayüz tek dilli. Çalışmayan bir anahtar göstermek, oyuncuya
- * kapattığını sandığı bir şeyi kapattırmak olurdu — ayarlar ekranının
- * güvenilirliği tam da burada kırılır.
+ * SES / TİTREŞİM / DİL BİLEREK "HAZIRLANIYOR" DİYE İŞARETLİ. Bu dosya
+ * eskiden bu anahtarların KOYULMADIĞINI yazıyordu; gerekçesi, çalışmayan bir
+ * anahtarın oyuncuya kapattığını sandığı şeyi kapattırmasıydı. Anahtarlar
+ * artık isteniyor ama altyapı hâlâ yok (`public/assets/audio` klasörü bile
+ * yok, arayüz tek dilli), dolayısıyla o gerekçe çöpe atılmadı — KARŞILANDI:
+ * tercih gerçekten saklanır ve kayıttan geri gelir, ama her satır henüz
+ * etkisinin olmadığını AÇIKÇA söyler. Sessizce hiçbir şey yapmayan bir
+ * anahtar ile "bunu şimdilik not aldım" diyen bir anahtar aynı şey değildir.
+ *
+ * Davranış bağlandığında yapılacak tek şey, o "hazırlanıyor" ibarelerini
+ * kaldırmaktır; tercih zaten yerinde olacak.
  *
  * ZAMAN DURUR: pencere açıkken `tick` erken döner (gameStore · §4). Oyuncu
  * ayara bakarken saatin işlemesi ve kuyruğun ilerlemesi cezaya dönerdi.
@@ -23,6 +31,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { LANGUAGES } from '@domain/preferences';
 import { useGame } from '@state/gameStore';
 
 export function SettingsDialog() {
@@ -34,6 +43,8 @@ export function SettingsDialog() {
   const skipOnboarding = useGame((s) => s.skipOnboarding);
   const restoreOnboarding = useGame((s) => s.restoreOnboarding);
   const resetGame = useGame((s) => s.resetGame);
+  const preferences = useGame((s) => s.preferences);
+  const setPreference = useGame((s) => s.setPreference);
 
   const [confirmReset, setConfirmReset] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -125,6 +136,84 @@ export function SettingsDialog() {
             <span className="settingsRow__knob" />
           </span>
         </button>
+
+        {/*
+          HENÜZ BAĞLI OLMAYAN TERCİHLER.
+
+          Ortak bir başlık altındalar ki oyuncu üçünü tek seferde doğru
+          okusun; her satıra ayrı ayrı "çalışmıyor" yazmak hem gürültü olur
+          hem de gözden kaçardı.
+        */}
+        <p className="settingsNote" id="settings-pending">
+          Aşağıdakiler kaydedilir, ama etkileri henüz bağlanmadı.
+        </p>
+
+        <button
+          type="button"
+          className="settingsRow"
+          aria-pressed={preferences.soundEnabled}
+          aria-describedby="settings-pending"
+          onClick={() => setPreference('soundEnabled', !preferences.soundEnabled)}
+        >
+          <span className="settingsRow__copy">
+            <strong>Ses</strong>
+            <small>{preferences.soundEnabled ? 'Açık' : 'Kapalı'} · ses dosyaları henüz yok</small>
+          </span>
+          <span
+            className={`settingsRow__switch ${preferences.soundEnabled ? 'settingsRow__switch--on' : ''}`}
+          >
+            <span className="settingsRow__knob" />
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className="settingsRow"
+          aria-pressed={preferences.vibrationEnabled}
+          aria-describedby="settings-pending"
+          onClick={() => setPreference('vibrationEnabled', !preferences.vibrationEnabled)}
+        >
+          <span className="settingsRow__copy">
+            <strong>Titreşim</strong>
+            <small>
+              {preferences.vibrationEnabled ? 'Açık' : 'Kapalı'} · dokunsal geri bildirim
+            </small>
+          </span>
+          <span
+            className={`settingsRow__switch ${preferences.vibrationEnabled ? 'settingsRow__switch--on' : ''}`}
+          >
+            <span className="settingsRow__knob" />
+          </span>
+        </button>
+
+        {/*
+          Dil bir AÇIK/KAPALI değil, bir seçim — o yüzden anahtar değil
+          segment. `radiogroup` kullanılıyor ki ekran okuyucu "iki seçenekten
+          biri" desin; anahtar taklidi yapmak yanlış olurdu.
+        */}
+        <div className="settingsRow settingsRow--static">
+          <span className="settingsRow__copy">
+            <strong>Dil</strong>
+            <small>Şimdilik yalnız Türkçe içerik var</small>
+          </span>
+          <span className="settingsSegment" role="radiogroup" aria-label="Dil">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.id}
+                type="button"
+                role="radio"
+                aria-checked={preferences.language === lang.id}
+                aria-describedby="settings-pending"
+                className={`settingsSegment__option ${
+                  preferences.language === lang.id ? 'settingsSegment__option--on' : ''
+                }`}
+                onClick={() => setPreference('language', lang.id)}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </span>
+        </div>
 
         {/*
           Yıkıcı eylem: tek dokunuşla kayıt silinmez. Onay metni ne olacağını

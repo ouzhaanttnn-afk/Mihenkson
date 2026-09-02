@@ -1721,6 +1721,56 @@
 
 .settingsRow--danger .settingsRow__action { color: var(--negative, #a2312b); }
 
+/*
+  Henüz bağlanmamış tercihleri tanıtan tek satır. Satır başına ayrı bir
+  "çalışmıyor" etiketi koymak hem gürültü olurdu hem gözden kaçardı.
+*/
+.settingsNote {
+  margin: 6px 2px 0;
+  color: var(--text-light-2);
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+}
+
+/* Dil bir seçim; satır tıklanabilir değil, içindeki segment tıklanır. */
+.settingsRow--static { cursor: default; }
+.settingsRow--static:hover { border-color: var(--line-light); }
+
+.settingsSegment {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--line-light);
+  border-radius: 999px;
+  background: var(--stone-100, #f2eee7);
+}
+
+.settingsSegment__option {
+  /* GDD 23.22 — 44 px dokunma hedefi; segment dar olsa da hedef daralmaz. */
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-light-2);
+  font: inherit;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+/* Seçili durum renkle DEĞİL, zemin + koyu yazıyla da okunur (GDD 23.3). */
+.settingsSegment__option--on {
+  background: var(--amethyst-500);
+  color: #fff;
+}
+
+.settingsSegment__option:focus-visible {
+  outline: 3px solid var(--brass-500);
+  outline-offset: 2px;
+}
+
 .settingsDanger {
   display: flex;
   flex-direction: column;

@@ -72,6 +72,7 @@ Referans depolar:
 | YENİ · Sarrafiyede "Vitrin" planı ve vitrin slotu şartı | ✅ yapıldı |
 | B2 · İşçilikli ürün ekonomik olarak baskılanmış | ❌ **ölçümle çürütüldü** |
 | B3 · Ayar bantları ayrışmıyor | ✅ **ölçümle doğrulandı** · düzeltmesi karar bekliyor |
+| YENİ · Ayarlarda ses, titreşim ve dil | ✅ tercih saklanıyor · davranış sonra bağlanacak |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -491,6 +492,42 @@ Kanal adı zaten değişken uzunlukta ("Toptancı" ↔ "Servis + satış"), etik
 kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttaki cümleye taşındı.
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
+
+#### YENİ · Ayarlarda ses, titreşim ve dil — ✅ YAPILDI (davranış sonra bağlanacak)
+`src/domain/preferences.ts` (yeni) · `src/state/save.ts` · `src/state/gameStore.ts` ·
+`src/ui/shell/SettingsDialog.tsx`
+
+Kullanıcı istedi: "ses açma kapama, titreşim ve dil seçeneği ekler misin, sonradan
+bağlarız."
+
+**Çözülmesi gereken çelişki.** `SettingsDialog`'un başlığı bu üç anahtarın *kasten*
+konulmadığını yazıyordu; gerekçesi de doğruydu: çalışmayan bir anahtar, oyuncuya
+kapattığını sandığı şeyi kapattırır. Gerekçe çöpe atılmadı, **karşılandı**: tercih
+gerçekten saklanıyor ve kayıttan geri geliyor, ama pencere bunu açıkça söylüyor —
+*"Aşağıdakiler kaydedilir, ama etkileri henüz bağlanmadı."* Sessizce hiçbir şey yapmayan
+bir anahtar ile "bunu şimdilik not aldım" diyen anahtar aynı şey değildir.
+
+**Kayıt uyumluluğu — asıl risk buydu.** `preferences` alanı `profile` ile birebir aynı
+desende: isteğe bağlı, eksikse varsayılana düşer, `SAVE_VERSION` artırılmadı. Alan
+eklenmeden önce yazılmış kayıtlar bozulmuyor.
+
+Kalıcılık `persistProfile`'ın gerekçesini paylaşıyor (kozmetik tercih gün ortasında
+değiştirilebilmeli, gün sonu checkpoint'ini beklememeli); kodu tekrarlamak yerine ortak
+`patchSave` yardımcısına çıkarıldı.
+
+**Testler:** `src/state/settings.test.ts` — 14 yeni test (toplam 22). Kritik olanlar:
+eksik alanlı ESKİ KAYDIN varsayılana düşüp kaydın geri kalanını bozmaması; bozuk değerlerin
+(`language: 'de'`, `soundEnabled: 'hayır'`, `null`, dizi olmayan) çökertmemesi; geçerli bir
+tercihin bozuk komşusu yüzünden kaybolmaması; arayüzden gelen geçersiz dil kimliğinin kayda
+sızmaması; ve tercihlerin nakit/stok/seviyeye dokunmaması.
+
+**Tarayıcıda doğrulandı (390×844):** ses kapatıldı + English seçildi → kayıtta
+`{"soundEnabled":false,"vibrationEnabled":true,"language":"en"}`; **sayfa yenilendi, ikisi de
+geri geldi.** iPhone SE'de (375×667) kutu 607px, taşma yok, "Kapat" görünür; odak tuzağı yedi
+denetimi dolaşıp başa dönüyor. 360×500'de kutu kaydırmaya geçiyor ve "Kapat" ulaşılabilir
+kalıyor. Konsol hatası yok.
+
+**Bağlanınca yapılacak tek şey** "hazırlanıyor" ibarelerini kaldırmak; tercih zaten yerinde.
 
 #### A10 · A · Ses altyapısı bağlı, dosya yok
 `src/ui/audio.ts` · `public/assets/audio/{sfx,music}/`

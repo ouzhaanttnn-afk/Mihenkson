@@ -28,6 +28,7 @@ import { dayCharacter, emptyTelemetry } from '@domain/intent';
 import { createLedger, type Ledger } from '@domain/settlement';
 import type { GameState } from './gameStore';
 import { normalizeProfile, type PlayerProfile } from '@domain/profile';
+import { normalizePreferences, type PlayerPreferences } from '@domain/preferences';
 import { defaultPlayerMarket, type PlayerMarketState } from '@domain/marketplace';
 import {
   defaultSkillProgress,
@@ -111,6 +112,16 @@ export interface SaveFile {
   playerMarket?: PlayerMarketState;
   /** Yetenek ağacı ilerlemesi; eski kayıtlarda tüm kademeler sıfırdır. */
   skillProgress?: SkillProgress;
+
+  /**
+   * Ses / titreşim / dil tercihleri — SUNUM, mekanik değil.
+   *
+   * İsteğe bağlı, `profile` ile aynı gerekçeyle: alan eklenmeden önce
+   * yazılmış kayıtlarda yoktur, `deserialize` orada varsayılana düşer ve
+   * SAVE_VERSION artırmak gerekmez. Varsayılanı olan yeni bir alan eski
+   * kayıtları `migrate`'ten geçmeye zorlamamalı.
+   */
+  preferences?: PlayerPreferences;
 }
 
 /**
@@ -149,6 +160,7 @@ export function serialize(state: GameState): SaveFile {
     profile: state.profile,
     playerMarket: state.playerMarket,
     skillProgress: state.skillProgress,
+    preferences: state.preferences,
   };
 }
 
@@ -171,6 +183,7 @@ export type LoadedState = Pick<
   | 'speed4xUnlocked'
   | 'seenLessons'
   | 'profile'
+  | 'preferences'
   | 'playerMarket'
   | 'skillProgress'
   | 'queue'
@@ -227,6 +240,7 @@ export function deserialize(file: SaveFile): LoadedState {
     // Profil alanı olmayan (bu özellikten önceki) kayıtlar varsayılana
     // düşer; bozuk bir ad veya bilinmeyen avatar da normalize edilir.
     profile: normalizeProfile(save.profile),
+    preferences: normalizePreferences(save.preferences),
     playerMarket: save.playerMarket ?? defaultPlayerMarket(),
     skillProgress,
     // Aktif ziyaret ve yarım pazarlık aynı durumdan devam eder.
@@ -455,18 +469,34 @@ export function readSave(): LoadedState | null {
  *
  * @returns yazılabildiyse true.
  */
-export function persistProfile(state: GameState): boolean {
+function patchSave(state: GameState, patch: (file: SaveFile) => void): boolean {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return writeSave(state);
     const file = parseSave(raw);
     if (!file) return writeSave(state);
-    file.profile = state.profile;
+    patch(file);
     file.savedAt = Date.now();
     return commitRawSave(JSON.stringify(file));
   } catch {
     return false;
   }
+}
+
+export function persistProfile(state: GameState): boolean {
+  return patchSave(state, (file) => {
+    file.profile = state.profile;
+  });
+}
+
+/**
+ * Ses / titreşim / dil tercihleri de kozmetiktir ve gün ortasında
+ * değiştirilebilmelidir; `persistProfile` ile birebir aynı gerekçe.
+ */
+export function persistPreferences(state: GameState): boolean {
+  return patchSave(state, (file) => {
+    file.preferences = state.preferences;
+  });
 }
 
 export function clearSave(): void {

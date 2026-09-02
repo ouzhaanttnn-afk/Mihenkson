@@ -124,6 +124,11 @@ import {
   normalizeAvatarId,
   type PlayerProfile,
 } from '@domain/profile';
+import {
+  defaultPreferences,
+  normalizePreferences,
+  type PlayerPreferences,
+} from '@domain/preferences';
 import { getTemplate } from '@data/item-templates';
 import { rulesFor } from '@data/product-classes';
 import {
@@ -146,7 +151,7 @@ import {
   toolWithSkillBonuses,
   type SkillProgress,
 } from '@domain/skill-tree';
-import { clearSave, persistProfile, readSave, writeSave } from './save';
+import { clearSave, persistPreferences, persistProfile, readSave, writeSave } from './save';
 import type {
   ActiveDeal,
   AppraisalSession,
@@ -235,6 +240,8 @@ export interface GameState {
   playerMarket: PlayerMarketState;
   /** Gelecekteki yetenek ağacının kalıcı mekanik kademeleri. */
   skillProgress: SkillProgress;
+  /** Ses / titreşim / dil — SUNUM tercihleri, oyun gücü vermez. */
+  preferences: PlayerPreferences;
   /** Profil düzenleme penceresi açık mı (yalnız arayüz durumu). */
   profileOpen: boolean;
   /**
@@ -344,6 +351,8 @@ export interface GameState {
   closeProfile: () => void;
   openSettings: () => void;
   closeSettings: () => void;
+  /** Tek bir sunum tercihini değiştirir ve anında kalıcı kılar. */
+  setPreference: <K extends keyof PlayerPreferences>(key: K, value: PlayerPreferences[K]) => void;
   /**
    * Öğretici ipuçlarını geri açar — `skipOnboarding`'in karşılığı.
    *
@@ -477,6 +486,7 @@ export const useGame = create<GameState>((set, get) => {
     profile: defaultProfile(),
     playerMarket: defaultPlayerMarket(),
     skillProgress: defaultSkillProgress(),
+    preferences: defaultPreferences(),
     profileOpen: false,
 
     dayCharacter: dayCharacter(seed, 1, market),
@@ -593,6 +603,17 @@ export const useGame = create<GameState>((set, get) => {
 
     openSettings: () => set({ settingsOpen: true }),
     closeSettings: () => set({ settingsOpen: false }),
+
+    /*
+      Tercih ANINDA kalıcı olur; gün sonu checkpoint'ini beklemez —
+      `updateProfile` ile birebir aynı gerekçe (bkz. save · persistPreferences).
+      Değer normalizasyondan geçirilir ki arayüzden gelen bozuk bir dil
+      kimliği kayda sızmasın.
+    */
+    setPreference: (key, value) => {
+      set({ preferences: normalizePreferences({ ...get().preferences, [key]: value }) });
+      persistPreferences(get());
+    },
     restoreOnboarding: () => set({ seenLessons: [] }),
 
     updateProfile: (next) => {
