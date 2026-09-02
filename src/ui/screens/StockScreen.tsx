@@ -84,8 +84,12 @@ export function StockScreen() {
             <span className="summaryRow__label">Maliyet</span>
             <span className="summaryRow__value num">{tl(wealth.stockCost)}</span>
           </div>
+          {/*
+            Bu da satır bazındaki "Hızlı Çıkışta Marj"ın toplamıdır; "Net
+            Çıkış" adı hangi kanala göre olduğunu söylemiyordu.
+          */}
           <div className="summaryRow__item">
-            <span className="summaryRow__label">Net Çıkış</span>
+            <span className="summaryRow__label">Hızlı Çıkışta</span>
             <span
               className={`summaryRow__value num ${
                 wealth.stockPotential >= 0
@@ -329,17 +333,36 @@ function StockRow({ position }: { position: InventoryPosition }) {
           </span>
         </div>
 
+        {/*
+          RAKAMLARIN HANGİ KANALA AİT OLDUĞU ARTIK ETİKETTE YAZIYOR.
+
+          Eskiden "Net Satış Tahmini" ve "Tahmini Marj" yazıyordu. İkisi de
+          `liquidationEstimate` üzerinden BUGÜN ERİŞİLEBİLEN EN HIZLI çıkışa
+          göre hesaplanır — genelde toptancıya. Toptancı makası yüzünden taze
+          alınmış sağlam bir malın marjı da eksi çıkar; etiket bunu
+          söylemediği için oyuncu birinci günde açılış stoğunun üçüne birden
+          bakıp "stoğum zararda" diye okuyordu (tarayıcıda ölçüldü: −3.640,
+          −4.062, −4.244 ₺). Rakam doğruydu, eksik olan cümleydi.
+
+          KANAL ADI ETİKETTE DEĞİL, ALTTAKİ CÜMLEDE. Üç etiket 256 px'lik
+          satıra sığmıyor: ölçüldü, üçü de kırpılıyordu ve kap 11 px taşıyordu
+          ("Gerçek Alış Maliyeti" 84 px yuvada 97 px istiyordu — bu kırpılma
+          değişiklikten önce de vardı). Kanal adı zaten değişken uzunlukta
+          ("Toptancı" ile "Servis + satış" arasında), yani etikete sığdırmak
+          baştan kırılgandı. Kısa etiketler yuvaya giriyor, kanal adı da altta
+          yeri olan cümlede tam hâliyle duruyor.
+        */}
         <div className="row__figures">
           <span className="figure">
-            <span className="figure__label">Gerçek Alış Maliyeti</span>
+            <span className="figure__label">Maliyet</span>
             <span className="figure__value num">{tl(position.costBasis)}</span>
           </span>
           <span className="figure">
-            <span className="figure__label">Net Satış Tahmini</span>
+            <span className="figure__label">Bugün</span>
             <span className="figure__value num">{tl(liquidation.value)}</span>
           </span>
           <span className="figure">
-            <span className="figure__label">Tahmini Marj</span>
+            <span className="figure__label">Marj</span>
             <span
               className={`figure__value num ${
                 delta >= 0 ? 'figure__value--positive' : 'figure__value--negative'
@@ -351,7 +374,8 @@ function StockRow({ position }: { position: InventoryPosition }) {
         </div>
 
         <div className="row__exitEstimate">
-          Hızlı çıkış: <strong>{liquidation.channel}</strong> · Tahmini süre {liquidation.time}
+          Bugünkü en hızlı çıkış: <strong>{liquidation.channel}</strong> · tahmini süre{' '}
+          {liquidation.time}. Beklemek daha iyi bir kanal açabilir.
         </div>
 
         {/* Satır uyarısı — tek satır durum (GDD 23.15) */}
@@ -385,8 +409,24 @@ function StockRow({ position }: { position: InventoryPosition }) {
   );
 }
 
+/**
+ * HAS HESABI — KAPALI AÇILIR.
+ *
+ * Panel her zaman açık çiziliyordu ve Stok sekmesinin ilk ekranını tek başına
+ * dolduruyordu: oyuncu "Stok"a basınca stoğunu değil, bir altın alım-satım
+ * tezgâhını görüyordu; gerçek stok listesi ekranın altında kalıyordu
+ * (390 × 844'te ölçüldü). Üstelik HAS alım-satımı yalnız CUMA günü onaylanır,
+ * yani panel haftanın altı günü zaten karar verilemeyen bir yüzey.
+ *
+ * Artık `Sarrafiye Al` ile aynı desende: başlık bir düğme, gövde katlanır.
+ * Başlık bakiyeyi ve o günün durumunu yazdığı için panel kapalıyken de
+ * bilgilendirici — açmak yalnız işlem yapmak isteyene gerekiyor.
+ */
 function HasCounter() {
   const s = useGame();
+  // `open` adı aşağıda "bugün HAS işlemi açık mı" için kullanılıyor; panelin
+  // katlanma durumu ondan ayrı bir şey.
+  const [expanded, setExpanded] = useState(false);
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amountMg, setAmountMg] = useState(0);
   const [pending, setPending] = useState<string | null>(null);
@@ -399,9 +439,27 @@ function HasCounter() {
   const valid = selectedMg > 0 && selectedMg <= maxMg && total > 0;
   const signature = `${s.market.day}:${side}:${selectedMg}:${total}:${s.ledger.transactions.length}`;
   const changeSide = (next: 'buy' | 'sell') => { setSide(next); setAmountMg(0); setPending(null); };
-  return <section className="group" aria-label="HAS hesabı">
-    <h2 className="group__title">HAS hesabı · {preciseGrams(fromMg(s.store.hasBalanceMg ?? 0))}</h2>
-    <div className="group__body v5Controls">
+  return <section className="counter" aria-label="HAS hesabı">
+    <button
+      type="button"
+      className="counter__toggle"
+      onClick={() => setExpanded((v) => !v)}
+      aria-expanded={expanded}
+      aria-controls="has-counter"
+    >
+      <span>HAS hesabı · {preciseGrams(fromMg(s.store.hasBalanceMg ?? 0))}</span>
+      <span className="counter__meta">
+        {/* Kapalıyken de o günün durumunu söyler: açmadan karar verilebilsin. */}
+        <span className="counter__hint">{open ? 'Cuma · işlem açık' : 'Cuma günü açılır'}</span>
+        <span
+          className={`counter__chevron ${expanded ? 'counter__chevron--open' : ''}`}
+          aria-hidden="true"
+        >
+          ▼
+        </span>
+      </span>
+    </button>
+    {expanded && <div className="group__body v5Controls" id="has-counter">
       <p>Saflık 1.000 · Değer {tl(fromMg(s.store.hasBalanceMg ?? 0) * s.market.goldSpot)}</p>
       <p>Toptancıdan al {tl(quote.buy)}/g · Toptancıya sat {tl(quote.sell)}/g</p>
       <p>{open ? 'Cuma: HAS işlemleri açık.' : 'Miktarı şimdi seçebilirsiniz; alım-satım onayı yalnız cuma günü açılır.'}</p>
@@ -426,6 +484,6 @@ function HasCounter() {
         }}>İşlemi Onayla</button>
         <button type="button" className="chip" onClick={() => setPending(null)}>Vazgeç</button>
       </div>}
-    </div>
+    </div>}
   </section>;
 }

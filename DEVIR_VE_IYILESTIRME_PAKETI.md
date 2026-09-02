@@ -49,6 +49,9 @@ Referans depolar:
 | A5 · Pazarlıkta çevrilmemiş `OPEN` etiketi | ✅ yapıldı |
 | A6 · Ekspertiz kırılımı okunmuyor | ✅ yapıldı |
 | A7 · Pazar günü çelişkili metin | ✅ yapıldı |
+| A3 · Stok sekmesi stoğu göstermiyor | ✅ yapıldı |
+| A4 · Stok düğmeleri yumurta gibi duruyor | ✅ yapıldı |
+| A9 · Stok marjı hangi kanala göre, yazmıyor | ✅ yapıldı |
 | Geri kalanı | ⏳ sırada (aşağıdaki "Önerilen sıra") |
 
 ---
@@ -209,21 +212,30 @@ sekmesi → kök ✓ · diğer sekmelere geçiş bozulmadı ✓.
 **Not:** aynı sayaç başka kök ekranlarda da kullanılabilir (Stok'un filtreleri gibi);
 şimdilik yalnız İşletme bağlandı.
 
-#### A3 · A · Stok sekmesi stoğu göstermiyor
-`src/ui/screens/StockScreen.tsx`
+#### A3 · A · Stok sekmesi stoğu göstermiyor — ✅ YAPILDI
+`src/ui/screens/StockScreen.tsx` · `HasCounter`
 
-Sekme açıldığında ilk ekranı HAS altın alım–satım paneli dolduruyor; gerçek stok listesi
-katlanır alanın altında kalıyor.
+Sekme açıldığında ilk ekranı HAS altın alım–satım paneli dolduruyordu; gerçek stok listesi
+altta kalıyordu. Üstelik HAS işlemleri yalnız **cuma** onaylanır — panel haftanın altı günü
+karar verilemeyen bir yüzeydi.
 
-**Yapılacak:** HAS paneli kapalı açılsın.
+**Yapıldı:** `Sarrafiye Al` ile aynı desende katlanır oldu ve **kapalı açılıyor**. Başlık
+bakiyeyi ve günün durumunu ("Cuma günü açılır" / "Cuma · işlem açık") yazdığı için panel
+kapalıyken de bilgilendirici.
 
-#### A4 · A · Stok düğmeleri yumurta gibi duruyor
-`src/ui/screens/Screens.css`
+**Tarayıcıda doğrulandı:** ilk ekranda HAS gövdesi yok, `Çeyrek Altın · 10 adet` satırı
+görünüyor.
 
-"HAS Al · HAS Sat · MAX AL · İşleme Devam Et" düğmeleri ölçüldü: ~135 × 100 px. Yuvarlak
-köşe yüksekliğe yetişemiyor.
+#### A4 · A · Stok düğmeleri yumurta gibi duruyor — ✅ YAPILDI
+`src/ui/screens/Screens.css` · `.v5Controls .chip`
 
-**Yapılacak:** düğme yüksekliği 44–48 px'e sabitlensin.
+Kök sebep: `.chip` `box-sizing: content-box` ve `.v5Controls .chip { min-height: 44px }`
+vardı; content-box'ta `min-height` **içerik** kutusuna uygulanır, yani 44 + 14 padding + 2
+kenarlık = **60 px**. Aynı sınıfın filtre şeridindeki hâli 46 px'ti. `.chip` zaten
+30 + 14 + 2 = 46 px, GDD 23.22'nin istediği 44 px'in üstünde — override hem gereksiz hem
+zararlıydı, kaldırıldı.
+
+**Tarayıcıda ölçüldü:** önce 64 × 60 · sonra 64 × 46, dört düğme de filtre çipiyle eşit.
 
 #### A5 · A · Pazarlıkta çevrilmemiş etiket — ✅ YAPILDI
 `src/domain/negotiation.ts:714-728`
@@ -290,14 +302,25 @@ aktif ve hiçbir geri bildirim vermiyor.
 **Yapılacak:** karşı teklif turu bir bütçeye bağlansın (örn. 3 tur) ve bütçe bitince düğme
 gerekçesiyle kilitlensin: "Müşteri son sözünü söyledi."
 
-#### A9 · A · Stok marjı hangi kanala göre, yazmıyor
+#### A9 · A · Stok marjı hangi kanala göre, yazmıyor — ✅ YAPILDI
 `src/ui/screens/StockScreen.tsx`
 
-Açılış stoğunun üçü de "Tahmini Marj −3.640 / −4.062 / −4.244 ₺" gösteriyor. Rakam doğru —
-hızlı toptancı çıkışına göre — ama etiket bunu söylemiyor; oyuncu 1. günde "stoğum zararda"
-okuyor.
+"Net Satış Tahmini" ve "Tahmini Marj" `liquidationEstimate` üzerinden **bugün erişilebilen
+en hızlı** çıkışa göre hesaplanır — genelde toptancıya. Toptancı makası yüzünden taze
+alınmış sağlam malın marjı da eksi çıkar; etiket bunu söylemediği için oyuncu 1. günde
+açılış stoğunun üçüne birden bakıp "stoğum zararda" okuyordu (−3.640 / −4.062 / −4.244 ₺).
 
-**Yapılacak:** etiket "Toptancıya bugün versen" olsun; vitrin tahmini ayrı satırda dursun.
+**Yapıldı:** üstteki özet "Net Çıkış" → **"Hızlı Çıkışta"**. Satır cümlesi kanalı adıyla
+söylüyor: *"Bugünkü en hızlı çıkış: **Toptancı** · tahmini süre 1–2 gün. Beklemek daha iyi
+bir kanal açabilir."*
+
+**Ara adım ve düzeltmesi:** kanal adını önce etikete koydum ("Bugün Toptancı", "Hızlı
+Çıkışta Marj"). Ölçünce üç etiketin de kırpıldığı ve kabın 11 px taştığı çıktı — "Gerçek
+Alış Maliyeti" 84 px yuvada 97 px istiyordu, **yani kırpılma değişiklikten önce de vardı**.
+Kanal adı zaten değişken uzunlukta ("Toptancı" ↔ "Servis + satış"), etikete sığdırmak
+kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttaki cümleye taşındı.
+
+**Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
 #### A10 · A · Ses altyapısı bağlı, dosya yok
 `src/ui/audio.ts` · `public/assets/audio/{sfx,music}/`
