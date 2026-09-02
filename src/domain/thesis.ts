@@ -55,6 +55,35 @@ export const CHANNEL_SHORT: Record<ExitChannel, string> = {
   collection: 'Beklet',
 };
 
+/*
+  SARRAFİYEDE "VİTRİNE KOY" TUTULMAYAN BİR VAATTİ.
+
+  Oyun çeyrek altın için "Vitrine Koy" diyordu; oysa `settleLine` malı vitrine
+  ancak `isCrafted` ise koyar ve vitrin müşterisi (`showcaseStock`) yalnız
+  işçilikliyi hedefler. Yani seçilen plan hiçbir zaman uygulanmıyordu.
+
+  İlk düşündüğüm düzeltme —kanalı sarrafiyeden kaldırmak— YANLIŞTI; ölçüm
+  yakaladı. İki şey ölçüldü:
+
+  1. Kanal kaldırılsaydı sarrafiyenin alış tavanı %12–18 düşerdi (çeyrek
+     6.784 → 5.663 ₺, cumhuriyet 28.922 → 23.692 ₺). Çünkü `retail` her
+     sarrafiyede ÖNERİLEN kanal ve tavanı o belirliyor.
+  2. Kanalın vaadi sarrafiyede zaten DÜRÜST: 200'er örnekte, retail'in vaat
+     ettiği net, tezgâh üstü müşterinin gerçekten ödediğinin %1,7–15,1
+     üstünde. Arka stoktaki sarrafiye sıradan alıcıya sorunsuz satılıyor
+     (`purchase.ts` hem `display` hem `backStock` eşleştiriyor).
+
+  Yani FİYAT DOĞRU, İSİM YANLIŞTI. Sarrafiye vitrine girmez; tezgâhtan satılır.
+  Düzeltme yalnızca adlandırmadır: kanal, net getiri ve tavan aynen korunur.
+*/
+export function channelLabel(channel: ExitChannel, bullionItem: boolean): string {
+  return channel === 'retail' && bullionItem ? 'Tezgâhtan Sat' : CHANNEL_LABEL[channel];
+}
+
+export function channelShort(channel: ExitChannel, bullionItem: boolean): string {
+  return channel === 'retail' && bullionItem ? 'Tezgâh' : CHANNEL_SHORT[channel];
+}
+
 /** Bağlam: tezin rasyonelliği oyuncunun durumuna bağlıdır (GDD 6.4). */
 export interface ThesisContext {
   store: StoreState;
@@ -139,11 +168,30 @@ export function buildThesisOptions(
     );
   }
 
-  // --- Vitrin / Perakende ---
-  // Kondisyonu kabul edilebilir ve vitrin slotu varsa rasyonel.
+  // --- Vitrin (işçilikli) / Tezgâh (sarrafiye) ---
+  /*
+    KANAL, HER ZAMAN VİTRİNMİŞ GİBİ YAZILMIŞTI.
+
+    Sarrafiye vitrine hiç girmez (`settleLine` `isCrafted` arar, vitrin
+    müşterisi de yalnız onu hedefler); tezgâhtan satılır ve VİTRİN SLOTU
+    TUTMAZ. Buna rağmen kanal, sarrafiyede de boş slot şartı arıyor ve
+    kapasite maliyetine 1 slot yazıyordu.
+
+    Ölçülen bedeli: vitrin işçilikli malla dolunca sarrafiyenin alış tavanı
+    %13–20 düşüyordu (çeyrek 7.021 → 5.765 ₺, cumhuriyet 29.961 → 24.010 ₺).
+    Yani oyuncu vitrini amacına uygun doldurduğu için, hiç ilgisi olmayan her
+    sarrafiye alımında cezalandırılıyordu — üstelik bunu hiçbir yer
+    söylemiyordu.
+
+    Bu bir denge tercihi değil, tüketilmeyen bir kaynağa bağlanmış kapı:
+    kaynak gerçekten harcanmadığı için şart da kalkıyor. Vitrin slotu olan
+    işçilikli üründe eski davranış aynen korunur.
+  */
   const displayFree = ctx.store.displaySlots - ctx.displayUsed;
+  const usesDisplaySlot = !bullion;
   const retailViable =
-    conditionRank(item.declared.visibleCondition) >= conditionRank('worn') && displayFree > 0;
+    conditionRank(item.declared.visibleCondition) >= conditionRank('worn')
+    && (!usesDisplaySlot || displayFree > 0);
   if (retailViable) {
     const c = EXIT_CHANNEL.retail;
     const days = c.daysToCash;
@@ -158,10 +206,11 @@ export function buildThesisOptions(
         daysToCash: days,
         marketRisk: ctx.market.volatility > 0.015 ? 'medium' : 'low',
         demandRisk: demand === 'hot' ? 'low' : demand === 'steady' ? 'medium' : 'high',
-        capacityCost: { display: 1, workshop: 0 },
+        capacityCost: { display: usesDisplaySlot ? 1 : 0, workshop: 0 },
         liquidity: 'medium',
-        rationale:
-          demand === 'hot'
+        rationale: bullion
+          ? 'Tezgâh üstü sarrafiye satışı; vitrin slotu tutmaz.'
+          : demand === 'hot'
             ? 'Talep etiketi güçlü; vitrin dönüşü hızlı olabilir.'
             : 'Sermaye bağlanır; doğru müşteri beklenir.',
         ctx,
@@ -274,7 +323,8 @@ function finish(input: {
 
   return {
     channel: input.channel,
-    label: CHANNEL_LABEL[input.channel],
+    label: channelLabel(input.channel, input.isBullion),
+    shortLabel: channelShort(input.channel, input.isBullion),
     expectedNet: input.expectedNet,
     daysToCash: input.daysToCash,
     marketRisk: input.marketRisk,

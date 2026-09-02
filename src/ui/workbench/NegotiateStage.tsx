@@ -13,7 +13,7 @@
  */
 
 import { TERM } from '@ui/terms';
-import { CHANNEL_SHORT } from '@domain/thesis';
+
 import { STATE_LABEL } from '@domain/negotiation';
 import { CONFIDENCE_LABEL } from '@domain/valuation';
 import { Art } from '@ui/Art';
@@ -208,7 +208,7 @@ export function NegotiateStage({
       {active && (
         <div className="contextRow">
           <span className="contextRow__key">Seçili tez</span>
-          <span className="contextRow__val">{CHANNEL_SHORT[active.channel]}</span>
+          <span className="contextRow__val">{active.shortLabel}</span>
           <span className="contextRow__key">Alış tavanı</span>
           <span className="contextRow__val num">{tl(active.buyCeiling)}</span>
         </div>

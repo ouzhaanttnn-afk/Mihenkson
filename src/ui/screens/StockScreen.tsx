@@ -16,10 +16,11 @@ import { isCrafted } from '@domain/customer-pricing';
 import { fromMg, toMg, roundMoney, isHasTradingDay } from '@domain/v5-rules';
 import { hasQuote, maxHasBuyMg } from '@domain/has-account';
 import { poolForTemplate } from '@domain/stock-pools';
+import { isBullion } from '@data/bullion';
 import { showcaseTargetChancePerItem } from '@domain/purchase';
 
 import { KARAT_LABEL } from '@domain/balance';
-import { CHANNEL_SHORT } from '@domain/thesis';
+import { channelShort } from '@domain/thesis';
 import { liquidationEstimate, liquidityBand, liquidityRatio, summarizeWealth } from '@domain/settlement';
 import { getTemplate } from '@data/item-templates';
 import { GRAM_SUPPLY_STEP, POOL_SUPPLY, poolSupplyQuote, maxPoolSupplyQuantity, hasPoolSupplySpace } from '@domain/pool-supply';
@@ -388,7 +389,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
           {/* GDD 8.3 — "her kalemin neden tutulduğunu görünür kılan plan etiketi" */}
           <span className={`tag ${position.thesis ? '' : 'tag--neutral'}`}>
             {position.thesis
-              ? `${TERM.thesisShort}: ${CHANNEL_SHORT[position.thesis]}`
+              ? `${TERM.thesisShort}: ${channelShort(position.thesis, isBullion(item.templateId))}`
               : `${TERM.thesis} yok`}
           </span>
         </div>
@@ -460,7 +461,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
               <button type="button" className="chip" onClick={() => { if (window.confirm('Ürün fiziksel stoktan çıkarılıp HAS bakiyesine dönüşecek. Mevcut 180 ₺ eritme bedeli alınır. Onaylıyor musunuz?')) s.meltStock(item.id); }}>Erit → HAS</button>
             </>}
             <p><strong>Konum:</strong> {position.location === 'display' ? 'Vitrin' : position.location === 'backStock' ? 'Arka stok' : position.location === 'workshop' ? 'Serviste' : 'Müşteride'}</p>
-            <p><strong>Çıkış planı:</strong> {position.thesis ? CHANNEL_SHORT[position.thesis] : 'Henüz seçilmedi.'}</p>
+            <p><strong>Çıkış planı:</strong> {position.thesis ? channelShort(position.thesis, isBullion(item.templateId)) : 'Henüz seçilmedi.'}</p>
             {!position.thesis && <p>Çıkış planı, ürünün müşteri işleminde değerlendirilip bir satış kanalı seçildiğinde atanır.</p>}
           </div>
         )}

@@ -69,7 +69,9 @@ Referans depolar:
 | YENİ · HAS gövdesindeki sayılar okunmuyordu (1,05:1) | ✅ yapıldı |
 | B1 · Cumartesi riski oyuncunun baktığı yerde yazmıyordu | ✅ yapıldı |
 | B5 · Vitrin slot seyrelmesi gösterilmiyordu | ✅ yapıldı |
-| YENİ · Sarrafiyeye tutulmayacak "Vitrin" planı sunuluyor | ⏸ karar bekliyor |
+| YENİ · Sarrafiyede "Vitrin" planı ve vitrin slotu şartı | ✅ yapıldı |
+| B2 · İşçilikli ürün ekonomik olarak baskılanmış | ❌ **ölçümle çürütüldü** |
+| B3 · Ayar bantları ayrışmıyor | ✅ **ölçümle doğrulandı** · düzeltmesi karar bekliyor |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -96,16 +98,52 @@ tarayıcı doğrulamalarının takılma sebebi spawn değil, C5'ti.
 **Kalan tek madde:** A10 (ses) — bu tabanda ses altyapısı hiç yok; dosya eklemek ya da
 ayarı kapatmak kullanıcının kararı. Cila maddeleri kapsam dışı.
 
-**Karar bekleyen üçüncü madde — B5 doğrulaması sırasında çıktı.** "Vitrine Koy" çıkış planı
-**sarrafiyeye de sunuluyor**, oysa `settleLine` malı vitrine ancak `isCrafted` ise koyuyor ve
-vitrin müşterisi de yalnız onu hedefliyor. Yani oyuncu, oyunun hiçbir zaman uygulamayacağı bir
-plan seçebiliyor — C1 ve C3 ile aynı sınıf: tutulmayan vaat. Tarayıcıda görüldü: "Vitrin"
-seçilen çeyrek `Arka stok 1/16`'ya düştü. Düzeltmesi (`retailViable` şartına `isCrafted`
-eklemek) tek satır ama **sunulan kanal kümesini, dolayısıyla `effectiveCeiling` üzerinden alış
-tavanını değiştirir** — ekonomiye dokunur, o yüzden sorulmadan yapılmadı. Mevcut davranış
-`src/domain/showcase-thesis-honesty.test.ts` ile sabitlendi: sessizce kaymaz.
+#### YENİ · Sarrafiyenin çıkış kanalı vitrin değil tezgâhtır — ✅ YAPILDI
+`src/domain/thesis.ts`
 
-**Karar bekleyen diğer iki madde** (kullanıcı onayı olmadan dokunulmayacak): C4 · Market sekmesi
+B5 doğrulaması sırasında çıktı: "Vitrine Koy" seçilen bir çeyrek `Arka stok 1/16`'ya düştü.
+
+**İlk düşündüğüm düzeltme yanlıştı ve ölçüm yakaladı.** `retailViable` şartına `isCrafted`
+ekleyip kanalı sarrafiyeden kaldıracaktım. İki ölçüm bunu durdurdu:
+
+1. Kanal kalksaydı sarrafiyenin **alış tavanı %12–18 düşerdi** (çeyrek 6.784 → 5.663 ₺,
+   cumhuriyet 28.922 → 23.692 ₺) — çünkü `retail` her sarrafiyede ÖNERİLEN kanal ve tavanı o
+   belirliyor.
+2. Kanalın vaadi sarrafiyede **zaten dürüst**: 200'er örnekte retail'in vaat ettiği net,
+   tezgâh üstü müşterinin gerçekten ödediğinin %1,7–15,1 üstünde. Arka stoktaki sarrafiye
+   sıradan alıcıya sorunsuz satılıyor (`purchase.ts` hem `display` hem `backStock`
+   eşleştiriyor).
+
+**Yani fiyat doğruydu, İSİM ve KAPASİTE ŞARTI yanlıştı.** Kanal her zaman vitrinmiş gibi
+yazılmış: adı "Vitrine Koy", boş vitrin slotu şartı arıyor ve kapasite maliyetine 1 slot
+yazıyor.
+
+**Bunun ölçülen bedeli asıl sürprizdi:** vitrin işçilikli malla dolduğunda sarrafiyenin alış
+tavanı **%13–20 düşüyordu** (aynı koşu içinde: çeyrek −%12,7, gram −%9,1, cumhuriyet −%16,9).
+Oyuncu vitrini amacına uygun doldurduğu için, hiç ilgisi olmayan her sarrafiye alımında
+cezalandırılıyordu — üstelik bunu hiçbir yer söylemiyordu. Tüketilmeyen bir kaynağa bağlanmış
+kapı; denge tercihi değil.
+
+**Yapıldı:** sarrafiyede kanalın adı **"Tezgâhtan Sat"** (kısa: "Tezgâh"), vitrin slotu şartı
+ve kapasite maliyeti kalktı. İşçilikli üründe her şey aynen korundu. Kanal, net getiri ve
+tavan formülü değişmedi. Kısa etiket artık `ThesisOption.shortLabel` üstünde taşınıyor — her
+tüketici tek kaynaktan okuyor.
+
+**Testler:** `src/domain/bullion-counter-channel.test.ts` — 20 test. Sarrafiyede tavanın
+vitrin doluluğundan etkilenmediği, slot tüketmediği ve adının "Vitrin" içermediği; işçiliklide
+eski davranışın (slot tüketir, vitrin doluyken sunulmaz, adı "Vitrine Koy") korunduğu.
+
+**Tarayıcıda doğrulandı:** pazarlık ekranında sarrafiye `Seçili tez: Tezgâh`, işçilikli
+`Seçili tez: Vitrin`.
+
+**ÖLÇÜM YÖNTEMİ NOTU — kendi yanlış alarmım.** Değişiklikten önce/sonra mutlak ₺ tavanlarını
+iki AYRI KOŞUDAN karşılaştırıp %42'lik sahte bir düşüş "bulmuştum". Sebep: kayıt yokken mağaza
+tohumu rastgele üretiliyor, `goldSpot` koşudan koşuya değişiyor (4.168–4.331 ölçüldü). Aynı
+süreç içinde yan yana konunca fark yoktu. **Bu tabanda mutlak ₺ değerleri koşular arasında
+karşılaştırılamaz**; yalnız koşu içi oranlar anlamlıdır. Testler bu yüzden sabit tohum
+kullanıyor.
+
+**Karar bekleyen diğer maddeler** (kullanıcı onayı olmadan dokunulmayacak): C4 · Market sekmesi
 oyun içi TL harcıyor ve günlük 1.000–60.000 ₺ gider yazıyor — "Market boş rotadır" kuralıyla
 çelişiyor. B2 · otomatik perakende kanalı işçilikli malı vitrin müşterisinin ödediğinden
 yükseğe satıyor, vitrin mekaniğini ekonomik olarak gereksiz kılıyor.
@@ -487,25 +525,55 @@ mevcut "dükkân kapalı" satırı var. İkisi çakışmıyor.
 **Testler:** `src/domain/visible-risk.test.ts` — iki haftalık taramada körlemesine gün tam
 olarak iki cumartesi; piyasanın açık olduğu hiçbir günde çıkmıyor; pazar bu satırı almıyor.
 
-#### B2 · T · İşçilikli ürün mekaniği ekonomik olarak baskılanmış
-Ölçüldü: vitrin müşterisi hedeflemesi %19,7 oranında çalışıyor, toplanabilir değil ve vitrin
-slotlarına bölünüyor. Buna karşılık otomatik perakende kanalı aynı işçilikli ürünü **3. günde
-vitrin müşterisinin ödeyeceğinden daha yüksek fiyata** satıyor. Yani oyuncunun vitrin
-mekaniğini kullanması için ekonomik bir sebep yok — yeni mekanik kendi kendini gereksiz
-kılıyor.
+#### B2 · T · İşçilikli ürün ekonomik olarak baskılanmış — ❌ ÖLÇÜMLE ÇÜRÜTÜLDÜ
 
-**Öneri:** otomatik perakende kanalı **yalnız sarrafiyeye** kısıtlansın. İşçilikli ürün
-yalnız vitrin müşterisine ya da esnaf ağına satılsın. Tek ve kapalı bir değişiklik;
-ekonominin geri kalanına dokunmaz. **Bu, paketteki en önemli tasarım maddesi.**
+**Bu maddeyi ben yanlış yazmışım ve "paketteki en önemli tasarım maddesi" diye
+işaretlemişim. Doğru değil.** Kaydı düzeltiyorum.
 
-#### B3 · T · Ayar bantları birbirinden ayrışmıyor
+İki hata vardı:
+
+1. **"Otomatik perakende kanalı" diye bir şey yok.** Kodda zamana bağlı kendiliğinden satış
+   yapan hiçbir yol bulunmuyor (arandı: `service.ts` bunu açıkça yazıyor, gün kapanışında da
+   böyle bir hareket yok). Madde, olmayan bir mekanizmayı tarif ediyordu.
+2. **Vitrin baskılanmış değil.** Aynı işçilikli üründe kanalların vaat ettiği net getiri
+   ölçüldü (`ring_18k#3`): vitrin **28.904 ₺**, toptancı **17.403 ₺**. Vitrin toptancıdan
+   %66 daha fazla veriyor — baskılanan taraf o değil.
+
+Vitrin tezinin vaadi ile vitrin müşterisinin gerçekten ödediği de karşılaştırıldı: sapma
+−%15,5 ile +%30,9 arasında, sıfırın etrafında dağılmış. Yani tez bir tahmin ve makul
+kalibre; sistematik bir yalan yok.
+
+**Alınan ders:** eski tabanda yapılmış bir ölçümü yeni tabanda tekrarlamadan pakete
+yazmışım. Bu maddeye dayanarak "otomatik perakendeyi sarrafiyeye kısıtla" değişikliği
+yapılsaydı, var olmayan bir sorun için ekonomi bozulacaktı.
+
+#### B3 · T · Ayar bantları birbirinden ayrışmıyor — ✅ ÖLÇÜMLE DOĞRULANDI · düzeltmesi karar bekliyor
 `src/domain/customer-pricing.ts` · `CRAFTED_BANDS`
 
-8K, 14K, 18K ve 22K'nın dördü de **aynı %34 brüt marjı** veriyor. Ayar, kârlılık açısından
-hiçbir şey ifade etmiyor; oyuncunun "hangi ayarı alayım" diye düşünmesi için sebep yok.
+Bu taban üzerinde yeniden ölçüldü ve **doğru çıktı**:
 
-**Öneri:** düşük ayarda işçilik payı yüksek → marj geniş ama satışı yavaş; yüksek ayarda
-metal payı baskın → marj dar ama hızlı döner. Aynı ürünü almanın iki farklı gerekçesi olsun.
+| ayar | alış ortası | satış ortası | brüt marj |
+|---|---|---|---|
+| 8K | 0,2915 | 0,3900 | **%33,8** |
+| 14K | 0,5125 | 0,6850 | **%33,7** |
+| 18K | 0,6570 | 0,8785 | **%33,7** |
+| 22K | 0,8025 | 1,0725 | **%33,6** |
+
+Dördü 0,2 puan içinde. Ayar kârlılık açısından hiçbir şey ifade etmiyor; 8K almakla 22K
+almak arasındaki tek fark ölçek.
+
+**Önerilen düzeltme neden tek başına yapılamadı.** Öneri "düşük ayar: marj geniş ama yavaş /
+yüksek ayar: marj dar ama hızlı" idi. Marj yarısı `CRAFTED_BANDS` ile kolay; **hız yarısının
+dayanacağı bir mekanik yok**:
+
+- `demandLevel` yalnızca bir ETİKET — risk metnini değiştiriyor, satış hızını değil.
+- Vitrin hedefi düzgün dağılımla seçiliyor (`showcaseRng.pick`), ürüne göre ağırlık yok.
+- `daysToCash` kanal sabiti; ayara bağlı değil. Ayara bağlasak bile ekranda görünen tahmin
+  değişir, gerçek hız değişmez — yani oyuncuya yalan söylemiş oluruz.
+
+Sadece marj yarısını yapmak düşük ayarı **düpedüz üstün** kılardı; şu anki eşitlikten daha
+kötü. Düzgün yapılışı, vitrin hedeflemesini ağırlıklandıran yeni bir mekanik gerektiriyor —
+bu ayrı bir tasarım işi, karar sizin.
 
 #### B4 · T · Vitrin yaşlanması yok
 Vitrine konan işçilikli ürün süresiz olarak aynı çekiciliği koruyor. Vitrin bir karar değil,

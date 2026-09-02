@@ -9,7 +9,7 @@
  * Bu dosyadaki hiçbir fonksiyon işlem kapanmadan çağrılmamalıdır.
  */
 
-import { CHANNEL_SHORT } from './thesis';
+
 import { trueValue } from './valuation';
 import type {
   DealRecord,
@@ -166,11 +166,11 @@ function describeBestAlternative(input: ReviewInput): string {
       .filter((o) => o.channel !== best.channel)
       .sort((a, b) => b.expectedNet - a.expectedNet)[0];
     if (!runnerUp) return '';
-    return `${CHANNEL_SHORT[best.channel]} en yüksek net getiriyi verdi; ${CHANNEL_SHORT[runnerUp.channel]} ${fmt(best.expectedNet - runnerUp.expectedNet)} daha az ama ${runnerUp.daysToCash[0]}–${runnerUp.daysToCash[1]} günde nakde dönerdi.`;
+    return `${best.shortLabel} en yüksek net getiriyi verdi; ${runnerUp.shortLabel} ${fmt(best.expectedNet - runnerUp.expectedNet)} daha az ama ${runnerUp.daysToCash[0]}–${runnerUp.daysToCash[1]} günde nakde dönerdi.`;
   }
 
   const diff = best.expectedNet - selected.expectedNet;
-  return `${CHANNEL_SHORT[best.channel]} kanalı ${fmt(diff)} daha fazla net getiri üretebilirdi; karşılığında ${best.daysToCash[0]}–${best.daysToCash[1]} gün sermaye bağlar.`;
+  return `${best.shortLabel} kanalı ${fmt(diff)} daha fazla net getiri üretebilirdi; karşılığında ${best.daysToCash[0]}–${best.daysToCash[1]} gün sermaye bağlar.`;
 }
 
 /** DealRecord'un reviewData alanını doldurur. */

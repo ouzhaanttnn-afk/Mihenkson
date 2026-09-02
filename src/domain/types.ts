@@ -261,6 +261,13 @@ export type LiquidityLevel = 'low' | 'medium' | 'high';
 export interface ThesisOption {
   channel: ExitChannel;
   label: string;
+  /**
+   * Dar alanlar için kısa ad. Ürüne göre değişebildiği (sarrafiyede
+   * "Tezgâh", işçiliklide "Vitrin") ve `channel` bunu tek başına
+   * söyleyemediği için seçeneğin üstünde taşınır — her tüketici aynı
+   * kaynaktan okusun.
+   */
+  shortLabel: string;
   /** Masraf ve iskontolar sonrası beklenen net gelir. */
   expectedNet: Money;
   /** Nakit ne zaman geri döner (oyun günü). */
