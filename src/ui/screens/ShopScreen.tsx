@@ -200,6 +200,7 @@ export function ShopScreen() {
       <CustomerStrip
         customer={s.activeCustomer}
         record={s.activeCustomer ? (s.customers[s.activeCustomer.id] ?? null) : null}
+        shopOpen={isShopOpen(s.market.day)}
         queueLength={s.queue.length}
         lineCount={deal?.lines.length ?? 0}
         broughtItems={
@@ -487,10 +488,15 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
   const shopOpen = isShopOpen(s.market.day);
 
   if (!shopOpen) {
+    /*
+      "Dükkân kapalı" cümlesini artık müşteri şeridi söylüyor; burada
+      TEKRARLAMAYIZ. Bu satırın işi, kapalı günün ne getirdiğini söylemek:
+      piyasa da donuk, ama gün boş değil — stok, atölye ve toptancı açık.
+    */
     alerts.push({
       key: 'closed',
-      title: 'Dükkân bugün kapalı',
-      detail: `${weekdayLabel(s.market.day)} · müşteri gelmez; piyasa cuma kapanışında donuk.`,
+      title: `${weekdayLabel(s.market.day)} · piyasa da kapalı`,
+      detail: 'Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.',
       tone: 'warning',
       Icon: IconClock,
     });
@@ -639,8 +645,14 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
        * GDD 23.10.1 — "Müşteri yokken Karar Dock'unda ana akışı bozmayan
        * ikincil 'Dükkânı Canlandır' rewarded CTA'sı gösterilebilir."
        * Ayrı banner veya büyük reklam kartı kullanılmaz.
+       *
+       * DÜKKÂN KAPALIYKEN GÖSTERİLMEZ. Pazar günü müşteri akışı zaten yok;
+       * "geliş aralığını kısaltan" bir düğme o gün hiçbir şey yapmaz. Bir
+       * satır yukarıda "Dükkân bugün kapalı" yazarken çalışmayan bir çağrıyı
+       * ekranda tutmak oyuncunun ekrana duyduğu güveni yer (tarayıcıda
+       * görüldü: pazar günü düğme yerinde duruyordu).
        */}
-      {s.queue.length === 0 && (
+      {shopOpen && s.queue.length === 0 && (
         <button type="button" className="rewardedLine" onClick={s.triggerCustomerRush}>
           <IconVideo size={13} />
           Dükkânı Canlandır

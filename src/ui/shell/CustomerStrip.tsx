@@ -27,6 +27,14 @@ interface Props {
    * bunlara ihtiyaç duyar: "1 adet 14 Ayar Yüzük satmak istiyor".
    */
   broughtItems: ItemInstance[];
+  /**
+   * Dükkân bugün açık mı (takvim · pazar kapalı).
+   *
+   * Şerit kapalı günde de "Kapı açık — gün akıyor" diyordu; iki satır altta
+   * "Dükkân bugün kapalı" yazarken. İki cümle birbirini yalanlıyordu
+   * (tarayıcıda pazar gününde görüldü).
+   */
+  shopOpen: boolean;
 }
 
 /** Etiket tonu: sadık yeşil, küsmüş kırmızı, arası nötr. */
@@ -36,20 +44,46 @@ function tieTone(record: CustomerRecord): 'good' | 'bad' | 'neutral' {
   return 'neutral';
 }
 
-export function CustomerStrip({ customer, record, queueLength, lineCount, broughtItems }: Props) {
+export function CustomerStrip({
+  customer,
+  record,
+  queueLength,
+  lineCount,
+  broughtItems,
+  shopOpen,
+}: Props) {
   if (!customer) {
+    /*
+      Boş şeridin üç hâli var ve sırası önemli:
+
+        kapalı  — kapı kapalı, bugün kimse gelmeyecek. GERÇEK.
+        bekleyen — kuyrukta biri var.
+        sakin   — kapı açık, henüz kimse yok. OLASILIK.
+
+      Kapalılık en üstte çünkü diğer ikisi ancak dükkân açıkken doğru olabilir.
+      Eskiden bu ayrım yoktu ve şerit pazar günü "Kapı açık — gün akıyor"
+      diyordu.
+    */
+    const closed = !shopOpen;
+    const name = closed
+      ? 'Dükkân bugün kapalı'
+      : queueLength > 0
+        ? `Bekleyen: ${queueLength} müşteri`
+        : 'Yeni müşteri bekleniyor';
+    const intent = closed
+      ? 'Kapı kapalı — bugün müşteri gelmez'
+      : queueLength > 0
+        ? 'Karşılamak için hazır'
+        : 'Kapı açık — gün akıyor';
+
     return (
       <div className="customerStrip">
         <span className="customerStrip__avatar">
           <IconQueue size={18} />
         </span>
         <div className="customerStrip__main">
-          <div className="customerStrip__name">
-            {queueLength > 0 ? `Bekleyen: ${queueLength} müşteri` : 'Yeni müşteri bekleniyor'}
-          </div>
-          <div className="customerStrip__intent">
-            {queueLength > 0 ? 'Karşılamak için hazır' : 'Kapı açık — gün akıyor'}
-          </div>
+          <div className="customerStrip__name">{name}</div>
+          <div className="customerStrip__intent">{intent}</div>
         </div>
       </div>
     );

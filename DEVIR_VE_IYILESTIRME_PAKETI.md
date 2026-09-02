@@ -46,6 +46,9 @@ Referans depolar:
 |---|---|
 | A1 · Bildirim balonları kapanmıyor | ✅ yapıldı |
 | A2 · İşletme alt rotasından çıkılamıyor | ✅ yapıldı |
+| A5 · Pazarlıkta çevrilmemiş `OPEN` etiketi | ✅ yapıldı |
+| A6 · Ekspertiz kırılımı okunmuyor | ✅ yapıldı |
+| A7 · Pazar günü çelişkili metin | ✅ yapıldı |
 | Geri kalanı | ⏳ sırada (aşağıdaki "Önerilen sıra") |
 
 ---
@@ -222,8 +225,8 @@ köşe yüksekliğe yetişemiyor.
 
 **Yapılacak:** düğme yüksekliği 44–48 px'e sabitlensin.
 
-#### A5 · A · Pazarlıkta çevrilmemiş etiket
-`src/domain/negotiation.ts:850`
+#### A5 · A · Pazarlıkta çevrilmemiş etiket — ✅ YAPILDI
+`src/domain/negotiation.ts:714-728`
 
 ```ts
 export const STATE_LABEL: Record<NegotiationState, string> = {
@@ -235,27 +238,48 @@ export const STATE_LABEL: Record<NegotiationState, string> = {
 };
 ```
 
-**Yapılacak:** `OPEN: 'AÇIK'`. (Clone'da da aynı.)
+**Yapıldı:** `OPEN: 'AÇIK'`. Anahtar (`OPEN`) durum makinesinin kimliğidir ve
+değişmedi — CSS sınıfı `.stateBadge__value--OPEN` ile `STATE_ORDER` dizisi anahtarı
+kullanıyor, ikisi de etkilenmiyor.
 
-#### A6 · A · Ekspertiz kırılımı okunmuyor
-`src/ui/workbench/AppraiseStage.tsx:95-112`
+#### A6 · A · Ekspertiz kırılımı okunmuyor — ✅ YAPILDI
+`src/ui/workbench/AppraiseStage.tsx:81-131` · `src/ui/format.ts:23-72`
 
 Ölçülen örnek: Metal %78 · İşçilik %24 · Nadirlik %5 · Kondisyon/Risk %7 · Oynaklık %2 =
 **%116**. Üstelik "Kondisyon / Risk %7" satırının tutarı **−999 ₺** — artı yüzde, eksi tutar.
 Sebep: paylar `band.mid`'e oran olarak hesaplanıyor ama ekranda bu yazmıyor, risk satırının
 payı da `Math.abs()` ile alınıyor.
 
-**Yapılacak:** risk satırının yüzdesi eksi yazılsın (`−%7`), oynaklık satırı işaretli olsun,
-ve tablonun başlığına "Paylar band ortasına orandır; toplamları %100 olmak zorunda değildir"
-notu eklensin. (Clone'da da aynı.)
+**Yapıldı:** yeni `pctSigned()` yardımcısı işareti yüzde iminin ÖNÜNE koyuyor (`pct(-0.07)`
+"%-7" üretiyordu; Türkçede işaret önde yazılır). Risk satırı artık `−%7`, oynaklık satırı
+`+%1`. Tablonun altına kuralı söyleyen bir not eklendi. `tl()` de eksi imini `tlSigned` ile
+aynı karaktere (U+2212) çevirdi — aynı satırda `−%7` ile `-685 ₺` yan yana düşüyordu.
 
-#### A7 · A · Pazar günü çelişkili metin
-`src/ui/screens/ShopScreen.tsx`
+**Testler:** `src/ui/format.test.ts` — `pctSigned` için 7 test (işaret yeri, sıfırın
+işaretsizliği, yuvarlamada `pct` ile birebir aynı davranış, tek tip eksi imi).
 
-Dükkân kapalıyken üst şerit hâlâ "Kapı açık — gün akıyor" diyor; iki satır altta "Dükkân
-bugün kapalı" yazıyor. Ayrıca "Dükkân bugün kapalı" iki kez çiziliyor (küçük şerit + büyük kart).
+**Tarayıcıda doğrulandı:** `Metal %89 · İşçilik %16 · Nadirlik %2 · Kondisyon/Risk −%7 ·
+−685 ₺ · Oynaklık +%1` — yüzde ile tutar artık aynı yöne bakıyor, not görünüyor.
 
-**Yapılacak:** kapalı günde üst şerit "Dükkân kapalı" desin; iki kutudan biri kaldırılsın.
+#### A7 · A · Pazar günü çelişkili metin — ✅ YAPILDI
+`src/ui/shell/CustomerStrip.tsx:38-80` · `src/ui/screens/ShopScreen.tsx:200-204, 489-502, 638-656`
+
+Dükkân kapalıyken müşteri şeridi hâlâ "Kapı açık — gün akıyor" diyordu; iki satır altta
+"Dükkân bugün kapalı" yazarken. Ayrıca pazar günü "Dükkânı Canlandır" düğmesi duruyordu —
+müşteri akışı olmayan günde geliş aralığını kısaltmayı öneren, hiçbir şey yapmayan bir çağrı.
+
+**Not:** paketin ilk hâlinde "kapalı yazısı iki kez çiziliyor" da yazıyordu. O, Mihenkaynak
+sürümündeki ikinci karta aitti; bu tabanda öyle bir kart yok, tek kopya vardı.
+
+**Yapıldı:** `CustomerStrip` artık `shopOpen` alıyor ve boş şeridin üç hâlini ayırıyor —
+kapalı ("Dükkân bugün kapalı · Kapı kapalı — bugün müşteri gelmez"), bekleyen, sakin.
+"Dükkânı Canlandır" kapalı günde çizilmiyor. Alt uyarı satırı da artık aynı cümleyi
+tekrarlamıyor; kapalı günün ne getirdiğini söylüyor: "Pazar · piyasa da kapalı — Fiyat cuma
+kapanışında donuk. Stok, atölye ve toptancı açık."
+
+**Tarayıcıda doğrulandı (dokuz gün oynandı):** Cumartesi dükkân açık, "Kapı açık" ve
+"Canlandır" yerinde ✓ · Pazar "Kapı açık" yok, "Canlandır" yok, kapalı cümlesi tam **1**
+kez ✓.
 
 #### A8 · A · "Karşı Teklif" sınırsız basılıyor
 `src/ui/workbench/NegotiateStage.tsx`
