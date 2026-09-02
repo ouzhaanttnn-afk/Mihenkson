@@ -17,7 +17,7 @@ import { TERM } from '@ui/terms';
 import { useEffect, useMemo, useState } from 'react';
 
 import { DAY, NEGOTIATION } from '@domain/balance';
-import { isShopOpen, weekdayLabel } from '@domain/calendar';
+import { isBlindTradingDay, isShopOpen, nextMarketOpenDay, weekdayLabel } from '@domain/calendar';
 import { shopDisplayName } from '@domain/profile';
 import { effectiveCeiling, suggestedChannel } from '@domain/thesis';
 import { isTerminal } from '@domain/negotiation';
@@ -529,6 +529,30 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
       key: 'closed',
       title: `${weekdayLabel(s.market.day)} · piyasa da kapalı`,
       detail: 'Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.',
+      tone: 'warning',
+      Icon: IconClock,
+    });
+  }
+
+  /*
+    B1 — CUMARTESİ RİSKİ OYUNCUNUN BAKTIĞI YERDE YAZMIYORDU.
+
+    Hafta sonu boşluğu mekaniğinin bütün amacı, cuma kapanışıyla pazartesi
+    açılışı arasında körlemesine alım yapmanın riskini yaşatmak. Alan katmanı
+    bu günü adıyla tanıyor — `isBlindTradingDay` — ama bu yordam PROJEDE HİÇ
+    ÇAĞRILMIYORDU: mekanik işliyor, oyuncuya görünmüyordu. Tek işaret üst
+    şeritteki "Cmt · Piyasa Kapalı" damgasıydı; bugün alınan malın pazartesiye
+    kadar fiyat riski taşıdığını hiçbir yer söylemiyordu.
+
+    Yukarıdaki "kapalı gün" uyarısı dükkânın KAPALI olduğu günü anlatır
+    (pazar); burası dükkânın AÇIK, piyasanın kapalı olduğu gündür. İkisi aynı
+    anda çıkmaz.
+  */
+  if (isBlindTradingDay(s.market.day)) {
+    alerts.push({
+      key: 'blind',
+      title: `${weekdayLabel(s.market.day)} · piyasa kapalı, dükkân açık`,
+      detail: `Fiyat cuma kapanışında donuk. Bugün aldığın mal ${weekdayLabel(nextMarketOpenDay(s.market.day))} açılışına kadar fiyat riski taşır.`,
       tone: 'warning',
       Icon: IconClock,
     });

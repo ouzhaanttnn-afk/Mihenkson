@@ -11,7 +11,7 @@
 import { ARCHETYPES, FIRST_NAMES_F, FIRST_NAMES_M, HONORIFIC_F, HONORIFIC_M, getArchetype } from '@data/archetypes';
 import { PURCHASE } from './balance';
 import { rollIntent, type DayCharacter } from './intent';
-import { applyBulkProfile, spawnDemand, showcaseStock, showcaseDemand } from './purchase';
+import { applyBulkProfile, spawnDemand, showcaseStock, showcaseDemand, SHOWCASE_TARGET_CHANCE } from './purchase';
 import { dailyPurchaseMix, roundMoney } from './v5-rules';
 import { customerPriceBand } from './customer-pricing';
 import type { InventoryPosition } from './types';
@@ -95,7 +95,7 @@ export function spawnCustomer(
   if (demand && stock) {
     const display = showcaseStock(stock.inventory, stock.items);
     const showcaseRng = new Rng(deriveSeed(rootSeed, 'customer/showcase', spawnIndex));
-    if (display.length && showcaseRng.chance(.20)) demand = { ...showcaseDemand(stock.items[showcaseRng.pick(display).itemId]!), fallbackDemand: demand };
+    if (display.length && showcaseRng.chance(SHOWCASE_TARGET_CHANCE)) demand = { ...showcaseDemand(stock.items[showcaseRng.pick(display).itemId]!), fallbackDemand: demand };
   }
 
   // --- Kalem sayısı: çoklu ürün orta oyunda açılır (GDD 12) ---

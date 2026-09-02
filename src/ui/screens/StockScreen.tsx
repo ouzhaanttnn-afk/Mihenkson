@@ -16,6 +16,7 @@ import { isCrafted } from '@domain/customer-pricing';
 import { fromMg, toMg, roundMoney, isHasTradingDay } from '@domain/v5-rules';
 import { hasQuote, maxHasBuyMg } from '@domain/has-account';
 import { poolForTemplate } from '@domain/stock-pools';
+import { showcaseTargetChancePerItem } from '@domain/purchase';
 
 import { KARAT_LABEL } from '@domain/balance';
 import { CHANNEL_SHORT } from '@domain/thesis';
@@ -79,6 +80,23 @@ export function StockScreen() {
           {s.inventory.length === 0 ? 'Stok boş' : `${s.inventory.length} ürün`} · Vitrin {counts.display}/{s.store.displaySlots} · Arka stok{' '}
           {counts.backStock}/{s.store.backStockSlots}
         </p>
+        {/*
+          B5 — VİTRİNE BİR ÜRÜN DAHA KOYMANIN GÖRÜNMEYEN BEDELİ.
+
+          Vitrin müşterisi hedefini tek tek seçiyor (`showcaseRng.pick`), yani
+          vitrindeki her yeni ürün diğerlerinin şansını böler. Mekanik çalışıyordu
+          ama oyuncu hiçbir yerden göremediği için vitrini doldurmayı bedelsiz
+          sanıyordu. Oran spawn sabitinden türüyor — kural değişirse yazı da değişir.
+
+          Vitrin boşken satır hiç çıkmaz: söyleyecek bir şey yok.
+        */}
+        {counts.display > 0 && (
+          <p className="pageHead__note">
+            {counts.display === 1
+              ? `Vitrindeki tek ürün her alıcıda ${pct(showcaseTargetChancePerItem(1), 1)} ilgi görür`
+              : `Vitrindeki ${counts.display} ürün aynı ilgiyi paylaşır · her alıcıda ürün başına ${pct(showcaseTargetChancePerItem(counts.display), 1)}`}
+          </p>
+        )}
 
         <div className="summaryRow">
           <div className="summaryRow__item">

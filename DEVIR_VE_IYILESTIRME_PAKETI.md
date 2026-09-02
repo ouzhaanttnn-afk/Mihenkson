@@ -67,6 +67,9 @@ Referans depolar:
 | C6 · Gün raporu 1. günde felaket gibi okunuyordu | ✅ yapıldı |
 | C2 · Hızlı Stok penceresi üç farklı giriş biçimi kullanıyordu | ✅ yapıldı |
 | YENİ · HAS gövdesindeki sayılar okunmuyordu (1,05:1) | ✅ yapıldı |
+| B1 · Cumartesi riski oyuncunun baktığı yerde yazmıyordu | ✅ yapıldı |
+| B5 · Vitrin slot seyrelmesi gösterilmiyordu | ✅ yapıldı |
+| YENİ · Sarrafiyeye tutulmayacak "Vitrin" planı sunuluyor | ⏸ karar bekliyor |
 
 ### Yeni taban (45a499b) üstünde yeniden ölçüm
 
@@ -93,7 +96,16 @@ tarayıcı doğrulamalarının takılma sebebi spawn değil, C5'ti.
 **Kalan tek madde:** A10 (ses) — bu tabanda ses altyapısı hiç yok; dosya eklemek ya da
 ayarı kapatmak kullanıcının kararı. Cila maddeleri kapsam dışı.
 
-**Karar bekleyen iki madde** (kullanıcı onayı olmadan dokunulmayacak): C4 · Market sekmesi
+**Karar bekleyen üçüncü madde — B5 doğrulaması sırasında çıktı.** "Vitrine Koy" çıkış planı
+**sarrafiyeye de sunuluyor**, oysa `settleLine` malı vitrine ancak `isCrafted` ise koyuyor ve
+vitrin müşterisi de yalnız onu hedefliyor. Yani oyuncu, oyunun hiçbir zaman uygulamayacağı bir
+plan seçebiliyor — C1 ve C3 ile aynı sınıf: tutulmayan vaat. Tarayıcıda görüldü: "Vitrin"
+seçilen çeyrek `Arka stok 1/16`'ya düştü. Düzeltmesi (`retailViable` şartına `isCrafted`
+eklemek) tek satır ama **sunulan kanal kümesini, dolayısıyla `effectiveCeiling` üzerinden alış
+tavanını değiştirir** — ekonomiye dokunur, o yüzden sorulmadan yapılmadı. Mevcut davranış
+`src/domain/showcase-thesis-honesty.test.ts` ile sabitlendi: sessizce kaymaz.
+
+**Karar bekleyen diğer iki madde** (kullanıcı onayı olmadan dokunulmayacak): C4 · Market sekmesi
 oyun içi TL harcıyor ve günlük 1.000–60.000 ₺ gider yazıyor — "Market boş rotadır" kuralıyla
 çelişiyor. B2 · otomatik perakende kanalı işçilikli malı vitrin müşterisinin ödediğinden
 yükseğe satıyor, vitrin mekaniğini ekonomik olarak gereksiz kılıyor.
@@ -455,13 +467,25 @@ yüklenmedi" yazsın. Oyuncuya çalışmayan bir açık/kapalı düğmesi göste
 
 ### B. Tasarım ve oynanış önerileri
 
-#### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyor
-Hafta sonu boşluğu mekaniğinin bütün amacı, cuma kapanışıyla pazartesi açılışı arasında
-körlemesine alım yapmanın riskini oyuncuya yaşatmak. Ama cumartesi günü dükkân kartında bu
-hiç geçmiyor; tek işaret üst şeritteki "Cmt · Piyasa Kapalı … donuk" damgası.
+#### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
+`src/ui/screens/ShopScreen.tsx` · `IdleWorkbench`
 
-**Öneri:** cumartesi dükkân kartına tek satır — *"Piyasa kapalı. Bugün aldığın mal pazartesi
-açılışına kadar fiyat riski taşır."* Mekanik zaten çalışıyor; görünür değil.
+Hafta sonu boşluğu mekaniğinin bütün amacı, cuma kapanışıyla pazartesi açılışı arasında
+körlemesine alım yapmanın riskini yaşatmak. Cumartesi dükkân kartında bu hiç geçmiyordu.
+
+**Aramada çıkan asıl kanıt:** alan katmanı bu günü zaten adıyla tanıyor —
+`calendar.ts · isBlindTradingDay` — ve bu yordam **projede hiçbir yerden çağrılmıyordu**.
+Kural yazılmış, ekrana hiç bağlanmamış.
+
+**Yapıldı:** dükkân açık + piyasa kapalı günde tek uyarı satırı: *"Cumartesi · piyasa kapalı,
+dükkân açık — Fiyat cuma kapanışında donuk. Bugün aldığın mal Pazartesi açılışına kadar fiyat
+riski taşır."* Gün adı da, "hangi güne kadar" da takvimden türüyor; elle yazılmadı.
+
+**Tarayıcıda doğrulandı:** gün 6 (Cmt) → satır çıkıyor; gün 7 (Paz) → çıkmıyor, onun yerine
+mevcut "dükkân kapalı" satırı var. İkisi çakışmıyor.
+
+**Testler:** `src/domain/visible-risk.test.ts` — iki haftalık taramada körlemesine gün tam
+olarak iki cumartesi; piyasanın açık olduğu hiçbir günde çıkmıyor; pazar bu satırı almıyor.
 
 #### B2 · T · İşçilikli ürün mekaniği ekonomik olarak baskılanmış
 Ölçüldü: vitrin müşterisi hedeflemesi %19,7 oranında çalışıyor, toplanabilir değil ve vitrin
@@ -490,11 +514,24 @@ bir depo.
 **Öneri:** vitrindeki ürünün hedeflenme olasılığı günlerle düşsün; oyuncu "bunu indireyim mi,
 eritip sarrafiyeye mi döneyim" diye düşünsün. Ölü stok kavramı zaten var, bağlanabilir.
 
-#### B5 · T · Vitrin slot seyrelmesi oyuncuya gösterilmiyor
-Vitrinde ne kadar çok ürün varsa her birinin hedeflenme şansı o kadar düşüyor. Oyuncu bunu
-hiçbir yerden göremiyor, dolayısıyla vitrini doldurmanın bir bedeli olduğunu bilmiyor.
+#### B5 · T · Vitrin slot seyrelmesi gösterilmiyordu — ✅ YAPILDI
+`src/domain/purchase.ts` · `src/ui/screens/StockScreen.tsx`
 
-**Öneri:** vitrin başlığına "8 slotta 5 ürün · her biri ~%4 hedeflenme" gibi tek satır.
+Vitrin müşterisi hedefini tek tek seçiyor (`customer-spawn` · `showcaseRng.pick`), yani
+vitrindeki her yeni ürün diğerlerinin şansını böler: n ürün varsa her birinin şansı
+**%20 / n**. Oyuncu bunu hiçbir yerden göremediği için vitrini doldurmayı bedelsiz sanıyordu.
+
+**Yapıldı:** Stok başlığının altına tek satır. Sayı `showcaseTargetChancePerItem` ile
+türetiliyor ve spawn artık aynı sabiti (`SHOWCASE_TARGET_CHANCE`) kullanıyor — kural
+değişirse ekrandaki oran da onunla değişir, ayrı yerde ikinci bir gerçek tutulmuyor.
+Vitrin boşken satır hiç basılmaz.
+
+**Tarayıcıda doğrulandı:** vitrin boşken satır yok; bir ürün girince
+*"Vitrindeki tek ürün her alıcıda %20,0 ilgi görür"*.
+
+**Testler:** `src/domain/visible-risk.test.ts` — tek üründe oran sabitin kendisi; ürün
+eklendikçe düşüyor; **toplam ilgi sabit kalıyor** (bölüşülüyor, yaratılmıyor); boş vitrinde
+sıfır.
 
 ---
 

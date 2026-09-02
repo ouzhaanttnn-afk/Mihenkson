@@ -338,6 +338,25 @@ export function showcaseStock(inventory: InventoryPosition[], items: Record<stri
   return inventory.filter(p => p.location === 'display' && p.quantity >= 1 && !!items[p.itemId] &&
     items[p.itemId]!.location === 'display' && isCrafted(items[p.itemId]!) && items[p.itemId]!.buyCost !== null);
 }
+/**
+ * Bir ALICI müşterinin vitrindeki bir ürünü hedefleme olasılığı
+ * (customer-spawn · `showcaseRng.chance`). Vitrin dolduruldukça bu pay ürünler
+ * ARASINDA BÖLÜŞÜLÜR — hedef tek tek seçildiği için (`showcaseRng.pick`).
+ */
+export const SHOWCASE_TARGET_CHANCE = 0.20;
+
+/**
+ * B5 — vitrine bir ürün daha koymanın görünmeyen bedeli.
+ *
+ * Vitrinde n ürün varsa her birinin hedeflenme şansı `%20 / n`'dir; oyuncu
+ * bunu hiçbir yerden göremediği için vitrini doldurmanın bir bedeli olduğunu
+ * bilmiyordu. Sayı burada türetiliyor ki ekranda yazan oran spawn kuralıyla
+ * aynı yerden gelsin; sabit değişirse ekran da onunla değişir.
+ */
+export function showcaseTargetChancePerItem(displayCount: number): number {
+  return displayCount > 0 ? SHOWCASE_TARGET_CHANCE / displayCount : 0;
+}
+
 export function showcaseDemand(item: ItemInstance): CustomerDemand {
   return { targetInventoryItemId: item.id, families: [item.family], wantsBullion: false,
     templateId: item.templateId, quantity: 1, minQuantity: 1, acceptsPartial: false, isBulk: false,

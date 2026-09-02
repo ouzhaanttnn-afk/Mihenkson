@@ -50,6 +50,14 @@
   color: var(--text-light-3);
 }
 
+/* B5 · başlığın altındaki tek satırlık uyarı; ürün yokken hiç basılmaz. */
+.pageHead__note {
+  margin: 4px 0 0;
+  font-size: var(--fs-micro);
+  line-height: 1.4;
+  color: var(--text-dark-2);
+}
+
 /* Kompakt özet satırı — kart yığını yerine tek satırda üç metrik. */
 .summaryRow {
   display: flex;
