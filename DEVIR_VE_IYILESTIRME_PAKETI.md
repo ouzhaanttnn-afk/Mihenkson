@@ -53,6 +53,29 @@ Referans depolar:
 | A4 · Stok düğmeleri yumurta gibi duruyor | ✅ yapıldı |
 | A9 · Stok marjı hangi kanala göre, yazmıyor | ✅ yapıldı |
 | C1 · Vitrin tezi seçilince mal vitrine girmiyordu | ✅ yapıldı |
+| C5 · Karşılanan satıcıdan vazgeçilemiyordu | ✅ yapıldı |
+
+### Yeni taban (45a499b) üstünde yeniden ölçüm
+
+Düzeltmeler eski tabanda (292467e) teşhis edilmişti; yeni tabanda hepsi baştan ölçüldü.
+
+| Madde | Yeni tabanda durum |
+|---|---|
+| A1 balon ömrü | ✓ tarayıcıda: 3 gün üst üste kapatıldı, 5,5 sn sonra **0** balon |
+| A2 alt rota | ✓ tarayıcıda: Piyasa ve İşlem Defteri'nden sekmeyle köke dönüş |
+| A3 HAS paneli | clone `45a499b` ile kendi çözmüş (`hasCompact`) — benimki geri çekildi |
+| A4 chip yüksekliği | ✓ tarayıcıda: 46 px, filtre çipiyle eşit |
+| A5 `AÇIK` | ✓ tarayıcıda: pazarlık rozeti "AÇIK" |
+| A6 kırılım | ✓ tarayıcıda: `Kondisyon/Risk −%2 · −431 ₺` · `Oynaklık +%1` · not satırı var |
+| A7 | çelişkili metin clone `de16ae1` ile kökten kalkmış; "Canlandır" kilidi duruyor |
+| A9 etiketler | ✓ tarayıcıda: kırpılma yok, kap taşmıyor |
+| C1 vitrin | domain testleri ✓ · tarayıcı doğrulaması hâlâ açık |
+| A8 karşı teklif | ✗ hâlâ açık — tur bütçesi yok |
+| A10 ses | ✗ clone tabanında ses altyapısı hiç yok (`public/assets/audio` klasörü de yok) |
+
+**Spawn ölçümü** (800 müşteri, tohum 12345): `sell 349 · buy 362 · service 57 · appraisal 32`;
+satıcıların **%24,9'u işçilikli** → tüm müşterilerin ~%11'i. Yani işçilikli satıcı bol;
+tarayıcı doğrulamalarının takılma sebebi spawn değil, C5'ti.
 | Geri kalanı | ⏳ sırada (aşağıdaki "Önerilen sıra") |
 
 ---
@@ -455,13 +478,23 @@ gider yazıyor (`lifestyleDailyExpense`, gün kapanışına bağlı). Orijinalde
 kalacak" kuralıyla doğrudan çelişiyor. **Bu sekme orijinale alınmaz** — karar verilecekse
 ayrıca konuşulmalı.
 
-#### C5 · T · Karşılanan müşteriden vazgeçilemiyor
+#### C5 · T · Karşılanan müşteriden vazgeçilemiyor — ✅ YAPILDI
+`src/ui/screens/ShopScreen.tsx` · `inspect` aşaması dock'u
 "Bozdurmak istiyor" diyen müşteride birinci aşamanın düğmeleri: Terazi · Mihenk · Yoğunluk ·
 Fiyata Geç · Yine de değerle. Reddetme yok. Değerleme ve pazarlığı geçmeden çıkış yok.
 "Müşteriyi Gönder" yalnız satış tarafında var.
 
-**Öneri (ikisine de):** birinci aşamaya "İlgilenmiyorum" eklensin, bedeli oracıkta yazsın
-("Semt itibarın 1 puan düşer"). Bir sarraf kapıdaki malı görüp geri çevirebilir.
+**Yapıldı:** birinci aşamaya **"İlgilenmiyorum"** eklendi. `finishDeal` akıştan bağımsız:
+ekonomiye dokunmuyor, ziyareti deftere yazıyor ve itibar farkını uyguluyor (GDD 10.2) — bedel
+uydurulmadı, var olan ziyaret muhasebesi işliyor.
+
+**Tarayıcıda doğrulandı:** 1. aşama düğmeleri `… Fiyata Geç · Yine de değerle ·
+İlgilenmiyorum`; art arda **6 müşteri** elden çıkarıldı, 7.'de işçilikli satıcıya ulaşıldı.
+Bu aynı zamanda A6'nın tarayıcı doğrulamasını açtı — o doğrulama tam da bu eksik yüzünden
+tıkanıyordu.
+
+**Kalan:** bedeli düğmenin yanında yazmak ("Semt itibarın 1 puan düşer") henüz yok; itibar
+farkı ziyaret muhasebesinden geliyor ama oyuncuya önceden söylenmiyor.
 
 #### C6 · A · Gün raporu 1. günde felaket gibi okunuyor
 "Kasa değişimi −77.336 ₺" yazıyor; bunun 76.136 ₺'si stoğa giden para. Hiçbir satır bunu

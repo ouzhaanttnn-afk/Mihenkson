@@ -1203,13 +1203,28 @@ function ShopDock({
               ? { label: 'Fiyata Geç', onPress: () => s.setStage('negotiate') }
               : { label: 'Değerlemeye Geç', onPress: () => s.setStage('appraise') }
           }
-          secondary={
-            fast
+          /*
+            "İLGİLENMİYORUM" — KAPIDAKİ MALI GERİ ÇEVİRME.
+
+            Bu aşamada hiçbir çıkış yoktu: müşteriyi karşılayan oyuncu,
+            değerleme ve pazarlığı geçmeden ondan kurtulamıyordu; reddetme
+            yalnız pazarlık aşamasındaydı (tarayıcıda ölçüldü — birinci
+            aşamanın düğmeleri: Terazi · Mihenk · Yoğunluk · Fiyata Geç ·
+            Yine de değerle). Oysa bir sarraf kapıdaki malı görüp "bu bende
+            olmaz" diyebilir; alış tarafında zaten "Müşteriyi Gönder" var.
+
+            `finishDeal` akıştan bağımsız: ekonomiye dokunmaz, ziyareti
+            deftere yazar ve itibar farkını uygular (GDD 10.2). Yani bedeli
+            uydurmuyoruz — var olan ziyaret muhasebesi işliyor.
+          */
+          secondary={[
+            ...(fast
               ? [{ label: 'Yine de değerle', onPress: () => s.setStage('appraise') }]
               : line.testResults.length === 0
                 ? [{ label: 'Test yapmadan ilerle', onPress: () => s.setStage('appraise') }]
-                : []
-          }
+                : []),
+            { label: 'İlgilenmiyorum', onPress: s.finishDeal, danger: true },
+          ]}
         />
       );
     }
