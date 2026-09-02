@@ -35,6 +35,7 @@ import type {
   MarketState,
   StoreState,
 } from './types';
+import { defaultSkillProgress, startingPatience, type SkillProgress } from './skill-tree';
 
 export interface SpawnedCustomer {
   customer: Customer;
@@ -60,6 +61,7 @@ export function spawnCustomer(
   /** GDD 10 — tanıdık müşteri defteri. Boşsa herkes yabancıdır. */
   registry: CustomerRegistry = {},
   stock?: { inventory: InventoryPosition[]; items: Record<string, ItemInstance> },
+  skills: SkillProgress = defaultSkillProgress(),
 ): SpawnedCustomer {
   const rng = new Rng(deriveSeed(rootSeed, 'customer', spawnIndex));
 
@@ -145,7 +147,7 @@ export function spawnCustomer(
   }
 
   // --- Davranış parametreleri (GDD 9.1) ---
-  const patienceMax = Math.round(rng.band(archetype.patienceBand));
+  const patienceMax = startingPatience(Math.round(rng.band(archetype.patienceBand)), skills);
   const knowledge = Math.round(rng.band(archetype.knowledgeBand));
   // §3: dinamik havuz "müşteri kalitesi, aciliyet" gibi nitelikleri etkiler —
   // niyet payını DEĞİL. Eğim bu yüzden davranışa uygulanır, dağılıma değil.

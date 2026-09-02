@@ -10,31 +10,21 @@
 import { MEMORY } from '@domain/balance';
 import { loyaltyEffects, type CustomerRecord } from '@domain/customer-memory';
 import { getArchetype } from '@data/archetypes';
-import { IconQueue } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { customerArt } from '@ui/assets';
 import { customerIntentLine } from '@ui/intent-line';
 import type { Customer, ItemInstance } from '@domain/types';
 
 interface Props {
-  customer: Customer | null;
+  customer: Customer;
   /** GDD 10 — bu müşterinin kalıcı kaydı; yeni müşteride null. */
   record?: CustomerRecord | null;
-  queueLength: number;
   lineCount: number;
   /**
    * Müşterinin GETİRDİĞİ kalemler. Niyet cümlesi ürünü adıyla anmak için
    * bunlara ihtiyaç duyar: "1 adet 14 Ayar Yüzük satmak istiyor".
    */
   broughtItems: ItemInstance[];
-  /**
-   * Dükkân bugün açık mı (takvim · pazar kapalı).
-   *
-   * Şerit kapalı günde de "Kapı açık — gün akıyor" diyordu; iki satır altta
-   * "Dükkân bugün kapalı" yazarken. İki cümle birbirini yalanlıyordu
-   * (tarayıcıda pazar gününde görüldü).
-   */
-  shopOpen: boolean;
 }
 
 /** Etiket tonu: sadık yeşil, küsmüş kırmızı, arası nötr. */
@@ -44,51 +34,7 @@ function tieTone(record: CustomerRecord): 'good' | 'bad' | 'neutral' {
   return 'neutral';
 }
 
-export function CustomerStrip({
-  customer,
-  record,
-  queueLength,
-  lineCount,
-  broughtItems,
-  shopOpen,
-}: Props) {
-  if (!customer) {
-    /*
-      Boş şeridin üç hâli var ve sırası önemli:
-
-        kapalı  — kapı kapalı, bugün kimse gelmeyecek. GERÇEK.
-        bekleyen — kuyrukta biri var.
-        sakin   — kapı açık, henüz kimse yok. OLASILIK.
-
-      Kapalılık en üstte çünkü diğer ikisi ancak dükkân açıkken doğru olabilir.
-      Eskiden bu ayrım yoktu ve şerit pazar günü "Kapı açık — gün akıyor"
-      diyordu.
-    */
-    const closed = !shopOpen;
-    const name = closed
-      ? 'Dükkân bugün kapalı'
-      : queueLength > 0
-        ? `Bekleyen: ${queueLength} müşteri`
-        : 'Yeni müşteri bekleniyor';
-    const intent = closed
-      ? 'Kapı kapalı — bugün müşteri gelmez'
-      : queueLength > 0
-        ? 'Karşılamak için hazır'
-        : 'Kapı açık — gün akıyor';
-
-    return (
-      <div className="customerStrip">
-        <span className="customerStrip__avatar">
-          <IconQueue size={18} />
-        </span>
-        <div className="customerStrip__main">
-          <div className="customerStrip__name">{name}</div>
-          <div className="customerStrip__intent">{intent}</div>
-        </div>
-      </div>
-    );
-  }
-
+export function CustomerStrip({ customer, record, lineCount, broughtItems }: Props) {
   const archetype = getArchetype(customer.archetype);
   const initial = customer.displayName.charAt(0);
 
@@ -148,16 +94,17 @@ export function CustomerStrip({
 
 /**
  * Sabır göstergesi. GDD 11.3 — "matematiksel skor oyuncuya gösterilmez".
- * Beş nokta; renk düşük sabırda uyarıya döner.
+ * Nokta sayısı gerçek sabır puanıdır; Tatlı Dil bonusu burada görünür.
  */
 export function PatienceDots({ value, max }: { value: number; max: number }) {
   const ratio = Math.max(0, Math.min(1, value / Math.max(1, max)));
-  const filled = Math.ceil(ratio * 5);
+  const total = Math.max(1, Math.min(7, Math.round(max)));
+  const filled = Math.max(0, Math.min(total, Math.ceil(value)));
   const tone = ratio <= 0.2 ? 'critical' : ratio <= 0.45 ? 'low' : 'on';
 
   return (
-    <div className="patience" aria-label={`Sabır: ${filled}/5`} title="Müşteri sabrı">
-      {[0, 1, 2, 3, 4].map((i) => (
+    <div className="patience" aria-label={`Sabır: ${filled}/${total}`} title={`Müşteri sabrı ${filled}/${total}`}>
+      {Array.from({ length: total }, (_, i) => (
         <span
           key={i}
           className={`patience__dot ${i < filled ? `patience__dot--${tone}` : ''}`}

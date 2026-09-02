@@ -33,18 +33,22 @@ interface Props {
   secondary?: DockAction[];
   /** Yalnız boş Dükkan dock'u; çok kısa ekranda müşteri listesine öncelik verir. */
   idle?: boolean;
+  /** Boş dükkan durumunda yukarıdaki kuyruk bilgisini tekrar etme. */
+  hideSummary?: boolean;
 }
 
-export function DecisionDock({ summaryLabel, summaryValue, children, primary, secondary = [], idle = false }: Props) {
+export function DecisionDock({ summaryLabel, summaryValue, children, primary, secondary = [], idle = false, hideSummary = false }: Props) {
   // GDD 23.9.2 sözleşmesi: en fazla 2 ikincil eylem.
   const actions = secondary.slice(0, 2);
 
   return (
-    <footer className={`dock ${idle ? 'dock--idle' : ''}`}>
-      <div className="dock__summary">
-        <span className="dock__summaryLabel">{summaryLabel}</span>
-        <span className="dock__summaryValue">{summaryValue}</span>
-      </div>
+    <footer className={`dock ${idle ? 'dock--idle' : ''} ${hideSummary ? 'dock--summaryless' : ''}`}>
+      {!hideSummary && (
+        <div className="dock__summary">
+          <span className="dock__summaryLabel">{summaryLabel}</span>
+          <span className="dock__summaryValue">{summaryValue}</span>
+        </div>
+      )}
 
       {children}
 

@@ -18,7 +18,7 @@ export function maxHasBuyMg(cash: number, buyPrice: number): number {
 }
 export function tradeHas(state: EconomyState, market: MarketState, side: 'buy' | 'sell', mg: number, txId: string): SettlementOutcome {
   const reject = (reason: string): SettlementOutcome => ({ applied: false, state, reason });
-  if (!isHasTradingDay(market.day)) return reject('HAS alım-satımı yalnız oyun içi cuma günü açık.');
+  if (!isHasTradingDay(market.day)) return reject('Geçersiz HAS işlem günü.');
   if (!Number.isSafeInteger(mg) || mg <= 0) return reject('Geçerli bir gram miktarı giriniz (en küçük 0,001 g).');
   const quote = hasQuote(market, state.store);
   if (!(quote.buy > quote.sell)) return reject('HAS fiyat makası geçersiz.');

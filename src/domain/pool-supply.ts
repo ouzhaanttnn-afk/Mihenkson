@@ -2,19 +2,24 @@ import { spawnItem } from './item-spawn';
 import { bullionMeta } from '@data/bullion';
 import { bullionUnitValue, priceForChannel } from './channels';
 import { poolForTemplate } from './stock-pools';
-import { toMg } from './v5-rules';
 import type { ItemInstance, MarketState, StoreState } from './types';
 
 /** UI families use existing canonical stock units, not new SKUs or prices. */
 export const POOL_SUPPLY = [
   { templateId: 'gram_gold_1', name: 'Gram Altın', gramsPerUnit: 1 },
   { templateId: 'quarter_gold', name: 'Çeyrek Altın', gramsPerUnit: 0 },
+  { templateId: 'half_gold', name: 'Yarım Altın', gramsPerUnit: 0 },
+  { templateId: 'republic_gold', name: 'Cumhuriyet Altını', gramsPerUnit: 0 },
+  { templateId: 'ata_gold', name: 'Ata Lira', gramsPerUnit: 0 },
   { templateId: 'investment_bangle_22k_10', name: '22 Ayar İşçiliksiz Yatırım Bileziği', gramsPerUnit: 10 },
 ] as const;
+/** Sarrafiye gram alımında oyuncuya gösterilen ve kabul edilen en küçük adım. */
+export const GRAM_SUPPLY_STEP = 0.1;
 export function validPoolSupplyQuantity(templateId: string, quantity: number): boolean {
   if (!POOL_SUPPLY.some(p => p.templateId === templateId) || !Number.isFinite(quantity) || quantity <= 0) return false;
   return templateId === 'gram_gold_1'
-    ? Number.isSafeInteger(toMg(quantity)) && Math.abs(toMg(quantity) / 1000 - quantity) < 1e-9
+    ? Number.isSafeInteger(Math.round(quantity / GRAM_SUPPLY_STEP))
+      && Math.abs(Math.round(quantity / GRAM_SUPPLY_STEP) * GRAM_SUPPLY_STEP - quantity) < 1e-9
     : Number.isSafeInteger(quantity) && Number.isSafeInteger(quantity * (templateId === 'quarter_gold' ? 1 : 10000));
 }
 export function poolSupplyQuote(templateId: string, quantity: number, market: MarketState, store: StoreState) {
@@ -46,7 +51,7 @@ export function validPoolSupplyItem(item: ItemInstance): boolean {
 /** Cash-only counter: quote each amount because existing volume pricing varies. */
 export function maxPoolSupplyQuantity(templateId: string, market: MarketState, store: StoreState): number {
   if (!POOL_SUPPLY.some(p => p.templateId === templateId) || !Number.isFinite(store.cash) || store.cash <= 0) return 0;
-  const scale = templateId === 'gram_gold_1' ? 1000 : 1;
+  const scale = templateId === 'gram_gold_1' ? 1 / GRAM_SUPPLY_STEP : 1;
   const affordable = (ticks: number) => {
     const quote = poolSupplyQuote(templateId, ticks / scale, market, store);
     return !!quote && quote.totalPrice <= store.cash;

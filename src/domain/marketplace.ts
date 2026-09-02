@@ -16,6 +16,8 @@ export type MarketEquipSlot = 'profileFrame' | 'shopTheme' | 'shopBadge';
 export interface UnlockRequirement {
   level?: number;
   reputation?: number;
+  /** Oyuncunun hesabında bulunması gereken en düşük HAS miktarı. */
+  hasGrams?: number;
 }
 
 export interface MarketProduct {
@@ -30,6 +32,11 @@ export interface MarketProduct {
   /** Şahsi prestij ürünlerinin gün kapanışında yarattığı kalıcı gider. */
   dailyUpkeep?: Money;
   tier: 'standard' | 'premium' | 'elite' | 'legendary';
+  /** Global kotayı yerel save'in sahte biçimde dağıtmaması için sunucu talebi gerekir. */
+  serverClaim?: {
+    globalQuota: number;
+    claimKey: string;
+  };
 }
 
 export interface PlayerMarketState {
@@ -51,6 +58,18 @@ export const MARKET_CATEGORIES: { id: MarketCategory; label: string; description
  * ve prestij sağlar. Şahsi üst segment ürünler bakım gideri üretir.
  */
 export const MARKET_CATALOG: MarketProduct[] = [
+  {
+    id: 'badge_first_5kg_has',
+    category: 'profile',
+    name: 'İlk 5 KG HAS Rozeti',
+    description: '5 kg HAS biriktiren ilk 100 oyuncuya ayrılmış, global sınırlı prestij rozeti.',
+    price: 0,
+    unlockRequirement: { hasGrams: 5_000 },
+    assetReference: 'badge:first-5kg-has-placeholder',
+    equipSlot: 'shopBadge',
+    tier: 'legendary',
+    serverClaim: { globalQuota: 100, claimKey: 'first_100_reach_5kg_has' },
+  },
   { id: 'badge_founder', category: 'profile', name: 'Kurucu Rozeti', description: 'Profilinde ilk dönem kuyumcu rozeti gösterir.', price: 25_000, unlockRequirement: { level: 1 }, assetReference: 'badge:founder', equipSlot: 'shopBadge', tier: 'standard' },
   { id: 'badge_master', category: 'profile', name: 'Usta Sarraf Rozeti', description: 'Tecrübeyi simgeleyen mor-altın profil rozeti.', price: 240_000, unlockRequirement: { level: 6, reputation: 55 }, assetReference: 'badge:master', equipSlot: 'shopBadge', tier: 'premium' },
   { id: 'frame_brass', category: 'frames', name: 'Pirinç Çerçeve', description: 'Avatar çevresine sıcak pirinç işçiliği uygular.', price: 60_000, unlockRequirement: { level: 2 }, assetReference: 'frame:brass', equipSlot: 'profileFrame', tier: 'standard' },
@@ -79,8 +98,10 @@ export function productById(id: string): MarketProduct | undefined {
   return MARKET_CATALOG.find((product) => product.id === id);
 }
 
-export function isUnlocked(product: MarketProduct, level: number, reputation: number): boolean {
-  return level >= (product.unlockRequirement.level ?? 1) && reputation >= (product.unlockRequirement.reputation ?? 0);
+export function isUnlocked(product: MarketProduct, level: number, reputation: number, hasBalanceMg = 0): boolean {
+  return level >= (product.unlockRequirement.level ?? 1)
+    && reputation >= (product.unlockRequirement.reputation ?? 0)
+    && hasBalanceMg >= (product.unlockRequirement.hasGrams ?? 0) * 1_000;
 }
 
 export function lifestyleDailyExpense(state: PlayerMarketState): Money {
@@ -116,7 +137,8 @@ export function purchaseMarketProduct(
   const product = productById(productId);
   if (!product) return { applied: false, economy, playerMarket, reason: 'Ürün bulunamadı.' };
   if (playerMarket.owned.includes(productId)) return { applied: false, economy, playerMarket, reason: 'Bu ürün zaten sende.' };
-  if (!isUnlocked(product, economy.store.level, economy.store.reputation)) return { applied: false, economy, playerMarket, reason: 'Ürün henüz açılmadı.' };
+  if (product.serverClaim) return { applied: false, economy, playerMarket, reason: 'Bu sınırlı rozet sunucu sıralaması doğrulanınca verilir.' };
+  if (!isUnlocked(product, economy.store.level, economy.store.reputation, economy.store.hasBalanceMg)) return { applied: false, economy, playerMarket, reason: 'Ürün henüz açılmadı.' };
   if (economy.store.cash < marketPurchaseCashRequirement(product, playerMarket, economy.store)) {
     return { applied: false, economy, playerMarket, reason: 'Satın alma sonrası gün sonu gideri için yeterli nakit kalmıyor.' };
   }

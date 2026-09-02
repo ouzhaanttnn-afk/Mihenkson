@@ -96,6 +96,7 @@ import {
   IconWarning,
   IconWholesale,
   IconWorkshop,
+  IconBusiness,
 } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { customerArt, NAV_ART } from '@ui/assets';
@@ -118,6 +119,7 @@ import type {
   PurchaseSession,
   WorkbenchStage,
 } from '@domain/types';
+import { TalentTreePanel } from './TalentTreePanel';
 
 const TOOL_ICON: Record<string, typeof IconScale> = {
   scale: IconScale,
@@ -197,16 +199,16 @@ export function ShopScreen() {
 
       <MarketStrip market={s.market} onOpenMarket={() => s.setTab('business')} />
 
-      <CustomerStrip
-        customer={s.activeCustomer}
-        record={s.activeCustomer ? (s.customers[s.activeCustomer.id] ?? null) : null}
-        shopOpen={isShopOpen(s.market.day)}
-        queueLength={s.queue.length}
-        lineCount={deal?.lines.length ?? 0}
-        broughtItems={
-          deal ? deal.lines.map((l) => s.items[l.itemId]).filter((i): i is ItemInstance => !!i) : []
-        }
-      />
+      {s.activeCustomer && (
+        <CustomerStrip
+          customer={s.activeCustomer}
+          record={s.customers[s.activeCustomer.id] ?? null}
+          lineCount={deal?.lines.length ?? 0}
+          broughtItems={
+            deal ? deal.lines.map((l) => s.items[l.itemId]).filter((i): i is ItemInstance => !!i) : []
+          }
+        />
+      )}
 
       {deal && (
         <>
@@ -480,6 +482,8 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
  */
 function IdleWorkbench({ coaching }: { coaching: boolean }) {
   const s = useGame();
+  const [talentTreeOpen, setTalentTreeOpen] = useState(false);
+  const [shopOverviewOpen, setShopOverviewOpen] = useState(false);
   const liquidity = selectors.liquidity(s);
   const band = selectors.liquidityBand(s);
 
@@ -488,15 +492,10 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
   const shopOpen = isShopOpen(s.market.day);
 
   if (!shopOpen) {
-    /*
-      "Dükkân kapalı" cümlesini artık müşteri şeridi söylüyor; burada
-      TEKRARLAMAYIZ. Bu satırın işi, kapalı günün ne getirdiğini söylemek:
-      piyasa da donuk, ama gün boş değil — stok, atölye ve toptancı açık.
-    */
     alerts.push({
       key: 'closed',
-      title: `${weekdayLabel(s.market.day)} · piyasa da kapalı`,
-      detail: 'Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.',
+      title: 'Dükkân bugün kapalı',
+      detail: `${weekdayLabel(s.market.day)} · müşteri gelmez; piyasa cuma kapanışında donuk.`,
       tone: 'warning',
       Icon: IconClock,
     });
@@ -561,7 +560,13 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         gerçeğini açmaz; hepsi zaten oyuncunun kendi stoğunun toplamıdır.
       */}
       <section className="shopOverview" aria-label="Dükkan kimliği ve mali durum">
-        <div className="idle__head">
+        <button
+          type="button"
+          className="idle__head shopOverview__toggle"
+          onClick={() => setShopOverviewOpen((open) => !open)}
+          aria-expanded={shopOverviewOpen}
+          aria-controls="shop-overview-details"
+        >
           <Art
             art={NAV_ART.shop}
             size={56}
@@ -575,12 +580,22 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
               {s.playerMarket.equipped.shopBadge && <span className="idle__badge" title="Market profil rozeti">◆</span>}
             </h2>
             <p className="idle__sub">
-              Gün {s.market.day} · {weekdayLabel(s.market.day)} · Semt itibarı {Math.round(s.store.reputation)}
+              {shopOverviewOpen
+                ? `Gün ${s.market.day} · ${weekdayLabel(s.market.day)} · Semt itibarı ${Math.round(s.store.reputation)}`
+                : 'Dükkan ve finans özetini göster'}
             </p>
           </div>
-        </div>
+          <span className={`shopOverview__chevron ${shopOverviewOpen ? 'shopOverview__chevron--open' : ''}`} aria-hidden="true">⌄</span>
+        </button>
 
-        <button type="button" className="position" onClick={() => s.setTab('stock')}>
+        {shopOverviewOpen ? <div className="shopOverview__details" id="shop-overview-details">
+          <button type="button" className="shopTalentButton" onClick={() => setTalentTreeOpen(true)}>
+            <span><IconBusiness size={18} /> Yetenek Ağacı</span>
+            <small>Ayar %{Math.round(s.skillProgress.assayAccuracyRank === 0 ? 60 : 60 + s.skillProgress.assayAccuracyRank * 10)} · Tatlı Dil {s.skillProgress.tatliDilLevel}/3</small>
+            <span aria-hidden="true">›</span>
+          </button>
+
+          <button type="button" className="position" onClick={() => s.setTab('stock')}>
           <span className="position__cell">
             <span className="position__icon" aria-hidden="true"><IconCash size={15} /></span>
             <span className="position__copy">
@@ -613,7 +628,8 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
             Altın %{metalShare} · Nakit %{100 - metalShare}
             <span className="position__go">Stok ›</span>
           </span>
-        </button>
+          </button>
+        </div> : null}
       </section>
 
       {!s.inventory.some(p => {
@@ -645,31 +661,37 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
        * GDD 23.10.1 — "Müşteri yokken Karar Dock'unda ana akışı bozmayan
        * ikincil 'Dükkânı Canlandır' rewarded CTA'sı gösterilebilir."
        * Ayrı banner veya büyük reklam kartı kullanılmaz.
-       *
-       * DÜKKÂN KAPALIYKEN GÖSTERİLMEZ. Pazar günü müşteri akışı zaten yok;
-       * "geliş aralığını kısaltan" bir düğme o gün hiçbir şey yapmaz. Bir
-       * satır yukarıda "Dükkân bugün kapalı" yazarken çalışmayan bir çağrıyı
-       * ekranda tutmak oyuncunun ekrana duyduğu güveni yer (tarayıcıda
-       * görüldü: pazar günü düğme yerinde duruyordu).
        */}
-      {shopOpen && s.queue.length === 0 && (
+      {s.queue.length === 0 && (
         <button type="button" className="rewardedLine" onClick={s.triggerCustomerRush}>
           <IconVideo size={13} />
           Dükkânı Canlandır
         </button>
       )}
+
+      {talentTreeOpen ? (
+        <div className="talentTreeScrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setTalentTreeOpen(false); }}>
+          <section className="talentTreeSheet" role="dialog" aria-modal="true" aria-labelledby="shop-talent-title">
+            <header className="talentTreeSheet__head">
+              <div><span>Uzmanlık</span><h2 id="shop-talent-title">Yetenek Ağacı</h2></div>
+              <button type="button" onClick={() => setTalentTreeOpen(false)} aria-label="Yetenek ağacını kapat">×</button>
+            </header>
+            <div className="talentTreeSheet__scroll"><TalentTreePanel /></div>
+            <button type="button" className="talentTreeSheet__done" onClick={() => setTalentTreeOpen(false)}>Dükkana Dön</button>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 /**
- * Bekleme kuyruğu mevcut FIFO davranışını görünür kılar. Yalnız ilk müşteri
- * karşılanabilir; sonraki kartlar sırayı bozacak sahte bir eylem sunmaz.
+ * Bekleme kuyruğu mevcut FIFO davranışını görünür kılar. Karşılama eylemi
+ * yalnız alttaki karar alanında bulunur; kartlar müşteri bilgisini taşır.
  */
 function WaitingCustomerQueue() {
   const queue = useGame((s) => s.queue);
   const capacity = useGame((s) => queueCapacity(s.store));
-  const greetCustomer = useGame((s) => s.greetCustomer);
   const [expanded, setExpanded] = useState(false);
   const visibleQueue = expanded ? queue : queue.slice(0, 1);
 
@@ -721,12 +743,6 @@ function WaitingCustomerQueue() {
                   <span>Bekliyor</span>
                 </div>
               </div>
-
-              {isNext && (
-                <button type="button" className="waitingCustomer__greet" onClick={greetCustomer}>
-                  Karşıla
-                </button>
-              )}
             </article>
           );
         })}
@@ -1105,10 +1121,11 @@ function ShopDock({
     return (
       <DecisionDock
         idle
+        hideSummary
         summaryLabel="Kuyruk"
         summaryValue={hasQueue ? `${s.queue.length} müşteri bekliyor` : 'Müşteri bekleniyor'}
         primary={{
-          label: hasQueue ? 'Müşteriyi Karşıla' : 'Müşteri bekleniyor',
+          label: hasQueue ? `Müşteriyi Karşıla · ${s.queue.length}` : 'Müşteri bekleniyor',
           onPress: s.greetCustomer,
           disabled: !hasQueue,
         }}

@@ -113,6 +113,8 @@ export interface NegotiationContext {
   haggleRoom?: number;
   /** Satış yönünde adil değerin üzerindeki meşru perakende makası. */
   retailSpread?: number;
+  /** Tatlı Dil 3: kârlı ama hakaret sayılmayan teklifte kaybı yumuşatır. */
+  patienceLossTolerated?: boolean;
 }
 
 /**
@@ -353,10 +355,13 @@ function handleOffer(
   const badOfferCount = countBadOffers(session, ctx) + (isInsulting ? 1 : 0);
 
   // Fiyat hassasiyeti yüksek müşteride sabır daha hızlı erir.
-  const patienceCost = Math.round(
-    NEGOTIATION.patiencePerRound * (1 + (customer.priceSensitivity / 100) * 0.6) +
-      (isInsulting ? 8 : 0),
-  );
+  const highProfitPressure = ratio < 0.95 && customer.priceSensitivity >= 70;
+  let patienceCost = NEGOTIATION.patiencePerRound + (highProfitPressure ? 1 : 0);
+  // Tatlı Dil 3 yalnız makul pazarlık alanını korur. Hakaret seviyesindeki
+  // teklif bedelsizleşmez; kârlı ama hâlâ ciddi teklif bir puan daha az yakar.
+  if (ctx.patienceLossTolerated && !isInsulting && highProfitPressure) {
+    patienceCost = Math.max(1, patienceCost - 1);
+  }
   const patienceAfter = customer.patience - patienceCost;
   const patienceRatioAfter = patienceAfter / Math.max(1, customer.patienceMax);
 
@@ -498,7 +503,7 @@ function handleReason(
         state: session.state,
         message: 'Bunu zaten söylediniz.',
         counterOffer: session.activeCounter,
-        patienceDelta: -4,
+        patienceDelta: -1,
         trustDelta: 0,
         suspicionDelta: 0,
         wasRepeatOffer: false,
@@ -525,7 +530,7 @@ function handleReason(
           ? 'Bunu ölçmediniz. Elinizde olmayan bir veriyle konuşuyorsunuz.'
           : 'Peki, siz bilirsiniz.',
         counterOffer: session.activeCounter,
-        patienceDelta: -5,
+        patienceDelta: -1,
         trustDelta: knowledgeable ? -NEGOTIATION.falseReasonTrustPenalty : -2,
         suspicionDelta: knowledgeable ? 12 : 4,
         wasRepeatOffer: false,
@@ -546,7 +551,7 @@ function handleReason(
       state: session.state,
       message: reasonReplyFor(a.id, evidence.claim),
       counterOffer: session.activeCounter,
-      patienceDelta: -3,
+      patienceDelta: 0,
       trustDelta: Math.round(NEGOTIATION.reasonTrustGain * a.reasonResponsiveness),
       // Doğrulanmış veri şüpheyi azaltır.
       suspicionDelta: -6,
@@ -578,7 +583,7 @@ function handleGesture(
         ? 'Nezaketiniz için sağ olun, ama mesele fiyatta.'
         : 'İnce düşünmüşsünüz, teşekkür ederim.',
       counterOffer: session.activeCounter,
-      patienceDelta: beyondCap ? -4 : 2,
+      patienceDelta: beyondCap ? -1 : 1,
       trustDelta: beyondCap ? 0 : Math.round(NEGOTIATION.gestureTrustGain * a.gestureResponsiveness),
       suspicionDelta: 0,
       wasRepeatOffer: false,
@@ -711,16 +716,8 @@ export function isTerminal(state: NegotiationState): boolean {
   return state === 'ACCEPTED' || state === 'REJECTED';
 }
 
-/**
- * Pazarlık durumunun oyuncuya görünen adı.
- *
- * ANAHTARLAR İNGİLİZCE, DEĞERLER TÜRKÇE — anahtar durum makinesinin kimliği,
- * değer ekranda okunan kelime. `OPEN` uzun süre çevrilmeden kalmıştı ve
- * pazarlık ekranının tam ortasında, dört Türkçe etiketin yanında tek başına
- * İngilizce duruyordu (tarayıcıda görüldü).
- */
 export const STATE_LABEL: Record<NegotiationState, string> = {
-  OPEN: 'AÇIK',
+  OPEN: 'OPEN',
   HARDENING: 'SERTLEŞTİ',
   FINAL_OFFER: 'SON TEKLİF',
   ACCEPTED: 'KABUL',

@@ -22,7 +22,7 @@ import { LIQUIDITY_BANDS, XP } from './balance';
 import { hasPoolSupplySpace, poolSupplyQuote, validPoolSupplyItem, validPoolSupplyQuantity } from './pool-supply';
 import { isBullion } from '@data/bullion';
 import { consolidatePools, poolForItem, validQuantity, poolUnitGrams } from './stock-pools';
-import { toMg, fromMg, roundMoney, personnelDaily, isHasTradingDay, dailyOperatingCost } from './v5-rules';
+import { toMg, fromMg, roundMoney, personnelDaily, isHasTradingDay, dailyOperatingCost, scaleMaintenanceCost, dueScaleMaintenanceDebt } from './v5-rules';
 import type {
   DealRecord,
   GameDay,
@@ -538,6 +538,9 @@ export interface DayReport {
   overnightSummary?: string;
   personnelExpense?: Money;
   lifestyleExpense?: Money;
+  scaleMaintenanceExpense?: Money;
+  scaleMaintenanceDeferred?: Money;
+  scaleMaintenanceDebtPaid?: Money;
   missedGuestCountToday?: number;
   day: GameDay;
   realizedTradeProfit: Money;
@@ -561,7 +564,17 @@ export function closeDay(
 ): DayCloseResult {
   const txId = `dayclose_${day}`;
   const personnelExpense = personnelDaily(state.store);
-  const overhead = roundMoney(dailyOperatingCost(state.store) + Math.max(0, lifestyleExpense));
+  const regularExpense = roundMoney(dailyOperatingCost(state.store) + Math.max(0, lifestyleExpense));
+  const maintenanceDue = scaleMaintenanceCost(state.store, day);
+  const maintenanceDebtDue = dueScaleMaintenanceDebt(state.store, day);
+  // Aylık bakım oyunu kilitlemez: düzenli gider karşılanabiliyorsa bakımın
+  // yetmeyen kısmı üç gün vadeli borca dönüşür.
+  let maintenanceBudget = Math.max(0, state.store.cash - regularExpense);
+  const maintenanceDebtPaid = maintenanceBudget >= maintenanceDebtDue ? maintenanceDebtDue : 0;
+  maintenanceBudget -= maintenanceDebtPaid;
+  const maintenancePaid = maintenanceBudget >= maintenanceDue ? maintenanceDue : 0;
+  const maintenanceDeferred = maintenanceDue - maintenancePaid;
+  const overhead = roundMoney(regularExpense + maintenanceDebtPaid + maintenancePaid);
 
   const tx: SettlementTransaction = {
     txId,
@@ -573,11 +586,32 @@ export function closeDay(
     trustDelta: 0,
     reputationDelta: 0,
     xpDelta: 0,
-    label: `Gün ${day} kira + sabit gider + personel + şahsi bakım`,
+    label: `Gün ${day} kira + sabit gider + personel + şahsi bakım + terazi bakımı`,
   };
 
   const outcome = applyTransaction(state, tx);
-  const nextState = outcome.state;
+  const paidDebtIds = maintenanceDebtPaid > 0
+    ? outcome.state.store.payables
+        .filter(p => p.id.startsWith('scale_maintenance_') && p.dueDay <= day)
+        .map(p => p.id)
+    : [];
+  const nextState = outcome.applied && (maintenanceDeferred > 0 || paidDebtIds.length > 0)
+    ? {
+        ...outcome.state,
+        store: {
+          ...outcome.state.store,
+          payables: [
+            ...outcome.state.store.payables.filter(p => !paidDebtIds.includes(p.id)),
+            ...(maintenanceDeferred > 0 && !outcome.state.store.payables.some(p => p.id === `scale_maintenance_${day}`) ? [{
+                id: `scale_maintenance_${day}`,
+                amount: maintenanceDeferred,
+                dueDay: day + 3,
+                label: 'Terazi bakım borcu',
+              }] : []),
+          ],
+        },
+      }
+    : outcome.state;
   const wealth = summarizeWealth(nextState);
   const ratio = liquidityRatio(nextState.store.cash, nextState.inventory);
 
@@ -587,6 +621,9 @@ export function closeDay(
     report: {
       personnelExpense,
       lifestyleExpense: Math.max(0, lifestyleExpense),
+      scaleMaintenanceExpense: maintenanceDue,
+      scaleMaintenanceDeferred: maintenanceDeferred,
+      scaleMaintenanceDebtPaid: maintenanceDebtPaid,
       missedGuestCountToday,
       day,
       realizedTradeProfit: nextState.ledger.realizedProfitToday,

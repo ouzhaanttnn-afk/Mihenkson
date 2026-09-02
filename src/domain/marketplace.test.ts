@@ -24,7 +24,7 @@ describe('data-driven oyun içi Market', () => {
     expect(new Set(MARKET_CATALOG.map((p) => p.id)).size).toBe(MARKET_CATALOG.length);
     for (const product of MARKET_CATALOG) {
       expect(product.name).toBeTruthy();
-      expect(product.price).toBeGreaterThan(0);
+      expect(product.price).toBeGreaterThanOrEqual(0);
       expect(product.category).toBeTruthy();
       expect(product.unlockRequirement).toBeTruthy();
       expect(product.assetReference).toBeTruthy();
@@ -47,6 +47,15 @@ describe('data-driven oyun içi Market', () => {
     expect(purchaseMarketProduct(economy(1_000_000, 1, 42), defaultPlayerMarket(), 'life_jet', 1).applied).toBe(false);
     expect(purchaseMarketProduct(economy(10_000, 30, 100), defaultPlayerMarket(), 'life_watch', 1).applied).toBe(false);
     expect(purchaseMarketProduct(economy(180_500, 30, 100), defaultPlayerMarket(), 'life_watch', 1).applied).toBe(false);
+  });
+
+  it('5 kg HAS rozeti yerel save tarafından dağıtılmaz', () => {
+    const eligible = economy();
+    eligible.store.hasBalanceMg = 5_000_000;
+    const result = purchaseMarketProduct(eligible, defaultPlayerMarket(), 'badge_first_5kg_has', 1);
+    expect(result.applied).toBe(false);
+    expect(result.reason).toContain('sunucu sıralaması');
+    expect(result.playerMarket.owned).not.toContain('badge_first_5kg_has');
   });
 
   it('yalnız sahip olunan kozmetik equip edilir ve şahsi giderler toplanır', () => {

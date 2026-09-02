@@ -1,6 +1,6 @@
 import { Rng, deriveSeed } from './rng';
 import type { StoreState } from './types';
-import { isLastTradingDay, weekdayLabel } from './calendar';
+import { weekdayLabel } from './calendar';
 
 /** Integer milligrams are the physical source of truth. TL is rounded only at payment. */
 export const toMg = (grams: number): number => Math.round(grams * 1000);
@@ -15,6 +15,15 @@ export const personnelCount = (store: StoreState): number => Math.min(3, Math.ma
 export const queueCapacity = (store: StoreState): number => Math.min(10, 4 + personnelCount(store) * 2);
 export const personnelDaily = (store: StoreState): number => PERSONNEL_MONTHLY[personnelCount(store)]! / 30;
 export const dailyOperatingCost = (store: StoreState): number => roundMoney(store.dailyOverhead + personnelDaily(store));
+export const SCALE_MAINTENANCE_INTERVAL_DAYS = 30;
+export const scaleMaintenanceCost = (store: StoreState, day: number): number =>
+  day > 0 && day % SCALE_MAINTENANCE_INTERVAL_DAYS === 0
+    ? roundMoney(10_000 + Math.max(0, store.level - 1) * 2_500)
+    : 0;
+export const dueScaleMaintenanceDebt = (store: StoreState, day: number): number =>
+  roundMoney(store.payables
+    .filter(payable => payable.id.startsWith('scale_maintenance_') && payable.dueDay <= day)
+    .reduce((sum, payable) => sum + payable.amount, 0));
 export const weekdayName = weekdayLabel;
 
 export function dailyTraffic(seed: number, day: number) {
@@ -32,5 +41,5 @@ export function dailyPurchaseMix(seed: number, day: number) {
   const y = new Rng(deriveSeed(seed, 'dailyPurchaseMix', day)).int(0, 15);
   return { y, bullion: (67 + y) / 100, crafted: (33 - y) / 100 };
 }
-/** No weekday existed in v1: day 1 is Monday; day 5, 12, 19 ... are Fridays. */
-export const isHasTradingDay = (day: number): boolean => Number.isInteger(day) && day > 0 && isLastTradingDay(day);
+/** Toptancı HAS masası her oyun günü açıktır; yalnız geçersiz günleri reddeder. */
+export const isHasTradingDay = (day: number): boolean => Number.isInteger(day) && day > 0;

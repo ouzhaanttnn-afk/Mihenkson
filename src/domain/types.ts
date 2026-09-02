@@ -295,7 +295,13 @@ export interface CustomerDemand {
   /** UPDATEv5: one physical showcase object, never a substitutable template. */
   targetInventoryItemId?: string;
   fallbackDemand?: CustomerDemand;
-  poolId?: '24K_GRAM_GOLD_POOL' | '22K_INVESTMENT_BANGLE_POOL' | 'QUARTER_GOLD_POOL';
+  poolId?:
+    | '24K_GRAM_GOLD_POOL'
+    | '22K_INVESTMENT_BANGLE_POOL'
+    | 'QUARTER_GOLD_POOL'
+    | 'HALF_GOLD_POOL'
+    | 'REPUBLIC_GOLD_POOL'
+    | 'ATA_GOLD_POOL';
   /** Aradığı ürün aileleri. Boşsa esnek müşteri. */
   families: string[];
   /** Sarrafiye mi arıyor, işçilikli mi. */

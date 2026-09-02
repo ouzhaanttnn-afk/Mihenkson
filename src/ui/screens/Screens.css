@@ -291,20 +291,7 @@
   line-height: 1.5;
 }
 .v5Controls p { margin: 0 0 var(--sp-2); }
-
-/*
-  DOKUNMA HEDEFİ İÇİN EK YÜKSEKLİK VERİLMEZ — `.chip` bunu zaten sağlıyor.
-
-  Burada `min-height: 44px` vardı ve `.chip`in `box-sizing: content-box`
-  olması yüzünden 44 px İÇERİK kutusuna uygulanıyordu: 44 + 14 padding + 2
-  kenarlık = 60 px. Aynı sınıfın filtre şeridindeki hâli 46 px'ken buradaki
-  60 px'e çıkıyordu; "HAS Al" gibi kısa etiketler yumurta gibi duruyordu
-  (tarayıcıda ölçüldü: 64 × 60).
-
-  `.chip`in kendi ölçüsü 30 içerik + 14 padding + 2 kenarlık = 46 px, yani
-  GDD 23.22'nin istediği 44 px'in zaten üstünde. Override gereksizdi.
-*/
-.v5Controls .chip { margin: 2px; }
+.v5Controls .chip { min-height: 44px; margin: 2px; }
 .v5Controls input {
   width: 100%;
   min-width: 0;
@@ -382,6 +369,34 @@
   border-color: rgba(196, 141, 43, 0.35);
   box-shadow: inset 3px 0 0 var(--amethyst-500);
 }
+
+.personnelChoiceRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: var(--sp-2);
+}
+
+.personnelChoice {
+  min-width: 0;
+  min-height: var(--touch-min);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 5px 2px;
+  border: 1px solid var(--page-line);
+  border-radius: var(--r-sm);
+  background: rgba(8, 13, 20, 0.72);
+  color: var(--text-dark-2);
+  font: inherit;
+}
+
+.personnelChoice strong { font-size: var(--fs-label); line-height: 1; }
+.personnelChoice small { color: var(--text-dark-3); font-size: 9px; white-space: nowrap; }
+.personnelChoice[aria-pressed='true'] { border-color: var(--brass-400); background: rgba(196, 141, 43, 0.15); color: var(--brass-300); }
+.personnelChoice:disabled { opacity: 0.42; }
 
 .statLine {
   display: flex;
@@ -830,6 +845,134 @@
   color: var(--amethyst-500);
 }
 
+.counter--sell .counter__toggle {
+  background: color-mix(in srgb, var(--brass-500) 10%, var(--stone-50));
+  border-left-color: var(--brass-500);
+  color: var(--brass-700);
+}
+
+.counter--sell .counter__chevron {
+  color: var(--brass-600);
+}
+
+.hasCompact {
+  padding: var(--sp-3);
+}
+
+.hasCompact__head,
+.hasCompact__sliderHead,
+.hasCompact__actions,
+.hasCompact__confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.hasCompact__title {
+  margin: 0;
+  color: var(--text-light-1);
+  font-size: var(--fs-label);
+}
+
+.hasCompact__value,
+.hasCompact__quote,
+.hasCompact__sliderHead,
+.hasCompact__confirm {
+  color: var(--text-light-3);
+  font-size: var(--fs-micro);
+}
+
+.hasCompact__quote {
+  text-align: right;
+  line-height: 1.45;
+}
+
+.hasCompact__body {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.hasCompact__segments {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.hasCompact__segment,
+.hasCompact__max,
+.hasCompact__continue,
+.hasCompact__confirmButton,
+.hasCompact__cancel {
+  min-height: 44px;
+  border: 1px solid var(--line-light);
+  border-radius: var(--r-sm);
+  background: var(--stone-50);
+  color: var(--text-light-2);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+}
+
+.hasCompact__segment[aria-pressed="true"] {
+  border-color: var(--brass-500);
+  background: color-mix(in srgb, var(--brass-500) 16%, var(--stone-50));
+  color: var(--brass-700);
+}
+
+.hasCompact__sliderHead strong {
+  color: var(--text-light-1);
+}
+
+.hasCompact__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.hasCompact__total {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  color: var(--text-light-3);
+  font-size: var(--fs-micro);
+}
+
+.hasCompact__total strong {
+  overflow: hidden;
+  color: var(--text-light-1);
+  font-size: var(--fs-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hasCompact__max,
+.hasCompact__continue,
+.hasCompact__confirmButton,
+.hasCompact__cancel {
+  padding: 0 var(--sp-3);
+}
+
+.hasCompact__continue,
+.hasCompact__confirmButton {
+  border-color: var(--brass-500);
+  background: var(--brass-500);
+  color: var(--ink-900);
+}
+
+.hasCompact__confirm {
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--line-light);
+}
+
+.hasCompact__confirm > span {
+  min-width: 0;
+  flex: 1;
+}
+
+.hasCompact button:disabled {
+  opacity: .46;
+}
+
 .assetRow__range {
   margin-top: 2px;
   font-size: 9px;
@@ -1194,8 +1337,8 @@
 .pageHead--withArt .pageHead__sub {
   padding-right: 104px;
 }
-.poolAmount { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.poolAmount input { width: 90px; min-height: 44px; padding: 6px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
+.poolAmount { display: flex; flex: 0 1 auto; align-items: center; gap: 5px; min-width: 0; white-space: nowrap; }
+.poolAmount input { width: 72px; min-height: 44px; padding: 6px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-variant-numeric: tabular-nums; }
 .hasSlider { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .hasSlider input[type="range"] { width: 100%; min-height: 44px; accent-color: #bf902f; }
 .poolSlider { display: grid; gap: 4px; margin-top: 8px; font-size: var(--fs-caption); }
@@ -1514,6 +1657,90 @@
 }
 
 .marketProduct__owned { color: var(--positive-soft); font-size: var(--fs-caption); font-weight: var(--fw-semibold); }
+
+/* Yetenek ağacı — Dükkan sheet'i ve İşletme rotası aynı mekanik görünümü paylaşır. */
+.talentTree {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.talentNode {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid rgba(242, 236, 222, 0.13);
+  border-radius: var(--r-card);
+  background: rgba(8, 11, 15, 0.5);
+}
+
+.talentNode--active { border-color: rgba(215, 170, 74, 0.48); }
+
+.talentNode__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(215, 170, 74, 0.28);
+  border-radius: 13px;
+  background: radial-gradient(circle, rgba(104, 63, 160, 0.25), rgba(7, 10, 15, 0.7));
+}
+
+.talentNode__body { min-width: 0; }
+.talentNode__heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
+.talentNode__heading strong { color: var(--text-dark-1); font-family: var(--font-display); font-size: var(--fs-label); }
+.talentNode__heading > span { flex: 0 0 auto; color: var(--brass-300); font-size: var(--fs-micro); }
+.talentNode p { margin: 4px 0 var(--sp-2); color: var(--text-dark-3); font-size: var(--fs-micro); line-height: 1.4; }
+.talentNode p b { color: var(--text-dark-1); }
+
+.talentSteps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.talentStep {
+  min-height: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dark-3);
+  font-size: 10px;
+}
+.talentStep--earned { background: rgba(215, 170, 74, 0.14); color: var(--brass-300); }
+
+.talentLevels { display: grid; gap: 4px; }
+.talentLevel { display: grid; grid-template-columns: 24px 1fr; gap: var(--sp-2); color: var(--text-dark-3); font-size: 10px; line-height: 1.35; }
+.talentLevel b { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, 0.05); }
+.talentLevel--earned { color: var(--text-dark-1); }
+.talentLevel--earned b { background: var(--brass-500); color: #171006; }
+.talentTree__note { margin: 0; color: var(--text-dark-3); font-size: var(--fs-micro); line-height: 1.45; }
+
+.talentTreeScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: end center;
+  background: rgba(3, 6, 10, 0.72);
+  backdrop-filter: blur(7px);
+}
+
+.talentTreeSheet {
+  width: min(430px, 100%);
+  max-height: min(720px, 88dvh);
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-4);
+  border: 1px solid rgba(215, 170, 74, 0.56);
+  border-bottom: 0;
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  background: linear-gradient(165deg, #18212d, #090e15 64%);
+  box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.55);
+}
+
+.talentTreeSheet__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.talentTreeSheet__head span { color: var(--brass-300); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em; }
+.talentTreeSheet__head h2 { margin: 2px 0 0; color: var(--text-dark-1); font-family: var(--font-display); font-size: var(--fs-title); }
+.talentTreeSheet__head button { width: var(--touch-min); height: var(--touch-min); border: 1px solid rgba(255,255,255,.14); border-radius: 50%; background: rgba(255,255,255,.05); color: var(--text-dark-1); font-size: 25px; }
+.talentTreeSheet__scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.talentTreeSheet__done { min-height: var(--touch-min); margin-top: var(--sp-3); border: 1px solid var(--brass-400); border-radius: var(--r-pill); background: linear-gradient(180deg, #e8b94b, #ae7818); color: #211706; font-weight: var(--fw-bold); }
 
 .marketConfirmScrim {
   position: fixed;

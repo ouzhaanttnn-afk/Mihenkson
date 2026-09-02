@@ -3,7 +3,7 @@ import { useGame } from './gameStore';
 import { deserialize, readSave, serialize } from './save';
 import { applyTransaction, closeDay, createLedger } from '@domain/settlement';
 import { createMarketForDay } from '@domain/market';
-import { canSetPersonnel, dailyOperatingCost, PERSONNEL_MONTHLY, personnelDaily, weekdayName } from '@domain/v5-rules';
+import { canSetPersonnel, dailyOperatingCost, PERSONNEL_MONTHLY, personnelDaily, scaleMaintenanceCost, weekdayName } from '@domain/v5-rules';
 
 const initial = useGame.getState();
 beforeEach(() => {
@@ -135,5 +135,49 @@ describe('day confirmation and persistent summary', () => {
     expect(weekdayName(5)).toBe('Cuma');
     expect(weekdayName(12)).toBe('Cuma');
     expect(weekdayName(24)).toBe('Çarşamba');
+  });
+});
+
+describe('30 günlük terazi bakımı', () => {
+  it('yalnız 30 gün arayla ve seviyeye göre ücret üretir', () => {
+    expect(scaleMaintenanceCost({ ...initial.store, level: 1 }, 29)).toBe(0);
+    expect(scaleMaintenanceCost({ ...initial.store, level: 1 }, 30)).toBe(10_000);
+    expect(scaleMaintenanceCost({ ...initial.store, level: 3 }, 60)).toBe(15_000);
+  });
+
+  it('bakımı gün kapanışında bir kez tahsil eder', () => {
+    const state = { ...useGame.getState(), store: { ...useGame.getState().store, cash: 1_000_000, level: 1 } };
+    const closed = closeDay(state, 30);
+    expect(closed.report).toMatchObject({
+      overhead: 11_200,
+      scaleMaintenanceExpense: 10_000,
+      scaleMaintenanceDeferred: 0,
+      closingCash: 988_800,
+    });
+    expect(closeDay(closed.state, 30).applied).toBe(false);
+    expect(closeDay(closed.state, 30).state.store.cash).toBe(988_800);
+  });
+
+  it('nakit bakım için yetmezse oyunu kilitlemeden üç gün vadeli borç açar', () => {
+    const state = { ...useGame.getState(), store: { ...useGame.getState().store, cash: 5_000, level: 1 } };
+    const closed = closeDay(state, 30);
+    expect(closed.applied).toBe(true);
+    expect(closed.state.store.cash).toBe(3_800);
+    expect(closed.report.scaleMaintenanceDeferred).toBe(10_000);
+    expect(closed.state.store.payables).toContainEqual({
+      id: 'scale_maintenance_30',
+      amount: 10_000,
+      dueDay: 33,
+      label: 'Terazi bakım borcu',
+    });
+
+    const funded = {
+      ...closed.state,
+      store: { ...closed.state.store, cash: 20_000 },
+    };
+    const repaid = closeDay(funded, 33);
+    expect(repaid.report.scaleMaintenanceDebtPaid).toBe(10_000);
+    expect(repaid.state.store.cash).toBe(8_800);
+    expect(repaid.state.store.payables.some(p => p.id === 'scale_maintenance_30')).toBe(false);
   });
 });

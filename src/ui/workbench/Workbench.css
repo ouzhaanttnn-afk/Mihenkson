@@ -387,18 +387,6 @@
   color: var(--negative-soft);
 }
 
-/*
-  Kırılımın altındaki kural notu. Satırlardan daha sönük ve daha küçük:
-  bu bir kalem değil, tabloyu okuma talimatı.
-*/
-.breakdown__note {
-  margin: 2px 0 0;
-  padding: 0 var(--sp-3);
-  font-size: var(--fs-micro);
-  line-height: 1.4;
-  color: var(--text-dark-3);
-}
-
 /* ------------------------------------------------------------------ */
 /* TEZ (GDD 23.7)                                                      */
 /* ------------------------------------------------------------------ */
@@ -1058,6 +1046,57 @@
   vertical-align: middle;
 }
 
+.shopOverview__toggle {
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shopOverview__toggle .idle__headText { flex: 1; }
+
+.shopOverview__chevron {
+  flex: 0 0 auto;
+  color: var(--brass-400);
+  font-size: 22px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform var(--t-fast) var(--ease-standard);
+}
+
+.shopOverview__chevron--open { transform: rotate(180deg); }
+
+.shopOverview__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.shopTalentButton {
+  width: 100%;
+  min-height: var(--touch-min);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-2);
+  border: 1px solid rgba(151, 91, 213, 0.34);
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, rgba(104, 63, 160, 0.2), rgba(8, 11, 15, 0.16));
+  color: var(--text-dark-1);
+  font: inherit;
+  text-align: left;
+}
+
+.shopTalentButton > span:first-child { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-caption); font-weight: var(--fw-semibold); white-space: nowrap; }
+.shopTalentButton small { overflow: hidden; color: var(--text-dark-3); font-size: var(--fs-micro); text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.shopTalentButton > span:last-child { color: var(--brass-300); font-size: 21px; }
+
 /* ---- Pozisyon paneli — sarrafın "kaç param, kaç malım var" sorusu ---- */
 
 .shopOverview {
@@ -1395,27 +1434,6 @@
   font-size: var(--fs-micro);
 }
 
-.waitingCustomer__greet {
-  flex: 0 0 auto;
-  min-width: 68px;
-  min-height: var(--touch-min);
-  padding: 0 var(--sp-3);
-  border: 1px solid var(--brass-600);
-  border-radius: var(--r-pill);
-  background: linear-gradient(180deg, #e7ba50 0%, #c18b20 55%, #a97616 100%);
-  color: #241a06;
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-semibold);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    0 4px 12px rgba(196, 141, 43, 0.22);
-}
-
-.waitingCustomer__greet:active {
-  transform: translateY(1px);
-  box-shadow: inset 0 1px 3px rgba(36, 26, 6, 0.22);
-}
-
 @media (max-width: 390px) {
   .waitingCustomer {
     gap: 6px;
@@ -1426,11 +1444,6 @@
     flex-basis: 38px;
     width: 38px;
     height: 38px;
-  }
-
-  .waitingCustomer__greet {
-    min-width: 62px;
-    padding-inline: 10px;
   }
 }
 

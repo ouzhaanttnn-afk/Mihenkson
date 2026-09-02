@@ -17,10 +17,17 @@ beforeEach(() => {
 afterEach(() => { useGame.setState(initial, true); vi.unstubAllGlobals(); });
 
 describe('cash-only three-family pooled counter', () => {
-  it('has exactly three canonical families', () => {
-    expect(POOL_SUPPLY.map(p => p.templateId)).toEqual(['gram_gold_1', 'quarter_gold', 'investment_bangle_22k_10']);
+  it('has the canonical player-sellable supply families', () => {
+    expect(POOL_SUPPLY.map(p => p.templateId)).toEqual([
+      'gram_gold_1',
+      'quarter_gold',
+      'half_gold',
+      'republic_gold',
+      'ata_gold',
+      'investment_bangle_22k_10',
+    ]);
   });
-  it.each([1, 2.5, 7, 40, 135, 135.25, .001])('buys %s grams into the one pool and pays the quoted total', qty => {
+  it.each([.1, 1, 2.5, 7, 40, 135, 135.2])('buys %s grams into the one pool and pays the quoted total', qty => {
     const s = useGame.getState();
     const quote = poolSupplyQuote('gram_gold_1', qty, s.market, s.store)!;
     s.buyPoolStock('gram_gold_1', qty);
@@ -29,9 +36,21 @@ describe('cash-only three-family pooled counter', () => {
     expect(useGame.getState().store.cash).toBe(s.store.cash - quote.totalPrice);
     expect(useGame.getState().inventory[0]?.costBasis).toBeCloseTo(quote.totalPrice, 8);
   });
+  it.each([.001, .01, 2.55, 8.034])('rejects gram quantities with more than one decimal: %s', qty => {
+    expect(validPoolSupplyQuantity('gram_gold_1', qty)).toBe(false);
+  });
   it.each([1, 10, 40, 135, 250])('buys %s quarters without a lot cap', qty => {
     useGame.getState().buyPoolStock('quarter_gold', qty);
     expect(useGame.getState().inventory[0]?.quantity).toBe(qty);
+  });
+  it.each(['half_gold', 'republic_gold', 'ata_gold'] as const)('buys and stacks requested coin stock: %s', templateId => {
+    useGame.getState().buyPoolStock(templateId, 2);
+    useGame.getState().buyPoolStock(templateId, 1);
+    const position = useGame.getState().inventory[0];
+    expect(position?.quantity).toBe(3);
+    expect(position?.poolId).toBe(
+      templateId === 'half_gold' ? 'HALF_GOLD_POOL' : templateId === 'republic_gold' ? 'REPUBLIC_GOLD_POOL' : 'ATA_GOLD_POOL',
+    );
   });
   it.each([0, -1, .5, 135.5, NaN, Infinity])('rejects invalid quarter quantity %s without financial mutations', qty => {
     const s = useGame.getState();
@@ -64,8 +83,8 @@ describe('cash-only three-family pooled counter', () => {
   it.each(POOL_SUPPLY.map(p => p.templateId))('maximum for %s uses the actual volume-aware quote and cash', templateId => {
     const s = useGame.getState();
     const max = maxPoolSupplyQuantity(templateId, s.market, s.store);
-    const step = templateId === 'gram_gold_1' ? .001 : 1;
-    const over = Math.round((max + step) * 1000) / 1000;
+    const step = templateId === 'gram_gold_1' ? .1 : 1;
+    const over = Math.round((max + step) * 10) / 10;
     expect(poolSupplyQuote(templateId, max, s.market, s.store)!.totalPrice).toBeLessThanOrEqual(s.store.cash);
     expect(poolSupplyQuote(templateId, over, s.market, s.store)!.totalPrice).toBeGreaterThan(s.store.cash);
     s.buyPoolStock(templateId, over);
@@ -76,9 +95,9 @@ describe('cash-only three-family pooled counter', () => {
     useGame.setState({ store: { ...useGame.getState().store, backStockSlots: 1 } });
     useGame.getState().buyPoolStock('gram_gold_1', 7);
     useGame.getState().buyPoolStock('quarter_gold', 1);
-    useGame.getState().buyPoolStock('gram_gold_1', 135.25);
+    useGame.getState().buyPoolStock('gram_gold_1', 135.2);
     expect(useGame.getState().inventory).toHaveLength(1);
-    expect(useGame.getState().inventory[0]?.quantityMg).toBe(142250);
+    expect(useGame.getState().inventory[0]?.quantityMg).toBe(142200);
   });
   function intake(): SettlementTransaction {
     const s = useGame.getState(), quantity = 10;
@@ -109,7 +128,7 @@ describe('HAS slider-compatible existing precision and limits', () => {
     expect(sold.applied).toBe(true);
     expect(sold.state.store.hasBalanceMg).toBe(0);
   });
-  it('MAX buy and all-sell enforce cash/balance and Friday including overshoot', () => {
+  it('MAX buy and all-sell enforce cash/balance on every day including overshoot', () => {
     const s = useGame.getState(), quote = hasQuote(s.market, s.store);
     const max = maxHasBuyMg(s.store.cash, quote.buy);
     expect(tradeHas(s, s.market, 'buy', max + 1, 'over').applied).toBe(false);
@@ -117,6 +136,6 @@ describe('HAS slider-compatible existing precision and limits', () => {
     expect(bought.applied).toBe(true);
     expect(tradeHas(bought.state, s.market, 'sell', max + 1, 'over-sell').applied).toBe(false);
     expect(tradeHas(bought.state, s.market, 'sell', max, 'all').state.store.hasBalanceMg).toBe(0);
-    expect(tradeHas(s, { ...s.market, day: 6 }, 'buy', 1000, 'saturday').applied).toBe(false);
+    expect(tradeHas(s, { ...s.market, day: 6 }, 'buy', 1000, 'saturday').applied).toBe(true);
   });
 });

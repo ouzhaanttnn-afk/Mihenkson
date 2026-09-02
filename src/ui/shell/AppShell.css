@@ -882,6 +882,13 @@
   gap: var(--sp-2);
 }
 
+/* Ana ekran boş durumunda kuyruk özeti yukarıdaki kartta zaten var. */
+.dock--idle.dock--summaryless {
+  min-height: 82px;
+  padding-block: var(--sp-2);
+  gap: 0;
+}
+
 /* Ana CTA — her aşamada aynı fiziksel bölgede (GDD 23.12). */
 .cta {
   position: relative;

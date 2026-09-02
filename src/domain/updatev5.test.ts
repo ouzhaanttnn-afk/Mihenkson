@@ -353,13 +353,13 @@ describe('UPDATEv5 · showcase and HAS', () => {
     expect(result.state.items[item.id]?.buyCost).toBe(50000);
     expect(meltToHas(result.state, market, item.id).applied).toBe(false);
   });
-  it.each([1,2,3,4,6,7,8,9,10,11])('HAS trade is closed on game day %i', day => {
-    expect(isHasTradingDay(day)).toBe(false);
-    expect(tradeHas(economy(), { ...market, day }, 'buy', 1000, `closed${day}`).applied).toBe(false);
-  });
-  it.each([5,12,19,26])('HAS trade is open on Friday %i', day => {
+  it.each([1,2,3,4,5,6,7,8,9,10,11,12,19,26])('HAS trade is open on every game day %i', day => {
     expect(isHasTradingDay(day)).toBe(true);
     expect(tradeHas(economy(), { ...market, day }, 'buy', 8500, `open${day}`).applied).toBe(true);
+  });
+  it.each([0, -1, 1.5])('HAS trade rejects invalid game day %i', day => {
+    expect(isHasTradingDay(day)).toBe(false);
+    expect(tradeHas(economy(), { ...market, day }, 'buy', 1000, `invalid${day}`).applied).toBe(false);
   });
   it('MAX uses wholesale ask, no overdraft, no positive roundtrip, duplicate tx rejected', () => {
     const base = economy(); base.store.cash = 100000;

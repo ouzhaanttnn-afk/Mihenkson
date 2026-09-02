@@ -69,20 +69,21 @@ export function MarketPlaceholderScreen() {
           {products.map((product) => {
             const owned = s.playerMarket.owned.includes(product.id);
             const equipped = product.equipSlot ? s.playerMarket.equipped[product.equipSlot] === product.id : false;
-            const unlocked = isUnlocked(product, s.store.level, s.store.reputation);
+            const unlocked = isUnlocked(product, s.store.level, s.store.reputation, s.store.hasBalanceMg);
             const affordable = s.store.cash >= marketPurchaseCashRequirement(product, s.playerMarket, s.store);
+            const requiresServerClaim = Boolean(product.serverClaim);
             return (
               <article key={product.id} className={`marketProduct marketProduct--${product.tier} ${!unlocked ? 'marketProduct--locked' : ''}`}>
                 <div className="marketProduct__visual" aria-hidden="true"><span>{PRODUCT_MARK[product.category]}</span><small>{product.assetReference.split(':')[1]?.replaceAll('-', ' ')}</small></div>
                 <div className="marketProduct__body">
                   <div className="marketProduct__topline"><span>{tierLabel(product)}</span>{product.dailyUpkeep ? <em>+{tl(product.dailyUpkeep)}/gün</em> : null}</div>
                   <h2>{product.name}</h2><p>{product.description}</p>
-                  {!unlocked && <div className="marketProduct__requirement"><IconLock size={13} />{requirementLabel(product)}</div>}
+                  {(!unlocked || requiresServerClaim) && <div className="marketProduct__requirement"><IconLock size={13} />{requirementLabel(product, s.store.hasBalanceMg ?? 0)}</div>}
                   <div className="marketProduct__actionRow">
-                    <strong className="num">{tl(product.price)}</strong>
+                    <strong className="num">{requiresServerClaim ? `${product.serverClaim?.globalQuota} adet` : tl(product.price)}</strong>
                     {owned ? (product.equipSlot ? <button type="button" disabled={equipped} onClick={() => s.equipMarketProduct(product.id)}>{equipped ? 'Kullanılıyor' : 'Kullan'}</button> : <span className="marketProduct__owned">Koleksiyonda</span>) : (
-                      <button type="button" disabled={!unlocked || !affordable} onClick={() => requestPurchase(product)} title={!affordable ? 'Yetersiz nakit' : undefined}>
-                        {!affordable && unlocked ? 'Nakit yetersiz' : unlocked ? 'Satın Al' : 'Kilitli'}
+                      <button type="button" disabled={!unlocked || !affordable || requiresServerClaim} onClick={() => requestPurchase(product)} title={requiresServerClaim ? 'Global sıra için sunucu doğrulaması gerekir' : !affordable ? 'Yetersiz nakit' : undefined}>
+                        {requiresServerClaim ? (unlocked ? 'Doğrulama bekliyor' : 'Hedef kilitli') : !affordable && unlocked ? 'Nakit yetersiz' : unlocked ? 'Satın Al' : 'Kilitli'}
                       </button>
                     )}
                   </div>
@@ -107,10 +108,16 @@ export function MarketPlaceholderScreen() {
   );
 }
 
-function requirementLabel(product: MarketProduct): string {
+function requirementLabel(product: MarketProduct, hasBalanceMg: number): string {
   const parts: string[] = [];
   if (product.unlockRequirement.level) parts.push(`Sv ${product.unlockRequirement.level}`);
   if (product.unlockRequirement.reputation) parts.push(`İtibar ${product.unlockRequirement.reputation}`);
+  if (product.unlockRequirement.hasGrams) {
+    const targetKg = product.unlockRequirement.hasGrams / 1_000;
+    const currentKg = Math.min(targetKg, hasBalanceMg / 1_000_000);
+    parts.push(`${currentKg.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} / ${targetKg.toLocaleString('tr-TR')} kg HAS`);
+  }
+  if (product.serverClaim) parts.push(`İlk ${product.serverClaim.globalQuota} · sunucu doğrulamalı`);
   return parts.join(' · ');
 }
 

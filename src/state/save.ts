@@ -21,7 +21,7 @@
 
 import { createMarketForDay } from '@domain/market';
 import { isMarketOpen } from '@domain/calendar';
-import { consolidatePools, poolForTemplate, poolUnitGrams } from '@domain/stock-pools';
+import { consolidatePools, isMassPool, poolForTemplate, poolUnitGrams } from '@domain/stock-pools';
 import { bullionMeta } from '@data/bullion';
 import type { CustomerDemand } from '@domain/types';
 import { dayCharacter, emptyTelemetry } from '@domain/intent';
@@ -32,8 +32,11 @@ import { defaultPlayerMarket, type PlayerMarketState } from '@domain/marketplace
 import {
   defaultSkillProgress,
   normalizeSkillProgress,
+  startingPatience,
   type SkillProgress,
 } from '@domain/skill-tree';
+import { getArchetype } from '@data/archetypes';
+import { PURCHASE } from '@domain/balance';
 import type { CustomerRegistry } from '@domain/customer-memory';
 import type {
   InventoryPosition,
@@ -194,6 +197,9 @@ export type LoadedState = Pick<
  */
 export function deserialize(file: SaveFile): LoadedState {
   const save = migrate(file);
+  const skillProgress = save.skillProgress
+    ? normalizeSkillProgress(save.skillProgress)
+    : defaultSkillProgress();
   const market = isMarketSnapshot(save.market)
     ? normalizeMarketSnapshot(save.market, save.clockMinutes)
     : rebuildMarket(save.seed, save.day, save.clockMinutes);
@@ -222,12 +228,15 @@ export function deserialize(file: SaveFile): LoadedState {
     // düşer; bozuk bir ad veya bilinmeyen avatar da normalize edilir.
     profile: normalizeProfile(save.profile),
     playerMarket: save.playerMarket ?? defaultPlayerMarket(),
-    skillProgress: save.skillProgress
-      ? normalizeSkillProgress(save.skillProgress)
-      : defaultSkillProgress(),
+    skillProgress,
     // Aktif ziyaret ve yarım pazarlık aynı durumdan devam eder.
-    queue: save.queue ?? [],
-    activeCustomer: save.activeCustomer ?? null,
+    queue: (save.queue ?? []).map(entry => ({
+      ...entry,
+      customer: normalizeCustomerPatience(entry.customer, skillProgress),
+    })),
+    activeCustomer: save.activeCustomer
+      ? normalizeCustomerPatience(save.activeCustomer, skillProgress)
+      : null,
     activeDeal: save.activeDeal ?? null,
     nextCustomerAtMinutes: save.nextCustomerAtMinutes ?? save.clockMinutes + 3,
     missedGuestCountToday: save.missedGuestCountToday ?? 0,
@@ -260,7 +269,7 @@ export function migrate(file: SaveFile): SaveFile {
     if (!d || d.poolId || d.targetInventoryItemId || !d.templateId) return d;
     const poolId = poolForTemplate(d.templateId);
     if (!poolId) return d;
-    const factor = poolId === 'QUARTER_GOLD_POOL' ? 1 : bullionMeta(d.templateId)!.unitWeightGrams / poolUnitGrams(poolId);
+    const factor = isMassPool(poolId) ? bullionMeta(d.templateId)!.unitWeightGrams / poolUnitGrams(poolId) : 1;
     return { ...d, poolId, quantity: d.quantity * factor, minQuantity: d.minQuantity * factor,
       summary: poolId === '24K_GRAM_GOLD_POOL' ? `${d.quantity * factor} gram altın` : poolId === '22K_INVESTMENT_BANGLE_POOL' ? `${d.quantity * factor * 10} gram 22 ayar işçiliksiz bilezik` : d.summary,
       templateId: poolId === '24K_GRAM_GOLD_POOL' ? 'gram_gold_1' : poolId === '22K_INVESTMENT_BANGLE_POOL' ? 'investment_bangle_22k_10' : d.templateId };
@@ -306,6 +315,23 @@ function commitRawSave(raw: string): boolean {
   } catch {
     return false;
   }
+}
+
+function normalizeCustomerPatience(
+  customer: NonNullable<GameState['activeCustomer']>,
+  skills: SkillProgress,
+): NonNullable<GameState['activeCustomer']> {
+  const archetype = getArchetype(customer.archetype);
+  const base = startingPatience(archetype.patienceBand[0], skills);
+  const max = customer.demand?.isBulk
+    ? Math.round(base * PURCHASE.bulk.patienceFactor)
+    : base;
+  const remainingRatio = customer.patience / Math.max(1, customer.patienceMax);
+  return {
+    ...customer,
+    patienceMax: max,
+    patience: Math.max(0, Math.min(max, Math.round(remainingRatio * max))),
+  };
 }
 
 /** Yeni piyasa alanları olmayan kayıtları fiyatı silmeden güvenli modele taşır. */

@@ -11,26 +11,22 @@
  */
 
 import { TERM } from '@ui/terms';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { PERSONNEL_MONTHLY, PERSONNEL_SALARIES, PERSONNEL_UNLOCK_LEVELS, canSetPersonnel, personnelCount, personnelDaily, queueCapacity } from '@domain/v5-rules';
 
 import { MARKET_REGIME, WHOLESALE } from '@domain/balance';
 import { shopDisplayName } from '@domain/profile';
 import {
   LIQUIDITY_BAND_LABEL,
-  channelMetrics,
   liquidityBand,
   liquidityRatio,
   summarizeWealth,
-  volumeSplitMetrics,
-  type Ledger,
 } from '@domain/settlement';
-import { CHANNEL_LABEL_TR } from '@domain/channels';
 import { marketSignals } from '@domain/overnight';
 import { registrySummary } from '@domain/customer-memory';
 import { evaluateUpgrade, growthSnapshot } from '@domain/store-growth';
 import { intentAlarm } from '@domain/intent';
-import { bullionMeta, isBullion } from '@data/bullion';
+import { bullionMeta } from '@data/bullion';
 import { TEST_TOOLS } from '@data/tools';
 import { spawnItem } from '@domain/item-spawn';
 import { readSaveSummary } from '@state/save';
@@ -40,8 +36,6 @@ import {
   financeRate,
   financeTerms,
   affordableQuantity,
-  quoteLiquidation,
-  recommendedSlices,
   supplyOffer,
   usedLimit,
 } from '@domain/wholesaler';
@@ -53,12 +47,7 @@ import {
   networkLiquidationOffer,
   networkLoanOffer,
 } from '@domain/trade-network';
-import type {
-  InventoryPosition,
-  ItemInstance,
-  TradeChannel,
-  TradeNetworkMember,
-} from '@domain/types';
+import type { ItemInstance, TradeNetworkMember } from '@domain/types';
 import { selectors, useGame } from '@state/gameStore';
 
 import {
@@ -73,27 +62,13 @@ import {
 import { Art } from '@ui/Art';
 import { NAV_ART, merchantArt } from '@ui/assets';
 import { clock, pct, pctChange, price, tl, tlSigned } from '@ui/format';
+import { TalentTreePanel } from './TalentTreePanel';
+import { WholesalerLiquidationList } from './WholesalerLiquidation';
 
 type Route = 'root' | 'market' | 'journal' | 'wholesaler' | 'network' | 'store' | 'career' | 'save';
 
 export function BusinessScreen() {
   const [route, setRoute] = useState<Route>('root');
-
-  /*
-    ALT NAVİGASYONDAKİ "İŞLETME"YE TEKRAR DOKUNMAK KÖKE DÖNDÜRÜR.
-
-    Rota bu bileşenin kendi state'inde durduğu için, alt rotadayken alt
-    navigasyona basmak hiçbir şey yapmıyordu: `setTab('business')` çağrılıyor
-    ama sekme zaten 'business' olduğundan durum değişmiyor, bileşen yeniden
-    çizilmiyordu. Oyuncunun tek çıkışı "← İşletme" bağlantısıydı.
-
-    `tabHomeSignal` her "aynı sekmeye tekrar dokunuldu" olayında artar; bu
-    effect onu izleyip rotayı köke çeker (bkz. gameStore.setTab).
-  */
-  const tabHomeSignal = useGame((s) => s.tabHomeSignal);
-  useEffect(() => {
-    setRoute('root');
-  }, [tabHomeSignal]);
 
   if (route === 'market') return <MarketRoute onBack={() => setRoute('root')} />;
   if (route === 'journal') return <JournalRoute onBack={() => setRoute('root')} />;
@@ -179,7 +154,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
           >
             <span className="personnelDisclosure__icon"><IconBusiness size={18} /></span>
             <span className="personnelDisclosure__copy">
-              <strong>Kuyruk Personeli</strong>
+              <strong>Personel</strong>
               <small>{personnelCount(s.store)} personel · Kapasite {queueCapacity(s.store)} · Günlük {tl(personnelDaily(s.store))}</small>
             </span>
             <span className={`personnelDisclosure__chevron ${personnelOpen ? 'personnelDisclosure__chevron--open' : ''}`} aria-hidden="true">⌄</span>
@@ -189,9 +164,14 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             <p>Aylık {tl(PERSONNEL_MONTHLY[personnelCount(s.store)]!)} · Günlük {tl(personnelDaily(s.store))}</p>
             <p>Maaşlar kişi başına eklenir: {PERSONNEL_SALARIES.map(salary => tl(salary)).join(' + ')} / ay.</p>
             <p>Yalnız bekleme kapasitesini artırır; müşteri geliş hızını veya atölyeyi değiştirmez.</p>
-            {[0, 1, 2, 3].map(count => <button key={count} type="button" className="chip" aria-pressed={personnelCount(s.store) === count}
-              disabled={!canSetPersonnel(s.store, count)}
-              onClick={() => setPendingPersonnel(count)}>{count} personel{count > 0 ? ` · Sv ${PERSONNEL_UNLOCK_LEVELS[count]}` : ''}</button>)}
+            <div className="personnelChoiceRow" role="group" aria-label="Personel sayısı">
+              {[0, 1, 2, 3].map(count => <button key={count} type="button" className="personnelChoice" aria-pressed={personnelCount(s.store) === count}
+                aria-label={`${count} personel${count > 0 ? `, seviye ${PERSONNEL_UNLOCK_LEVELS[count]} gerektirir` : ''}`}
+                disabled={!canSetPersonnel(s.store, count)}
+                onClick={() => setPendingPersonnel(count)}>
+                <strong>{count}</strong><small>{count > 0 ? `Sv ${PERSONNEL_UNLOCK_LEVELS[count]}` : 'Başlangıç'}</small>
+              </button>)}
+            </div>
             {pendingPersonnel !== null && <div role="group" aria-label="Personel onayı">
               <p>{pendingPersonnel} personel · aylık toplam {tl(PERSONNEL_MONTHLY[pendingPersonnel]!)}. Günlük gider kapanışta tahsil edilir.</p>
               <button type="button" className="chip" onClick={() => { s.setPersonnelCount(pendingPersonnel); setPendingPersonnel(null); }}>Personeli Onayla</button>
@@ -206,14 +186,6 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             {s.lastDayReport && <p>Gün {s.lastDayReport.day}: {s.lastDayReport.missedGuestCountToday ?? 0} misafir kaçırıldı · Gider {tl(s.lastDayReport.overhead)} (personel dahil).</p>}
           </div>
         </div>
-
-        {/*
-          Addendum §4.1 — "Toplu işlemler tekil müşteri metriğini
-          ŞİŞİRMEMELİ; adet, gram karşılığı, ciro, brüt marj ve KANAL BAZINDA
-          ayrıca ölçülmelidir." §6.1 aynı şeyi kanal ortalaması için ister.
-          Ölçüm koda girip ekrana çıkmasaydı, ölçülmüş sayılmazdı.
-        */}
-        <SalesBreakdown ledger={s.ledger} />
 
         {/* İlişkiler */}
         <div className="group">
@@ -331,6 +303,10 @@ function CareerRoute({ onBack }: { onBack: () => void }) {
           </div>
         </div>
         <div className="group">
+          <h2 className="group__title">Yetenek ağacı</h2>
+          <TalentTreePanel />
+        </div>
+        <div className="group">
           <h2 className="group__title">Araç yol haritası</h2>
           <div className="group__body">
             {TEST_TOOLS.map((tool) => (
@@ -419,50 +395,6 @@ function SaveRoute({ onBack }: { onBack: () => void }) {
   );
 }
 
-/**
- * Addendum §4.1 / §6.1 — SATIŞ KIRILIMI.
- *
- * İki ayrı soruyu ayrı ayrı yanıtlar:
- *   1. Tekil müşteri işi ne kadar marj bırakıyor? (toplu işlem karıştırılmadan)
- *   2. Hangi kanal ne kadar adet, gram ve ciro üretti?
- *
- * Hiç satış yokken panel gösterilmez: boş tablo bilgi değil gürültüdür.
- */
-function SalesBreakdown({ ledger }: { ledger: Ledger }) {
-  const split = volumeSplitMetrics(ledger);
-  const byChannel = channelMetrics(ledger);
-  const rows = Object.entries(byChannel).filter(([, m]) => m.deals > 0);
-
-  if (split.single.deals + split.bulk.deals === 0) return null;
-
-  return (
-    <div className="group">
-      <h2 className="group__title">Satış kırılımı</h2>
-      <div className="group__body">
-        {split.single.deals > 0 && (
-          <StatLine
-            label={`Tekil müşteri · ${split.single.deals} işlem`}
-            value={`${tl(split.single.revenue)} · marj ${pct(split.single.grossMargin)}`}
-          />
-        )}
-        {split.bulk.deals > 0 && (
-          <StatLine
-            label={`Toplu müşteri · ${split.bulk.deals} işlem`}
-            value={`${tl(split.bulk.revenue)} · marj ${pct(split.bulk.grossMargin)}`}
-          />
-        )}
-        {rows.map(([channel, m]) => (
-          <StatLine
-            key={channel}
-            label={CHANNEL_LABEL_TR[channel as TradeChannel] ?? channel}
-            value={`${m.units} adet · ${m.grams.toFixed(2)} gr · ${tl(m.revenue)}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /** Menü alt satırı — limit ve vade durumu bir bakışta (§7). */
 function supplierSub(s: ReturnType<typeof useGame.getState>): string {
   const open = s.store.supplier.openInvoices.length;
@@ -486,12 +418,6 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
   const limit = creditLimit(s.store);
   const used = usedLimit(s.store.supplier);
   const available = Math.max(0, limit - used);
-
-  // §4.2 — bozulabilir sarrafiye pozisyonları.
-  const liquidatable = s.inventory
-    .filter((p) => p.location !== 'workshop')
-    .map((p) => ({ position: p, item: s.items[p.itemId] }))
-    .filter((r) => !!r.item && isBullion(r.item.templateId));
 
   // §4.1 "uygun ticari kanal üzerinden tedarik" — toptancının sattığı ürünler.
   const probes = SUPPLY_TEMPLATES.map((id) => spawnItem(s.seed, LOT_PROBE_INDEX, id));
@@ -565,13 +491,7 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
         <div className="group">
           <h2 className="group__title">Toplu bozma</h2>
           <div className="group__body">
-            {liquidatable.length === 0 ? (
-              <p className="emptyNote">Bozulacak sarrafiye yok.</p>
-            ) : (
-              liquidatable.map(({ position, item }) => (
-                <LiquidateRow key={position.itemId} position={position} item={item!} />
-              ))
-            )}
+            <WholesalerLiquidationList />
           </div>
         </div>
 
@@ -677,92 +597,6 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
           Bu alım yüksek tutarlı. Nakit/vadeli dağılımını kontrol edip bir kez daha onayla.
         </p>
       )}
-    </div>
-  );
-}
-
-/**
- * §4.2 — "tek işlem veya KONTROLLÜ DİLİMLER halinde". Dilim sayısı gerçek bir
- * karardır: fiyat her dilimde kendi hacmiyle hesaplandığı için dilimlemek
- * kapasiteyi aşan tek işlemden daha iyi birim fiyat verir.
- */
-function LiquidateRow({ position, item }: { position: InventoryPosition; item: ItemInstance }) {
-  const s = useGame();
-  const [quantity, setQuantity] = useState(position.quantity);
-  const [slices, setSlices] = useState(1);
-
-  const gramPool = position.poolId === '24K_GRAM_GOLD_POOL';
-  const qty = Math.min(position.quantity, Math.max(gramPool ? .001 : 1, quantity));
-  const quote = quoteLiquidation(
-    { itemId: position.itemId, quantity: qty },
-    s.items,
-    s.inventory,
-    s.market,
-    s.store,
-    slices,
-  );
-  if (!quote) return null;
-
-  const suggested = recommendedSlices(qty, quote.capacityPerSlice);
-  const profit = quote.gross - quote.costBasis;
-
-  return (
-    <div className="lotRow">
-      <div className="lotRow__head">
-        <span className="lotRow__name">
-          {item.displayName}
-          {position.quantity > 1 && ` · stokta ${position.quantity}`}
-        </span>
-        <span className="lotRow__price num">{tl(quote.gross)}</span>
-      </div>
-
-      <div className="lotRow__terms">
-        {quote.grams.toFixed(2)} gr · maliyet {tl(quote.costBasis)} ·{' '}
-        <span className={profit >= 0 ? 'statLine__value--positive' : 'statLine__value--negative'}>
-          {tlSigned(profit)}
-        </span>
-      </div>
-
-      {/* §4.2 "her işlemde mutlak garanti değildir" — fark ölçülür ve söylenir. */}
-      <div className="lotRow__terms">{quote.rationale}</div>
-
-      <div className="lotRow__controls">
-        {(gramPool || position.quantity > 1) && (
-          <label className="lotRow__field">
-            <span>{gramPool ? 'Gram' : position.poolId === '22K_INVESTMENT_BANGLE_POOL' ? '10 g birim' : 'Adet'}</span>
-            <input
-              type="number"
-              min={gramPool ? .001 : 1}
-              step={gramPool ? .001 : 1}
-              max={position.quantity}
-              value={qty}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-            />
-          </label>
-        )}
-        <label className="lotRow__field">
-          <span>Dilim</span>
-          <input
-            type="number"
-            min={1}
-            max={Math.max(1, qty)}
-            value={slices}
-            onChange={(e) => setSlices(Number(e.target.value))}
-          />
-        </label>
-        {suggested > slices && (
-          <button type="button" className="miniBtn" onClick={() => setSlices(suggested)}>
-            {suggested} dilim öner
-          </button>
-        )}
-        <button
-          type="button"
-          className="lotRow__buy"
-          onClick={() => s.liquidateToWholesaler(position.itemId, qty, slices)}
-        >
-          Bozdur
-        </button>
-      </div>
     </div>
   );
 }

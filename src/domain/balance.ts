@@ -668,15 +668,15 @@ export const NEGOTIATION = {
   finalOfferPatienceRatio: 0.28,
 
   /** Tur başına temel sabır maliyeti. */
-  patiencePerRound: 6,
+  patiencePerRound: 1,
   /** Aynı teklifi tekrar etmenin sabır cezası (GDD 11.4). */
-  repeatOfferPatiencePenalty: 14,
+  repeatOfferPatiencePenalty: 2,
   repeatOfferTrustPenalty: 5,
   /** İki teklifi "aynı" saymak için göreli fark eşiği. */
   repeatEpsilon: 0.005,
 
   /** Karşı teklif isteme maliyeti. */
-  requestCounterPatienceCost: 9,
+  requestCounterPatienceCost: 1,
   /** Jest: küçük marj kaybı oranı. */
   gestureCostRatio: 0.012,
   gestureTrustGain: 6,
@@ -690,7 +690,7 @@ export const NEGOTIATION = {
 } as const;
 
 /** Test aracı süresinin sabır maliyetine çevrimi. */
-export const PATIENCE_PER_TEST_SECOND = 1.6;
+export const PATIENCE_PER_TEST_SECOND = 0.25;
 
 /**
  * GDD 17 — Servis ve atölye denge parametreleri. Tümü PLAYTEST.

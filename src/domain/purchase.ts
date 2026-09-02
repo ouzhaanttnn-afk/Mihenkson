@@ -23,7 +23,7 @@
  */
 
 import { PURCHASE } from './balance';
-import { poolForItem, poolForTemplate, poolUnitGrams, validQuantity } from './stock-pools';
+import { isMassPool, poolForItem, poolForTemplate, poolUnitGrams, validQuantity } from './stock-pools';
 import { customerPriceBand, isCrafted } from './customer-pricing';
 import { roundMoney } from './v5-rules';
 import { costBasisForUnits } from './settlement';
@@ -123,7 +123,7 @@ export function spawnDemand(
 
   // §4.1 kısmi karşılama: toplu müşteri stok yetmezse azıyla da çıkabilir.
   const poolId = templateId ? poolForTemplate(templateId) : undefined;
-  if (poolId && poolId !== 'QUARTER_GOLD_POOL') {
+  if (poolId && isMassPool(poolId)) {
     quantity *= bullionMeta(templateId!)!.unitWeightGrams / poolUnitGrams(poolId);
     templateId = poolId === '24K_GRAM_GOLD_POOL' ? 'gram_gold_1' : 'investment_bangle_22k_10';
   }
@@ -181,8 +181,14 @@ export type DemandMatch = 'exact' | 'family' | 'off';
 
 export function matchDemand(demand: CustomerDemand, item: ItemInstance): DemandMatch {
   if (demand.targetInventoryItemId) return item.id === demand.targetInventoryItemId && isCrafted(item) && item.location === 'display' ? 'exact' : 'off';
-  if (demand.poolId) return poolForItem(item) === demand.poolId ? 'exact' : 'off';
+  // Gram altın ve yatırım bileziği fiziksel gram havuzudur; burada yalnız
+  // standart/saf havuz ürünü kabul edilir. Adetli ziynetlerde ise müşterinin
+  // söylediği somut ürün adı belirleyicidir (Yarım ≠ Cumhuriyet ≠ Ata).
+  if (demand.poolId && isMassPool(demand.poolId) && demand.poolId === poolForTemplate(demand.templateId ?? '')) {
+    return poolForItem(item) === demand.poolId ? 'exact' : 'off';
+  }
   if (demand.templateId && item.templateId === demand.templateId) return 'exact';
+  if (demand.poolId) return poolForItem(item) === demand.poolId ? 'exact' : 'off';
   // UPDATEv1: Somut bir ürün isteyen müşteriye yalnız o SKU sunulur.
   // "Bilezik" talebine gram altın ya da başka bir bilezik önermek hem
   // metni hem de stok kararını anlamsızlaştırıyordu.

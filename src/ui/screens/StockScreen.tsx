@@ -21,7 +21,7 @@ import { KARAT_LABEL } from '@domain/balance';
 import { CHANNEL_SHORT } from '@domain/thesis';
 import { liquidationEstimate, liquidityBand, liquidityRatio, summarizeWealth } from '@domain/settlement';
 import { getTemplate } from '@data/item-templates';
-import { POOL_SUPPLY, poolSupplyQuote, maxPoolSupplyQuantity, hasPoolSupplySpace } from '@domain/pool-supply';
+import { GRAM_SUPPLY_STEP, POOL_SUPPLY, poolSupplyQuote, maxPoolSupplyQuantity, hasPoolSupplySpace } from '@domain/pool-supply';
 import { useGame } from '@state/gameStore';
 
 import { IconStock, IconWarning, ProductSilhouette } from '@ui/icons';
@@ -29,6 +29,7 @@ import { Art } from '@ui/Art';
 import { NAV_ART, productArt } from '@ui/assets';
 import { grams, preciseGrams, pct, tl, tlBare, tlSigned } from '@ui/format';
 import type { InventoryPosition } from '@domain/types';
+import { WholesalerLiquidationList } from './WholesalerLiquidation';
 
 type Filter = 'all' | 'display' | 'backStock' | 'workshop' | 'dead';
 
@@ -84,12 +85,8 @@ export function StockScreen() {
             <span className="summaryRow__label">Maliyet</span>
             <span className="summaryRow__value num">{tl(wealth.stockCost)}</span>
           </div>
-          {/*
-            Bu da satır bazındaki "Hızlı Çıkışta Marj"ın toplamıdır; "Net
-            Çıkış" adı hangi kanala göre olduğunu söylemiyordu.
-          */}
           <div className="summaryRow__item">
-            <span className="summaryRow__label">Hızlı Çıkışta</span>
+            <span className="summaryRow__label">Net Çıkış</span>
             <span
               className={`summaryRow__value num ${
                 wealth.stockPotential >= 0
@@ -128,6 +125,7 @@ export function StockScreen() {
         {/* Playtest revizyonu §4 — sarrafiye stoklama tezgâhı. */}
         <BullionCounter />
         <HasCounter />
+        <WholesalerSellCounter />
 
         <div className="filterRail">
           {FILTERS.map((f) => (
@@ -221,7 +219,8 @@ export function BullionCatalog({ id }: { id?: string }) {
 function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
   const s = useGame();
   const { templateId, name, gramsPerUnit } = product;
-  const [amount, setAmount] = useState(counterMemory.qty[templateId] ?? '1');
+  const initialAmount = counterMemory.qty[templateId] ?? '1';
+  const [amount, setAmount] = useState(templateId === 'gram_gold_1' ? formatGramAmount(initialAmount) : initialAmount);
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const qty = Number(amount.replace(',', '.'));
   const setQty = (next: string) => {
@@ -231,7 +230,7 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
   };
   const lot = poolSupplyQuote(templateId, qty, s.market, s.store);
   const max = useMemo(() => maxPoolSupplyQuantity(templateId, s.market, s.store), [templateId, s.market, s.store]);
-  const sliderStep = templateId === 'gram_gold_1' ? 0.001 : 1;
+  const sliderStep = templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1;
   const sliderValue = Number.isFinite(qty) ? Math.min(max, Math.max(0, qty)) : 0;
   const unitQuote = lot ?? poolSupplyQuote(templateId, 1, s.market, s.store)!;
   const poolId = poolForTemplate(templateId);
@@ -246,7 +245,7 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
     if (!affordable || !lot) return;
     if (expensive && !confirmed) { setConfirmation(signature); return; }
     s.buyPoolStock(templateId, qty);
-    setQty('1');
+    setQty(templateId === 'gram_gold_1' ? '1.0' : '1');
   };
   return <section className="offerRow" aria-label={name}>
     <div className="offerRow__head">
@@ -256,8 +255,8 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
     <div className="offerRow__meta">Stokta {gramsPerUnit ? preciseGrams(held) : `${held} adet`}</div>
     <div className="offerRow__controls">
       {templateId === 'gram_gold_1'
-        ? <label className="poolAmount">Gram <input aria-label="Gram Altın miktarı" type="text" inputMode="decimal" value={amount}
-            onChange={e => setQty(e.target.value)} /></label>
+        ? <label className="poolAmount">Gram <input aria-label="Gram Altın miktarı" type="number" inputMode="decimal" min={GRAM_SUPPLY_STEP} step={GRAM_SUPPLY_STEP} value={amount}
+            onChange={e => setQty(e.target.value)} onBlur={() => setQty(formatGramAmount(amount))} /></label>
         : <div className="qtyStep" role="group" aria-label={`${name} miktarı`}>
           <button type="button" className="qtyStep__btn" aria-label={gramsPerUnit ? '10 gram azalt' : 'Bir adet azalt'}
             disabled={qty <= 1} onClick={() => setQty(String(Math.max(1, qty - 1)))}>−</button>
@@ -269,18 +268,23 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
       <button type="button" className="offerRow__buy" disabled={!affordable} onClick={buy}>{expensive && confirmed ? 'Onayla' : 'Al'}</button>
     </div>
     <label className="poolSlider">
-      <span>Seçilen: {gramsPerUnit ? `${sliderValue * gramsPerUnit} g` : `${sliderValue} adet`}</span>
+      <span>Seçilen: {gramsPerUnit ? `${(sliderValue * gramsPerUnit).toFixed(1)} g` : `${sliderValue} adet`}</span>
       <input type="range" aria-label={`${name} miktar sliderı`} min={0} max={max} step={sliderStep} value={sliderValue}
         disabled={max <= 0 || !space}
-        onChange={e => setQty(templateId === 'gram_gold_1' ? Number(e.target.value).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') : String(Math.round(Number(e.target.value))))} />
-      <span className="poolSlider__range">0 — {gramsPerUnit ? `${max * gramsPerUnit} g` : `${max} adet`}</span>
+        onChange={e => setQty(templateId === 'gram_gold_1' ? Number(e.target.value).toFixed(1) : String(Math.round(Number(e.target.value))))} />
+      <span className="poolSlider__range">0 — {gramsPerUnit ? `${(max * gramsPerUnit).toFixed(1)} g` : `${max} adet`}</span>
     </label>
     {expensive && confirmed && <p className="offerRow__confirm" role="status">Yüksek tutar: {tl(lot.totalPrice)}. Satın almak için tekrar onayla.</p>}
-    {!lot && <p className="offerRow__shortfall">Pozitif, geçerli bir miktar seçin. Gram altın hassasiyeti 0,001 g.</p>}
+    {!lot && <p className="offerRow__shortfall">Pozitif, geçerli bir miktar seçin. Gram altın hassasiyeti 0,1 g.</p>}
     {lot && !affordable && <p className="offerRow__shortfall">{!space
       ? 'Arka stokta yeni ürün ailesi için yer yok.'
-      : `Minimum ${templateId === 'gram_gold_1' ? '0,001 g' : '1 adet'} · Yetersiz Nakit · ${tl(lot.totalPrice)} gerekli, ${tl(s.store.cash)} mevcut`}</p>}
+      : `Minimum ${templateId === 'gram_gold_1' ? '0,1 g' : '1 adet'} · Yetersiz Nakit · ${tl(lot.totalPrice)} gerekli, ${tl(s.store.cash)} mevcut`}</p>}
   </section>;
+}
+
+function formatGramAmount(value: string): string {
+  const parsed = Number(value.replace(',', '.'));
+  return Number.isFinite(parsed) ? Math.max(GRAM_SUPPLY_STEP, parsed).toFixed(1) : '1.0';
 }
 
 /** Uncommitted UI choice survives tab changes; inventory is always held in game state. */
@@ -333,36 +337,17 @@ function StockRow({ position }: { position: InventoryPosition }) {
           </span>
         </div>
 
-        {/*
-          RAKAMLARIN HANGİ KANALA AİT OLDUĞU ARTIK ETİKETTE YAZIYOR.
-
-          Eskiden "Net Satış Tahmini" ve "Tahmini Marj" yazıyordu. İkisi de
-          `liquidationEstimate` üzerinden BUGÜN ERİŞİLEBİLEN EN HIZLI çıkışa
-          göre hesaplanır — genelde toptancıya. Toptancı makası yüzünden taze
-          alınmış sağlam bir malın marjı da eksi çıkar; etiket bunu
-          söylemediği için oyuncu birinci günde açılış stoğunun üçüne birden
-          bakıp "stoğum zararda" diye okuyordu (tarayıcıda ölçüldü: −3.640,
-          −4.062, −4.244 ₺). Rakam doğruydu, eksik olan cümleydi.
-
-          KANAL ADI ETİKETTE DEĞİL, ALTTAKİ CÜMLEDE. Üç etiket 256 px'lik
-          satıra sığmıyor: ölçüldü, üçü de kırpılıyordu ve kap 11 px taşıyordu
-          ("Gerçek Alış Maliyeti" 84 px yuvada 97 px istiyordu — bu kırpılma
-          değişiklikten önce de vardı). Kanal adı zaten değişken uzunlukta
-          ("Toptancı" ile "Servis + satış" arasında), yani etikete sığdırmak
-          baştan kırılgandı. Kısa etiketler yuvaya giriyor, kanal adı da altta
-          yeri olan cümlede tam hâliyle duruyor.
-        */}
         <div className="row__figures">
           <span className="figure">
-            <span className="figure__label">Maliyet</span>
+            <span className="figure__label">Gerçek Alış Maliyeti</span>
             <span className="figure__value num">{tl(position.costBasis)}</span>
           </span>
           <span className="figure">
-            <span className="figure__label">Bugün</span>
+            <span className="figure__label">Net Satış Tahmini</span>
             <span className="figure__value num">{tl(liquidation.value)}</span>
           </span>
           <span className="figure">
-            <span className="figure__label">Marj</span>
+            <span className="figure__label">Tahmini Marj</span>
             <span
               className={`figure__value num ${
                 delta >= 0 ? 'figure__value--positive' : 'figure__value--negative'
@@ -374,8 +359,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
         </div>
 
         <div className="row__exitEstimate">
-          Bugünkü en hızlı çıkış: <strong>{liquidation.channel}</strong> · tahmini süre{' '}
-          {liquidation.time}. Beklemek daha iyi bir kanal açabilir.
+          Hızlı çıkış: <strong>{liquidation.channel}</strong> · Tahmini süre {liquidation.time}
         </div>
 
         {/* Satır uyarısı — tek satır durum (GDD 23.15) */}
@@ -409,24 +393,8 @@ function StockRow({ position }: { position: InventoryPosition }) {
   );
 }
 
-/**
- * HAS HESABI — KAPALI AÇILIR.
- *
- * Panel her zaman açık çiziliyordu ve Stok sekmesinin ilk ekranını tek başına
- * dolduruyordu: oyuncu "Stok"a basınca stoğunu değil, bir altın alım-satım
- * tezgâhını görüyordu; gerçek stok listesi ekranın altında kalıyordu
- * (390 × 844'te ölçüldü). Üstelik HAS alım-satımı yalnız CUMA günü onaylanır,
- * yani panel haftanın altı günü zaten karar verilemeyen bir yüzey.
- *
- * Artık `Sarrafiye Al` ile aynı desende: başlık bir düğme, gövde katlanır.
- * Başlık bakiyeyi ve o günün durumunu yazdığı için panel kapalıyken de
- * bilgilendirici — açmak yalnız işlem yapmak isteyene gerekiyor.
- */
 function HasCounter() {
   const s = useGame();
-  // `open` adı aşağıda "bugün HAS işlemi açık mı" için kullanılıyor; panelin
-  // katlanma durumu ondan ayrı bir şey.
-  const [expanded, setExpanded] = useState(false);
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amountMg, setAmountMg] = useState(0);
   const [pending, setPending] = useState<string | null>(null);
@@ -439,51 +407,63 @@ function HasCounter() {
   const valid = selectedMg > 0 && selectedMg <= maxMg && total > 0;
   const signature = `${s.market.day}:${side}:${selectedMg}:${total}:${s.ledger.transactions.length}`;
   const changeSide = (next: 'buy' | 'sell') => { setSide(next); setAmountMg(0); setPending(null); };
-  return <section className="counter" aria-label="HAS hesabı">
-    <button
-      type="button"
-      className="counter__toggle"
-      onClick={() => setExpanded((v) => !v)}
-      aria-expanded={expanded}
-      aria-controls="has-counter"
-    >
-      <span>HAS hesabı · {preciseGrams(fromMg(s.store.hasBalanceMg ?? 0))}</span>
-      <span className="counter__meta">
-        {/* Kapalıyken de o günün durumunu söyler: açmadan karar verilebilsin. */}
-        <span className="counter__hint">{open ? 'Cuma · işlem açık' : 'Cuma günü açılır'}</span>
-        <span
-          className={`counter__chevron ${expanded ? 'counter__chevron--open' : ''}`}
-          aria-hidden="true"
-        >
-          ▼
-        </span>
-      </span>
-    </button>
-    {expanded && <div className="group__body v5Controls" id="has-counter">
-      <p>Saflık 1.000 · Değer {tl(fromMg(s.store.hasBalanceMg ?? 0) * s.market.goldSpot)}</p>
-      <p>Toptancıdan al {tl(quote.buy)}/g · Toptancıya sat {tl(quote.sell)}/g</p>
-      <p>{open ? 'Cuma: HAS işlemleri açık.' : 'Miktarı şimdi seçebilirsiniz; alım-satım onayı yalnız cuma günü açılır.'}</p>
-      <div role="group" aria-label="HAS işlem yönü">
-        <button type="button" className="chip" aria-pressed={side === 'buy'} onClick={() => changeSide('buy')}>HAS Al</button>
-        <button type="button" className="chip" aria-pressed={side === 'sell'} onClick={() => changeSide('sell')}>HAS Sat</button>
+  return <section className="group hasCompact" aria-label="HAS hesabı">
+    <div className="hasCompact__head">
+      <div>
+        <h2 className="hasCompact__title">HAS · {preciseGrams(fromMg(s.store.hasBalanceMg ?? 0))}</h2>
+        <span className="hasCompact__value">Değer {tl(fromMg(s.store.hasBalanceMg ?? 0) * s.market.goldSpot)}</span>
       </div>
-      <label className="hasSlider">{side === 'buy' ? 'Seçilen' : 'Satılacak'}: {preciseGrams(qty)}
+      <span className="hasCompact__quote num">Al {tl(quote.buy)}/g<br />Sat {tl(quote.sell)}/g</span>
+    </div>
+    <div className="hasCompact__body">
+      <div className="hasCompact__segments" role="group" aria-label="HAS işlem yönü">
+        <button type="button" className="hasCompact__segment" aria-pressed={side === 'buy'} onClick={() => changeSide('buy')}>HAS Al</button>
+        <button type="button" className="hasCompact__segment" aria-pressed={side === 'sell'} onClick={() => changeSide('sell')}>HAS Sat</button>
+      </div>
+      <label className="hasSlider">
+        <span className="hasCompact__sliderHead">
+          <span>{side === 'buy' ? 'Seçilen' : 'Satılacak'}: <strong>{preciseGrams(qty)}</strong></span>
+          <span>En çok {preciseGrams(fromMg(maxMg))}</span>
+        </span>
         <input type="range" aria-label="HAS miktarı" min={0} max={fromMg(maxMg)} step={0.001} value={qty}
           disabled={maxMg <= 0} onChange={e => { setAmountMg(Math.min(maxMg, Math.max(0, toMg(Number(e.target.value))))); setPending(null); }} />
       </label>
-      <p>0 g — {preciseGrams(fromMg(maxMg))}</p>
-      <p>{side === 'buy' ? 'Yaklaşık Tutar' : 'Alınacak'}: {tl(total)}</p>
-      <button type="button" className="chip" disabled={maxMg <= 0}
-        onClick={() => { setAmountMg(maxMg); setPending(null); }}>{side === 'buy' ? 'MAX AL' : 'TÜM HAS'}</button>
-      <button type="button" className="chip" disabled={!open || !valid} onClick={() => setPending(signature)}>İşleme Devam Et</button>
-      {pending === signature && open && valid && <div role="group" aria-label="HAS işlem onayı">
-        <p>{preciseGrams(qty)} · {tl(total)} — {side === 'buy' ? 'alım' : 'satış'} onayı</p>
-        <button type="button" className="chip" onClick={() => {
+      <div className="hasCompact__actions">
+        <span className="hasCompact__total">{side === 'buy' ? 'Tutar' : 'Alınacak'}<strong className="num">{tl(total)}</strong></span>
+        <button type="button" className="hasCompact__max" disabled={maxMg <= 0}
+          onClick={() => { setAmountMg(maxMg); setPending(null); }}>MAX</button>
+        <button type="button" className="hasCompact__continue" disabled={!open || !valid} onClick={() => setPending(signature)}>Devam Et</button>
+      </div>
+      {pending === signature && open && valid && <div className="hasCompact__confirm" role="group" aria-label="HAS işlem onayı">
+        <span>{preciseGrams(qty)} · {tl(total)} {side === 'buy' ? 'alınacak' : 'satılacak'}</span>
+        <button type="button" className="hasCompact__confirmButton" onClick={() => {
           s.tradeHas(side, qty, `has_${s.market.day}_${s.ledger.transactions.length}_${side}`);
           setPending(null); setAmountMg(0);
-        }}>İşlemi Onayla</button>
-        <button type="button" className="chip" onClick={() => setPending(null)}>Vazgeç</button>
+        }}>Onayla</button>
+        <button type="button" className="hasCompact__cancel" onClick={() => setPending(null)}>Vazgeç</button>
       </div>}
-    </div>}
+    </div>
   </section>;
+}
+
+function WholesalerSellCounter() {
+  const [open, setOpen] = useState(false);
+  return <div className="counter counter--sell">
+    <button
+      type="button"
+      className="counter__toggle"
+      onClick={() => setOpen((current) => !current)}
+      aria-expanded={open}
+      aria-controls="wholesaler-stock-sale"
+    >
+      <span>Toptancıya Sat</span>
+      <span className="counter__meta">
+        <span className="counter__hint">Sarrafiyeyi nakde çevir</span>
+        <span className={`counter__chevron ${open ? 'counter__chevron--open' : ''}`} aria-hidden="true">▼</span>
+      </span>
+    </button>
+    {open && <div className="counter__list" id="wholesaler-stock-sale">
+      <WholesalerLiquidationList emptyText="Toptancıya satılabilecek sarrafiye yok." />
+    </div>}
+  </div>;
 }
