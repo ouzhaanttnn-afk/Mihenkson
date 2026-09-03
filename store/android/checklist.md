@@ -49,9 +49,18 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 - [ ] Kategori: Oyun > Simülasyon
 
 ## 5. Content rating (içerik derecelendirmesi anketi)
-- [ ] IARC anketi dolduruldu — oyun şiddet/kumar benzeri mekanik/yetişkin
-      içerik taşımıyor (ekonomi simülasyonu); anket yine de Play
-      Console'da doldurulmalı, burada tahmin edilmedi
+- [ ] IARC anketi (Play Console'da doldurulur, ben giremem) — kodun
+      bugünkü hâli taranarak belirlendi, **hedef: Everyone / PEGI 3**.
+      Her kategori için işaretlenecek: Şiddet — Yok · Kan/Korku — Yok ·
+      Cinsellik/Çıplaklık — Yok · Müstehcen Dil — Yok · Kontrollü Madde —
+      Yok · **Kumar (gerçek veya simüle) — Yok** (pazarlık/haggle
+      deterministik, GDD 28.3'e göre sabit RNG türetimi kullanır — şans
+      temelli bahis değil) · Kullanıcılar birbiriyle etkileşiyor mu — Hayır
+      (çok oyunculu/sohbet yok) · Konum paylaşıyor mu — Hayır · Kişisel
+      bilgi paylaşıyor mu — Hayır · Kısıtlanmamış internet erişimi — Hayır
+      · Uygulama içi dijital satın alma — Hayır (IAP yok). Ayrı olarak
+      mağaza girişindeki **"Reklam içerir"** kutusu İŞARETLENMELİ (AdMob
+      eklendi, bkz. `../legal/gizlilik-politikasi.md`).
 - [ ] Hedef kitle ve içerik beyanı
 
 ## 6. Data safety (veri güvenliği formu)

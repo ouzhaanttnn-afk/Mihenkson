@@ -60,7 +60,8 @@ Birincil: Oyun > Simülasyon
 
 ## Destek ve pazarlama
 ```
-Destek URL'si:     [DOLDURULACAK]
+Destek URL'si:     mailto:nostoscomp@gmail.com  (GEÇİCİ — Apple gerçek bir
+                   web sayfası tercih eder; bir destek sayfan olursa onu kullan)
 Pazarlama URL'si:  [DOLDURULACAK] (opsiyonel)
 Gizlilik politikası URL'si: https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
 ```
@@ -68,5 +69,5 @@ Gizlilik politikası URL'si: https://claude.ai/code/artifact/820c2ec1-26f3-4271-
 
 ## Telif hakkı satırı
 ```
-© 2026 [DOLDURULACAK — geliştirici/şirket adı]
+© 2026 Nostoscomp
 ```

@@ -11,8 +11,8 @@ https://claude.ai/code/artifact/adf82548-792c-47f9-af22-814424f9dc10
 > dosya (`.md`) hâlâ tek doğruluk kaynağı; yayınlanan sayfa onun
 > tasarlanmış bir aynası.
 
-Son güncelleme: [DOLDURULACAK — tarih]
-Geliştirici: [DOLDURULACAK — ad/şirket]
+Son güncelleme: 3 Eylül 2026
+Geliştirici: Nostoscomp
 
 ---
 
@@ -35,8 +35,8 @@ madde yeniden yazılmalı; bugünkü kodda hiçbir IAP entegrasyonu yoktur.]
 
 ## 4. Fikri mülkiyet
 
-Uygulamanın adı, logosu, görsel tasarımı ve içeriği [DOLDURULACAK —
-ad/şirket]'e aittir. İzinsiz kopyalanamaz veya dağıtılamaz.
+Uygulamanın adı, logosu, görsel tasarımı ve içeriği Nostoscomp'a aittir.
+İzinsiz kopyalanamaz veya dağıtılamaz.
 
 ## 5. Kayıt ve veri kaybı
 
@@ -57,4 +57,4 @@ mağaza sayfasında bağlantılı URL'de bulunur.
 
 ## 8. İletişim
 
-[DOLDURULACAK — e-posta]
+nostoscomp@gmail.com

@@ -16,9 +16,9 @@ https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
 > incelemecisi hâlâ "reklam yok" diyen eski metni görür; gerçek uygulama
 > ile hosted sayfa çelişir. Bu iki dosya (`.md`) hâlâ tek doğruluk kaynağı.
 
-Son güncelleme: [DOLDURULACAK — tarih]
-Geliştirici: [DOLDURULACAK — ad/şirket]
-İletişim: [DOLDURULACAK — e-posta]
+Son güncelleme: 3 Eylül 2026
+Geliştirici: Nostoscomp
+İletişim: nostoscomp@gmail.com
 
 ---
 
@@ -89,10 +89,12 @@ analitik kütüphanesi veya izleyici bulunmuyor.
 ## Çocukların gizliliği
 
 Oyunun kendisi kişisel veri toplamaz. Reklam tarafında: bu sürüm reklamları
-çocuğa yönelik (child-directed) olarak İŞARETLEMİYOR — mağaza yaş
-derecelendirmesi [DOLDURULACAK] netleşince, gerekiyorsa AdMob'un COPPA/
-"yaşça uygun reklam deneyimi" ayarları (`tagForChildDirectedTreatment`,
-`maxAdContentRating`, bkz. `src/ui/ads.ts`) buna göre güncellenmeli.
+çocuğa yönelik (child-directed) olarak İŞARETLEMİYOR — hedeflenen mağaza yaş
+derecelendirmesi 4+ / Everyone (şiddet, kumar veya yetişkin içerik yok;
+bkz. `store/ios/checklist.md` ve `store/android/checklist.md` madde 5).
+Gerekirse AdMob'un COPPA/"yaşça uygun reklam deneyimi" ayarları
+(`tagForChildDirectedTreatment`, `maxAdContentRating`, bkz. `src/ui/ads.ts`)
+buna göre güncellenmeli.
 
 ## Değişiklikler
 
@@ -104,4 +106,4 @@ fotoğrafıdır.
 
 ## İletişim
 
-Sorularınız için: [DOLDURULACAK — e-posta]
+Sorularınız için: nostoscomp@gmail.com

@@ -54,7 +54,7 @@ Oyun > Simülasyon
 
 ## İletişim
 ```
-E-posta: [DOLDURULACAK]
+E-posta: nostoscomp@gmail.com
 Web sitesi: [DOLDURULACAK] (opsiyonel)
 Gizlilik politikası: https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
 ```

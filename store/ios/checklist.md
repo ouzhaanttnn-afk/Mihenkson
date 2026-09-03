@@ -43,7 +43,8 @@ senin yerine atamaz. Sırayla:
 - [ ] Alt başlık (≤30 karakter)
 - [ ] Açıklama (≤4000 karakter)
 - [ ] Anahtar kelimeler (≤100 karakter, virgülle ayrık)
-- [ ] Destek URL'si — `[DOLDURULACAK]`
+- [ ] Destek URL'si — GEÇİCİ olarak `mailto:nostoscomp@gmail.com` önerildi
+      (bkz. `metadata-taslak.md`); Apple gerçek bir web sayfası tercih eder
 - [ ] Pazarlama URL'si (opsiyonel)
 
 ## 5. Gizlilik ve yaş derecelendirmesi
@@ -57,9 +58,17 @@ senin yerine atamaz. Sırayla:
       ID", kullanım amacı "Third-Party Advertising" olarak işaretlenmeli
       (bkz. `../README.md` "Mağaza konsollarında AYRICA doldurulması
       gerekenler"). Bulut kayıt eklenince bu anket YENİDEN doldurulmalı.
-- [ ] Yaş derecelendirmesi anketi — oyun şiddet/kumar/yetişkin içerik
-      taşımıyor; ekonomi simülasyonu. Muhtemel derece: 4+. Anket yine de
-      dürüstçe doldurulmalı, burada varsayım yapılmadı.
+- [ ] Yaş derecelendirmesi anketi (App Store Connect'te doldurulur, ben
+      giremem) — kodun bugünkü hâli taranarak belirlendi, **hedef: 4+**.
+      Her madde için işaretlenecek: Karikatür/Fantastik Şiddet — Yok ·
+      Gerçekçi Şiddet — Yok · Cinsel İçerik/Çıplaklık — Yok · Küfür/Kaba
+      Mizah — Yok · Alkol/Tütün/Uyuşturucu — Yok (kuyumculuk, madde değil)
+      · Olgun/Müstehcen Temalar — Yok · Korku Temaları — Yok · Simüle
+      Kumar — **Yok** (pazarlık/haggle deterministik, GDD 28.3'e göre
+      sabit RNG türetimi kullanır — şans temelli bahis/loot box değil) ·
+      Yarışmalar — Yok · Kısıtlanmamış Web Erişimi — Yok (uygulama içi
+      tarayıcı yok) · Reklam (AdMob) var ama bu anketin bir maddesi değil,
+      "App Privacy" bölümünde ayrıca beyan ediliyor (bkz. yukarıdaki madde).
 
 ## 6. Fiyatlandırma ve kullanılabilirlik
 - [ ] Fiyat katmanı (ücretsiz / ücretli) — `[DOLDURULACAK]`, ürün kararı
