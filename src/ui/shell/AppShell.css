@@ -716,31 +716,6 @@
   color: var(--stone-400);
 }
 
-.stageStrip__num {
-  width: 17px;
-  height: 17px;
-  border-radius: var(--r-pill);
-  border: 1px solid currentColor;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-micro);
-  font-weight: var(--fw-bold);
-  flex: 0 0 auto;
-}
-
-.stageStrip__step--active .stageStrip__num {
-  background: var(--amethyst-500);
-  border-color: var(--amethyst-500);
-  color: #fff;
-}
-
-.stageStrip__step--done .stageStrip__num {
-  background: var(--brass-600);
-  border-color: var(--brass-600);
-  color: var(--stone-50);
-}
-
 /* ------------------------------------------------------------------ */
 /* E — İşlem Masası · 337 px referans, esneyen tek bölge               */
 /* ------------------------------------------------------------------ */

@@ -13,6 +13,11 @@
  *
  * GDD 23.24: "İncele/Değerle/Tez/Pazarlık için ayrı tam ekran sayfalar açma;
  * aynı Workbench state değiştirir." Bu bileşen yalnız state değiştirir.
+ *
+ * NUMARALAR (1/2/3/4) KALDIRILDI — kullanıcı isteği. Etiketler ("İncele",
+ * "Değerle" vb.) sıralamayı zaten anlatıyor; ayrı bir rozet gereksiz
+ * kalabalıktı. Geri/ileri gezinme ve kilit davranışı DEĞİŞMEDİ, yalnız
+ * görünüm sadeleşti.
  */
 
 import { t } from '@i18n/index';
@@ -112,7 +117,7 @@ export function StageStrip({ flow, current, canEnter, onSelect, skipStages = [] 
 
   return (
     <nav className="stageStrip" aria-label={t('İşlem aşaması')}>
-      {STEPS.map((step, i) => {
+      {STEPS.map((step) => {
         const index = ORDER.indexOf(step.stage);
         const isActive = step.stage === current;
         const isDone = index < currentIndex;
@@ -129,7 +134,6 @@ export function StageStrip({ flow, current, canEnter, onSelect, skipStages = [] 
             disabled={!unlocked}
             aria-current={isActive ? 'step' : undefined}
           >
-            <span className="stageStrip__num">{i + 1}</span>
             {t(step.label)}
           </button>
         );

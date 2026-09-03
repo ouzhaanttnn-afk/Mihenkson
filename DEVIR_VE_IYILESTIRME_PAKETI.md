@@ -1965,6 +1965,23 @@ cihazında ilk TestFlight/internal testing derlemesinde denemesi gerekiyor.
 
 ---
 
+#### YENİ · Aşama Şeridi'ndeki 1/2/3/4 numaraları kaldırıldı — ✅ YAPILDI
+`src/ui/shell/StageStrip.tsx` · `src/ui/shell/AppShell.css`
+
+Kullanıcı isteği: "1-2-3-4 diye yazan satırın kalkmasını istiyorum." Numara
+rozetleri (`stageStrip__num`, yuvarlak kenarlıklı "1"/"2"/"3"/"4") ve onlara
+ait CSS kuralları silindi; etiketler ("İncele", "Değerle", "Çıkış Planı",
+"Pazarlık" vb.) tek başına kaldı. GERİ/İLERİ GEZİNME VE KİLİT DAVRANIŞI
+DEĞİŞMEDİ — yalnız görsel rozet kaldırıldı, şeridin kendisi (GDD 23.10.3
+gereği önceki aşamaya dönme yeteneği) durdu. Eğer kullanıcının kastı şeridin
+TAMAMININ kaldırılmasıysa (numara değil), bu ayrı ve geri dönüşü daha büyük
+bir değişiklik olur — geri bildirim beklenmeden varsayılan olarak daha
+küçük/tersinir yorum seçildi.
+
+Doğrulama: `tsc` temiz, 966/966 test yeşil, taze build+cap:sync.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
