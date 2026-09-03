@@ -130,7 +130,7 @@ describe('kayıt uyumu', () => {
  * unutmuyorsa oyuncu yalan söylenmiş olmaz.
  */
 describe('sunum tercihleri', () => {
-  it('varsayılanlar: ses, müzik ve titreşim açık, düzey %70, dil Türkçe', () => {
+  it('varsayılanlar: ses, müzik ve titreşim açık, düzey %50, dil Türkçe', () => {
     const p = defaultPreferences();
 
     expect(p).toEqual({

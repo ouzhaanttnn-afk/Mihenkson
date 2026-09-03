@@ -34,10 +34,15 @@ export const DEFAULT_LANGUAGE: LanguageId = 'tr';
 export const VOLUME_MIN = 0;
 export const VOLUME_MAX = 100;
 /*
-  Varsayılan düzey %70: alışıldık bir başlangıç, hem yukarı hem aşağı yer
-  bırakır. Tam açık başlamak, oyunu ilk kez sessiz bir ortamda açanı şaşırtır.
+  Varsayılan düzey %50 — önceki değer %70'ti.
+
+  Kullanıcı isteği: "Sesi bayağı kısman lazım, orijinal düzeyi 50 olsun."
+  Fon müziği eklenince iki katman aynı `soundVolume`den besleniyor (efekt +
+  müzik, bkz. music.ts · MUZIK_ORANI); %70'te ikisi üst üste binince kulakta
+  kalabalık duruyordu. %50 hem yukarı hem aşağı yer bırakan alışıldık bir
+  başlangıç olmayı sürdürüyor, artık iki katmanlı karışımın tepesi değil.
 */
-export const DEFAULT_VOLUME = 70;
+export const DEFAULT_VOLUME = 50;
 /** Kaydırıcının adımı; 21 durak, başparmakla ayarlanabilir bir hassasiyet. */
 export const VOLUME_STEP = 5;
 

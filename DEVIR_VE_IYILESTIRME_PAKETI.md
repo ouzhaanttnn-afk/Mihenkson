@@ -497,6 +497,26 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · Varsayılan ses düzeyi %70 → %50 — ✅ YAPILDI
+`src/domain/preferences.ts` · `src/state/settings.test.ts`
+
+Kullanıcı: *"Sesi bayağı kısman lazım, orijinal düzeyi 50 olsun."*
+
+Fon müziği eklendiğinde `soundVolume` tek bir tercih olarak iki katmanı birden besliyor
+hâle geldi — efekt ve müzik aynı kaydırıcıdan ölçekleniyor (bkz. `music.ts · MUZIK_ORANI`).
+%70'lik eski varsayılan, ikisi üst üste bindiğinde kulakta kalabalık duruyordu.
+
+**TEK SATIRLIK DEĞİŞİKLİK, GENİŞ ETKİ.** `DEFAULT_VOLUME` tek kaynak; hem yeni oyuncunun
+gördüğü ilk düzeyi hem de bozuk/eksik bir kayıttan dönülecek güvenli değeri belirliyor
+(`normalizeVolume`). Testler zaten sabiti import edip ona karşı sınıyordu (literal `70`
+yazan tek yer bir test adıydı, o da güncellendi) — yani kod tarafında başka hiçbir yer
+dokunulmadı ve testler kendiliğinden yeni değere uydu.
+
+**Tarayıcıda ölçüldü.** Yeni bir oyuncuda kaydırıcı `50`'de açılıyor, ayarlardaki not
+"%50" yazıyor, müzik öğesinin gerçek kazancı `0,50 × 0,42 = 0,21` — hesap tam tutuyor.
+
+Suite 975, değişmedi (yalnız bir test adı güncellendi).
+
 #### YENİ · Fon müziği eklendi — sözsüz, telifsiz, sıfırdan üretildi — ✅ YAPILDI
 `src/ui/music.ts` (yeni) · `tools/muzik-uret.py` (yeni) ·
 `public/assets/audio/music/tezgah.wav` (yeni) · `src/domain/preferences.ts` ·
