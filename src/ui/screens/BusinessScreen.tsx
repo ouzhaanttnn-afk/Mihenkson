@@ -195,7 +195,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
         <div className="group">
           <button
             type="button"
-            className="personnelDisclosure"
+            className="personnelDisclosure personnelDisclosure--money"
             onClick={() => setPersonnelOpen((open) => !open)}
             aria-expanded={personnelOpen}
             aria-controls="personnel-controls"
@@ -255,7 +255,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                   <button
                     key={count}
                     type="button"
-                    className="personnelChoice"
+                    className={`personnelChoice ${aylik > 0 ? 'personnelChoice--paid' : ''}`}
                     aria-pressed={personnelCount(s.store) === count}
                     aria-label={isim}
                     title={isim}
@@ -375,12 +375,14 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
               title={t('Toptancı Hesabı')}
               sub={supplierSub(s)}
               icon={<IconWholesale size={17} />}
+              money
               onPress={() => onOpen('wholesaler')}
             />
             <MenuLine
               title={t('Esnaf Ağı')}
               sub={networkSub(s)}
               icon={<IconTrust size={17} />}
+              money
               onPress={() => onOpen('network')}
             />
             <MenuLine
@@ -393,6 +395,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
               title={t('Mağaza')}
               sub={storeSub(s)}
               icon={<IconBusiness size={17} />}
+              money
               onPress={() => onOpen('store')}
             />
             <MenuLine
@@ -1542,19 +1545,41 @@ function StatLine({
   );
 }
 
+/**
+ * `money` — ARKASINDA PARA KARARI OLAN ROTA.
+ *
+ * İşletme ekranı sekiz satırlık bir listeydi ve sekizi de birbirinin aynısı
+ * görünüyordu: "İşlem Defteri" (salt okunur bir kayıt) ile "Toptancı Hesabı"
+ * (borç açar, vade doğurur) aynı ağırlıktaydı. Oyuncu hangi satırın kasasına
+ * dokunacağını ancak içine girip öğreniyordu.
+ *
+ * İşaret UYDURULMADI — oyunun kendi sözlüğünden alındı: Stok ekranındaki
+ * `counter__toggle` zaten 3 px'lik sol kenarla "burada para var" diyor.
+ * Aynı kenar buraya taşındı, yani ekranlar arasında tek bir dil konuşuluyor.
+ *
+ * SEÇİCİ OLMAK ŞART. Sekiz satırın sekizi de işaretlenseydi işaret hiçbir şey
+ * anlatmazdı; yalnız üçü işaretli: Toptancı, Esnaf Ağı, Mağaza. Piyasa, İşlem
+ * Defteri, Kayıt ve Kariyer nötr kalır — okumak paraya mal olmaz.
+ */
 function MenuLine({
   title,
   sub,
   icon,
   onPress,
+  money = false,
 }: {
   title: string;
   sub: string;
   icon: React.ReactNode;
   onPress: () => void;
+  money?: boolean;
 }) {
   return (
-    <button type="button" className="menuLine" onClick={onPress}>
+    <button
+      type="button"
+      className={`menuLine ${money ? 'menuLine--money' : ''}`}
+      onClick={onPress}
+    >
       <span className="menuLine__icon">{icon}</span>
       <span className="menuLine__body">
         <span className="menuLine__title">{title}</span>

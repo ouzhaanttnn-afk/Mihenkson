@@ -497,6 +497,61 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · Para işareti — önemli bağlamlar renkle ayrıldı — ✅ YAPILDI
+`src/ui/screens/BusinessScreen.tsx` · `src/ui/screens/Screens.css`
+
+Kullanıcı: *"Oyunda bazı tuşlar bazı bağlamlar önemli. Bu önemli bağlamları kendin keşfedip
+renklendirir misin? Örnek: personel tuşu altın sarısı boyansa da önemli bir bağlam olduğunu
+görsek."*
+
+**ÖNCE KURAL, SONRA RENK.** Rastgele yaldız işe yaramaz; her şey parlarsa hiçbir şey
+parlamaz. Konulan tek kural şu: **dokunulabilir bir yüzey para harcatıyor, kalıcı bir gider
+taahhüdü doğuruyor veya geri alınamıyorsa pirinç işaret taşır; salt okunur her şey nötr
+kalır.**
+
+**İŞARET UYDURULMADI, OYUNUN KENDİ SÖZLÜĞÜNDEN ALINDI.** Tarama yapıldı ve dil üç ağırlıkta
+zaten mevcuttu:
+- dolu pirinç → ana karar (Teklifi Gönder, market "Satın Al"),
+- pirinç kenarlık → taahhüt eden kontrol (`lotRow__buy`, `miniBtn`),
+- 3 px sol kenar → Stok ekranında `counter__toggle` ("Sarrafiye Al", "Toptancıya Sat").
+
+Yani Stok ve Market bu dili zaten konuşuyordu; Atölye neredeyse tamamen salt okunur.
+**Eksik olan tek ekran İşletme'ydi.**
+
+**İŞLETME'DE BULUNAN ASIL KUSUR:** ekran sekiz rotalık bir listeydi ve sekizi de birbirinin
+aynısı görünüyordu. "İşlem Defteri" (salt okunur bir kayıt) ile "Toptancı Hesabı" (borç açar,
+vade doğurur) aynı ağırlıktaydı; oyuncu hangi satırın kasasına dokunacağını ancak içine
+girerek öğreniyordu. Personel kartı da öyle: kalıcı aylık gider doğuran tek kontrol,
+"Metale bağlı değer" gibi bir bilgi satırından ayırt edilemiyordu.
+
+**Yapılan üç işaretleme:**
+
+| Yüzey | İşaret | Neden |
+|---|---|---|
+| Toptancı Hesabı · Esnaf Ağı · Mağaza | 3 px pirinç sol kenar + hafif pirinç zemin | borç açar, faiz/vade doğurur, yükseltme parası ister |
+| Personel kartı | 3 px pirinç sol kenar | kalıcı aylık gider taahhüdü |
+| Personel düğmeleri 1 · 2 · 3 | pirinç kenarlık + pirinç tutar | her biri bir maaş yükü |
+
+**İŞARETLENMEYENLER DE KARARIN PARÇASI.** Piyasa, İşlem Defteri, Kayıt ve Kariyer nötr kaldı —
+okumak paraya mal olmaz. Personel "0" düğmesi de nötr: hiçbir şeye mal olmuyor, onu da pirinç
+yapmak işareti anlamsızlaştırırdı. Kilitli kadrolar da işaret taşımaz; henüz bir para kararı
+değil, bir hedef. Sekiz rotadan **yalnız üçü** işaretli.
+
+**Pirinç tehlike demek değil.** Kayıp ve yıkım kırmızıdır ve zaten öyleydi (`settingsDanger`,
+"Kaydı sil"). Pirinç fırsat ve para demek; ikisi karıştırılmadı.
+
+**İki ölçüm iki kusur yakaladı:**
+1. Kenar çizildi ama SOLGUN kaldı. Karanlık ekran teması `.page .personnelDisclosure` gibi
+   iki sınıflı kurallarla `border-color`u eziyor; tek sınıflı kural onu yenemiyordu
+   (ölçüm: 3 px genişlik uygulandı, renk uygulanmadı). Seçiciler `.page` altına alındı —
+   `.page .counter__toggle` da zaten böyle yazılmış.
+2. `--paid` kuralı SEÇİLİ düğmenin kenar rengini de eziyordu; üçü aynı pirinca düşmüştü.
+   Dolgu yine ayırıyordu ama kenar da ayırsın diye seçili bir kademe parlatıldı.
+
+**Tarayıcıda ölçüldü (390×844).** Rotalar: Toptancı/Esnaf/Mağaza `3px rgb(196,141,43)`,
+diğer dördü `0px`. Personel: "0" nötr, 1/2/3 pirinç kenarlıklı; kadro 2 seçiliyken kenarı
+`rgb(215,170,74)` ve zemini dolu — üçünün içinden ayırt ediliyor.
+
 #### YENİ · Personel düğmelerine maaş yazıldı — ✅ YAPILDI
 `src/ui/screens/BusinessScreen.tsx` · `src/ui/screens/Screens.css`
 

@@ -1912,3 +1912,72 @@
   .marketGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .marketProduct { grid-template-columns: 96px minmax(0, 1fr); }
 }
+
+/* =========================================================================
+   PARA İŞARETİ — "buraya dokunmak kasaya dokunur"
+   -------------------------------------------------------------------------
+   TEK KURAL: dokunulabilir bir yüzey para harcatıyor, kalıcı bir gider
+   taahhüdü doğuruyor veya geri alınamıyorsa PİRİNÇ işaret taşır. Salt
+   okunur her şey nötr kalır.
+
+   İşaret uydurulmadı; oyunun kendi sözlüğünden alındı. Stok ekranındaki
+   `counter__toggle` zaten 3 px'lik sol kenarla aynı şeyi söylüyordu, market
+   "Satın Al" düğmesi dolu pirinç, `lotRow__buy` ve `miniBtn` pirinç
+   kenarlıklı. Eksik olan ekran İşletme'ydi: sekiz satırın sekizi de aynı
+   görünüyordu, "İşlem Defteri" (salt okunur) ile "Toptancı Hesabı" (borç
+   açar) ayırt edilemiyordu.
+
+   ÜÇ AĞIRLIK VAR, ÜÇÜ DE ZATEN VARDI:
+     · dolu pirinç      → ana karar (Teklifi Gönder, Satın Al) — dokunulmadı
+     · pirinç kenarlık  → taahhüt eden kontrol (lotRow__buy, miniBtn)
+     · 3 px sol kenar   → arkasında para kararı olan rota  ← burada yayıldı
+   Kayıp ve yıkım pirinç DEĞİL kırmızıdır (settingsDanger); pirinç fırsat
+   ve para demek, tehlike demek değil.
+
+   SEÇİCİ OLMAK İŞARETİN KENDİSİ KADAR ÖNEMLİ. Her şey işaretlenirse işaret
+   hiçbir şey anlatmaz; İşletme'de sekiz rotadan yalnız üçü pirinçtir.
+   ========================================================================= */
+
+/*
+ * SEÇİCİLER `.page` ALTINDA. Karanlık ekran teması `.page .personnelDisclosure`
+ * gibi iki sınıflı kurallarla `border-color`u `--page-line`a çekiyor; tek
+ * sınıflı bir kural onu yenemez ve kenar çizilir ama SOLGUN kalırdı
+ * (tarayıcıda ölçüldü: 3 px genişlik uygulandı, renk uygulanmadı).
+ * `.page .counter__toggle` da zaten aynı biçimde yazılmış.
+ */
+.page .menuLine--money {
+  border-left: 3px solid var(--brass-500);
+  background: color-mix(in srgb, var(--brass-500) 7%, transparent);
+}
+
+.page .menuLine--money .menuLine__chevron { color: var(--brass-400); }
+
+.page .personnelDisclosure--money { border-left: 3px solid var(--brass-500); }
+
+/*
+ * Bedeli olan kadro seçenekleri. "0" işaretlenmez — hiçbir şeye mal olmuyor,
+ * onu da pirinç yapmak işareti anlamsızlaştırırdı.
+ *
+ * SEÇİLİ HÂLİ AYIRT EDİLEBİLİR KALMALI: bedelli düğmeler yalnız KENARLIK ve
+ * yazı rengiyle işaretlenir, zemin boş kalır; seçili düğme ise dolgu alır.
+ * İkisi de dolu olsaydı hangi kadronun yürürlükte olduğu okunmazdı.
+ */
+.page .personnelChoice--paid {
+  border-color: var(--brass-500);
+}
+
+.page .personnelChoice--paid .personnelChoice__wage {
+  color: var(--brass-400) !important;
+  font-weight: var(--fw-semibold);
+}
+
+/*
+ * Seçili kadro işaretten SONRA gelir. `--paid` kuralı, seçiliye ait kenar
+ * rengini ezip hepsini aynı pirinca çekiyordu (tarayıcıda ölçüldü); dolgu
+ * yine ayırıyordu ama kenar da ayırsın diye seçili bir kademe parlatılıyor.
+ */
+.page .personnelChoice--paid[aria-pressed='true'] { border-color: var(--brass-400); }
+
+/* Kilitli kadro işareti taşımaz: henüz bir para kararı değil, bir hedef. */
+.page .personnelChoice--paid:disabled { border-color: var(--page-line); }
+.page .personnelChoice--paid:disabled .personnelChoice__wage { color: var(--text-dark-3) !important; }
