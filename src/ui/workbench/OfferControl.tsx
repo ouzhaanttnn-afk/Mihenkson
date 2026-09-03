@@ -13,6 +13,7 @@
  * ve klavye hiç açılmaz.
  */
 
+import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { tlBare, pct } from '@ui/format';
 import { currencySymbol } from '@i18n/currency';
@@ -78,7 +79,7 @@ export function OfferControl({
           className="offer__nudge"
           onClick={() => onChange(snapOffer(normalizedValue - step, min, max, step))}
           disabled={disabled || normalizedValue <= min}
-          aria-label="Teklifi azalt"
+          aria-label={t("Teklifi azalt")}
         >
           −
         </button>
@@ -93,7 +94,7 @@ export function OfferControl({
           className="offer__nudge"
           onClick={() => onChange(snapOffer(normalizedValue + step, min, max, step))}
           disabled={disabled || normalizedValue >= max}
-          aria-label="Teklifi artır"
+          aria-label={t('Teklifi artır')}
         >
           +
         </button>
@@ -110,7 +111,7 @@ export function OfferControl({
         value={normalizedValue}
         onChange={(e) => onChange(snapOffer(Number(e.target.value), min, max, step))}
         disabled={disabled}
-        aria-label="Teklif tutarı"
+        aria-label={t('Teklif tutarı')}
       />
 
       {impacts.length > 0 && (
@@ -133,7 +134,7 @@ export function OfferControl({
 export function liquidityImpact(before: number, after: number): OfferImpact {
   const drop = before - after;
   return {
-    label: TERM.liquidity,
+    label: t(TERM.liquidity),
     value: `${pct(before)} → ${pct(after)}`,
     tone: after < 0.15 ? 'negative' : drop > 0.12 ? 'warning' : 'neutral',
   };

@@ -228,7 +228,7 @@ export function ShopScreen() {
               item &&
               transactionClass(item) !== 'fast'
             ) {
-              setStageNotice('Değerleme atlandı · teklif aralığı daha belirsiz ve riskli olabilir.');
+              setStageNotice(t('Değerleme atlandı · teklif aralığı daha belirsiz ve riskli olabilir.'));
             } else {
               setStageNotice(null);
             }
@@ -257,7 +257,7 @@ export function ShopScreen() {
         <div className="wb">
           {/* Çoklu ürün kalem şeridi — dikey scroll yerine yatay pill (GDD 23.13) */}
           {deal && deal.lines.length > 1 && (
-            <div className="lineStrip" role="tablist" aria-label="Müşterinin ürünleri">
+            <div className="lineStrip" role="tablist" aria-label={t('Müşterinin ürünleri')}>
               {deal.lines.map((l, i) => (
                 <button
                   key={l.lineId}
@@ -460,12 +460,12 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
       <section className="quickStockSheet" role="dialog" aria-modal="true" aria-labelledby="quick-stock-title">
         <header className="quickStockSheet__head">
           <span>
-            <span className="quickStockSheet__eyebrow">Hızlı Stok</span>
-            <h2 id="quick-stock-title">İlk Sarrafiyeni Al</h2>
+            <span className="quickStockSheet__eyebrow">{t('Hızlı Stok')}</span>
+            <h2 id="quick-stock-title">{t('İlk Sarrafiyeni Al')}</h2>
           </span>
-          <button type="button" className="quickStockSheet__close" onClick={onClose} aria-label="Hızlı stok ekranını kapat">×</button>
+          <button type="button" className="quickStockSheet__close" onClick={onClose} aria-label={t('Hızlı stok ekranını kapat')}>×</button>
         </header>
-        <p className="quickStockSheet__intro">Dükkan ekranından ayrılmadan satılabilir sarrafiye oluştur. Kullanılabilir nakit: <strong>{tl(cash)}</strong></p>
+        <p className="quickStockSheet__intro">{t('Dükkan ekranından ayrılmadan satılabilir sarrafiye oluştur. Kullanılabilir nakit:')} <strong>{tl(cash)}</strong></p>
         <div className="quickStockSheet__scroll">
           <BullionCatalog />
         </div>
@@ -473,7 +473,7 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
           C3 — düğme yapmadığı şeyi vaat etmemeli. Alım satır satır "Al" ile
           yapılıyor; buranın tek işi pencereyi kapatmak.
         */}
-        <button type="button" className="quickStockSheet__done" onClick={onClose}>Kapat</button>
+        <button type="button" className="quickStockSheet__done" onClick={onClose}>{t('Kapat')}</button>
       </section>
     </div>
   );
@@ -509,7 +509,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
     alerts.push({
       key: 'closed',
       title: `${weekdayLabel(s.market.day)} · piyasa da kapalı`,
-      detail: 'Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.',
+      detail: t('Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.'),
       tone: 'warning',
       Icon: IconClock,
     });
@@ -552,11 +552,11 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
   if (band === 'red' || band === 'caution') {
     alerts.push({
       key: 'liquidity',
-      title: `${TERM.liquidity} ${pct(liquidity)}`,
+      title: `${t(TERM.liquidity)} ${pct(liquidity)}`,
       detail:
         band === 'red'
-          ? 'Büyük alış öncesi hızlı likidasyon gerekebilir.'
-          : 'İşlem yapılabilir ama tedarik ve büyük müşteri riski yükseliyor.',
+          ? t('Büyük alış öncesi hızlı likidasyon gerekebilir.')
+          : t('İşlem yapılabilir ama tedarik ve büyük müşteri riski yükseliyor.'),
       tone: band === 'red' ? 'negative' : 'warning',
       Icon: IconLiquidity,
     });
@@ -597,7 +597,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         Gizli gerçek sızmaz (GDD 6.6): buradaki hiçbir sayı tek bir ürünün
         gerçeğini açmaz; hepsi zaten oyuncunun kendi stoğunun toplamıdır.
       */}
-      <section className="shopOverview" aria-label="Dükkan kimliği ve mali durum">
+      <section className="shopOverview" aria-label={t('Dükkan kimliği ve mali durum')}>
         <button
           type="button"
           className="idle__head shopOverview__toggle"
@@ -615,12 +615,12 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
           <div className="idle__headText">
             <h2 className="idle__title">
               {shopDisplayName(s.profile.jewelerName)}
-              {s.playerMarket.equipped.shopBadge && <span className="idle__badge" title="Market profil rozeti">◆</span>}
+              {s.playerMarket.equipped.shopBadge && <span className="idle__badge" title={t('Market profil rozeti')}>◆</span>}
             </h2>
             <p className="idle__sub">
               {shopOverviewOpen
                 ? `Gün ${s.market.day} · ${weekdayLabel(s.market.day)} · Semt itibarı ${Math.round(s.store.reputation)}`
-                : 'Dükkan ve finans özetini göster'}
+                : t('Dükkan ve finans özetini göster')}
             </p>
           </div>
           <span className={`shopOverview__chevron ${shopOverviewOpen ? 'shopOverview__chevron--open' : ''}`} aria-hidden="true">⌄</span>
@@ -628,7 +628,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
 
         {shopOverviewOpen ? <div className="shopOverview__details" id="shop-overview-details">
           <button type="button" className="shopTalentButton" onClick={() => setTalentTreeOpen(true)}>
-            <span><IconBusiness size={18} /> Yetenek Ağacı</span>
+            <span><IconBusiness size={18} /> {t('Yetenek Ağacı')}</span>
             <small>Ayar %{Math.round(s.skillProgress.assayAccuracyRank === 0 ? 60 : 60 + s.skillProgress.assayAccuracyRank * 10)} · Tatlı Dil {s.skillProgress.tatliDilLevel}/3</small>
             <span aria-hidden="true">›</span>
           </button>
@@ -637,23 +637,23 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
           <span className="position__cell">
             <span className="position__icon" aria-hidden="true"><IconCash size={15} /></span>
             <span className="position__copy">
-              <span className="position__label">Nakit</span>
+              <span className="position__label">{t('Nakit')}</span>
               <span className="position__value num">{tl(s.store.cash)}</span>
             </span>
           </span>
           <span className="position__cell">
             <span className="position__icon" aria-hidden="true"><IconCollection size={15} /></span>
             <span className="position__copy">
-              <span className="position__label">Stok Değeri</span>
+              <span className="position__label">{t('Stok Değeri')}</span>
               <span className="position__value num">{tl(position.metalValue)}</span>
             </span>
           </span>
           <span className="position__cell">
             <span className="position__icon" aria-hidden="true"><IconStock size={15} /></span>
             <span className="position__copy">
-              <span className="position__label">Stok</span>
+              <span className="position__label">{t('Stok')}</span>
               <span className="position__value num">
-                {stockCount === 0 ? 'Stok yok' : `${stockCount} ürün`}
+                {stockCount === 0 ? t('Stok yok') : `${stockCount} ürün`}
               </span>
             </span>
           </span>
@@ -664,7 +664,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
           </span>
           <span className="position__legend">
             Altın %{metalShare} · Nakit %{100 - metalShare}
-            <span className="position__go">Stok ›</span>
+            <span className="position__go">{t('Stok ›')}</span>
           </span>
           </button>
         </div> : null}
@@ -675,8 +675,8 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         return item && p.quantity > 0 && (p.location === 'backStock' || p.location === 'display') && RETAIL_BULLION_CATALOG.includes(item.templateId) && (!poolForTemplate(item.templateId) || !!poolForItem(item));
       }) && showcaseStock(s.inventory, s.items).length === 0 && (
         <div className="alert">
-          <span>Satacak ürünün yok. Satış yapabilmek için önce stok oluştur.</span>
-          <button type="button" className="chip" onClick={s.openStockCatalog}>İlk Stoğunu Al</button>
+          <span>{t('Satacak ürünün yok. Satış yapabilmek için önce stok oluştur.')}</span>
+          <button type="button" className="chip" onClick={s.openStockCatalog}>{t('İlk Stoğunu Al')}</button>
         </div>
       )}
       {s.queue.length > 0 && <WaitingCustomerQueue />}
@@ -709,7 +709,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
       {shopOpen && s.queue.length === 0 && (
         <button type="button" className="rewardedLine" onClick={s.triggerCustomerRush}>
           <IconVideo size={13} />
-          Dükkânı Canlandır
+          {t('Dükkânı Canlandır')}
         </button>
       )}
 
@@ -717,11 +717,11 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         <div className="talentTreeScrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setTalentTreeOpen(false); }}>
           <section className="talentTreeSheet" role="dialog" aria-modal="true" aria-labelledby="shop-talent-title">
             <header className="talentTreeSheet__head">
-              <div><span>Uzmanlık</span><h2 id="shop-talent-title">Yetenek Ağacı</h2></div>
-              <button type="button" onClick={() => setTalentTreeOpen(false)} aria-label="Yetenek ağacını kapat">×</button>
+              <div><span>{t('Uzmanlık')}</span><h2 id="shop-talent-title">{t('Yetenek Ağacı')}</h2></div>
+              <button type="button" onClick={() => setTalentTreeOpen(false)} aria-label={t('Yetenek ağacını kapat')}>×</button>
             </header>
             <div className="talentTreeSheet__scroll"><TalentTreePanel /></div>
-            <button type="button" className="talentTreeSheet__done" onClick={() => setTalentTreeOpen(false)}>Dükkana Dön</button>
+            <button type="button" className="talentTreeSheet__done" onClick={() => setTalentTreeOpen(false)}>{t('Dükkana Dön')}</button>
           </section>
         </div>
       ) : null}
@@ -749,8 +749,8 @@ function WaitingCustomerQueue() {
         aria-controls="waiting-customer-list"
       >
         <span className="waitingQueue__heading">
-          <strong id="waiting-queue-title">Bekleyen Müşteriler</strong>
-          <small>{expanded ? 'Kuyruğu daralt' : queue.length > 1 ? `${queue.length - 1} müşteriyi daha göster` : 'Sıradaki müşteri'}</small>
+          <strong id="waiting-queue-title">{t('Bekleyen Müşteriler')}</strong>
+          <small>{expanded ? t('Kuyruğu daralt') : queue.length > 1 ? `${queue.length - 1} müşteriyi daha göster` : t('Sıradaki müşteri')}</small>
         </span>
         <span className="waitingQueue__count">
           {queue.length}/{capacity}
@@ -779,7 +779,7 @@ function WaitingCustomerQueue() {
               <div className="waitingCustomer__body">
                 <div className="waitingCustomer__identity">
                   <strong>{customer.displayName}</strong>
-                  <span>{isNext ? 'Şimdi' : `${index + 1}. sırada`}</span>
+                  <span>{isNext ? t('Şimdi') : `${index + 1}. sırada`}</span>
                 </div>
                 <p>{customerIntentLine(customer, items)}</p>
                 <div className="waitingCustomer__meta">
@@ -810,7 +810,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
     // kesiyordu. Kuyruk kararın kendisidir. Müşteri karşılanınca aktif işlem
     // rayı aynı fiziksel konumunda yeniden görünür.
     if (s.queue.length > 0) return null;
-    return <ToolRail items={[]} idle emptyLabel="Müşteri karşılandığında araçlar burada" />;
+    return <ToolRail items={[]} idle emptyLabel={t("Müşteri karşılandığında araçlar burada")} />;
   }
 
   const railItem = s.items[line.itemId];
@@ -843,7 +843,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
             },
             {
               id: 'counter',
-              label: 'Karşı Teklif',
+              label: t('Karşı Teklif'),
               icon: <IconCounter size={19} />,
               // Müşteri son sözünü söylediyse bir daha karşı teklif istemek
               // anlamsız: cevap değişmez, yalnız sabır yakılır. Jestteki
@@ -857,7 +857,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
     }
 
     if (deal.stage === 'result') {
-      return <ToolRail items={[]} disabled emptyLabel="İşlem kapandı" />;
+      return <ToolRail items={[]} disabled emptyLabel={t("İşlem kapandı")} />;
     }
 
     return (
@@ -865,14 +865,14 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         items={[
           {
             id: 'clearPackage',
-            label: 'Paketi boşalt',
+            label: t('Paketi boşalt'),
             icon: <IconReject size={19} />,
             onPress: s.clearPackage,
             disabled: purchase.lines.length === 0 || locked,
           },
           {
             id: 'toPackage',
-            label: 'Pakete bak',
+            label: t('Pakete bak'),
             icon: <IconPackage size={19} />,
             onPress: () => s.setStage('package'),
             selected: deal.stage === 'package',
@@ -889,10 +889,10 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
   // kalmamıştır; ray boşalır ama yerinde durur (GDD 23.11).
   if (deal.flow === 'appraisal') {
     if (deal.stage === 'report') {
-      return <ToolRail items={[]} disabled emptyLabel="Raporu Karar Dock'unda verin" />;
+      return <ToolRail items={[]} disabled emptyLabel={t("Raporu Karar Dock'unda verin")} />;
     }
     if (deal.stage === 'result') {
-      return <ToolRail items={[]} disabled emptyLabel="Ekspertiz tamamlandı" />;
+      return <ToolRail items={[]} disabled emptyLabel={t("Ekspertiz tamamlandı")} />;
     }
     // inspect / test → aşağıdaki ortak test rayına düşer; ölçüm asıl olarak
     // "Test" adımında yapılır ama İncele'de de yasak değildir.
@@ -913,7 +913,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         const loupe = toolsForLevel(s.store.level).find(
           (t) => t.tool.id === 'loupe' && (!railItem || isToolRelevant(railItem, t.tool)),
         );
-        if (!loupe) return <ToolRail items={[]} emptyLabel="İnceleme aracı yok" />;
+        if (!loupe) return <ToolRail items={[]} emptyLabel={t("İnceleme aracı yok")} />;
         return (
           <ToolRail
             items={[
@@ -946,16 +946,16 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
             selected: service.selectedTypeId === typeId,
           };
         });
-        return <ToolRail items={items} emptyLabel="Uygulanabilir servis yok" />;
+        return <ToolRail items={items} emptyLabel={t("Uygulanabilir servis yok")} />;
       }
 
       // "Söz | İşi Kabul Et / Reddet." — bu iki aksiyon Dock'ta yaşar.
       case 'promise':
-        return <ToolRail items={[]} disabled emptyLabel="Teslim sözünü Karar Dock'unda ver" />;
+        return <ToolRail items={[]} disabled emptyLabel={t("Teslim sözünü Karar Dock'unda ver")} />;
 
       // "Kuyruk | Atölyeye Gönder; sonuç Atölye ekranında takip edilir."
       default:
-        return <ToolRail items={[]} disabled emptyLabel="İş emri oluşturuldu" />;
+        return <ToolRail items={[]} disabled emptyLabel={t("İş emri oluşturuldu")} />;
     }
   }
 
@@ -998,7 +998,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
       const items: RailItem[] = [
         {
           id: 'more-test',
-          label: 'Ek Test',
+          label: t('Ek Test'),
           icon: <IconTouchstone size={19} />,
           onPress: () => s.setStage('inspect'),
         },
@@ -1010,7 +1010,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         },
         {
           id: 'thesis',
-          label: TERM.thesisShort,
+          label: t(TERM.thesisShort),
           icon: <IconPackage size={19} />,
           onPress: () => s.setStage('thesis'),
         },
@@ -1044,11 +1044,11 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
       const items: RailItem[] = [
         {
           id: 'reason',
-          label: 'Gerekçe',
+          label: t('Gerekçe'),
           icon: <IconReason size={19} />,
           disabled: !evidence,
           used: evidence ? session.usedReasons.includes(`${evidence.field}:${evidence.toolId}`) : false,
-          lockReason: 'Önce ilgili testi yapın',
+          lockReason: t('Önce ilgili testi yapın'),
           onPress: () =>
             evidence &&
             s.negotiationMove({
@@ -1066,7 +1066,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         },
         {
           id: 'counter',
-          label: 'Karşı Teklif',
+          label: t('Karşı Teklif'),
           icon: <IconCounter size={19} />,
           // Bkz. yukarısı: son teklifte karşı teklif istemek yalnız sabır yakar.
           used: session.state === 'FINAL_OFFER',
@@ -1090,7 +1090,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
 
     // Sonuç → ray gizli/disabled (GDD 23.10.2).
     case 'result':
-      return <ToolRail items={[]} disabled emptyLabel="İşlem tamamlandı" />;
+      return <ToolRail items={[]} disabled emptyLabel={t("İşlem tamamlandı")} />;
   }
 
   void liquidity;
@@ -1161,9 +1161,9 @@ function ShopDock({
         <DecisionDock
           idle
           summaryLabel={weekdayLabel(s.market.day)}
-          summaryValue="Dükkân ve müşteri akışı kapalı"
-          primary={{ label: 'Günü Bitir', onPress: s.requestDayClose }}
-          secondary={[{ label: 'Stoka Bak', onPress: () => s.setTab('stock') }]}
+          summaryValue={t("Dükkân ve müşteri akışı kapalı")}
+          primary={{ label: t('Günü Bitir'), onPress: s.requestDayClose }}
+          secondary={[{ label: t('Stoka Bak'), onPress: () => s.setTab('stock') }]}
         />
       );
     }
@@ -1173,13 +1173,13 @@ function ShopDock({
         idle
         hideSummary
         summaryLabel="Kuyruk"
-        summaryValue={hasQueue ? `${s.queue.length} müşteri bekliyor` : 'Müşteri bekleniyor'}
+        summaryValue={hasQueue ? `${s.queue.length} müşteri bekliyor` : t('Müşteri bekleniyor')}
         primary={{
-          label: hasQueue ? `Müşteriyi Karşıla · ${s.queue.length}` : 'Müşteri bekleniyor',
+          label: hasQueue ? `Müşteriyi Karşıla · ${s.queue.length}` : t('Müşteri bekleniyor'),
           onPress: s.greetCustomer,
           disabled: !hasQueue,
         }}
-        secondary={[{ label: 'Günü Bitir', onPress: s.requestDayClose }]}
+        secondary={[{ label: t('Günü Bitir'), onPress: s.requestDayClose }]}
       />
     );
   }
@@ -1226,20 +1226,20 @@ function ShopDock({
 
       return (
         <DecisionDock
-          summaryLabel={policy ? CLASS_LABEL[policy.transactionClass] : 'Doğrulanan alan'}
+          summaryLabel={policy ? CLASS_LABEL[policy.transactionClass] : t('Doğrulanan alan')}
           summaryValue={
             <>
               {verified}/{line.knowledge.length} alan
               {policy && <span style={{ color: 'var(--muted)' }}> · {policy.note}</span>}
               {conflicting && (
-                <span style={{ color: 'var(--negative)' }}> · çelişkili sinyal</span>
+                <span style={{ color: 'var(--negative)' }}> {t('· çelişkili sinyal')}</span>
               )}
             </>
           }
           primary={
             fast
-              ? { label: 'Fiyata Geç', onPress: () => s.setStage('negotiate') }
-              : { label: 'Değerlemeye Geç', onPress: () => s.setStage('appraise') }
+              ? { label: t('Fiyata Geç'), onPress: () => s.setStage('negotiate') }
+              : { label: t('Değerlemeye Geç'), onPress: () => s.setStage('appraise') }
           }
           /*
             "İLGİLENMİYORUM" — KAPIDAKİ MALI GERİ ÇEVİRME.
@@ -1257,11 +1257,11 @@ function ShopDock({
           */
           secondary={[
             ...(fast
-              ? [{ label: 'Yine de değerle', onPress: () => s.setStage('appraise') }]
+              ? [{ label: t('Yine de değerle'), onPress: () => s.setStage('appraise') }]
               : line.testResults.length === 0
-                ? [{ label: 'Test yapmadan ilerle', onPress: () => s.setStage('appraise') }]
+                ? [{ label: t('Test yapmadan ilerle'), onPress: () => s.setStage('appraise') }]
                 : []),
-            { label: 'İlgilenmiyorum', onPress: s.finishDeal, danger: true },
+            { label: t('İlgilenmiyorum'), onPress: s.finishDeal, danger: true },
           ]}
         />
       );
@@ -1290,16 +1290,16 @@ function ShopDock({
 
       return (
         <DecisionDock
-          summaryLabel="Değer bandı"
+          summaryLabel={t("Değer bandı")}
           summaryValue={band ? `${tl(band.min)} – ${tl(band.max)}` : '—'}
           primary={{
-            label: skipThesis ? 'Pazarlığa Geç' : `${TERM.thesis} Seç`,
+            label: skipThesis ? t('Pazarlığa Geç') : `${t(TERM.thesis)} Seç`,
             onPress: () => s.setStage(skipThesis ? 'negotiate' : 'thesis'),
           }}
           secondary={[
-            { label: 'Ek test', onPress: () => s.setStage('inspect') },
+            { label: t('Ek test'), onPress: () => s.setStage('inspect') },
             ...(skipThesis && line.thesisOptions.length > 0
-              ? [{ label: `Yine de ${TERM.thesis.toLocaleLowerCase('tr')}`, onPress: () => s.setStage('thesis') }]
+              ? [{ label: `Yine de ${t(TERM.thesis).toLocaleLowerCase('tr')}`, onPress: () => s.setStage('thesis') }]
               : []),
           ]}
         />
@@ -1314,13 +1314,13 @@ function ShopDock({
 
       return (
         <DecisionDock
-          summaryLabel={selected ? `Seçili ${TERM.thesis.toLocaleLowerCase('tr')}` : `${TERM.thesis} seçilmedi`}
+          summaryLabel={selected ? `Seçili ${t(TERM.thesis).toLocaleLowerCase('tr')}` : `${t(TERM.thesis)} seçilmedi`}
           summaryValue={
             selected
               ? `${selected.label} · net ${tl(selected.expectedNet)}`
-              : 'Öneri ile devam edilecek'
+              : t('Öneri ile devam edilecek')
           }
-          primary={{ label: 'Pazarlığa Geç', onPress: () => s.setStage('negotiate') }}
+          primary={{ label: t('Pazarlığa Geç'), onPress: () => s.setStage('negotiate') }}
         />
       );
     }
@@ -1346,7 +1346,7 @@ function ShopDock({
         },
         liquidityImpact(liquidity, liquidityAfter),
         {
-          label: 'İlişki',
+          label: t('İlişki'),
           value: relationLabel(offer, ceiling),
           tone: offer < ceiling * 0.75 ? 'warning' : 'neutral',
         },
@@ -1356,7 +1356,7 @@ function ShopDock({
 
       return (
         <DecisionDock
-          summaryLabel={isFinal ? 'Son teklif' : 'Teklifiniz'}
+          summaryLabel={isFinal ? t('Son teklif') : 'Teklifiniz'}
           summaryValue={
             isFinal && counter !== null
               ? `Müşteri: ${tl(counter)} — geri dönüş yok`
@@ -1365,7 +1365,7 @@ function ShopDock({
           primary={
             isFinal && counter !== null
               ? {
-                  label: 'Kabul Et',
+                  label: t('Kabul Et'),
                   onPress: () => s.negotiationMove({ kind: 'acceptCounter', atRound: session.round }),
                   disabled: counter > s.store.cash,
                   disabledReason: counter > s.store.cash
@@ -1374,11 +1374,11 @@ function ShopDock({
                   icon: <IconSend size={18} />,
                 }
               : {
-                  label: 'Teklifi Gönder',
+                  label: t('Teklifi Gönder'),
                   onPress: () => s.submitOffer(offer),
                   disabled: !canAfford || offer <= 0,
                   disabledReason: offer <= 0
-                    ? 'Teklif tutarı sıfırdan büyük olmalı.'
+                    ? t('Teklif tutarı sıfırdan büyük olmalı.')
                     : !canAfford
                       ? `Teklif ${tl(offer)} · mevcut nakit ${tl(s.store.cash)} · eksik ${tl(offer - s.store.cash)}`
                       : undefined,
@@ -1420,9 +1420,9 @@ function ShopDock({
 
       return (
         <DecisionDock
-          summaryLabel={accepted ? 'Kapanış' : 'Sonuç'}
-          summaryValue={accepted ? tl(price) : 'İşlem yapılmadı'}
-          primary={{ label: 'Devam Et', onPress: s.finishDeal }}
+          summaryLabel={accepted ? t('Kapanış') : t('Sonuç')}
+          summaryValue={accepted ? tl(price) : t('İşlem yapılmadı')}
+          primary={{ label: t('Devam Et'), onPress: s.finishDeal }}
         />
       );
     }
@@ -1469,15 +1469,15 @@ function PurchaseDock({
           summaryLabel="Pakette"
           summaryValue={
             count === 0
-              ? 'Henüz ürün seçilmedi'
+              ? t('Henüz ürün seçilmedi')
               : `${purchase.demand.poolId === '24K_GRAM_GOLD_POOL' ? preciseGrams(count) : purchase.demand.poolId === '22K_INVESTMENT_BANGLE_POOL' ? preciseGrams(count * 10) : `${count} adet`} · ${tl(purchase.packageFairValue)} adil değer`
           }
           primary={{
-            label: 'Paketi Değerle',
+            label: t('Paketi Değerle'),
             onPress: () => s.setStage('package'),
             disabled: count === 0,
           }}
-          secondary={[{ label: 'Müşteriyi Gönder', onPress: s.finishDeal, danger: true }]}
+          secondary={[{ label: t('Müşteriyi Gönder'), onPress: s.finishDeal, danger: true }]}
         />
       );
     }
@@ -1488,7 +1488,7 @@ function PurchaseDock({
       const ready = purchase.fulfilment !== 'none';
       return (
         <DecisionDock
-          summaryLabel="Kanal önerisi"
+          summaryLabel={t("Kanal önerisi")}
           summaryValue={
             <>
               {tl(purchase.suggestedPrice)}
@@ -1498,7 +1498,7 @@ function PurchaseDock({
             </>
           }
           primary={{
-            label: 'Pazarlığa Geç',
+            label: t('Pazarlığa Geç'),
             onPress: () => {
               setOffer(purchaseStartingOffer(purchase));
               s.setStage('negotiate');
@@ -1506,8 +1506,8 @@ function PurchaseDock({
             disabled: !ready,
           }}
           secondary={[
-            { label: 'Paketi Düzenle', onPress: () => s.setStage('stockPick') },
-            { label: 'Müşteriyi Gönder', onPress: s.finishDeal, danger: true },
+            { label: t('Paketi Düzenle'), onPress: () => s.setStage('stockPick') },
+            { label: t('Müşteriyi Gönder'), onPress: s.finishDeal, danger: true },
           ]}
         />
       );
@@ -1529,7 +1529,7 @@ function PurchaseDock({
         },
         liquidityImpact(liquidity, liquidity),
         {
-          label: 'İlişki',
+          label: t('İlişki'),
           value: saleRelationLabel(offer, purchase.packageFairValue),
           tone: offer > purchase.packageFairValue * 1.25 ? 'warning' : 'neutral',
         },
@@ -1539,14 +1539,14 @@ function PurchaseDock({
 
       return (
         <DecisionDock
-          summaryLabel={isFinal ? 'Son teklif' : 'İstediğiniz fiyat'}
+          summaryLabel={isFinal ? t('Son teklif') : t('İstediğiniz fiyat')}
           summaryValue={
             isFinal && counter !== null
               ? `Müşteri: ${tl(counter)} — geri dönüş yok`
               : `Adil değer ${tl(purchase.packageFairValue)}`
           }
           primary={{
-            label: isFinal ? 'Son Teklifi Kabul Et' : 'Fiyatı Ver',
+            label: isFinal ? t('Son Teklifi Kabul Et') : t('Fiyatı Ver'),
             onPress: () =>
               isFinal && counter !== null
                 ? s.negotiationMove({ kind: 'acceptCounter', atRound: session.round })
@@ -1556,7 +1556,7 @@ function PurchaseDock({
           }}
           secondary={[
             {
-              label: 'Vazgeç',
+              label: t('Vazgeç'),
               onPress: () => s.negotiationMove({ kind: 'reject', atRound: session.round }),
               danger: true,
               icon: <IconReject size={16} />,
@@ -1594,13 +1594,13 @@ function PurchaseDock({
     default:
       return (
         <DecisionDock
-          summaryLabel="Sonuç"
+          summaryLabel={t("Sonuç")}
           summaryValue={
             line.negotiation.state === 'ACCEPTED'
               ? `Satıldı · ${tl(line.negotiation.settledPrice ?? 0)}`
-              : 'Satış olmadı'
+              : t('Satış olmadı')
           }
-          primary={{ label: 'Sonraki Müşteri', onPress: s.finishDeal }}
+          primary={{ label: t('Sonraki Müşteri'), onPress: s.finishDeal }}
         />
       );
   }
@@ -1629,10 +1629,10 @@ function purchaseStartingOffer(purchase: NonNullable<GameStateDeal>['purchase'])
 
 /** Satışta ilişki etiketi: fiyat adil değerin ne kadar üstünde (GDD 23.12). */
 function saleRelationLabel(price: Money, fair: Money): string {
-  if (fair <= 0) return 'nötr';
+  if (fair <= 0) return t('nötr');
   const ratio = price / fair;
   if (ratio <= 1.08) return 'olumlu';
-  if (ratio <= 1.28) return 'nötr';
+  if (ratio <= 1.28) return t('nötr');
   return 'riskli';
 }
 
@@ -1649,16 +1649,16 @@ function ServiceDock({ deal }: { deal: NonNullable<GameStateDeal> }) {
       const count = service.diagnosis?.availableTypeIds.length ?? 0;
       return (
         <DecisionDock
-          summaryLabel="Tanı"
+          summaryLabel={t("Tanı")}
           summaryValue={
-            count > 0 ? `${count} servis türü uygulanabilir` : 'Uygun servis bulunamadı'
+            count > 0 ? `${count} servis türü uygulanabilir` : t('Uygun servis bulunamadı')
           }
           primary={{
-            label: 'Teklif Hazırla',
+            label: t('Teklif Hazırla'),
             onPress: () => s.setStage('quote'),
             disabled: count === 0,
           }}
-          secondary={[{ label: 'İşi Reddet', onPress: s.declineServiceJob, danger: true }]}
+          secondary={[{ label: t('İşi Reddet'), onPress: s.declineServiceJob, danger: true }]}
         />
       );
     }
@@ -1667,18 +1667,18 @@ function ServiceDock({ deal }: { deal: NonNullable<GameStateDeal> }) {
     case 'quote':
       return (
         <DecisionDock
-          summaryLabel={quote ? 'Seçili teklif' : 'Servis türü seçilmedi'}
+          summaryLabel={quote ? t('Seçili teklif') : t('Servis türü seçilmedi')}
           summaryValue={
             quote
               ? `${tl(quote.fee)} · ${quote.durationDays} gün · risk ${pct(quote.risk)}`
-              : 'Raydan bir tür seçin'
+              : t('Raydan bir tür seçin')
           }
           primary={{
-            label: 'Teslim Sözü Ver',
+            label: t('Teslim Sözü Ver'),
             onPress: () => s.setStage('promise'),
             disabled: !quote || quote.blockedReason !== null,
           }}
-          secondary={[{ label: 'İşi Reddet', onPress: s.declineServiceJob, danger: true }]}
+          secondary={[{ label: t('İşi Reddet'), onPress: s.declineServiceJob, danger: true }]}
         />
       );
 
@@ -1702,7 +1702,7 @@ function ServiceDock({ deal }: { deal: NonNullable<GameStateDeal> }) {
             </>
           }
           primary={{
-            label: 'İşi Kabul Et',
+            label: t('İşi Kabul Et'),
             onPress: s.acceptServiceJob,
             disabled: !affordable,
             icon: <IconWorkshop size={18} />,
@@ -1717,14 +1717,14 @@ function ServiceDock({ deal }: { deal: NonNullable<GameStateDeal> }) {
       const accepted = service.outcome === 'accepted';
       return (
         <DecisionDock
-          summaryLabel={accepted ? 'İş emri' : 'Sonuç'}
-          summaryValue={accepted ? 'Atölye kuyruğuna eklendi' : 'İş kabul edilmedi'}
-          primary={{ label: 'Devam Et', onPress: s.finishDeal }}
+          summaryLabel={accepted ? t('İş emri') : t('Sonuç')}
+          summaryValue={accepted ? t('Atölye kuyruğuna eklendi') : t('İş kabul edilmedi')}
+          primary={{ label: t('Devam Et'), onPress: s.finishDeal }}
           secondary={
             accepted
               ? [
                   {
-                    label: 'Atölyeyi Aç',
+                    label: t('Atölyeyi Aç'),
                     // İşlemi kapat, sonra sekmeyi değiştir: aksi hâlde oyuncu
                     // Dükkan'a döndüğünde kapanmış bir iş emrinde kalırdı.
                     onPress: () => {
@@ -1769,10 +1769,10 @@ function AppraisalDock({
         <DecisionDock
           summaryLabel="Ekspertiz"
           summaryValue={
-            tests > 0 ? `${tests} test yapıldı` : 'Henüz ölçüm yok — raydan araç seçin'
+            tests > 0 ? `${tests} test yapıldı` : t('Henüz ölçüm yok — raydan araç seçin')
           }
-          primary={{ label: 'Ölçüme Geç', onPress: () => s.setStage('test') }}
-          secondary={[{ label: 'İşi Reddet', onPress: s.declineAppraisal, danger: true }]}
+          primary={{ label: t('Ölçüme Geç'), onPress: () => s.setStage('test') }}
+          secondary={[{ label: t('İşi Reddet'), onPress: s.declineAppraisal, danger: true }]}
         />
       );
 
@@ -1781,18 +1781,18 @@ function AppraisalDock({
       const band = line.band;
       return (
         <DecisionDock
-          summaryLabel="Ölçülen aralık"
+          summaryLabel={t("Ölçülen aralık")}
           summaryValue={
             band
               ? `${tl(band.min)} – ${tl(band.max)} · ${CONFIDENCE_LABEL[band.confidence]}`
-              : 'Değerleme bandı yok'
+              : t('Değerleme bandı yok')
           }
           primary={{
-            label: 'Rapor Yaz',
+            label: t('Rapor Yaz'),
             onPress: () => s.setStage('report'),
             disabled: !band,
           }}
-          secondary={[{ label: 'İşi Reddet', onPress: s.declineAppraisal, danger: true }]}
+          secondary={[{ label: t('İşi Reddet'), onPress: s.declineAppraisal, danger: true }]}
         />
       );
     }
@@ -1802,19 +1802,19 @@ function AppraisalDock({
       const ready = appraisal.stance !== null;
       return (
         <DecisionDock
-          summaryLabel={ready ? 'Rapor' : 'Duruş seçilmedi'}
+          summaryLabel={ready ? 'Rapor' : t('Duruş seçilmedi')}
           summaryValue={
             ready
               ? `${getStance(appraisal.stance!).label} · ${tl(appraisal.fee)} ücret`
-              : 'Yukarıdan bir rapor duruşu seçin'
+              : t('Yukarıdan bir rapor duruşu seçin')
           }
           primary={{
-            label: 'Raporu Ver',
+            label: t('Raporu Ver'),
             onPress: s.issueReport,
             disabled: !ready,
             icon: <IconLoupe size={18} />,
           }}
-          secondary={[{ label: 'İşi Reddet', onPress: s.declineAppraisal, danger: true }]}
+          secondary={[{ label: t('İşi Reddet'), onPress: s.declineAppraisal, danger: true }]}
         />
       );
     }
@@ -1824,17 +1824,17 @@ function AppraisalDock({
       const v = appraisal.verdict;
       return (
         <DecisionDock
-          summaryLabel="Sonuç"
+          summaryLabel={t("Sonuç")}
           summaryValue={
             appraisal.outcome === 'declined'
-              ? 'Ekspertiz yapılmadı'
+              ? t('Ekspertiz yapılmadı')
               : v
                 ? v.paid
                   ? `${tl(v.fee)} ücret alındı`
-                  : 'Ücret ödenmedi'
+                  : t('Ücret ödenmedi')
                 : '—'
           }
-          primary={{ label: 'Devam Et', onPress: s.finishDeal }}
+          primary={{ label: t('Devam Et'), onPress: s.finishDeal }}
         />
       );
     }
@@ -1982,9 +1982,9 @@ function salePreview(
 
 /** İlişki etkisi etiketi — sayısal skor değil, okunabilir durum (GDD 23.12). */
 function relationLabel(offer: Money, ceiling: Money): string {
-  if (ceiling <= 0) return 'nötr';
+  if (ceiling <= 0) return t('nötr');
   const ratio = offer / ceiling;
   if (ratio >= 0.95) return 'olumlu';
-  if (ratio >= 0.8) return 'nötr';
+  if (ratio >= 0.8) return t('nötr');
   return 'riskli';
 }

@@ -9,6 +9,7 @@
  *    veri satırını günceller.
  */
 
+import { t } from '@i18n/index';
 import { CONDITION_LABEL, KARAT_LABEL } from '@domain/balance';
 import { signalPressure } from '@domain/valuation';
 import { getTemplate } from '@data/item-templates';
@@ -105,7 +106,7 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
           */}
           {unitView && (
             <Field
-              label="Piyasa birim referansı"
+              label={t("Piyasa birim referansı")}
               value={`${tlBare(unitView.unitPrice)} ${unitView.unit}`}
               status="partial"
               statusLabel="referans"
@@ -113,7 +114,7 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
           )}
           {fields.includes('weight') && (
             <Field
-              label="Ağırlık"
+              label={t("Ağırlık")}
               value={weightVerified ? grams(shownWeight) : `~${grams(shownWeight)}`}
               status={weightStatus}
               statusLabel={isBullion(item.templateId) && weightStatus === 'partial' ? 'beyan' : undefined}
@@ -121,7 +122,7 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
           )}
           {fields.includes('purity') && (
             <Field
-              label={purityVerified ? 'Ayar' : 'Beyan ayarı'}
+              label={purityVerified ? 'Ayar' : t('Beyan ayarı')}
               value={KARAT_LABEL[shownKarat]}
               status={purityStatus}
               statusLabel={isBullion(item.templateId) && purityStatus === 'partial' ? 'beyan' : undefined}
@@ -129,8 +130,8 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
           )}
           {fields.includes('coreIntegrity') && (
             <Field
-              label="İç yapı"
-              value={statusOf(knowledge, 'coreIntegrity') === 'verified' ? 'Doğrulandı' : 'Belirsiz'}
+              label={t("İç yapı")}
+              value={statusOf(knowledge, 'coreIntegrity') === 'verified' ? t('Doğrulandı') : 'Belirsiz'}
               status={statusOf(knowledge, 'coreIntegrity')}
             />
           )}
@@ -148,7 +149,7 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
             />
           )}
           {fields.includes('stone') && (
-            <Field label="Taş" value={stoneText(item, knowledge)} status={statusOf(knowledge, 'stone')} />
+            <Field label={t("Taş")} value={stoneText(item, knowledge)} status={statusOf(knowledge, 'stone')} />
           )}
         </div>
       </div>
@@ -221,7 +222,7 @@ function statusOf(knowledge: FieldKnowledge[], field: InfoField): FieldKnowledge
 function stoneText(item: ItemInstance, knowledge: FieldKnowledge[]): string {
   const status = statusOf(knowledge, 'stone');
   const { count, genuine, kind } = item.truth.stoneData;
-  const kindLabel = STONE_LABEL[kind] ?? 'Taş';
+  const kindLabel = STONE_LABEL[kind] ?? t('Taş');
   if (status !== 'verified') return `${count} adet · tür belirsiz`;
   return `${count} adet ${kindLabel}${genuine ? '' : ' (taklit)'}`;
 }

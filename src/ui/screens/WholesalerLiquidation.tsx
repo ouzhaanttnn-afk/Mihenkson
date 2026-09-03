@@ -1,3 +1,4 @@
+import { t } from '@i18n/index';
 import { useState } from 'react';
 
 import { isBullion } from '@data/bullion';
@@ -12,7 +13,7 @@ type WholesalerLiquidationListProps = {
 
 /** İşletme ve Stok ekranlarının kullandığı tek toptancı satış görünümü. */
 export function WholesalerLiquidationList({
-  emptyText = 'Bozulacak sarrafiye yok.',
+  emptyText = t('Bozulacak sarrafiye yok.'),
 }: WholesalerLiquidationListProps) {
   const s = useGame();
   const liquidatable = s.inventory
@@ -118,7 +119,7 @@ function WholesalerLiquidationRow({
           className="lotRow__buy"
           onClick={() => s.liquidateToWholesaler(position.itemId, qty, slices)}
         >
-          Toptancıya Sat
+          {t('Toptancıya Sat')}
         </button>
       </div>
     </div>

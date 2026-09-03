@@ -11,6 +11,7 @@
  * (thesis.ts) — UI yalnız sunar.
  */
 
+import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { LIQUIDITY_LABEL, RISK_LABEL } from '@domain/thesis';
 import {
@@ -90,21 +91,21 @@ export function ThesisStage({ options, selected, suggested, onSelect }: Props) {
               </span>
 
               <span className="thesisCard__metrics">
-                <Metric label="Süre" value={dayRange(option.daysToCash)} />
+                <Metric label={t("Süre")} value={dayRange(option.daysToCash)} />
                 <Metric
                   label="Risk"
                   value={RISK_LABEL[option.demandRisk]}
                   tone={option.demandRisk}
                 />
                 <Metric
-                  label={TERM.liquidity}
+                  label={t(TERM.liquidity)}
                   value={LIQUIDITY_LABEL[option.liquidity]}
                   tone={option.liquidity === 'high' ? 'low' : option.liquidity === 'low' ? 'high' : 'medium'}
                 />
               </span>
             </span>
 
-            {isSuggested && <span className="thesisTag">Öneri</span>}
+            {isSuggested && <span className="thesisTag">{t('Öneri')}</span>}
           </button>
         );
       })}

@@ -12,6 +12,7 @@
  * ekran veya modal açmaz.
  */
 
+import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 
 import { STATE_LABEL } from '@domain/negotiation';
@@ -144,7 +145,7 @@ export function NegotiateStage({
     const inside = offer >= band.min && offer <= band.max;
     const below = offer < band.min;
 
-    const where = inside ? 'band içi' : below ? 'band altı' : 'band üstü';
+    const where = inside ? t('band içi') : below ? t('band altı') : t('band üstü');
     // Alırken aşağısı, satarken yukarısı oyuncunun lehine.
     const favourable = inside ? null : shopSells ? !below : below;
     const tone = favourable === null ? 'neutral' : favourable ? 'positive' : 'negative';
@@ -199,7 +200,7 @@ export function NegotiateStage({
       {counter !== null && (
         <div className={`counterRow ${isFinal ? 'counterRow--final' : ''}`}>
           <span className="counterRow__label">
-            {isFinal ? 'Son teklifi' : 'Karşı teklifi'}
+            {isFinal ? t('Son teklifi') : t('Karşı teklifi')}
           </span>
           <span className="counterRow__value num">{tl(counter)}</span>
         </div>
@@ -207,9 +208,9 @@ export function NegotiateStage({
 
       {active && (
         <div className="contextRow">
-          <span className="contextRow__key">Seçili tez</span>
+          <span className="contextRow__key">{t('Seçili tez')}</span>
           <span className="contextRow__val">{active.shortLabel}</span>
-          <span className="contextRow__key">Alış tavanı</span>
+          <span className="contextRow__key">{t('Alış tavanı')}</span>
           <span className="contextRow__val num">{tl(active.buyCeiling)}</span>
         </div>
       )}
@@ -225,11 +226,11 @@ export function NegotiateStage({
           /* GDD 23.12 Final Offer — "'Son teklif' etiketi + SONUÇ ÖNİZLEMESİ" */
           <div className="preview">
             <div className="preview__row">
-              <span className="preview__key">Kabul edilirse ödenecek</span>
+              <span className="preview__key">{t('Kabul edilirse ödenecek')}</span>
               <span className="preview__val num">{tl(counter)}</span>
             </div>
             <div className="preview__row">
-              <span className="preview__key">Alış tavanına göre</span>
+              <span className="preview__key">{t('Alış tavanına göre')}</span>
               <span
                 className={`preview__val num preview__val--${
                   active.buyCeiling - counter >= 0 ? 'positive' : 'negative'
@@ -240,12 +241,12 @@ export function NegotiateStage({
               </span>
             </div>
             <div className="preview__row">
-              <span className="preview__key">{TERM.liquidity}</span>
+              <span className="preview__key">{t(TERM.liquidity)}</span>
               <span className="preview__val preview__val--warning num">{liquidityAfter}</span>
             </div>
             <div className="preview__row">
-              <span className="preview__key">Geri dönüş</span>
-              <span className="preview__val preview__val--negative">Yok — kabul veya red</span>
+              <span className="preview__key">{t('Geri dönüş')}</span>
+              <span className="preview__val preview__val--negative">{t('Yok — kabul veya red')}</span>
             </div>
           </div>
         ) : null}
@@ -270,18 +271,18 @@ export function NegotiateStage({
         "Analize Göre Fark" da teklifi o kendi bilgisine göre konumlar,
         müşterinin kabul edeceği rakama göre değil.
       */}
-      {saleAccounting && <div className="refPanel" aria-label="Vitrin satış hesabı">
-        <div className="refPanel__row"><span className="refPanel__key">Alış Maliyetim</span><span className="refPanel__val num">{tl(saleAccounting.acquisitionCost)}</span></div>
-        <div className="refPanel__row"><span className="refPanel__key">Güncel Metal Değeri</span><span className="refPanel__val num">{tl(saleAccounting.metalValue)}</span></div>
+      {saleAccounting && <div className="refPanel" aria-label={t('Vitrin satış hesabı')}>
+        <div className="refPanel__row"><span className="refPanel__key">{t('Alış Maliyetim')}</span><span className="refPanel__val num">{tl(saleAccounting.acquisitionCost)}</span></div>
+        <div className="refPanel__row"><span className="refPanel__key">{t('Güncel Metal Değeri')}</span><span className="refPanel__val num">{tl(saleAccounting.metalValue)}</span></div>
         <div className="refPanel__row"><span className="refPanel__key">{counter !== null ? 'Müşteri Teklifi' : 'Satış Teklifim'}</span><span className="refPanel__val num">{tl(counter ?? offer)}</span></div>
-        <div className="refPanel__row"><span className="refPanel__key">Kâr / Zarar</span><span className="refPanel__val num">{tlSigned((counter ?? offer) - saleAccounting.acquisitionCost)}</span></div>
+        <div className="refPanel__row"><span className="refPanel__key">{t('Kâr / Zarar')}</span><span className="refPanel__val num">{tlSigned((counter ?? offer) - saleAccounting.acquisitionCost)}</span></div>
       </div>}
       {!saleAccounting && (band || reference) && (
         <div className="refPanel">
           {band && (
             <div className="refPanel__row refPanel__row--analysis">
               <span className="refPanel__key">
-                Senin Analizin
+                {t('Senin Analizin')}
                 <span className={`refPanel__conf confidence__value--${band.confidence}`}>
                   {' '}
                   · {CONFIDENCE_LABEL[band.confidence]} ({verifiedFields}/{totalFields})
@@ -297,8 +298,8 @@ export function NegotiateStage({
             <div className="refPanel__row">
               <span className="refPanel__key">
                 {reference.direction === 'shopBuys'
-                  ? 'Piyasa Referans Alış'
-                  : 'Piyasa Referans Satış'}
+                  ? t('Piyasa Referans Alış')
+                  : t('Piyasa Referans Satış')}
               </span>
               <span className="refPanel__val num">
                 {tlBare(reference.unitReference)} {reference.unit}
@@ -308,7 +309,7 @@ export function NegotiateStage({
 
           <div className="refPanel__row">
             <span className="refPanel__key">
-              {reference && reference.direction === 'shopSells' ? 'İstediğin Fiyat' : 'Senin Teklifin'}
+              {reference && reference.direction === 'shopSells' ? t('İstediğin Fiyat') : t('Senin Teklifin')}
             </span>
             <span className="refPanel__val num">
               {reference
@@ -319,7 +320,7 @@ export function NegotiateStage({
 
           {band && (
             <div className="refPanel__row">
-              <span className="refPanel__key">Analize Göre Fark</span>
+              <span className="refPanel__key">{t('Analize Göre Fark')}</span>
               <span className={`refPanel__val num refPanel__val--${analysisGap.tone}`}>
                 {analysisGap.text}
               </span>
@@ -328,7 +329,7 @@ export function NegotiateStage({
 
           {reference && (
             <div className="refPanel__row refPanel__row--refGap">
-              <span className="refPanel__key">Referansa Göre Fark</span>
+              <span className="refPanel__key">{t('Referansa Göre Fark')}</span>
               <span
                 className={`refPanel__val num refPanel__val--${
                   (
@@ -375,7 +376,7 @@ export function NegotiateStage({
               <span
                 key={`${i}-${offer}`}
                 className={`history__chip num ${isRepeat ? 'history__chip--repeat' : ''}`}
-                title={isRepeat ? 'Aynı teklif tekrarlandı — yeni şans üretmez' : undefined}
+                title={isRepeat ? t('Aynı teklif tekrarlandı — yeni şans üretmez') : undefined}
               >
                 {tlBare(offer)}
               </span>
@@ -431,7 +432,7 @@ function StateBadge({ state }: { state: NegotiationSession['state'] }) {
 
   return (
     <div className="stateBadge">
-      <span className="stateBadge__label">Pazarlık</span>
+      <span className="stateBadge__label">{t('Pazarlık')}</span>
       <span className={`stateBadge__value stateBadge__value--${state}`}>
         {STATE_LABEL[state]}
       </span>

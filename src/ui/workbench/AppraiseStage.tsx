@@ -10,6 +10,7 @@
  * referansıdır, adil fiyat ilanı değildir.
  */
 
+import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { CONFIDENCE_LABEL } from '@domain/valuation';
 import { moneyUnit, pct, pctSigned, tl, tlBare } from '@ui/format';
@@ -34,7 +35,7 @@ export function AppraiseStage({ band }: Props) {
   return (
     <div className="appraise">
       <div className="bandCard">
-        <div className="bandCard__label">Tahmini Değer Aralığı</div>
+        <div className="bandCard__label">{t('Tahmini Değer Aralığı')}</div>
         <div className="bandCard__range num">
           {tlBare(band.min)}
           <span className="bandCard__sep"> – </span>
@@ -42,7 +43,7 @@ export function AppraiseStage({ band }: Props) {
         </div>
 
         <div className="confidence">
-          <span className="confidence__label">{TERM.confidence}</span>
+          <span className="confidence__label">{t(TERM.confidence)}</span>
           <span className="confidence__bar">
             {Array.from({ length: SEGMENTS }, (_, i) => (
               <span
@@ -80,7 +81,7 @@ export function AppraiseStage({ band }: Props) {
           duyduğu güveni yiyordu; kuralı burada açıkça söylüyoruz.
         */}
         <p className="breakdown__note">
-          Paylar band ortasına orandır; toplamları %100 olmak zorunda değildir.
+          {t('Paylar band ortasına orandır; toplamları %100 olmak zorunda değildir.')}
         </p>
       </div>
     </div>
@@ -108,20 +109,20 @@ function buildRows(band: ValuationBand) {
   const base = Math.max(1, band.mid);
 
   const rows: { name: string; value: number; share: string }[] = [
-    { name: 'Metal Değeri', value: b.metal, share: pct(b.metal / base) },
+    { name: t('Metal Değeri'), value: b.metal, share: pct(b.metal / base) },
   ];
 
-  if (b.stone > 0) rows.push({ name: 'Taş Değeri', value: b.stone, share: pct(b.stone / base) });
+  if (b.stone > 0) rows.push({ name: t('Taş Değeri'), value: b.stone, share: pct(b.stone / base) });
   if (b.craftsmanship > 0) {
-    rows.push({ name: 'İşçilik Değeri', value: b.craftsmanship, share: pct(b.craftsmanship / base) });
+    rows.push({ name: t('İşçilik Değeri'), value: b.craftsmanship, share: pct(b.craftsmanship / base) });
   }
   if (b.rarityPremium > 0) {
-    rows.push({ name: 'Nadirlik Primi', value: b.rarityPremium, share: pct(b.rarityPremium / base) });
+    rows.push({ name: t('Nadirlik Primi'), value: b.rarityPremium, share: pct(b.rarityPremium / base) });
   }
   if (b.riskDeduction < 0) {
     // Değeri DÜŞÜREN kalem: yüzde de eksi yazılır, tutarla aynı yöne baksın.
     rows.push({
-      name: 'Kondisyon / Risk',
+      name: t('Kondisyon / Risk'),
       value: b.riskDeduction,
       share: pctSigned(b.riskDeduction / base),
     });
@@ -130,7 +131,7 @@ function buildRows(band: ValuationBand) {
   // Piyasa etkisi bilgilendiricidir: rejim bandı ne kadar oynatıyor. İki yöne
   // de gidebildiği için işaretli gösterilir.
   rows.push({
-    name: 'Piyasa Oynaklığı',
+    name: t('Piyasa Oynaklığı'),
     value: b.marketInfluence,
     share: pctSigned(b.marketInfluence / base),
   });

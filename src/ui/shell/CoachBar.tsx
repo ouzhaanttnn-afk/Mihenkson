@@ -40,13 +40,13 @@ export function CoachBar({ lesson, showSkip, onDismiss, onSkipAll, queuePriority
 
         {showSkip && (
           <button type="button" className="coach__skip" onClick={onSkipAll}>
-            Öğretimi kapat
+            {t('Öğretimi kapat')}
           </button>
         )}
       </div>
 
       <button type="button" className="coach__ok" onClick={onDismiss}>
-        Anladım
+        {t('Anladım')}
       </button>
     </aside>
   );

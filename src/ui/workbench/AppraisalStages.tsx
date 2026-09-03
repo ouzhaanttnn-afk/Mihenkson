@@ -15,6 +15,7 @@
  * verilmiştir ve iş bitmiştir — GDD 20'nin öğretici geri bildirim anıdır.
  */
 
+import { t } from '@i18n/index';
 import { STANCES, feeBounds, reportedRange, suggestedFee } from '@domain/appraisal';
 import { getTemplate } from '@data/item-templates';
 import { IconLoupe, IconWarning, ProductSilhouette } from '@ui/icons';
@@ -47,7 +48,7 @@ export function AppraisalIntro({ item }: { item: ItemInstance }) {
         <ProductSilhouette kind={template.silhouette} size={34} />
       </span>
       <span className="apr__introText">
-        Müşteri bu ürünü <strong>satmıyor</strong>; ne ettiğini soruyor. Ölçtüğün kadarını
+        Müşteri bu ürünü <strong>{t('satmıyor')}</strong>; ne ettiğini soruyor. Ölçtüğün kadarını
         söyleyeceksin.
       </span>
     </div>
@@ -112,7 +113,7 @@ export function ReportStage({
         <FeeControl band={band} stance={stance} fee={appraisal.fee} onSetFee={onSetFee} />
       ) : (
         <div className="apr__note apr__note--center">
-          Raporun ne kadar iddialı olacağını seçin.
+          {t('Raporun ne kadar iddialı olacağını seçin.')}
         </div>
       )}
 
@@ -162,7 +163,7 @@ function FeeControl({
   return (
     <div className="apr__fee">
       <div className="apr__feeHead">
-        <span className="apr__feeLabel">Ekspertiz ücreti</span>
+        <span className="apr__feeLabel">{t('Ekspertiz ücreti')}</span>
         <span className="apr__feeValue num">{tl(fee)}</span>
       </div>
 
@@ -172,7 +173,7 @@ function FeeControl({
           className="apr__feeBtn"
           onClick={() => onSetFee(fee - step)}
           disabled={fee <= bounds.min}
-          aria-label="Ücreti azalt"
+          aria-label={t('Ücreti azalt')}
         >
           −
         </button>
@@ -189,14 +190,14 @@ function FeeControl({
           className="apr__feeBtn"
           onClick={() => onSetFee(fee + step)}
           disabled={fee >= bounds.max}
-          aria-label="Ücreti artır"
+          aria-label={t('Ücreti artır')}
         >
           +
         </button>
       </div>
 
       <div className="apr__note">
-        Yüksek ücret her müşteride geçmez; kabul etmezse rapor yine verilir, para gelmez.
+        {t('Yüksek ücret her müşteride geçmez; kabul etmezse rapor yine verilir, para gelmez.')}
       </div>
     </div>
   );
@@ -211,7 +212,7 @@ export function AppraisalResultStage({ appraisal }: { appraisal: AppraisalSessio
     return (
       <div className="apr">
         <div className="apr__note apr__note--center">
-          Ekspertiz işi alınmadı. Müşteri ürünüyle birlikte ayrıldı.
+          {t('Ekspertiz işi alınmadı. Müşteri ürünüyle birlikte ayrıldı.')}
         </div>
       </div>
     );
@@ -242,7 +243,7 @@ export function AppraisalResultStage({ appraisal }: { appraisal: AppraisalSessio
           </span>
         </div>
         <div className="apr__compareCol">
-          <span className="apr__compareLabel">Gerçek değer</span>
+          <span className="apr__compareLabel">{t('Gerçek değer')}</span>
           <span
             className={`apr__compareValue num ${v.accurate ? 'apr__ok' : 'apr__miss'}`}
           >
@@ -253,17 +254,17 @@ export function AppraisalResultStage({ appraisal }: { appraisal: AppraisalSessio
 
       <div className="apr__rows">
         <ResultRow
-          label="Ücret"
-          value={v.paid ? tl(v.fee) : 'Ödenmedi'}
+          label={t("Ücret")}
+          value={v.paid ? tl(v.fee) : t('Ödenmedi')}
           tone={v.paid ? 'positive' : 'negative'}
         />
         <ResultRow
-          label="Güven"
+          label={t("Güven")}
           value={`${v.trustDelta >= 0 ? '+' : ''}${v.trustDelta}`}
           tone={v.trustDelta >= 0 ? 'positive' : 'negative'}
         />
         <ResultRow
-          label="Semt itibarı"
+          label={t("Semt itibarı")}
           value={`${v.reputationDelta >= 0 ? '+' : ''}${v.reputationDelta}`}
           tone={v.reputationDelta >= 0 ? 'positive' : 'negative'}
         />

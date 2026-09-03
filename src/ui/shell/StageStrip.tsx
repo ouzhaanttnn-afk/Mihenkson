@@ -23,7 +23,7 @@ import type { DealFlow, WorkbenchStage } from '@domain/types';
 const TRADE_STEPS: { stage: WorkbenchStage; label: string }[] = [
   { stage: 'inspect', label: 'İncele' },
   { stage: 'appraise', label: 'Değerle' },
-  { stage: 'thesis', label: TERM.thesis },
+  { stage: 'thesis', label: t(TERM.thesis) },
   { stage: 'negotiate', label: 'Pazarlık' },
 ];
 

@@ -1,3 +1,4 @@
+import { t } from '@i18n/index';
 import { useState } from 'react';
 import {
   MARKET_CATALOG,
@@ -76,15 +77,15 @@ export function MarketPlaceholderScreen() {
       <header className="pageHead marketHead">
         <span className="marketHead__icon" aria-hidden="true"><IconMarket size={28} /></span>
         <div>
-          <h1 className="pageHead__title">Market</h1>
-          <p className="pageHead__sub">Kozmetik, prestij ve şahsi yaşam hedefleri</p>
+          <h1 className="pageHead__title">{t('Market')}</h1>
+          <p className="pageHead__sub">{t('Kozmetik, prestij ve şahsi yaşam hedefleri')}</p>
         </div>
-        <div className="marketHead__cash"><span>Nakit</span><strong className="num">{tl(s.store.cash)}</strong></div>
+        <div className="marketHead__cash"><span>{t('Nakit')}</span><strong className="num">{tl(s.store.cash)}</strong></div>
       </header>
 
-      <div className="marketSummary" aria-label="Market özeti">
+      <div className="marketSummary" aria-label={t('Market özeti')}>
         <span><IconCollection size={17} /><b>{s.playerMarket.owned.length}</b> sahip olunan</span>
-        <span><IconCash size={17} /><b>{tl(upkeep)}</b> günlük şahsi bakım</span>
+        <span><IconCash size={17} /><b>{tl(upkeep)}</b> {t('günlük şahsi bakım')}</span>
       </div>
 
       {/*
@@ -122,7 +123,7 @@ export function MarketPlaceholderScreen() {
                   <li key={id}>
                     <span className="marketOwned__mark" aria-hidden="true">{productMark(product)}</span>
                     <span className="marketOwned__name">{product.name}</span>
-                    {slotta && <span className="marketOwned__badge">Kullanılıyor</span>}
+                    {slotta && <span className="marketOwned__badge">{t('Kullanılıyor')}</span>}
                     {product.dailyUpkeep ? (
                       <span className="marketOwned__upkeep num">{tl(product.dailyUpkeep)}/gün</span>
                     ) : null}
@@ -134,7 +135,7 @@ export function MarketPlaceholderScreen() {
         </section>
       )}
 
-      <nav className="marketCategories" aria-label="Market kategorileri">
+      <nav className="marketCategories" aria-label={t('Market kategorileri')}>
         {MARKET_CATEGORIES.map((item) => (
           <button key={item.id} type="button" className={`marketCategory ${category === item.id ? 'marketCategory--active' : ''}`}
             onClick={() => setCategory(item.id)} aria-pressed={category === item.id}>
@@ -146,7 +147,7 @@ export function MarketPlaceholderScreen() {
       <main className="marketCatalog">
         <div className="marketCatalog__intro">
           <div><strong>{MARKET_CATEGORIES.find((item) => item.id === category)?.label}</strong><p>{MARKET_CATEGORIES.find((item) => item.id === category)?.description}</p></div>
-          {category === 'lifestyle' && <span>Prestij verir · ticaret gücü vermez</span>}
+          {category === 'lifestyle' && <span>{t('Prestij verir · ticaret gücü vermez')}</span>}
         </div>
 
         <div className="marketGrid">
@@ -181,7 +182,7 @@ export function MarketPlaceholderScreen() {
                     <strong className="num">{requiresServerClaim ? `${product.serverClaim?.globalQuota} adet` : tl(product.price)}</strong>
                     {owned ? (product.equipSlot ? <button type="button" disabled={equipped} onClick={() => s.equipMarketProduct(product.id)}>{equipped ? 'Kullanılıyor' : 'Kullan'}</button> : <span className="marketProduct__owned">Koleksiyonda</span>) : (
                       <button type="button" disabled={!unlocked || !affordable || requiresServerClaim} onClick={() => requestPurchase(product)} title={requiresServerClaim ? 'Global sıra için sunucu doğrulaması gerekir' : !affordable ? 'Yetersiz nakit' : undefined}>
-                        {requiresServerClaim ? (unlocked ? 'Doğrulama bekliyor' : 'Hedef kilitli') : !affordable && unlocked ? 'Nakit yetersiz' : unlocked ? 'Satın Al' : 'Kilitli'}
+                        {requiresServerClaim ? (unlocked ? t('Doğrulama bekliyor') : t('Hedef kilitli')) : !affordable && unlocked ? t('Nakit yetersiz') : unlocked ? t('Satın Al') : 'Kilitli'}
                       </button>
                     )}
                   </div>
@@ -195,10 +196,10 @@ export function MarketPlaceholderScreen() {
       {pending && (
         <div className="marketConfirmScrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPending(null); }}>
           <section className="marketConfirm" role="dialog" aria-modal="true" aria-labelledby="market-confirm-title">
-            <span className="marketConfirm__eyebrow">Pahalı satın alma</span><h2 id="market-confirm-title">{pending.name}</h2>
+            <span className="marketConfirm__eyebrow">{t('Pahalı satın alma')}</span><h2 id="market-confirm-title">{pending.name}</h2>
             <p>{tl(pending.price)} ödenecek. İşlemden sonra kasanda <strong>{tl(Math.max(0, s.store.cash - pending.price))}</strong> kalacak.</p>
             {(pending.dailyUpkeep ?? 0) > 0 && <p className="marketConfirm__upkeep">Her gün kapanışında ayrıca {tl(pending.dailyUpkeep ?? 0)} bakım gideri işleyecek.</p>}
-            <div className="marketConfirm__actions"><button type="button" className="secondary" onClick={() => setPending(null)} autoFocus>Vazgeç</button><button type="button" className="cta" onClick={confirmPurchase}>Satın Al</button></div>
+            <div className="marketConfirm__actions"><button type="button" className="secondary" onClick={() => setPending(null)} autoFocus>{t('Vazgeç')}</button><button type="button" className="cta" onClick={confirmPurchase}>{t('Satın Al')}</button></div>
           </section>
         </div>
       )}

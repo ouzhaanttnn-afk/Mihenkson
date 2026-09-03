@@ -15,6 +15,7 @@
  * GDD 6.6 gereği müşterinin tavanı hiçbir yerde sayı olarak gösterilmez.
  */
 
+import { t } from '@i18n/index';
 import { demandOutcome, matchDemand, type DemandMatch, type DemandOutcome } from '@domain/purchase';
 import { CHANNEL_LABEL_TR } from '@domain/channels';
 import { getTemplate } from '@data/item-templates';
@@ -65,7 +66,7 @@ export function StockPickStage({
         <div>
           <h2 className="svc__title">{demand.summary}</h2>
           <p className="svc__meta">
-            {demand.targetInventoryItemId ? '★ Vitrin Müşterisi' : `${amountLabel(demand, demand.quantity)} istiyor`}
+            {demand.targetInventoryItemId ? t('★ Vitrin Müşterisi') : `${amountLabel(demand, demand.quantity)} istiyor`}
             {demand.acceptsPartial && demand.minQuantity < demand.quantity && (
               <> · en az {amountLabel(demand, demand.minQuantity)} kabul ediyor</>
             )}
@@ -99,7 +100,7 @@ export function StockPickStage({
         <p className="svc__note svc__note--center">
           <span>
             <IconWarning size={16} />
-            <strong>Stokta sunulacak ürün yok.</strong> Bu müşteriye verecek malınız
+            <strong>{t('Stokta sunulacak ürün yok.')}</strong> Bu müşteriye verecek malınız
             bulunmuyor; talebi karşılayamadan gitmesi normaldir.
           </span>
         </p>
@@ -132,7 +133,7 @@ export function StockPickStage({
                       <span className={`pickRow__match pickRow__match--${match}`}>
                         {MATCH_LABEL[match]}
                         {stackable && ` · stokta ${amountLabel(demand, position.quantity)}`}
-                        {position.location === 'backStock' && ' · arka stok'}
+                        {position.location === 'backStock' && t(' · arka stok')}
                       </span>
                     </span>
                     <span className="pickRow__value">{tl(position.currentValue)}</span>
@@ -144,17 +145,17 @@ export function StockPickStage({
                         type="button"
                         className="qtyStep__btn"
                         onClick={() => onQuantity(item.id, qty - 1)}
-                        aria-label="Bir azalt"
+                        aria-label={t('Bir azalt')}
                       >
                         −
                       </button>
-                      {position.poolId === '24K_GRAM_GOLD_POOL' ? <input className="qtyStep__value num" aria-label="Paket gramı" type="number" min="0.001" step="0.001" max={Math.min(position.quantity, demand.quantity)} value={qty} onChange={e => onQuantity(item.id, Number(e.target.value))} /> : <span className="qtyStep__value num">{amountLabel(demand, qty)}</span>}
+                      {position.poolId === '24K_GRAM_GOLD_POOL' ? <input className="qtyStep__value num" aria-label={t('Paket gramı')} type="number" min="0.001" step="0.001" max={Math.min(position.quantity, demand.quantity)} value={qty} onChange={e => onQuantity(item.id, Number(e.target.value))} /> : <span className="qtyStep__value num">{amountLabel(demand, qty)}</span>}
                       <button
                         type="button"
                         className="qtyStep__btn"
                         onClick={() => onQuantity(item.id, qty + 1)}
                         disabled={qty >= Math.min(position.quantity, demand.quantity)}
-                        aria-label="Bir artır"
+                        aria-label={t('Bir artır')}
                       >
                         +
                       </button>
@@ -177,7 +178,7 @@ function outcomeText(outcome: DemandOutcome, available: number, demand: Customer
     case 'sourceNeeded':
       return `Stokta ${amountLabel(demand, available)} var; müşteri ${amountLabel(demand, demand.quantity)} altını kabul etmiyor. Ticari kanaldan tedarik gerekir.`;
     case 'reject':
-      return 'Bu talebi karşılayacak mal yok.';
+      return t('Bu talebi karşılayacak mal yok.');
     default:
       return '';
   }
@@ -228,15 +229,15 @@ export function PackageStage({
         kanal makasının önerdiği fiyat ve aradaki potansiyel.
       */}
       <div className="pkgFigures">
-        <Figure label="Adil değer" value={tl(purchase.packageFairValue)} />
-        <Figure label="Alış Maliyetim" value={tl(purchase.packageCost)} />
+        <Figure label={t("Adil değer")} value={tl(purchase.packageFairValue)} />
+        <Figure label={t("Alış Maliyetim")} value={tl(purchase.packageCost)} />
         <Figure
-          label="Kanal önerisi"
+          label={t("Kanal önerisi")}
           value={tl(purchase.suggestedPrice)}
           tone={potential >= 0 ? 'positive' : 'negative'}
           big
         />
-        <Figure label="Kâr / Zarar (öneri)" value={tlSigned(potential)} tone={potential >= 0 ? 'positive' : 'negative'} />
+        <Figure label={t("Kâr / Zarar (öneri)")} value={tlSigned(potential)} tone={potential >= 0 ? 'positive' : 'negative'} />
       </div>
 
       <p className="svc__note">
@@ -276,7 +277,7 @@ function Figure({
 function fulfilmentText(purchase: PurchaseSession, demand: CustomerDemand): string {
   switch (purchase.fulfilment) {
     case 'full':
-      return 'Talep tam karşılandı.';
+      return t('Talep tam karşılandı.');
     case 'partial':
       // §4.1 "Toplu talepler ... kısmen karşılanabilir."
       return `Kısmi karşılama · ${amountLabel(demand, purchase.units)} / ${amountLabel(demand, demand.quantity)}.`;

@@ -65,7 +65,7 @@ export function MarketStrip({ market, onOpenMarket }: Props) {
         aria-label={t('Piyasa ekranını aç')}
       >
         <span className="marketStrip__regimeLabel">
-          {closed ? `${weekdayShort(market.day)} · Piyasa` : TERM.regime}
+          {closed ? `${weekdayShort(market.day)} · Piyasa` : t(TERM.regime)}
         </span>
         <span className="marketStrip__regimeValue">
           {closed ? t('Kapalı') : t(regime.label)}
@@ -79,9 +79,12 @@ export function MarketStrip({ market, onOpenMarket }: Props) {
           type="button"
           className="marketStrip__asset"
           onClick={onOpenMarket}
-          aria-label={`${asset.label} ${price(asset.price)} — piyasa ekranını aç`}
+          aria-label={t('{varlik} {fiyat} — piyasa ekranını aç', {
+            varlik: t(asset.label),
+            fiyat: price(asset.price),
+          })}
         >
-          <span className="marketStrip__label">{asset.label}</span>
+          <span className="marketStrip__label">{t(asset.label)}</span>
           <span className="marketStrip__row">
             <span className="marketStrip__price num">{price(asset.price)}</span>
             <span className={`marketStrip__change num ${changeClass(asset.changePct)}`}>

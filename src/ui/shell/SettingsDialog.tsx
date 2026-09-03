@@ -194,7 +194,7 @@ export function SettingsDialog() {
               {!titresimVar
                 ? t('Bu cihaz titreşimi desteklemiyor')
                 : `${preferences.vibrationEnabled ? t('Açık') : t('Kapalı')} ${t(
-                    '· işlem ve gün olayları',
+                    t('· işlem ve gün olayları'),
                   )}`}
             </small>
           </span>
@@ -290,7 +290,7 @@ export function SettingsDialog() {
                 type="button"
                 role="radio"
                 aria-checked={preferences.currency === cur.id}
-                aria-label={`${cur.label} (${cur.symbol})`}
+                aria-label={`${t(cur.label)} (${cur.symbol})`}
                 className={`settingsSegment__option ${
                   preferences.currency === cur.id ? 'settingsSegment__option--on' : ''
                 }`}
@@ -311,7 +311,7 @@ export function SettingsDialog() {
           <div className="settingsDanger">
             <p className="settingsDanger__text">
               {t(
-                'Kayıt silinecek. Ekrandaki oyun kapanana kadar durur; yeni oyun bir sonraki açılışta başlar. Geri alınamaz.',
+                t('Kayıt silinecek. Ekrandaki oyun kapanana kadar durur; yeni oyun bir sonraki açılışta başlar. Geri alınamaz.'),
               )}
             </p>
             <div className="settingsDanger__actions">

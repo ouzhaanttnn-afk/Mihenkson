@@ -8,6 +8,7 @@
  * kapandıktan sonra render edilir.
  */
 
+import { t } from '@i18n/index';
 import { tlSigned } from '@ui/format';
 import type { CaseReview } from '@domain/deal-review';
 
@@ -26,7 +27,7 @@ export function ResultStage({ review, accepted }: Props) {
   return (
     <div className="result">
       <span className={`result__badge result__badge--${review.tone}`}>
-        {accepted ? BADGE_TEXT[review.tone] : 'İşlem kapanmadı'}
+        {accepted ? BADGE_TEXT[review.tone] : t('İşlem kapanmadı')}
       </span>
 
       <h2 className="result__headline">{review.headline}</h2>
@@ -43,7 +44,7 @@ export function ResultStage({ review, accepted }: Props) {
       {/* GDD 21.2 — "İşlem sonrası hangi sinyalin kaçırıldığı gösterilir." */}
       {review.missedSignals.length > 0 && (
         <div className="result__missed">
-          <span className="result__missedTitle">Kaçırılan sinyal</span>
+          <span className="result__missedTitle">{t('Kaçırılan sinyal')}</span>
           {review.missedSignals.slice(0, 2).map((signal) => (
             <span key={signal} className="result__missedItem">
               {signal}

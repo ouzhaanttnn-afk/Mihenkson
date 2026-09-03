@@ -21,6 +21,7 @@
  * bu satıra hiç girmez.
  */
 
+import { t } from '@i18n/index';
 import { getTemplate } from '@data/item-templates';
 import { isBullion } from '@data/bullion';
 import type { Customer, ItemInstance } from '@domain/types';
@@ -78,10 +79,10 @@ function requestedPhrase(templateId: string, name: string, quantity: number): st
     return quantity > 1 ? `${quantity} adet ${weight} gram altın` : `${weight} gram altın`;
   }
   const articleNames: Record<string, string> = {
-    quarter_gold: 'çeyrek altın',
-    half_gold: 'yarım altın',
-    full_gold: 'tam altın',
-    ata_gold: 'Ata lira',
+    quarter_gold: t('çeyrek altın'),
+    half_gold: t('yarım altın'),
+    full_gold: t('tam altın'),
+    ata_gold: t('Ata lira'),
   };
   const natural = articleNames[templateId];
   if (natural && quantity === 1) return `Bir ${natural}`;
@@ -98,13 +99,13 @@ export function customerIntentLine(customer: Customer, items: ItemInstance[]): s
   switch (customer.intent) {
     case 'sell': {
       const what = broughtPhrase(items);
-      return what ? `${what} ${sellVerb(items)}` : 'Ürün bozdurmak istiyor';
+      return what ? `${what} ${sellVerb(items)}` : t('Ürün bozdurmak istiyor');
     }
 
     case 'buy': {
       // Talebin özeti zaten oyuncunun dilinde ("10 adet Çeyrek Altın").
       const demand = customer.demand;
-      if (!demand) return 'Dükkandan ürün almak istiyor';
+      if (!demand) return t('Dükkandan ürün almak istiyor');
       if (demand.targetInventoryItemId) return demand.summary;
       if (demand.poolId) return `${demand.summary} almak istiyor`;
 
@@ -118,17 +119,17 @@ export function customerIntentLine(customer: Customer, items: ItemInstance[]): s
       // Somut ürün yoksa müşteri bir KATEGORİ arıyor demektir.
       return demand.alternativesLabel
         ? `${demand.alternativesLabel} almak istiyor`
-        : 'Dükkandan ürün almak istiyor';
+        : t('Dükkandan ürün almak istiyor');
     }
 
     case 'service': {
       const what = broughtPhrase(items);
-      return what ? `${what} için tamir/servis istiyor` : 'Servis / tamir istiyor';
+      return what ? `${what} için tamir/servis istiyor` : t('Servis / tamir istiyor');
     }
 
     case 'appraisal': {
       const what = broughtPhrase(items);
-      return what ? `${what} için ekspertiz istiyor` : 'Ekspertiz danışıyor';
+      return what ? `${what} için ekspertiz istiyor` : t('Ekspertiz danışıyor');
     }
   }
 }

@@ -14,6 +14,7 @@
  * yalnız "Teslim Et" ile, yalnız tamamlanmış bir iş için hareket eder.
  */
 
+import { t } from '@i18n/index';
 import { SERVICE } from '@domain/balance';
 import { activeJobs, inHouseLoad, overdueJobs, readyJobs } from '@domain/service';
 import { getServiceType } from '@data/service-types';
@@ -42,8 +43,8 @@ export function WorkshopScreen() {
     <div className="page">
       {/* Kapasite şeridi — sticky (GDD 23.18) */}
       <header className="pageHead">
-        <h1 className="pageHead__title">Atölye</h1>
-        <p className="pageHead__sub">Servis kuyruğu, kapasite ve teslim sözleri</p>
+        <h1 className="pageHead__title">{t('Atölye')}</h1>
+        <p className="pageHead__sub">{t('Servis kuyruğu, kapasite ve teslim sözleri')}</p>
 
         <div className="summaryRow">
           <div className="summaryRow__item">
@@ -57,7 +58,7 @@ export function WorkshopScreen() {
             </span>
           </div>
           <div className="summaryRow__item">
-            <span className="summaryRow__label">Bugün Teslim</span>
+            <span className="summaryRow__label">{t('Bugün Teslim')}</span>
             <span className="summaryRow__value num">{dueToday} iş</span>
           </div>
           <div className="summaryRow__item">
@@ -89,17 +90,17 @@ export function WorkshopScreen() {
               <div>
                 <span className="deliveryResult__eyebrow">Son teslimat</span>
                 <h2>{s.lastServiceDelivery.jobName}</h2>
-                <p>{s.lastServiceDelivery.customerName} · {s.lastServiceDelivery.succeeded ? 'Başarılı' : 'Hatalı sonuç'}</p>
+                <p>{s.lastServiceDelivery.customerName} · {s.lastServiceDelivery.succeeded ? t('Başarılı') : t('Hatalı sonuç')}</p>
               </div>
               <span className="tag">{s.lastServiceDelivery.succeeded ? 'BAŞARILI' : 'HATALI'}</span>
             </div>
             <div className="deliveryResult__grid">
-              <span>Ücret <strong>{tl(s.lastServiceDelivery.fee)}</strong></span>
+              <span>{t('Ücret')} <strong>{tl(s.lastServiceDelivery.fee)}</strong></span>
               <span>Tazmin <strong>{tl(s.lastServiceDelivery.compensation)}</strong></span>
-              <span>Net nakit <strong>{tl(s.lastServiceDelivery.cashDelta)}</strong></span>
-              <span>Net katkı <strong>{tl(s.lastServiceDelivery.netContribution)}</strong></span>
-              <span>İlişki <strong>{s.lastServiceDelivery.trustDelta > 0 ? '+' : ''}{s.lastServiceDelivery.trustDelta}</strong></span>
-              <span>İtibar <strong>{s.lastServiceDelivery.reputationDelta > 0 ? '+' : ''}{s.lastServiceDelivery.reputationDelta}</strong></span>
+              <span>{t('Net nakit')} <strong>{tl(s.lastServiceDelivery.cashDelta)}</strong></span>
+              <span>{t('Net katkı')} <strong>{tl(s.lastServiceDelivery.netContribution)}</strong></span>
+              <span>{t('İlişki')} <strong>{s.lastServiceDelivery.trustDelta > 0 ? '+' : ''}{s.lastServiceDelivery.trustDelta}</strong></span>
+              <span>{t('İtibar')} <strong>{s.lastServiceDelivery.reputationDelta > 0 ? '+' : ''}{s.lastServiceDelivery.reputationDelta}</strong></span>
             </div>
             <p className="deliveryResult__message">Risk {pct(s.lastServiceDelivery.risk)} · {s.lastServiceDelivery.message}</p>
             <button type="button" className="secondary" onClick={s.dismissServiceDelivery}>Devam Et</button>
@@ -108,7 +109,7 @@ export function WorkshopScreen() {
         {/* Teslime hazır işler önce — oyuncunun aksiyon alması gerekenler. */}
         {ready.length > 0 && (
           <div className="group">
-            <h2 className="group__title">Teslime Hazır</h2>
+            <h2 className="group__title">{t('Teslime Hazır')}</h2>
             <div className="rowList">
               {ready.map((job) => (
                 <JobRow key={job.jobId} job={job} today={s.market.day} onDeliver={s.deliverJob} />
@@ -134,7 +135,7 @@ export function WorkshopScreen() {
                   fallback={<IconWorkshop size={34} />}
                 />
               </div>
-              <p className="empty__title">Kuyruk boş</p>
+              <p className="empty__title">{t('Kuyruk boş')}</p>
               <p className="empty__text">
                 Kabul ettiğin servis işleri burada görünür. Gelir yalnız tamamlanan gerçek
                 işlerden doğar.
@@ -151,7 +152,7 @@ export function WorkshopScreen() {
 
         {/* Dış Usta — ayrı kısa alt görünüm (GDD 23.18) */}
         <div className="group">
-          <h2 className="group__title">Dış Usta</h2>
+          <h2 className="group__title">{t('Dış Usta')}</h2>
           <div className="group__body">
             {/*
               GDD 23.18 Dış Usta ayrı bir alt görünüm. Portre 72 px: işi
@@ -166,29 +167,29 @@ export function WorkshopScreen() {
                 fallback={<IconServiceResale size={26} />}
               />
               <span className="masterLine__text">
-                Kendi tezgâhın dolduğunda işi devredebileceğin usta.
+                {t('Kendi tezgâhın dolduğunda işi devredebileceğin usta.')}
               </span>
             </div>
             <div className="statLine">
               <span className="statLine__label">
                 <IconServiceResale size={15} />
-                Devredilen iş
+                {t('Devredilen iş')}
               </span>
               <span className="statLine__value num">{outsourcedCount}</span>
             </div>
             <div className="statLine">
-              <span className="statLine__label">Ek süre</span>
+              <span className="statLine__label">{t('Ek süre')}</span>
               <span className="statLine__value num">+{SERVICE.outsource.extraDays} gün</span>
             </div>
             <div className="statLine">
-              <span className="statLine__label">Ücret payı</span>
+              <span className="statLine__label">{t('Ücret payı')}</span>
               <span className="statLine__value statLine__value--warning num">
                 {pct(SERVICE.outsource.feeShare)}
               </span>
             </div>
             <div className="statLine">
-              <span className="statLine__label">Kapasite tüketimi</span>
-              <span className="statLine__value statLine__value--positive">Yok</span>
+              <span className="statLine__label">{t('Kapasite tüketimi')}</span>
+              <span className="statLine__value statLine__value--positive">{t('Yok')}</span>
             </div>
           </div>
         </div>
@@ -214,7 +215,7 @@ export function WorkshopScreen() {
               </span>
             </div>
             <div className="statLine">
-              <span className="statLine__label">Yoğunluk risk etkisi</span>
+              <span className="statLine__label">{t('Yoğunluk risk etkisi')}</span>
               <span className="statLine__value statLine__value--warning num">
                 +{pct(SERVICE.loadRiskWeight)} tam kapasitede
               </span>
@@ -270,7 +271,7 @@ function JobRow({
         <div className="row__title">
           {type.label}{' '}
           <span className={`tag ${job.venue === 'outsourced' ? 'tag--neutral' : ''}`}>
-            {job.venue === 'inHouse' ? 'Kendi atölyem' : 'Dış usta'}
+            {job.venue === 'inHouse' ? t('Kendi atölyem') : t('Dış usta')}
           </span>
         </div>
         <div className="row__meta">
@@ -279,13 +280,13 @@ function JobRow({
 
         <div className="row__figures">
           <span className="figure">
-            <span className="figure__label">Kalan süre</span>
+            <span className="figure__label">{t('Kalan süre')}</span>
             <span className="figure__value num">
               {job.result === 'pending' ? `${job.remainingDays} gün` : 'Bitti'}
             </span>
           </span>
           <span className="figure">
-            <span className="figure__label">Söz verilen</span>
+            <span className="figure__label">{t('Söz verilen')}</span>
             <span
               className={`figure__value num ${isLate ? 'figure__value--negative' : ''}`}
             >
@@ -303,7 +304,7 @@ function JobRow({
             </span>
           </span>
           <span className="figure">
-            <span className="figure__label">Ücret</span>
+            <span className="figure__label">{t('Ücret')}</span>
             <span className="figure__value num">{tl(job.fee)}</span>
           </span>
         </div>
@@ -318,7 +319,7 @@ function JobRow({
         {!isLate && job.result === 'pending' && daysToPromise <= 1 && (
           <div className="rowAlert">
             <IconClock size={12} />
-            {daysToPromise === 0 ? 'Bugün teslim sözü var' : 'Yarın teslim sözü var'}
+            {daysToPromise === 0 ? t('Bugün teslim sözü var') : t('Yarın teslim sözü var')}
           </div>
         )}
       </div>
@@ -330,7 +331,7 @@ function JobRow({
           onClick={() => onDeliver(job.jobId)}
           style={{ flex: '0 0 auto' }}
         >
-          Teslim Et
+          {t('Teslim Et')}
         </button>
       )}
     </div>

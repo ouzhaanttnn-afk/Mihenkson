@@ -14,6 +14,7 @@
  * ekran veya modal açılmaz.
  */
 
+import { t } from '@i18n/index';
 import { CONDITION_LABEL, SERVICE } from '@domain/balance';
 import { conditionValueGain, expectedCompletionDay, findQuote } from '@domain/service';
 import { getServiceType } from '@data/service-types';
@@ -76,7 +77,7 @@ export function DiagnoseStage({ item, service }: { item: ItemInstance; service: 
       <div className="svc__note">
         {diagnosis && diagnosis.availableTypeIds.length > 0
           ? `${diagnosis.availableTypeIds.length} servis türü uygulanabilir.`
-          : 'Bu ürüne uygulanabilir servis bulunamadı.'}
+          : t('Bu ürüne uygulanabilir servis bulunamadı.')}
       </div>
     </div>
   );
@@ -103,7 +104,7 @@ export function QuoteStage({
     return (
       <div className="svc">
         <div className="svc__note svc__note--center">
-          Aşağıdaki raydan bir servis türü seçin.
+          {t('Aşağıdaki raydan bir servis türü seçin.')}
         </div>
       </div>
     );
@@ -152,7 +153,7 @@ export function QuoteStage({
                   )}
                 </span>
                 <span className="venue__name">
-                  {quote.venue === 'inHouse' ? 'Kendi Atölyem' : 'Dış Usta'}
+                  {quote.venue === 'inHouse' ? t('Kendi Atölyem') : t('Dış Usta')}
                 </span>
                 {blocked && <span className="venue__blocked">{quote.blockedReason}</span>}
               </span>
@@ -163,20 +164,20 @@ export function QuoteStage({
                 sayı en büyük gösterilir (GDD 23.12 ilkesi).
               */}
               <span className="venue__fee num">{tl(quote.netContribution)}</span>
-              <span className="venue__feeLabel">net katkı</span>
+              <span className="venue__feeLabel">{t('net katkı')}</span>
 
               <span className="venue__rows">
-                <QuoteRow label="Ücret" value={tl(quote.fee)} />
-                <QuoteRow label="Süre" value={`${quote.durationDays} gün`} />
-                <QuoteRow label="İşçilik" value={tl(quote.laborCost)} />
+                <QuoteRow label={t("Ücret")} value={tl(quote.fee)} />
+                <QuoteRow label={t("Süre")} value={`${quote.durationDays} gün`} />
+                <QuoteRow label={t("İşçilik")} value={tl(quote.laborCost)} />
                 {quote.partsCost > 0 && (
-                  <QuoteRow label="Parça" value={tl(quote.partsCost)} tone="negative" />
+                  <QuoteRow label={t("Parça")} value={tl(quote.partsCost)} tone="negative" />
                 )}
                 {quote.outsourceCost > 0 && (
-                  <QuoteRow label="Usta payı" value={tl(quote.outsourceCost)} tone="negative" />
+                  <QuoteRow label={t("Usta payı")} value={tl(quote.outsourceCost)} tone="negative" />
                 )}
                 <QuoteRow
-                  label="Hata riski"
+                  label={t("Hata riski")}
                   value={pct(quote.risk)}
                   tone={quote.risk >= 0.3 ? 'negative' : quote.risk >= 0.12 ? 'warning' : 'positive'}
                 />
@@ -247,7 +248,7 @@ export function PromiseStage({
   return (
     <div className="svc">
       <div className="promise">
-        <span className="promise__label">Teslim sözü</span>
+        <span className="promise__label">{t('Teslim sözü')}</span>
         <span className="promise__day num">{promised}. gün</span>
         <span className="promise__hint">
           Atölye tahmini: {expected}. gün · ücret {tl(quote.fee)}
@@ -267,14 +268,14 @@ export function PromiseStage({
               onClick={() => onSetBuffer(days)}
             >
               <span className="buffer__title">
-                {days === 0 ? 'Sıkı' : days === 1 ? 'Normal' : `+${days} gün`}
+                {days === 0 ? t('Sıkı') : days === 1 ? 'Normal' : `+${days} gün`}
               </span>
               <span className="buffer__note">
                 {days === 0
-                  ? 'Güven +, risk yüksek'
+                  ? t('Güven +, risk yüksek')
                   : days === 1
                     ? 'Dengeli'
-                    : 'Güvenli, güven −'}
+                    : t('Güvenli, güven −')}
               </span>
             </button>
           );
@@ -284,7 +285,7 @@ export function PromiseStage({
       <div className="svc__note">
         Söz tutulursa güven artar; geçilen her gün{' '}
         <strong>{SERVICE.latePenaltyPerDay} puan</strong> güven kaybettirir. Hata çıkarsa
-        ücret alınmaz ve <strong className="svc__danger">tazmin ödenir</strong>.
+        ücret alınmaz ve <strong className="svc__danger">{t('tazmin ödenir')}</strong>.
       </div>
     </div>
   );
@@ -305,7 +306,7 @@ export function JobQueueStage({
     return (
       <div className="svc">
         <div className="svc__note svc__note--center">
-          İş kabul edilmedi. Müşteri ürünüyle birlikte ayrıldı.
+          {t('İş kabul edilmedi. Müşteri ürünüyle birlikte ayrıldı.')}
         </div>
       </div>
     );
@@ -316,20 +317,20 @@ export function JobQueueStage({
   return (
     <div className="svc">
       <div className="workOrder">
-        <span className="workOrder__badge">İŞ EMRİ</span>
+        <span className="workOrder__badge">{t('İŞ EMRİ')}</span>
         <h2 className="svc__title">{type.label}</h2>
         <p className="svc__meta">
           {job.itemName} · {job.customerName}
         </p>
 
         <div className="workOrder__rows">
-          <QuoteRow label="Teslim sözü" value={`${job.promisedDay}. gün`} />
-          <QuoteRow label="Süre" value={`${job.duration} gün`} />
+          <QuoteRow label={t("Teslim sözü")} value={`${job.promisedDay}. gün`} />
+          <QuoteRow label={t("Süre")} value={`${job.duration} gün`} />
           <QuoteRow
             label="Mekân"
-            value={job.venue === 'inHouse' ? 'Kendi atölyem' : 'Dış usta'}
+            value={job.venue === 'inHouse' ? t('Kendi atölyem') : t('Dış usta')}
           />
-          <QuoteRow label="Tahsil edilecek" value={tl(job.fee)} tone="positive" />
+          <QuoteRow label={t("Tahsil edilecek")} value={tl(job.fee)} tone="positive" />
         </div>
       </div>
 

@@ -145,7 +145,7 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
         {welcome && (
           <p className="profileDialog__welcome">
             {t(
-              "Tezgâhın arkasına geçmeden önce: dükkânın adı ne olsun, sen kimsin? İkisini de sonradan Ayarlar'dan değiştirebilirsin.",
+              t("Tezgâhın arkasına geçmeden önce: dükkânın adı ne olsun, sen kimsin? İkisini de sonradan Ayarlar'dan değiştirebilirsin."),
             )}
           </p>
         )}

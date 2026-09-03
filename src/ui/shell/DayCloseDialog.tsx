@@ -118,7 +118,7 @@ export function DayCloseDialog() {
       {!isMarketOpen(tomorrow) && (
         <p>
           {t(
-            'Cuma kapanışından pazartesi açılışına kadar piyasa fiyatı donar; hafta sonu haberleri pazartesi açılışında tek seferde fiyatlanır.',
+            t('Cuma kapanışından pazartesi açılışına kadar piyasa fiyatı donar; hafta sonu haberleri pazartesi açılışında tek seferde fiyatlanır.'),
           )}
         </p>
       )}
