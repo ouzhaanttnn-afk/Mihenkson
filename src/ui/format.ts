@@ -25,7 +25,7 @@ export {
   tlRange,
 } from '@i18n/money';
 
-export { pct, pctSigned, pctChange } from '@i18n/money';
+export { pct, pctSigned, pctChange, multiplier } from '@i18n/money';
 
 /** 10:45 */
 export function clock(minutes: number): string {

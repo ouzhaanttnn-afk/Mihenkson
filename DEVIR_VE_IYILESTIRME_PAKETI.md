@@ -497,6 +497,54 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · "×1,33 gerçekten işliyor mu?" — ✅ ÖLÇÜLDÜ (ve bir kusur çıktı)
+`src/state/customer-traffic-live.test.ts` (yeni) · `src/i18n/money.ts` ·
+`src/ui/screens/BusinessScreen.tsx`
+
+Kullanıcı: *"Peki gerçekten işe yarıyor mu ×1.33 işliyor mu?"* Yerinde soru:
+`customer-traffic.test.ts` yalnız **çarpanın kendisini** ölçüyordu — doğru sayıyı üretiyor mu.
+Alan yordamı doğru olup döngüye hiç bağlanmamış olsaydı o testler yine geçerdi.
+
+**Yeni test bunu kapatıyor.** `customerDelayFactor` hiç çağrılmıyor; `useGame.tick()`
+sürülüyor, gün 09:00'dan 19:00'a oynatılıyor ve GERÇEKTEN kaç müşteri doğduğu sayılıyor
+(`spawnCounter` — kuyruk dolsa bile her gelişte artar). Aynı günlerde ölçülüyor ki gün
+karakterinin tempo'su sabit kalsın, değişen tek şey itibar olsun.
+
+**Ölçüm — itibar 42 (×1,00) → itibar 79 (×1,33), aynı günler, aynı tohum:**
+
+| gün | ×1,00 | ×1,33 | fark |
+|---|---|---|---|
+| 1 | 34 | 43 | +26% |
+| 2 | 22 | 29 | +32% |
+| 3 | 22 | 29 | +32% |
+| 4 | 34 | 43 | +26% |
+| 9 | 41 | 53 | +29% |
+| … 10 günün toplamı | **299** | **384** | **×1,284** |
+
+Ayrıca uçlar: itibar 0 → 21 müşteri, itibar 100 / kademe 5 → 58 müşteri.
+Canlandır düğmesi: 34 → 80 müşteri (aralık ×0,4'e iniyor, GDD 23.10.1).
+
+**Gerçekleşen oran ×1,284, nominal ×1,333 — aradaki fark bir hata değil.** Gün 600
+dakikalık KAPALI bir pencere; kapanışın hemen ardına düşecek müşteri o gün hiç gelmez, yani
+sayı her zaman aşağı yuvarlanır. Test bu yüzden 1,2–1,4 bandı kontrol ediyor: çarpanın
+İŞLEDİĞİNİ kanıtlıyor, ondalık hassasiyette bir vaat vermiyor.
+
+**Ölçüm sırasında bir kusur çıktı ve düzeltildi.** İlk denemede 1 oyun dakikalık tick
+atıldı ve sayılar saf gecikme zincirinden 2-3 müşteri düşük geldi: bir sonraki geliş O ANKİ
+saate göre kuruluyor, kaba adımda her müşteride 1 dakikaya kadar sürüklenme birikiyor.
+Gerçek oyun 60 fps'te ~0,02 oyun dakikası adımlıyor; ölçüm 0,05'e indirilince sayılar
+zincirle örtüştü. **Bu, ölçüm aracının kusuruydu, oyunun değil** — ama not düşülüyor, çünkü
+aynı tuzağa bir daha düşülmesin.
+
+**Ekranda gerçek bir kusur çıktı ve o da düzeltildi.** Trafik satırı `toFixed(2)` ile
+yazılıyordu, yani Türkçe arayüzde de nokta gösteriyordu (`×1.33`). Oyunun geri kalanı virgül
+kullanırken tek satırın nokta göstermesi tutarsızdı. `@i18n/money · multiplier()` eklendi,
+ondalık ayracı dile bağlandı. **Tarayıcıda doğrulandı:** itibar 79'a çekilmiş kayıtla
+İşletme ekranı `Müşteri trafiği · ×1,33` gösteriyor — yani ekrandaki sayı ile kapıdan giren
+müşteri aynı yordamdan geliyor.
+
+Suite 956 → **961**.
+
 #### YENİ · "Dükkânı Canlandır" kalıcı yuvarlak kenar düğmesi oldu — ✅ YAPILDI
 `src/ui/shell/RushFab.tsx` (yeni) · `src/ui/screens/ShopScreen.tsx` ·
 `src/ui/shell/AppShell.css` · `src/ui/workbench/Workbench.css`

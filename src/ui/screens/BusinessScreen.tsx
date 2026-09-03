@@ -63,7 +63,7 @@ import {
 } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { NAV_ART, merchantArt } from '@ui/assets';
-import { clock, moneyUnit, pct, pctChange, price, priceRawTl, tl, tlSigned } from '@ui/format';
+import { clock, moneyUnit, multiplier, pct, pctChange, price, priceRawTl, tl, tlSigned } from '@ui/format';
 import { TalentTreePanel } from './TalentTreePanel';
 import { WholesalerLiquidationList } from './WholesalerLiquidation';
 
@@ -296,7 +296,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             */}
             <StatLine
               label={t('Müşteri trafiği')}
-              value={`×${customerDensity(s.store).toFixed(2)}`}
+              value={multiplier(customerDensity(s.store))}
               tone={customerDensity(s.store) >= 1 ? 'positive' : 'warning'}
             />
             {/*

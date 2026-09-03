@@ -195,6 +195,18 @@ export function pctSigned(ratio: number, digits = 0): string {
   return `${shown < 0 ? '−' : '+'}${pct(Math.abs(ratio), digits)}`;
 }
 
+/**
+ * ×1,33 · ×1.33 — çarpan. Ondalık ayracı dile bağlıdır.
+ *
+ * `toFixed(2)` doğrudan yazılırsa Türkçe arayüzde de nokta çıkar; oyunun
+ * geri kalanı virgül kullanırken tek bir satırın nokta göstermesi ölçüldü
+ * ve düzeltildi (İşletme · Müşteri trafiği).
+ */
+export function multiplier(value: number, digits = 2): string {
+  const en = getLanguage() === 'en';
+  return `×${value.toFixed(digits).replace('.', en ? '.' : ',')}`;
+}
+
 /** ▲ %0,38 · ▲ 0.38% — yön işareti dahil. */
 export function pctChange(value: number): string {
   const sign = value > 0 ? '▲' : value < 0 ? '▼' : '—';

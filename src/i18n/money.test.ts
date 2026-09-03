@@ -142,4 +142,18 @@ describe('yüzde imi dile göre yer değiştirir', () => {
     setLanguage('en');
     expect(pct(0.125, 1)).toBe('12.5%');
   });
+
+  /*
+    Müşteri trafiği satırı `toFixed(2)` ile yazılıyordu; Türkçe arayüzde de
+    nokta çıkıyordu. Oyunun geri kalanı virgül kullanırken tek bir satırın
+    nokta göstermesi tutarsızdı.
+  */
+  it('çarpan ondalığı dile uyar', async () => {
+    const { multiplier } = await import('@ui/format');
+    setLanguage('tr');
+    expect(multiplier(1.333)).toBe('×1,33');
+    expect(multiplier(1)).toBe('×1,00');
+    setLanguage('en');
+    expect(multiplier(1.333)).toBe('×1.33');
+  });
 });
