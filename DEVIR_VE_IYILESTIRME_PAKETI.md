@@ -1731,6 +1731,70 @@ tutarlı çalıştı. Ölçüldü: tam olarak 1284×2778, RGB. Konsol hatası yo
 ve iki yayınlanmış Artifact. Suite/tsc/i18n zaten bir önceki commit'te doğrulanmıştı, bu tur
 onları tekrar bozacak bir değişiklik yapmadı.
 
+#### YENİ · Üretim derlemesi karartıldı (obfuscation) + kapsamlı ön-yayın kontrolü — ✅ YAPILDI
+`tools/vite-plugin-obfuscate.mjs` (yeni) · `vite.config.ts` · `package.json`
+
+Kullanıcı: *"bu kodları şifreleyeceksin demi tasarım ve parametrelerim denklemlerimiz
+çalınmasın."* Önce dürüstçe düzeltildi: bu web/WebView kodu için **gerçek şifreleme
+mümkün değil** — tarayıcı çalıştırabilmek için kodu okuyabilir hâlde almak zorunda,
+hangi katman eklenirse eklensin sonunda geri çözülebilir. Üç seçenek (obfuscation /
+sunucu tarafına taşıma / yasal koruma) artı-eksileriyle sunuldu; kullanıcı önerilen
+seçeneği (obfuscation) onayladı — *"SENİN ÖNERİN NEYSE ONU YAPMAYA DEVAM ET"* — ve
+ayrıca *"yayınlanmadan önceki her kontrolü sağlamanı istiyorum"* dedi.
+
+**Ne yapıldı:** `javascript-obfuscator` (devDependency), Vite'ın kendi `renderChunk`
+kancasına takılan küçük bir eklentiyle (`tools/vite-plugin-obfuscate.mjs`) yalnız
+`vite build` çıktısına uygulanıyor — `vite dev` ve `vitest` hiç etkilenmiyor
+(`apply: 'build'`). Kontrol akışı bulandırma, ölü kod enjeksiyonu, metin dizisi
+base64 kodlama + döndürme, sayıları ifadelere çevirme aktif.
+
+**Bilerek KAPALI bırakılan iki ayar — `selfDefending` ve `debugProtection`.** Bu
+ikisi DevTools açıkken kodun kilitlenmesine/sonsuz döngüye girmesine neden olabiliyor.
+Gerçek oyuncuların hata ayıklarken veya mağaza incelemecilerinin DevTools açması
+meşru bir senaryo — kod onlara "savunma" yapmaya kalkarsa uygulama çökmüş gibi
+görünür. Caydırıcılık için güvenilirlikten ödün verilmedi; bu karar eklentinin
+kendi başındaki yorumda gerekçesiyle yazılı.
+
+**Eşikler bilerek ORTA düzeyde (maksimum değil).** `controlFlowFlatteningThreshold:
+0.4`, `deadCodeInjectionThreshold: 0.2` — tam güçte bu ayarlar paket boyutunu birkaç
+katına çıkarabilir; mobil bir oyun için yükleme hızından ödün vermeye değmedi.
+Ölçülen etki: JS paketi 586 kB → ~1,1 MB (gzip 190 kB → ~470 kB), derleme süresi
+2,4 sn → 17 sn (yalnız derleme anı, çalışma zamanını etkilemiyor).
+
+**Doğrulama — "her kontrolü sağla" isteğine karşılık, katmanlı:**
+1. `npx vitest run` → **977/977**, `tsc -b --noEmit` → temiz, `npm run i18n` →
+   **877/877**, 0 kullanılmayan. (Bunlar kaynağa karşı çalışıyor, obfuscation'ı
+   sınamıyor — ayrı bir doğrulama gerekiyordu, aşağıda.)
+2. **Obfuscate edilmiş `dist/` çıktısı gerçek tarayıcıda çalıştırıldı** (`vite
+   preview`) — bu, `vitest`in dokunmadığı tek katman. 390×844'te **5 tam gün**
+   oynandı (stok alımı, müşteri karşılama/gönderme, gün kapatma onayı, rastgele
+   olay sistemi — "Sahte Ürün Dalgası" tetiklendi ve doğru işlendi): **0 konsol/
+   sayfa hatası**. 360×640 ve 1440×900'de de ayrıca tarandı, aynı temiz sonuç.
+3. **Tuzak, obfuscation'la ilgisi yoktu.** İlk doğrulama denemesi 90-100 sn'de
+   zaman aşımına uğradı — sebep obfuscation değil, kopyaladığım eski bir script'in
+   (bu oturumun önceki bir turunda zaten düzeltilmiş) "Günü Bitir" onay diyaloğunu
+   yanlış hedeflemesiydi (arka plandaki, diyalog tarafından engellenen düğmeye
+   basmaya çalışıp 30 sn'lik Playwright zaman aşımına her seferinde takılıyordu).
+   Düzeltilmiş script'le (diyalog içi düğmeyi doğru hedefleyen) tekrar çalıştırılınca
+   temiz geçti — bu ayrım burada açıkça not edildi, obfuscation'ı yanlışlıkla
+   suçlamamak için.
+4. `npm run cap:sync` ile `ios/`/`android/` içindeki gömülü web paketleri de
+   taze (obfuscate edilmiş) derlemeyle senkronize edildi.
+
+**Not — build-zamanı rastgelelik, oyun-zamanı determinizmle KARIŞTIRILMAMALI.**
+`javascript-obfuscator` her çalıştırmada farklı bir çıktı üretir (metin dizisi
+karıştırma vb.) — yani art arda iki `npm run build` birebir aynı dosyayı vermez.
+Bu, GDD 28.3'teki oyun-içi RNG determinizmini (sabit tohum, kapalı piyasa günü
+RNG tüketmez, vb.) HİÇ etkilemiyor — o kural oyunun kendi ekonomi mantığıyla
+ilgili, derleme aracının kod yapısını rastgele düzenlemesiyle alakasız. Karıştırma
+riskine karşı burada açıkça ayrıştırıldı.
+
+**Bilerek YAPILMADI — sunucu tarafına taşıma.** Kullanıcıya sunulan üç seçenekten
+biriydi ama önerilmedi ve seçilmedi: mimariyi kökten değiştirir, gizlilik
+politikasının "hiçbir sunucumuz yok" iddiasını geçersiz kılar, çevrimdışı oynanışı
+kırar. Yasal koruma (Kullanım Şartları'ndaki "izinsiz kopyalanamaz" maddesi) zaten
+önceki turda yazılmıştı, ayrıca dokunulmadı.
+
 ---
 
 ### B. Tasarım ve oynanış önerileri

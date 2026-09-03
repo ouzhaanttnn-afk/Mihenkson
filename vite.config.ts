@@ -1,9 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
+import { obfuscate } from './tools/vite-plugin-obfuscate.mjs';
 
 export default defineConfig({
-  plugins: [react()],
+  // `obfuscate()` yalnız `vite build`'de çalışır (bkz. dosyanın kendi
+  // başındaki not) — tasarım/ekonomi formüllerinin üretim paketinde
+  // metin editörüyle doğrudan okunmasını zorlaştıran bir caydırıcı katman.
+  plugins: [react(), obfuscate()],
   resolve: {
     alias: {
       '@domain': fileURLToPath(new URL('./src/domain', import.meta.url)),
