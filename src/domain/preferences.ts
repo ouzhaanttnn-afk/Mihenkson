@@ -98,14 +98,20 @@ export interface PlayerPreferences {
 }
 
 /**
- * Varsayılanlar. Ses ve titreşim AÇIK başlar: oyuncu bir şeyi kapatmayı
- * seçmediyse, oyunun kendini tam hâliyle tanıtması beklenir. Bağlanana
- * kadar bunun görünür bir etkisi olmaz.
+ * Varsayılanlar. Ses efektleri ve titreşim AÇIK başlar: oyuncu bir şeyi
+ * kapatmayı seçmediyse, oyunun kendini tam hâliyle tanıtması beklenir.
+ *
+ * MÜZİK İSTİSNA — varsayılan KAPALI. Kullanıcı geri bildirimi: "açık
+ * konuşayım müziği beğenmedim." Sentez altyapısı (`tools/muzik-uret.py`,
+ * telifsiz) yerinde duruyor ve Ayarlar'dan istenildiğinde açılabiliyor —
+ * kaldırılmadı, yalnız artık kendiliğinden çalmıyor. Oyuncuya beğenmediği
+ * bir şeyi ilk açılışta dayatmamak, "özelliği göster" kaygısından önce
+ * gelir.
  */
 export function defaultPreferences(): PlayerPreferences {
   return {
     soundEnabled: true,
-    musicEnabled: true,
+    musicEnabled: false,
     soundVolume: DEFAULT_VOLUME,
     musicVolume: DEFAULT_MUSIC_VOLUME,
     vibrationEnabled: true,
@@ -159,9 +165,11 @@ export function normalizePreferences(raw: unknown): PlayerPreferences {
     soundEnabled:
       typeof source.soundEnabled === 'boolean' ? source.soundEnabled : fallback.soundEnabled,
     /*
-      ESKİ KAYITTA BU ALAN YOK ve varsayılana düşer (açık). Bilerek: müzik
-      oyuna sonradan girdi, eski oyuncunun onu "kapatmış" olması mümkün değil;
-      sessizce kapalı başlatmak, eklenen şeyi hiç göstermemek olurdu.
+      ESKİ KAYITTA BU ALAN YOK ve varsayılana düşer — artık KAPALI (bkz.
+      `defaultPreferences`). Önceki gerekçe ("eklenen şeyi hiç göstermeme")
+      geçerliydi ama kullanıcı geri bildirimi bunun önüne geçti: müziği
+      beğenmedi. Zaten AÇIK olarak kaydedilmiş bir tercihi bu satır
+      değiştirmiyor — yalnız hiç dokunmamış eski/yeni kayıtların düştüğü yer.
     */
     musicEnabled:
       typeof source.musicEnabled === 'boolean' ? source.musicEnabled : fallback.musicEnabled,

@@ -1571,6 +1571,50 @@ gerçek alfa ile ayrılmamış; renk-eşiğiyle otomatik "arka planı sil" denem
 modu ölçüldü (yukarıdaki tabloda). Kod tarafında hiçbir değişiklik yok — bu tur yalnız
 `store/` klasörüne yeni dosyalar ekledi, `src/` dokunulmadı; test suite'i etkilemez.
 
+#### YENİ · Müzik varsayılan KAPALI + canlı demo cilası — ✅ YAPILDI
+`src/domain/preferences.ts` · `src/state/settings.test.ts`
+
+Kullanıcı: *"Açık konuşayım müziği beğenmedim. Ayrıca oyunu sunuma hazırlıyoruz ne gerekiyorsa
+yapar mısın."* İki ayrı soru soruldu (`AskUserQuestion`): müzik için "ne önerirsen", sunum
+kapsamı için "canlı demo cilası" seçildi (metaryal/mağaza değil — kod ve akış).
+
+**Müzik:** `defaultPreferences().musicEnabled` `true → false`. Sentez altyapısı
+(`tools/muzik-uret.py`, `public/assets/audio/music/tezgah.wav`, telifsiz) **kaldırılmadı** —
+Ayarlar'dan istendiğinde hâlâ açılabiliyor, yalnız artık kendiliğinden çalmıyor. Önceki karar
+("eski kayıtta alan yoksa AÇIK'a düşer, özelliği gizlememek için") kasıtlı olarak tersine
+çevrildi — kullanıcı geri bildirimi önceki tasarım gerekçesinin önüne geçti. Bu, hem YENİ
+oyunculara hem `musicEnabled` alanına hiç dokunmamış (eski VEYA yeni) kayıtlara uygulanıyor;
+zaten AÇIK olarak kaydedilmiş bir tercihi bu satır değiştirmez — `normalizePreferences`
+yalnızca eksik alanı dolduruyor.
+
+**Testler:** `settings.test.ts`'te varsayılanı ve eski-kayıt fallback'ini sabitleyen 3 test
+güncellendi (biri tam tersini sabitliyordu — "AÇIK'a düşer" → "KAPALI'ya düşer", gerekçe
+yorumla birlikte değiştirildi, eski karar silinmedi, üstü çizilip neden değiştiği yazıldı).
+Suite 977, aynı sayıda test, davranış farklı. `tsc` temiz.
+
+**Canlı demo cilası — ölçülmüş, temiz çıktı:**
+- Taze `npm run build` + `vite preview` üzerinden **5 tam gün** oynandı (stok alımı, müşteri
+  karşılama/gönderme, gün kapatma onay diyaloğu dahil) — 390×844'te **0 konsol hatası, 0
+  sayfa hatası**. Cumartesi'ye (piyasa kapalı, dükkân açık) doğru geçiş gözlemlendi.
+- **Üç ekran genişliği** (390×844 telefon, 360×640 dar telefon, 1440×900 masaüstü) taranıp
+  yatay taşma kontrol edildi. Tek taşan öğe her genişlikte `marketStrip` — bu kasıtlı bir
+  yatay kaydırma şeridi (piyasa ticker'ı), hata değil.
+- **1440×900 masaüstü** özellikle kontrol edildi: ekran paylaşımıyla sunum ihtimaline karşı.
+  Uygulamanın kendi `max-width:430px` tasarım tavanı ortalanmış, geri kalan koyu mürekkep
+  zeminle dolduruluyor — kırık/boş görünmüyor, kasıtlı bir çerçeve gibi okunuyor.
+- Ayarlar ekranında Müzik anahtarının gerçekten KAPALI göründüğü doğrulandı (`aria-pressed:
+  false`, üç genişlikte de).
+- `grep` ile kaynak kodda kalan `console.log`, `TODO`, `FIXME`, "lorem ipsum" gibi oyuncuya
+  sızabilecek geliştirici artığı arandı — **hiçbiri yok**.
+- Sayfa yükleme süresi ölçüldü (`performance` API, yerelde): ~70 ms, JS paketi 586 kB
+  (gzip 190 kB) — mobil bir oyun için makul; kod bölme (`manualChunks`) önerisi hâlâ
+  bekliyor ama sunum öncesi acil değil, dokunulmadı (riski faydasından büyük — çalışan
+  derlemeyi zaman baskısı altında yeniden yapılandırmak).
+
+**Bilerek dokunulmayan:** bu tur yalnız kod/UX tarafına baktı — mağaza materyali (önceki
+turda zaten üretildi) veya native paketleme bu kapsamın dışında bırakıldı, kullanıcı
+"canlı demo cilası"nı seçtiği için.
+
 ---
 
 ### B. Tasarım ve oynanış önerileri

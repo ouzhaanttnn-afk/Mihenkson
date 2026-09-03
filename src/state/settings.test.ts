@@ -131,12 +131,12 @@ describe('kayıt uyumu', () => {
  * unutmuyorsa oyuncu yalan söylenmiş olmaz.
  */
 describe('sunum tercihleri', () => {
-  it('varsayılanlar: ses, müzik ve titreşim açık, efekt %50 müzik %20, dil Türkçe', () => {
+  it('varsayılanlar: ses ve titreşim açık, müzik kapalı, efekt %50 müzik %20, dil Türkçe', () => {
     const p = defaultPreferences();
 
     expect(p).toEqual({
       soundEnabled: true,
-      musicEnabled: true,
+      musicEnabled: false,
       soundVolume: DEFAULT_VOLUME,
       musicVolume: DEFAULT_MUSIC_VOLUME,
       vibrationEnabled: true,
@@ -165,7 +165,7 @@ describe('sunum tercihleri', () => {
     expect(useGame.getState().preferences.language).toBe('en');
     expect(readSave()?.preferences).toEqual({
       soundEnabled: false,
-      musicEnabled: true,
+      musicEnabled: false,
       soundVolume: DEFAULT_VOLUME,
       musicVolume: DEFAULT_MUSIC_VOLUME,
       vibrationEnabled: true,
@@ -187,7 +187,7 @@ describe('sunum tercihleri', () => {
 
     expect(geri.preferences).toEqual({
       soundEnabled: true,
-      musicEnabled: true,
+      musicEnabled: false,
       soundVolume: DEFAULT_VOLUME,
       musicVolume: DEFAULT_MUSIC_VOLUME,
       vibrationEnabled: false,
@@ -234,15 +234,16 @@ describe('sunum tercihleri', () => {
   });
 
   /*
-    MÜZİK OYUNA SONRADAN GİRDİ. `musicEnabled` alanı olmayan (yani bu
-    özellikten önce yazılmış) bir kayıt AÇIK'a düşmeli — kapalıya değil.
-    Sessizce kapalı başlatmak, eklenen şeyi oyuncuya hiç göstermemek olurdu;
-    tam olarak `profile`/`profileSetupDone` ile aynı gerekçe.
+    MÜZİK VARSAYILANI SONRADAN DEĞİŞTİ. Bir önceki karar "AÇIK'a düşer"
+    yönündeydi (özelliği eski oyuncudan gizlememek için) — ama kullanıcı
+    geri bildirimi bunun önüne geçti: "açık konuşayım müziği beğenmedim."
+    `musicEnabled` alanı olmayan (eski VEYA hiç dokunulmamış yeni) bir kayıt
+    artık KAPALI'ya düşüyor, `defaultPreferences()` ile birebir aynı yol.
   */
-  it("ESKİ KAYITTA `musicEnabled` yok — AÇIK'a düşer, kapalıya değil", () => {
+  it("`musicEnabled` alanı yoksa KAPALI'ya düşer (varsayılan artık kapalı)", () => {
     const p = normalizePreferences({ soundEnabled: true, language: 'tr' });
 
-    expect(p.musicEnabled).toBe(true);
+    expect(p.musicEnabled).toBe(false);
   });
 
   it('müzik tercihi de bağımsız saklanır ve normalize edilir', () => {
