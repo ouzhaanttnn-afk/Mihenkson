@@ -76,10 +76,10 @@ export function App() {
     oyuncu oyuna girer girmez (ilk dokunuşundan sonra) müzik başlar.
   */
   const musicEnabled = useGame((s) => s.preferences.musicEnabled);
-  const soundVolumePref = useGame((s) => s.preferences.soundVolume);
+  const musicVolumePref = useGame((s) => s.preferences.musicVolume);
   useEffect(() => {
-    applyMusic(musicEnabled, soundVolumePref);
-  }, [musicEnabled, soundVolumePref]);
+    applyMusic(musicEnabled, musicVolumePref);
+  }, [musicEnabled, musicVolumePref]);
 
   /* Titreşim ayardan kapatılınca elde süren darbe kalmasın. */
   const vibrationEnabled = useGame((s) => s.preferences.vibrationEnabled);

@@ -497,6 +497,47 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · Müzik kendi ses düzeyine kavuştu — ✅ YAPILDI
+`src/domain/preferences.ts` · `src/ui/music.ts` · `src/ui/App.tsx` ·
+`src/ui/shell/SettingsDialog.tsx` · `src/state/settings.test.ts`
+
+Kullanıcı: *"Bu müziğin sesini manuel düşürmem lazım onu da ekle, ses düzeyi var müzik
+ses düzeyi diye de olsun."*
+
+**BİR ÖNCEKİ TASARIMIN KUSURU BUYDU.** Fon müziği eklenirken müzik, efektin düzeyinden
+`0,42` sabit bir oranla TÜREYEN bağımlı bir sayıyla çalıyordu (`MUZIK_ORANI`). Oyuncu
+efekti kısmadan müziği kısamıyordu — tam da şimdi istenen şey. Çözüm yama değil, ayrım:
+`preferences.musicVolume` efektten tamamen bağımsız yeni bir tercih.
+
+**DÜZEN EFEKTLE BİREBİR AYNI, KODU DA AYNI YOLDAN GEÇİYOR.** `normalizeVolume` artık bir
+`fallback` parametresi alıyor (`DEFAULT_VOLUME` varsayılan) — efekt ve müzik aynı 0–100
+sınırını ve aynı yuvarlama kuralını paylaşıyor ama bozuk girdide FARKLI varsayılana
+düşmesi gerekiyordu; fonksiyonu ikiye kopyalamak yerine parametreleştirildi.
+
+**ESKİ KAYITTA `musicVolume` YOK ve `DEFAULT_MUSIC_VOLUME`e (20) düşer, sıfıra değil.**
+0'a düşseydi `musicEnabled: true` gelen (eski kayıtların normal hâli, bkz. bir önceki
+madde) bir oyuncu müziği "açık ama sessiz" bulurdu — eklenen özelliği görmeden kaybederdi.
+20 rastgele değil: eski türetilmiş değere yakın (%50 × 0,42 ≈ %21) seçildi, geçiş algısal
+bir sıçrama yaratmasın diye.
+
+**AYARLARDA İKİ AYRI KAYDIRICI.** "Ses düzeyi" artık yalnız `soundEnabled`e bakıyor —
+müziği beslemediği için "ikisi de kapalıyken" mantığı geri alındı. "Müzik düzeyi" kendi
+satırında, kendi anahtarına (`musicEnabled`) bağlı, aynı görsel dille (aynı `pct` biçimi,
+aynı devre-dışı-bırakma deseni).
+
+**Tarayıcıda ölçüldü.** Yeni oyuncuda müzik kazancı `0,20` (beklenen `20/100`). Müzik
+düzeyini `5`'e çekmek efekt satırını (`%50`) hiç değiştirmiyor, müzik öğesinin gerçek
+kazancı `0,05`'e düşüyor. Müziği kapatınca yalnız müzik kaydırıcısı devre dışı kalıyor,
+efekt kaydırıcısı açık kalmaya devam ediyor. İngilizce arayüzde de iki satır ayrı ayrı
+görünüyor: *"Volume · 50%"* ve *"Music volume · 20%"*.
+
+**Testler:** `settings.test.ts`'e üç test eklendi — düzeylerin birbirinden bağımsız
+değiştiğini, eski kayıtta `musicVolume`in sıfıra değil varsayılana düştüğünü ve bozuk
+girdinin (`'çok'`, `500`, `-40`) güvenli kaldığını sabitliyor. Dört mevcut test (varsayılan
+nesne, kayıt roundtrip'i, komşu anahtar listesi) yeni alanı içerecek şekilde güncellendi.
+
+Suite 975 → **977**.
+
 #### YENİ · Varsayılan ses düzeyi %70 → %50 — ✅ YAPILDI
 `src/domain/preferences.ts` · `src/state/settings.test.ts`
 

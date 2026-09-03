@@ -264,26 +264,24 @@ export function SettingsDialog() {
         </button>
 
         {/*
-          SES DÜZEYİ — kaydırıcı burada doğru denetim.
+          SES DÜZEYİ — EFEKT KAYDIRICISI.
 
           C2'de hızlı stok penceresindeki kaydırıcıları KALDIRMIŞTIK; burada
           eklemek onunla çelişmiyor. Oradaki değer kesin bir sayıydı (kaç
           çeyrek), yazmak doğruydu. Ses düzeyi sürekli ve yaklaşık bir
           tercihtir; kimse "%65 istiyorum" diye düşünmez, kulağıyla ayarlar.
 
-          TEK DÜZEY, İKİ KATMAN BESLER: `soundVolume` hem efektleri hem
-          müziği ölçekler (müzik ayrıca kendi sabit oranıyla altta kalır,
-          bkz. music.ts · MUZIK_ORANI). Bu yüzden kaydırıcı YALNIZ EFEKT
-          kapalıyken devre dışı bırakılamaz — efekt kapalı, müzik açıkken bu
-          düzey hâlâ müziği değiştirir; kapalı görünen bir denetim aslında
-          çalışıyor gibi yanlış bir izlenim bırakırdı. Devre dışı bırakma
-          koşulu bu yüzden İKİSİ DE kapalıyken geçerli.
+          MÜZİĞİ ARTIK BESLEMİYOR. Bir önceki sürümde `soundVolume` hem
+          efektleri hem müziği ölçekliyordu; oyuncu müziği efekti susturmadan
+          kısamıyordu. Şimdi ikisi ayrı kaydırıcı, ayrı tercih — bu satır
+          yalnız `soundEnabled`e bakar, aşağıdaki "Müzik düzeyi" kendi
+          anahtarına.
         */}
         <div className="settingsRow settingsRow--static settingsRow--stack">
           <span className="settingsRow__copy">
             <strong>{t('Ses düzeyi')}</strong>
             <small>
-              {preferences.soundEnabled || preferences.musicEnabled
+              {preferences.soundEnabled
                 ? /*
                      YÜZDE İMİ ELLE YAZILMIYOR. Bir kez daha ekran görüntüsü
                      yakaladı: `pct` dile bağlanmıştı ama burada im hâlâ
@@ -291,7 +289,7 @@ export function SettingsDialog() {
                      yazıyordu.
                    */
                   pct(preferences.soundVolume / 100)
-                : t('Ses ve müzik kapalıyken ayarlanamaz')}
+                : t('Ses kapalıyken ayarlanamaz')}
             </small>
           </span>
           <input
@@ -301,9 +299,40 @@ export function SettingsDialog() {
             max={VOLUME_MAX}
             step={VOLUME_STEP}
             value={preferences.soundVolume}
-            disabled={!preferences.soundEnabled && !preferences.musicEnabled}
+            disabled={!preferences.soundEnabled}
             aria-label={t('Ses düzeyi')}
             onChange={(e) => setPreference('soundVolume', Number(e.target.value))}
+          />
+        </div>
+
+        {/*
+          MÜZİK DÜZEYİ — kendi kaydırıcısı.
+
+          Kullanıcı isteği: "Bu müziğin sesini manuel düşürmem lazım onu da
+          ekle, ses düzeyi var müzik ses düzeyi diye de olsun." Efekt
+          kaydırıcısıyla aynı desen (aynı ölçek, aynı devre-dışı-bırakma
+          mantığı, aynı yüzde biçimi) — yalnız hangi tercihe yazdığı ve hangi
+          anahtara bağlı olduğu farklı.
+        */}
+        <div className="settingsRow settingsRow--static settingsRow--stack">
+          <span className="settingsRow__copy">
+            <strong>{t('Müzik düzeyi')}</strong>
+            <small>
+              {preferences.musicEnabled
+                ? pct(preferences.musicVolume / 100)
+                : t('Müzik kapalıyken ayarlanamaz')}
+            </small>
+          </span>
+          <input
+            className="settingsSlider"
+            type="range"
+            min={VOLUME_MIN}
+            max={VOLUME_MAX}
+            step={VOLUME_STEP}
+            value={preferences.musicVolume}
+            disabled={!preferences.musicEnabled}
+            aria-label={t('Müzik düzeyi')}
+            onChange={(e) => setPreference('musicVolume', Number(e.target.value))}
           />
         </div>
 

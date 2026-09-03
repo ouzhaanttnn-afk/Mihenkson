@@ -22,13 +22,6 @@
 
 const KAYNAK = 'assets/audio/music/tezgah.wav';
 
-/**
- * Müzik, efektlerin ALTINDA durur. Ses düzeyi kaydırıcısı ikisini birden
- * yönetiyor; müziğe aynı değeri vermek onu öne çıkarır ve efektleri örterdi.
- * 0,42 ölçüyle değil kararla seçildi: fon, dikkat çekmemesi gereken katman.
- */
-const MUZIK_ORANI = 0.42;
-
 let el: HTMLAudioElement | null = null;
 /** Oyuncu müziği istedi mi — `play()` reddedilse bile bu bilgi korunur. */
 let istendi = false;
@@ -59,13 +52,18 @@ function ogeyiKur(): HTMLAudioElement | null {
  * Müziği tercihlere göre çalar ya da durdurur. Her tercih değişiminde ve her
  * kilit açma jestinde çağrılabilir; gereksiz çağrı zararsızdır.
  *
+ * DÜZEY DOĞRUDAN — SABİT BİR ORANLA ÇARPILMAZ. Eskiden müzik, efektin
+ * düzeyinden `0,42` sabit oranıyla türeyen bağımlı bir sayıydı; oyuncu
+ * müziği efekti susturmadan kısamıyordu. Artık `preferences.musicVolume`
+ * kendi başına bir tercih — efektle aynı 0–100 ölçeği, ama bağımsız kayıt,
+ * bağımsız kaydırıcı, bağımsız varsayılan (`DEFAULT_MUSIC_VOLUME`).
+ *
  * @param enabled `preferences.musicEnabled`
- * @param volume  `preferences.soundVolume` (0–100)
+ * @param volume  `preferences.musicVolume` (0–100)
  */
 export function applyMusic(enabled: boolean, volume: number): void {
   istendi = enabled;
-  const oran = Math.min(100, Math.max(0, volume)) / 100;
-  sonSes = oran * MUZIK_ORANI;
+  sonSes = Math.min(100, Math.max(0, volume)) / 100;
 
   const a = enabled ? ogeyiKur() : el;
   if (!a) return;
