@@ -22,6 +22,7 @@
  * yeniden yazılmaz.
  */
 
+import { t } from '@i18n/index';
 import { PURCHASE } from './balance';
 import { isMassPool, poolForItem, poolForTemplate, poolUnitGrams, validQuantity } from './stock-pools';
 import { customerPriceBand, isCrafted } from './customer-pricing';
@@ -143,8 +144,21 @@ export function spawnDemand(
     isBulk,
     acceptsPartial,
     minQuantity,
-    summary: poolId === '24K_GRAM_GOLD_POOL' ? `${quantity} gram altın` :
-      poolId === '22K_INVESTMENT_BANGLE_POOL' ? `${quantity * 10} gram 22 ayar işçiliksiz bilezik` : demandSummary(templateId, families, quantity, isBulk),
+    /*
+      ÖZET METNİ ÜRETİM ANINDA ÇEVRİLİR ve müşteriyle birlikte durumda
+      saklanır. Bunun bilinen sınırı şudur: oyuncu tezgâhta bir müşteri
+      varken dili değiştirirse O MÜŞTERİNİN özeti eski dilde kalır, sonraki
+      müşteriden itibaren yeni dil gelir. Alternatifi özeti çizim anında
+      yeniden kurmaktı; talep nesnesi kayda da giriyor ve oradaki metnin
+      üretildiği anla tutarlı kalması, dille tutarlı kalmasından daha
+      önemli — sayı ve ürün eşleşmesi o metne bakılarak doğrulanıyor.
+    */
+    summary:
+      poolId === '24K_GRAM_GOLD_POOL'
+        ? t('{g} gram altın', { g: quantity })
+        : poolId === '22K_INVESTMENT_BANGLE_POOL'
+          ? t('{g} gram 22 ayar işçiliksiz bilezik', { g: quantity * 10 })
+          : demandSummary(templateId, families, quantity, isBulk),
     alternativesLabel: '',
   };
 }
@@ -156,15 +170,15 @@ function demandSummary(
   isBulk: boolean,
 ): string {
   if (templateId) {
-    const name = getTemplate(templateId)?.displayName ?? templateId;
-    const adet = quantity > 1 ? `${quantity} adet ` : '';
-    return isBulk ? `Toplu: ${adet}${name}` : `${adet}${name}`;
+    const name = t(getTemplate(templateId)?.displayName ?? templateId);
+    const withCount = quantity > 1 ? t('{n} adet {ad}', { n: quantity, ad: name }) : name;
+    return isBulk ? t('Toplu: {ne}', { ne: withCount }) : withCount;
   }
   // Buraya yalnız hiçbir şablonun eşleşmediği hâlde düşülür; aile listesi
   // son çare olarak kalır ama artık oyuncunun dilinde yazılır.
 
-  if (families.length > 0) return 'Katalog ürünü arıyor';
-  return 'Vitrine bakıyor';
+  if (families.length > 0) return t('Katalog ürünü arıyor');
+  return t('Vitrine bakıyor');
 }
 
 // ---------------------------------------------------------------------------
@@ -365,7 +379,8 @@ export function showcaseTargetChancePerItem(displayCount: number): number {
 export function showcaseDemand(item: ItemInstance): CustomerDemand {
   return { targetInventoryItemId: item.id, families: [item.family], wantsBullion: false,
     templateId: item.templateId, quantity: 1, minQuantity: 1, acceptsPartial: false, isBulk: false,
-    summary: `★ Vitrindeki ${item.displayName} ile ilgileniyor`, alternativesLabel: '' };
+    summary: t('★ Vitrindeki {ad} ile ilgileniyor', { ad: t(item.displayName) }),
+    alternativesLabel: '' };
 }
 
 /**

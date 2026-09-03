@@ -113,3 +113,33 @@ describe('imsiz gösterim', () => {
     expect(tlBare(324_500)).not.toContain('$');
   });
 });
+
+describe('yüzde imi dile göre yer değiştirir', () => {
+  /*
+    Bu testin sebebi bir EKRAN GÖRÜNTÜSÜ. Ölçümler temizdi, sızıntı
+    dedektörü sıfır diyordu; görüntüde ses düzeyi "%70" yazıyordu ve
+    İngilizce arayüzde yabancı duruyordu. Yüzde imi Türkçede sayının
+    önünde, İngilizcede arkasındadır.
+  */
+  it('Türkçede önde, İngilizcede arkada', async () => {
+    const { pct, pctSigned, pctChange } = await import('@ui/format');
+
+    setLanguage('tr');
+    expect(pct(0.19)).toBe('%19');
+    expect(pctSigned(-0.07)).toBe('−%7');
+    expect(pctChange(0.38)).toBe('▲ %0,38');
+
+    setLanguage('en');
+    expect(pct(0.19)).toBe('19%');
+    expect(pctSigned(-0.07)).toBe('−7%');
+    expect(pctChange(0.38)).toBe('▲ 0.38%');
+  });
+
+  it('ondalık ayracı da dile uyar', async () => {
+    const { pct } = await import('@ui/format');
+    setLanguage('tr');
+    expect(pct(0.125, 1)).toBe('%12,5');
+    setLanguage('en');
+    expect(pct(0.125, 1)).toBe('12.5%');
+  });
+});

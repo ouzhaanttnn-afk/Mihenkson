@@ -32,6 +32,7 @@
  * tarifi üretir; uygulamayı applyTransaction yapar (GDD 22.1).
  */
 
+import { t } from '@i18n/index';
 import { APPRAISAL } from './balance';
 import { trueValue } from './valuation';
 import type {
@@ -303,17 +304,17 @@ export function resolveAppraisal(input: {
 function summarize(paid: boolean, accurate: boolean, profile: StanceProfile): string {
   if (!paid) {
     return accurate
-      ? 'Rapor doğruydu ama ücreti fazla buldu; ödemeden ayrıldı.'
-      : 'Ücreti fazla buldu ve rapora da güvenmedi.';
+      ? t('Rapor doğruydu ama ücreti fazla buldu; ödemeden ayrıldı.')
+      : t('Ücreti fazla buldu ve rapora da güvenmedi.');
   }
   if (accurate) {
     return profile.id === 'assertive'
-      ? 'Kesin konuştun ve tutturdun; müşteri etkilendi.'
-      : 'Rapor tuttu; ücret ödendi.';
+      ? t('Kesin konuştun ve tutturdun; müşteri etkilendi.')
+      : t('Rapor tuttu; ücret ödendi.');
   }
   return profile.id === 'assertive'
-    ? 'Kesin konuştun ve yanıldın; müşteri bunu unutmayacak.'
-    : 'Rapor ürünün gerçek değerini ıskaladı.';
+    ? t('Kesin konuştun ve yanıldın; müşteri bunu unutmayacak.')
+    : t('Rapor ürünün gerçek değerini ıskaladı.');
 }
 
 // ---------------------------------------------------------------------------
@@ -344,7 +345,7 @@ export function appraisalTransaction(input: {
     trustDelta: verdict.trustDelta,
     reputationDelta: verdict.reputationDelta,
     xpDelta,
-    label: verdict.paid ? 'Ekspertiz ücreti' : 'Ekspertiz — ücret alınmadı',
+    label: verdict.paid ? t('Ekspertiz ücreti') : t('Ekspertiz — ücret alınmadı'),
   };
 }
 

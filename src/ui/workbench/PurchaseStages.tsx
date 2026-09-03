@@ -33,7 +33,12 @@ const MATCH_LABEL: Record<DemandMatch, string> = {
   family: 'İlgili ürün',
   off: 'Aradığı değil',
 };
-const amountLabel = (demand: CustomerDemand, units: number): string => demand.poolId === '24K_GRAM_GOLD_POOL' ? `${units} g` : demand.poolId === '22K_INVESTMENT_BANGLE_POOL' ? `${units * 10} g` : `${units} adet`;
+const amountLabel = (demand: CustomerDemand, units: number): string =>
+  demand.poolId === '24K_GRAM_GOLD_POOL'
+    ? `${units} g`
+    : demand.poolId === '22K_INVESTMENT_BANGLE_POOL'
+      ? `${units * 10} g`
+      : t('{n} adet', { n: units });
 
 // ---------------------------------------------------------------------------
 // 1. STOK SEÇİMİ
@@ -66,11 +71,13 @@ export function StockPickStage({
         <div>
           <h2 className="svc__title">{demand.summary}</h2>
           <p className="svc__meta">
-            {demand.targetInventoryItemId ? t('★ Vitrin Müşterisi') : `${amountLabel(demand, demand.quantity)} istiyor`}
+            {demand.targetInventoryItemId
+              ? t('★ Vitrin Müşterisi')
+              : t('{miktar} istiyor', { miktar: amountLabel(demand, demand.quantity) })}
             {demand.acceptsPartial && demand.minQuantity < demand.quantity && (
-              <> · en az {amountLabel(demand, demand.minQuantity)} kabul ediyor</>
+              <> {t('· en az {miktar} kabul ediyor', { miktar: amountLabel(demand, demand.minQuantity) })}</>
             )}
-            {demand.isBulk && <> · toplu müşteri</>}
+            {demand.isBulk && <> {t('· toplu müşteri')}</>}
           </p>
         </div>
       </div>
@@ -100,8 +107,10 @@ export function StockPickStage({
         <p className="svc__note svc__note--center">
           <span>
             <IconWarning size={16} />
-            <strong>{t('Stokta sunulacak ürün yok.')}</strong> Bu müşteriye verecek malınız
-            bulunmuyor; talebi karşılayamadan gitmesi normaldir.
+            <strong>{t('Stokta sunulacak ürün yok.')}</strong>{' '}
+            {t(
+              'Bu müşteriye verecek malınız bulunmuyor; talebi karşılayamadan gitmesi normaldir.',
+            )}
           </span>
         </p>
       ) : (
@@ -129,7 +138,7 @@ export function StockPickStage({
                       />
                     </span>
                     <span className="pickRow__body">
-                      <span className="pickRow__name">{item.displayName}</span>
+                      <span className="pickRow__name">{t(item.displayName)}</span>
                       <span className={`pickRow__match pickRow__match--${match}`}>
                         {t(MATCH_LABEL[match])}
                         {stackable && ` · stokta ${amountLabel(demand, position.quantity)}`}
@@ -140,7 +149,7 @@ export function StockPickStage({
                   </button>
 
                   {isOn && stackable && (
-                    <div className="qtyStep" role="group" aria-label={`${item.displayName} adedi`}>
+                    <div className="qtyStep" role="group" aria-label={`${t(item.displayName)} adedi`}>
                       <button
                         type="button"
                         className="qtyStep__btn"
@@ -216,7 +225,7 @@ export function PackageStage({
           return (
             <li key={line.itemId} className="pkgLines__row">
               <ProductSilhouette kind={getTemplate(item.templateId).silhouette} size={22} />
-              <span>{item.displayName}</span>
+              <span>{t(item.displayName)}</span>
               <span className="pkgLines__qty num">×{line.quantity}</span>
             </li>
           );

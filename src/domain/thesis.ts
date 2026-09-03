@@ -16,6 +16,7 @@
  * değiştirilebilir. Sistem oyuncuyu menü seçimine değil gerçek sonuçlara bağlar.
  */
 
+import { t } from '@i18n/index';
 import {
   BUY_CEILING,
   CONDITION_DEDUCTION,
@@ -77,7 +78,7 @@ export const CHANNEL_SHORT: Record<ExitChannel, string> = {
   Düzeltme yalnızca adlandırmadır: kanal, net getiri ve tavan aynen korunur.
 */
 export function channelLabel(channel: ExitChannel, bullionItem: boolean): string {
-  return channel === 'retail' && bullionItem ? 'Tezgâhtan Sat' : CHANNEL_LABEL[channel];
+  return channel === 'retail' && bullionItem ? t('Tezgâhtan Sat') : CHANNEL_LABEL[channel];
 }
 
 export function channelShort(channel: ExitChannel, bullionItem: boolean): string {
@@ -135,8 +136,8 @@ export function buildThesisOptions(
         liquidity: 'high',
         rationale:
           estCraft + estStone > estMetal * 0.15
-            ? 'İşçilik ve taş değeri kaybolur.'
-            : 'Yeniden satış değeri düşük; metal en güvenli çıkış.',
+            ? t('İşçilik ve taş değeri kaybolur.')
+            : t('Yeniden satış değeri düşük; metal en güvenli çıkış.'),
         ctx,
         isBullion: bullion,
       }),
@@ -160,8 +161,8 @@ export function buildThesisOptions(
         liquidity: 'high',
         rationale:
           ctx.liquidityRatio < 0.3
-            ? 'Nakit sıkışıkken hızlı çıkış rasyonel.'
-            : 'Düşük marj karşılığında anlık nakit.',
+            ? t('Nakit sıkışıkken hızlı çıkış rasyonel.')
+            : t('Düşük marj karşılığında anlık nakit.'),
         ctx,
         isBullion: bullion,
       }),
@@ -209,10 +210,10 @@ export function buildThesisOptions(
         capacityCost: { display: usesDisplaySlot ? 1 : 0, workshop: 0 },
         liquidity: 'medium',
         rationale: bullion
-          ? 'Tezgâh üstü sarrafiye satışı; vitrin slotu tutmaz.'
+          ? t('Tezgâh üstü sarrafiye satışı; vitrin slotu tutmaz.')
           : demand === 'hot'
-            ? 'Talep etiketi güçlü; vitrin dönüşü hızlı olabilir.'
-            : 'Sermaye bağlanır; doğru müşteri beklenir.',
+            ? t('Talep etiketi güçlü; vitrin dönüşü hızlı olabilir.')
+            : t('Sermaye bağlanır; doğru müşteri beklenir.'),
         ctx,
         isBullion: bullion,
       }),
@@ -250,8 +251,8 @@ export function buildThesisOptions(
         liquidity: 'low',
         rationale:
           workshopFree <= 0
-            ? 'Atölye dolu: süre uzar, hata riski yükselir.'
-            : 'Kondisyon düzeltilebilir; yeniden satış değeri artar.',
+            ? t('Atölye dolu: süre uzar, hata riski yükselir.')
+            : t('Kondisyon düzeltilebilir; yeniden satış değeri artar.'),
         ctx,
         isBullion: bullion,
       }),
@@ -276,7 +277,7 @@ export function buildThesisOptions(
         demandRisk: 'high',
         capacityCost: { display: 0, workshop: 0 },
         liquidity: 'low',
-        rationale: 'Doğru koleksiyoner gelene kadar değer korunabilir; sermaye uzun bağlanır.',
+        rationale: t('Doğru koleksiyoner gelene kadar değer korunabilir; sermaye uzun bağlanır.'),
         ctx,
         isBullion: bullion,
       }),
@@ -473,12 +474,12 @@ function demandLevel(item: ItemInstance, ctx: ThesisContext): 'cold' | 'steady' 
   const event = ctx.market.activeEvent;
   if (event) {
     const tags = item.truth.demandTags;
-    if (event.id === 'wedding_season' && tags.includes('düğün')) return 'hot';
-    if (event.id === 'market_rally' && tags.includes('yatırım')) return 'hot';
+    if (event.id === 'wedding_season' && tags.includes(t('düğün'))) return 'hot';
+    if (event.id === 'market_rally' && tags.includes(t('yatırım'))) return 'hot';
     if (event.id === 'fx_calm' && tags.includes('perakende')) return 'hot';
   }
   if (item.truth.demandTags.includes('likit')) return 'hot';
-  if (item.truth.demandTags.includes('yavaş') || item.truth.demandTags.includes('koleksiyon')) {
+  if (item.truth.demandTags.includes(t('yavaş')) || item.truth.demandTags.includes('koleksiyon')) {
     return 'cold';
   }
   return 'steady';

@@ -6,6 +6,7 @@
  * satın alma/XP kuralı yalnız `assayAccuracyRank` alanını yükseltecektir.
  */
 
+import { t } from '@i18n/index';
 import type { TestTool } from './types';
 import { TALENT_BY_ID, type TalentEffect } from '@data/skills';
 
@@ -37,7 +38,7 @@ export function tatliDilEffect(progress: SkillProgress): TalentEffect {
   return node?.effects.find(effect => effect.level === level) ?? {
     level: 0,
     patienceBonus: 0,
-    description: 'Yetenek henüz açılmadı.',
+    description: t('Yetenek henüz açılmadı.'),
   };
 }
 

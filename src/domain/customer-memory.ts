@@ -23,6 +23,7 @@
  *   · Referans müşteri olasılığı yüksek güven + YETERLİ ZİYARET GEÇMİŞİ ister.
  */
 
+import { t } from '@i18n/index';
 import { MEMORY, TRUST } from './balance';
 import { Rng, deriveSeed } from './rng';
 import type { ArchetypeId, Customer, GameDay, Money, VisitRecord } from './types';
@@ -220,7 +221,7 @@ const NEUTRAL_LOYALTY: LoyaltyEffects = {
 };
 
 function loyaltyLabel(loyalty: number, record: CustomerRecord): string {
-  if (record.visits === 0) return 'Yeni müşteri';
+  if (record.visits === 0) return t('Yeni müşteri');
   if (loyalty >= 0.55) return `Sadık müşteri · ${record.visits}. ziyaret`;
   if (loyalty <= -0.35) return `Küsmüş müşteri · ${record.visits}. ziyaret`;
   return `Tanıdık · ${record.visits}. ziyaret`;

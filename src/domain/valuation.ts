@@ -14,6 +14,7 @@
  * göstermez.
  */
 
+import { t } from '@i18n/index';
 import {
   CONDITION_DEDUCTION,
   CONFIDENCE_THRESHOLD,
@@ -274,17 +275,17 @@ function detectsSuspicion(item: ItemInstance, tool: TestTool): boolean {
 
 /** Testin oyuncuya gösterdiği okunabilir çıktı (GDD 23.11 — sonuç aynı masada). */
 function buildReadout(item: ItemInstance, tool: TestTool): string {
-  const t = item.truth;
+  const truth = item.truth;
 
   switch (tool.id) {
     case 'scale':
-      return `Brüt ${fmtG(t.grossWeight)} · net metal ${fmtG(t.netMetalWeight)}`;
+      return `Brüt ${fmtG(truth.grossWeight)} · net metal ${fmtG(truth.netMetalWeight)}`;
 
     case 'magnet': {
       const suspicious = detectsSuspicion(item, tool);
       return suspicious
-        ? 'Hafif manyetik tepki — alaşım/çekirdek şüphesi'
-        : 'Manyetik tepki yok — bariz demir alaşımı değil';
+        ? t('Hafif manyetik tepki — alaşım/çekirdek şüphesi')
+        : t('Manyetik tepki yok — bariz demir alaşımı değil');
     }
 
     case 'touchstone': {
@@ -295,41 +296,41 @@ function buildReadout(item: ItemInstance, tool: TestTool): string {
     }
 
     case 'density': {
-      const flaw = t.hiddenFlaws.find(
+      const flaw = truth.hiddenFlaws.find(
         (f) => f.kind === 'plated' || f.kind === 'filled' || f.kind === 'hollow',
       );
       if (flaw && detectsSuspicion(item, tool)) {
         const label =
-          flaw.kind === 'plated' ? 'kaplama' : flaw.kind === 'filled' ? 'dolgu' : 'içi boşluk';
+          flaw.kind === 'plated' ? 'kaplama' : flaw.kind === 'filled' ? 'dolgu' : t('içi boşluk');
         return `Yoğunluk beyan edilen ayarın altında — ${label} riski yüksek`;
       }
-      return `Yoğunluk ${t.actualKarat} ile tutarlı — dolgu riski düşük`;
+      return `Yoğunluk ${truth.actualKarat} ile tutarlı — dolgu riski düşük`;
     }
 
     case 'loupe': {
-      if (t.stoneData.kind === 'none') {
+      if (truth.stoneData.kind === 'none') {
         return `Taş yok · kondisyon incelemesi: ${conditionText(item)}`;
       }
       const genuineText =
-        detectsSuspicion(item, tool) && !t.stoneData.genuine
-          ? 'sentetik/taklit izleri'
-          : t.stoneData.genuine
-            ? 'doğal taş özellikleri'
-            : 'net ayrım yapılamadı';
-      return `${t.stoneData.count} taş · ${genuineText} · kalite ${Math.round(t.stoneData.qualityBand * 100)}/100`;
+        detectsSuspicion(item, tool) && !truth.stoneData.genuine
+          ? t('sentetik/taklit izleri')
+          : truth.stoneData.genuine
+            ? t('doğal taş özellikleri')
+            : t('net ayrım yapılamadı');
+      return `${truth.stoneData.count} taş · ${genuineText} · kalite ${Math.round(truth.stoneData.qualityBand * 100)}/100`;
     }
 
     case 'spectrometer':
-      return `Saflık ölçümü: ${t.actualKarat} (%${(t.actualPurity * 100).toFixed(1)})`;
+      return `Saflık ölçümü: ${truth.actualKarat} (%${(truth.actualPurity * 100).toFixed(1)})`;
 
     default:
-      return 'Sonuç okunamadı';
+      return t('Sonuç okunamadı');
   }
 }
 
 function conditionText(item: ItemInstance): string {
   const worse = item.truth.condition !== item.declared.visibleCondition;
-  return worse ? 'gözle görünenden daha yıpranmış' : 'gözlemle tutarlı';
+  return worse ? t('gözle görünenden daha yıpranmış') : t('gözlemle tutarlı');
 }
 
 /**
@@ -373,15 +374,15 @@ export function estimateBand(
     return isFieldRelevant(item, field) ? 0 : 1;
   };
   const spot = spotFor(market, item.metal);
-  const t = item.truth;
+  const truth = item.truth;
 
   // --- Ağırlık belirsizliği ---
   const wC = k('weight');
-  const declaredWeight = item.declared.claimedWeight ?? t.grossWeight;
-  const weightGuess = lerp(declaredWeight, t.grossWeight, wC);
+  const declaredWeight = item.declared.claimedWeight ?? truth.grossWeight;
+  const weightGuess = lerp(declaredWeight, truth.grossWeight, wC);
   const weightSlack = (1 - wC) * 0.06;
   // Net metal oranı: taşlı üründe taş çıkarıldığında ne kalır belirsizliği.
-  const netRatioTrue = t.netMetalWeight / Math.max(t.grossWeight, 0.0001);
+  const netRatioTrue = truth.netMetalWeight / Math.max(truth.grossWeight, 0.0001);
   const netRatioGuess = lerp(item.truth.stoneData.kind === 'none' ? 0.98 : 0.85, netRatioTrue, wC);
 
   const netLo = weightGuess * (1 - weightSlack) * netRatioGuess * (1 - (1 - wC) * 0.05);
@@ -407,16 +408,16 @@ export function estimateBand(
 
   // Alt uç yalnız her iki bilgi de tamamlandığında gerçeğe oturur.
   const metalCertainty = Math.min(pC, cC);
-  const purityLo = lerp(worstPurity, t.actualPurity, metalCertainty);
-  const purityHi = lerp(claimedPurity, t.actualPurity, pC);
+  const purityLo = lerp(worstPurity, truth.actualPurity, metalCertainty);
+  const purityHi = lerp(claimedPurity, truth.actualPurity, pC);
 
   // --- Taş belirsizliği ---
   const sC = k('stone');
-  const stoneTrue = t.stoneData.extractableValue;
+  const stoneTrue = truth.stoneData.extractableValue;
   // Bilinmiyorsa: alt uç taklit varsayar, üst uç gerçek varsayar.
-  const stoneIfFake = t.stoneData.kind === 'none' ? 0 : stoneTrue * (t.stoneData.genuine ? 0.04 : 1);
+  const stoneIfFake = truth.stoneData.kind === 'none' ? 0 : stoneTrue * (truth.stoneData.genuine ? 0.04 : 1);
   const stoneIfReal =
-    t.stoneData.kind === 'none' ? 0 : t.stoneData.genuine ? stoneTrue : stoneTrue * 25;
+    truth.stoneData.kind === 'none' ? 0 : truth.stoneData.genuine ? stoneTrue : stoneTrue * 25;
   const stoneLo = lerp(Math.min(stoneIfFake, stoneIfReal), stoneTrue, sC);
   const stoneHi = lerp(Math.max(stoneIfFake, stoneIfReal), stoneTrue, sC);
 
@@ -425,7 +426,7 @@ export function estimateBand(
   // kusurlar sayılır. Aldatma kusurları yukarıda saflık üzerinden işledi.
   const condC = k('condition');
   const visibleCut = CONDITION_DEDUCTION[item.declared.visibleCondition];
-  const trueCut = conditionCutFor(t);
+  const trueCut = conditionCutFor(truth);
 
   // Alt senaryo: gözle görünen ile gerçek arasındaki kötümser uç.
   const condCutLo = lerp(Math.max(visibleCut, trueCut), trueCut, condC);
@@ -434,8 +435,8 @@ export function estimateBand(
 
   // --- İşçilik ve nadirlik ---
   // İşçilik gözle büyük ölçüde okunur; belirsizliği kondisyona bağlıdır.
-  const craftLo = t.craftsmanship * (0.75 + 0.25 * condC);
-  const craftHi = t.craftsmanship * (1.15 - 0.15 * condC);
+  const craftLo = truth.craftsmanship * (0.75 + 0.25 * condC);
+  const craftHi = truth.craftsmanship * (1.15 - 0.15 * condC);
 
   const metalLo = netLo * purityLo * spot;
   const metalHi = netHi * purityHi * spot;
@@ -444,8 +445,8 @@ export function estimateBand(
   const grossHi = metalHi + stoneHi + craftHi;
 
   // Nadirlik primi ancak koleksiyon ailesinde ve kısmen görünür.
-  const rarityLo = grossLo * t.rarity * 0.45 * (0.4 + 0.6 * condC);
-  const rarityHi = grossHi * t.rarity * 0.45;
+  const rarityLo = grossLo * truth.rarity * 0.45 * (0.4 + 0.6 * condC);
+  const rarityHi = grossHi * truth.rarity * 0.45;
 
   // Kesinti, trueValue ile AYNI tabana uygulanır: metal + işçilik.
   // (Taş ve nadirlik primi kondisyondan bağımsız değerlendirilir.)

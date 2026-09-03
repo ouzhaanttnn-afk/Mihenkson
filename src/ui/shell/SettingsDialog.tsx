@@ -52,6 +52,7 @@ export function SettingsDialog() {
   const restoreOnboarding = useGame((s) => s.restoreOnboarding);
   const resetGame = useGame((s) => s.resetGame);
   const preferences = useGame((s) => s.preferences);
+  const language = preferences.language;
   const setPreference = useGame((s) => s.setPreference);
 
   const [confirmReset, setConfirmReset] = useState(false);
@@ -278,8 +279,13 @@ export function SettingsDialog() {
           <span className="settingsRow__copy">
             <strong>{t('Para birimi')}</strong>
             <small>
+              {/*
+                Kur sayısı da dilin ondalık ayracını kullanır. Sabit virgül
+                bırakılsaydı İngilizce arayüzde "1 $ = 32,45 ₺" yazardı ve
+                virgülü binlik ayracı sanan biri için otuz iki bin okunurdu.
+              */}
               {t('Yalnız gösterim · 1 $ = {rate} ₺', {
-                rate: USD_RATE.toFixed(2).replace('.', ','),
+                rate: USD_RATE.toFixed(2).replace('.', language === 'en' ? '.' : ','),
               })}
             </small>
           </span>

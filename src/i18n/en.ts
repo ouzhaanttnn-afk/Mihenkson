@@ -891,4 +891,402 @@ export const EN: Record<string, string> = {
   '{dukkan} · Kademe {kademe} · Seviye {seviye}': '{dukkan} · Tier {kademe} · Level {seviye}',
   '{n} kişi': '{n} people',
   '−{oran} hata riski': '−{oran} error risk',
+
+  // ——— Hızlı stok satırı ———
+  'Stokta {miktar}': '{miktar} in stock',
+  '· en çok {sinir}': '· at most {sinir}',
+  '{ad} miktarı': '{ad} amount',
+  '{ad} miktarını azalt': 'Decrease {ad} amount',
+  '{ad} miktarını artır': 'Increase {ad} amount',
+
+  // ——— Ürün adları (t(item.displayName) · t(template.name)) ———
+  'Gram Altın (1 g)': 'Gram Gold (1 g)',
+  'Gram Altın (2,5 g)': 'Gram Gold (2.5 g)',
+  'Gram Altın (5 g)': 'Gram Gold (5 g)',
+  'Gram Altın (10 g)': 'Gram Gold (10 g)',
+  'Gram Altın (20 g)': 'Gram Gold (20 g)',
+  'Gram Altın (50 g)': 'Gram Gold (50 g)',
+  'Gram Altın (100 g)': 'Gram Gold (100 g)',
+  'Çeyrek Altın': 'Quarter Coin',
+  'Yarım Altın': 'Half Coin',
+  'Tam Altın': 'Full Coin',
+  'Ata Lira': 'Ata Coin',
+  'Cumhuriyet Altını': 'Republic Coin',
+  'Koleksiyon Sikke': 'Collector Coin',
+  'Küçük Külçe (20 g)': 'Small Ingot (20 g)',
+  '22 Ayar İşçiliksiz Yatırım Bileziği': '22K Plain Investment Bangle',
+  '22 Ayar Burma Bilezik': '22K Twisted Bangle',
+  '22 Ayar İnce Bilezik': '22K Thin Bangle',
+  '22 Ayar Set Parçası': '22K Set Piece',
+  '22 Ayar Kaplama Şüpheli Bilezik': '22K Bangle, Plating Suspected',
+  '14 Ayar Kolye': '14K Necklace',
+  '14 Ayar Küpe': '14K Earrings',
+  '14 Ayar Yüzük': '14K Ring',
+  '14 Ayar Zincir': '14K Chain',
+  '18 Ayar Kolye': '18K Necklace',
+  '18 Ayar Yüzük': '18K Ring',
+  'Gümüş Obje': 'Silver Object',
+  'Gümüş Yüzük': 'Silver Ring',
+  'Gümüş Zincir': 'Silver Chain',
+  'Hasarlı Zincir': 'Damaged Chain',
+  'Taşlı Yüzük (Giriş)': 'Stone Ring (Entry)',
+  'Tektaş Yüzük (Premium)': 'Solitaire Ring (Premium)',
+  'Vintage Broş': 'Vintage Brooch',
+
+  // ——— Araçlar (t(tool.name)) ———
+  'Mıknatıs': 'Magnet',
+  'Mihenk Taşı': 'Touchstone',
+  'Yoğunluk Ölçümü': 'Density Test',
+  'Lup / Taş Kontrol': 'Loupe / Stone Check',
+  'Hassas Terazi': 'Precision Scale',
+  'Dijital Spektrometre': 'Digital Spectrometer',
+
+  // ——— Personel, defter ve yetenek ağacı ———
+  'Maaşlar kişi başına eklenir: {liste} / ay.': 'Salaries add up per person: {liste} / month.',
+  'Yalnız bekleme kapasitesini artırır; müşteri geliş hızını veya atölyeyi değiştirmez.':
+    'It only raises waiting capacity; it changes neither customer arrival rate nor the workshop.',
+  '{n} personel': '{n} staff',
+  '{n} personel, seviye {sv} gerektirir': '{n} staff, requires level {sv}',
+  '{n} personel · aylık toplam {tutar}.': '{n} staff · {tutar} per month.',
+  'Günlük gider kapanışta tahsil edilir.': 'The daily cost is charged at close.',
+  'Personeli Onayla': 'Confirm Staff',
+  'Seviye {sv}': 'Level {sv}',
+  '{n} kayıt · her işlemin gerekçesi ve sonucu':
+    '{n} entries · the reasoning and outcome of every transaction',
+  'Kapanan her işlem buraya düşer: kullanılan testler, tahmin bandı, teklif geçmişi ve gerçek sonuç.':
+    'Every closed transaction lands here: the tests used, the estimate band, the offer history and the real outcome.',
+  'Kademe {simdi}/{en}': 'Tier {simdi}/{en}',
+  '{n} bilezik': '{n} bangles',
+  'Yetenek henüz açılmadı.': 'This talent is not unlocked yet.',
+  'Tüm müşterilerin başlangıç sabrını +1 artırır.':
+    "Raises every customer's starting patience by +1.",
+  'Tüm müşterilerin başlangıç sabrını +2 artırır.':
+    "Raises every customer's starting patience by +2.",
+  'Sabrı +2 artırır ve yüksek kârlı tekliflerde sabır düşme riskini azaltır.':
+    'Raises patience by +2 and softens patience loss on high-margin offers.',
+
+  // ——— Müşteri şeridi ve hafıza ———
+  'Sabır: {simdi}/{toplam}': 'Patience: {simdi}/{toplam}',
+  'Müşteri sabrı {simdi}/{toplam}': 'Customer patience {simdi}/{toplam}',
+  '{n} kişi · {sadik} sadık': '{n} people · {sadik} loyal',
+  ' · {n} küsmüş': ' · {n} upset',
+
+  // ——— İşlem sınıfı notları ve araç kilidi ———
+  'Standart sarrafiye · doğrudan fiyata geçebilirsiniz.':
+    'Standard bullion · you can go straight to pricing.',
+  'Ağırlık ve ayar doğrulaması önerilir.': 'Verifying weight and karat is advised.',
+  'İşçilik ve risk analizi bu üründe belirleyici.':
+    'Craft and risk analysis are decisive on this item.',
+  "Seviye {sv}'te açılır": 'Unlocks at level {sv}',
+  'Terazi': 'Scale',
+  'Mihenk': 'Touchstone',
+  'Yoğunluk': 'Density',
+  'Lup': 'Loupe',
+  'Spektro': 'Spectro',
+
+  // ——— Eksik ürün adları ———
+  /*
+    Yatırım bileziğinin adı ağırlığa göre üretiliyor
+    (`INVESTMENT_BANGLE_WEIGHTS`), yani tek bir anahtar yok. On ağırlığın
+    hepsi burada elle duruyor: adı çalışma anında birleştirmek yerine
+    sözlükte saymak, ekranda yarısı Türkçe bir isim bırakma riskini
+    ortadan kaldırıyor.
+  */
+  '22 Ayar İşçiliksiz Bilezik (10 g)': '22K Plain Bangle (10 g)',
+  '22 Ayar İşçiliksiz Bilezik (20 g)': '22K Plain Bangle (20 g)',
+  '22 Ayar İşçiliksiz Bilezik (30 g)': '22K Plain Bangle (30 g)',
+  '22 Ayar İşçiliksiz Bilezik (40 g)': '22K Plain Bangle (40 g)',
+  '22 Ayar İşçiliksiz Bilezik (50 g)': '22K Plain Bangle (50 g)',
+  '22 Ayar İşçiliksiz Bilezik (60 g)': '22K Plain Bangle (60 g)',
+  '22 Ayar İşçiliksiz Bilezik (70 g)': '22K Plain Bangle (70 g)',
+  '22 Ayar İşçiliksiz Bilezik (80 g)': '22K Plain Bangle (80 g)',
+  '22 Ayar İşçiliksiz Bilezik (90 g)': '22K Plain Bangle (90 g)',
+  '22 Ayar İşçiliksiz Bilezik (100 g)': '22K Plain Bangle (100 g)',
+
+  // ——— Piyasa rejimleri (MARKET_REGIME · t(regime.label) · t(regime.note)) ———
+  'Sakin': 'Calm',
+  'Normal': 'Normal',
+  'Volatil': 'Volatile',
+  'Şok Olay': 'Shock Event',
+  'Dar bant, düşük stok riski.': 'Narrow band, low stock risk.',
+  'Nötr veya hafif trend.': 'Neutral or a mild trend.',
+  'Uyarı: likidite ve stok yaşı daha önemli.':
+    'Warning: liquidity and stock age matter more.',
+  'Önceden kısmi sinyal; pozisyon küçültme mümkün.':
+    'A partial signal arrives first; you can still cut your position.',
+
+  // ——— Müşteri niyet cümlesi (ui/intent-line.ts) ———
+  /*
+    Cümle PARÇALARDAN kuruluyor ve İngilizcede kelime sırası Türkçeden
+    farklı: Türkçede fiil sonda ("… bozdurmak istiyor"), İngilizcede
+    başta ("wants to sell …"). Yer tutucu bu yüzden `{ne}` diye
+    adlandırıldı; şablon iki dilde de kendi doğal sırasını kurabiliyor.
+  */
+  '{ne} bozdurmak istiyor': 'wants to sell {ne}',
+  '{ne} satmak istiyor': 'wants to sell {ne}',
+  '{ne} almak istiyor': 'wants to buy {ne}',
+  'toplu olarak {ne} almak istiyor': 'wants to buy {ne} in bulk',
+  '{ne} için tamir/servis istiyor': 'wants a repair / service on {ne}',
+  '{ne} için ekspertiz istiyor': 'wants an appraisal on {ne}',
+  '{n} {ad}': '{n} {ad}',
+  '{n} adet {ad}': '{n} × {ad}',
+  '{a} ve {b}': '{a} and {b}',
+  '{a}, {b} ve {n} ürün daha': '{a}, {b} and {n} more items',
+  'Bir {ad}': 'A {ad}',
+  '{g} gram 22 ayar işçiliksiz bilezik': 'a {g}-gram 22K plain bangle',
+  '{g} gram altın': '{g} grams of gold',
+  'Müşteriyi Karşıla · {n}': 'Greet the Customer · {n}',
+
+  // ——— Müşteri arketip tavırları (t(archetype.demeanor)) ———
+  'Aceleci': 'In a hurry',
+  'Hesaplı': 'Calculating',
+  'Kararlı': 'Decisive',
+  'Kararsız': 'Undecided',
+  'Karşılaştırmacı': 'Comparing',
+  'Meraklı': 'Curious',
+  'Talepkâr': 'Demanding',
+  'Temkinli': 'Cautious',
+
+  // ——— Dükkan adı eki ———
+  'Kuyumculuk': 'Jewellers',
+  'Kuyumcu': 'Jeweller',
+
+  // ——— Alış talebi özeti (domain/purchase.ts) ———
+  'Toplu: {ne}': 'Bulk: {ne}',
+  'Katalog ürünü arıyor': 'Looking for a catalogue item',
+  'Vitrine bakıyor': 'Browsing the showcase',
+  '★ Vitrindeki {ad} ile ilgileniyor': '★ Interested in the {ad} on display',
+  '{miktar} istiyor': 'wants {miktar}',
+  '· en az {miktar} kabul ediyor': '· accepts {miktar} at least',
+  '· toplu müşteri': '· bulk customer',
+  'Bu müşteriye verecek malınız bulunmuyor; talebi karşılayamadan gitmesi normaldir.':
+    'You have nothing to offer this customer; it is normal for them to leave unserved.',
+  'Talep karşılanamadı · stok ve nakit değişmedi.':
+    'The request could not be met · stock and cash unchanged.',
+
+  // ——— Çıkış kanalı süreleri ———
+  '1–2 gün': '1–2 days',
+  '2–5 gün': '2–5 days',
+  '3–7 gün': '3–7 days',
+  '7+ gün': '7+ days',
+  'Bugünkü en hızlı çıkış:': "Today's fastest exit:",
+  '· tahmini süre {sure}.': '· estimated {sure}.',
+  'Beklemek daha iyi bir kanal açabilir.': 'Waiting may open a better channel.',
+
+  // ——— Çıkış planı kanalları ve gerekçeleri ———
+  'Eritme / HAS': 'Melt / Fine Gold',
+  'Servis + satış': 'Service + resale',
+  'Hızlı ve güvenilir likidite; ödeme aynı gün.':
+    'Fast, reliable liquidity; paid the same day.',
+  'Yüksek hacimli, hızlı likidite kanalı.': 'A high-volume, fast liquidity channel.',
+  'Düşük marj karşılığında anlık nakit.': 'Instant cash in exchange for a thin margin.',
+  'Sermaye bağlanır; doğru müşteri beklenir.':
+    'Capital is tied up; you wait for the right customer.',
+  'Doğru koleksiyoner gelene kadar değer korunabilir; sermaye uzun bağlanır.':
+    'Value can hold until the right collector arrives; capital is tied up for a long time.',
+  'Kondisyon düzeltilebilir; yeniden satış değeri artar.':
+    'Condition can be restored; resale value rises.',
+  'Yeniden satış değeri düşük; metal en güvenli çıkış.':
+    'Resale value is low; the metal is the safest exit.',
+  'İşçilik ve taş değeri kaybolur.': 'Craft and stone value are lost.',
+  'Talep etiketi güçlü; vitrin dönüşü hızlı olabilir.':
+    'Demand for this tag is strong; the showcase may turn it over quickly.',
+  'Nakit sıkışıkken hızlı çıkış rasyonel.':
+    'When cash is tight, a fast exit is the rational move.',
+  'Hacim büyük; marj sıkışır.': 'The volume is large; the margin tightens.',
+  'Bu hacimde tezgâh daha iyi fiyat veriyor; toptancı üstünlüğü bu işlemde yok.':
+    'At this volume the counter pays better; the wholesaler has no edge on this trade.',
+  'Tezgâh üstü sarrafiye satışı; vitrin slotu tutmaz.':
+    'Over-the-counter bullion sale; it takes no display slot.',
+  'Tezgâhtan Sat': 'Sell at the Counter',
+  'Yerel ilişkiye dayalı; kapasitesi sonlu.':
+    'It rests on local relationships; its capacity is finite.',
+  'Planlı stok; ödeme baskısı taşır.': 'Planned stock; it carries payment pressure.',
+  'yavaş': 'slow',
+  'düğün': 'wedding',
+  'yatırım': 'investment',
+
+  // ——— Atölye durumu ———
+  'Atölye dolu': 'Workshop full',
+  'Atölye dolu: süre uzar, hata riski yükselir.':
+    'Workshop is full: it takes longer and the error risk rises.',
+  'Son slot: yeni iş alırsan risk ve süre artar.':
+    'Last slot: taking another job raises risk and time.',
+  'Standart tezgâh koşulları.': 'Standard bench conditions.',
+  'Kendi atölyende; tam marj, kontrol sende.':
+    'In your own workshop; full margin, full control.',
+  'Kapasite tüketmez; marj düşer, süre uzar.':
+    'It uses no capacity; the margin drops and it takes longer.',
+  'Ustalık seviyesi': 'Mastery level',
+
+  // ——— Servis tanısı ———
+  'Kusur yok; isteğe bağlı işlem.': 'No defect; an optional job.',
+  'Genel durumu iyi; bakım isteniyor.': 'Overall condition is good; maintenance is asked for.',
+  'Yüzey yıpranmış, parlaklığını kaybetmiş.': 'The surface is worn and has lost its shine.',
+  'Gövdede belirgin hasar var.': 'There is visible damage to the body.',
+  'Parça kırık; kullanılamaz durumda.': 'The piece is broken and unusable.',
+
+  // ——— Gözlem sinyalleri ———
+  'Manyetik tepki yok — bariz demir alaşımı değil':
+    'No magnetic response — not an obvious iron alloy',
+  'Hafif manyetik tepki — alaşım/çekirdek şüphesi':
+    'A slight magnetic response — alloy or core suspected',
+  'Patina dönem parçasıyla uyumlu görünüyor': 'The patina fits a period piece',
+  'Aile mirası, belgeli': 'Family heirloom, documented',
+  'doğal taş özellikleri': 'natural stone characteristics',
+  'sentetik/taklit izleri': 'signs of synthetic or imitation',
+  'net ayrım yapılamadı': 'no clear distinction',
+  'gözle görünenden daha yıpranmış': 'more worn than it looks',
+  'gözlemle tutarlı': 'consistent with observation',
+  'içi boşluk': 'a hollow inside',
+  'Gösterecek doğrulanmış veri yok.': 'There is no verified data to show.',
+  'Taş taklit çıktı. Lup, değer bandını almadan önce daraltırdı.':
+    'The stone turned out to be imitation. A loupe would have narrowed the value band before you bought.',
+
+  // ——— Piyasa yorumları ———
+  'Oynaklık': 'Volatility',
+  'Hareketin dar kalması bekleniyor.': 'Movement is expected to stay narrow.',
+  'Orta ölçekli hareket görülebilir.': 'A mid-sized move is possible.',
+  'Hareketin büyüklüğü bugün geniş bir bantta olabilir.':
+    "Today's move could land anywhere in a wide band.",
+  'Oynak piyasa alış-satış farkını açıyor.': 'A volatile market widens the spread.',
+  'Güncel HAS referansı ve müşteri alış-satış bandı.':
+    'Current fine-gold reference and the customer bid-ask band.',
+
+  // ——— Müşterinin ağzından (domain/negotiation.ts) ———
+  /*
+    MÜŞTERİ REPLİKLERİ. Türkçede tezgâh dili resmî "siz"le konuşur; İngilizce
+    karşılıkları aynı tonu tutmalı — ne fazla samimi ne resmî bir yazışma.
+  */
+  'Bunu bozdurmak istiyorum.': "I'd like to sell this.",
+  'Birkaç parça getirdim, bakar mısınız?': "I've brought a few pieces — would you take a look?",
+  'Bir şeye bakıyordum.': 'I was looking for something.',
+  'Bunun tamiri mümkün mü?': 'Can this be repaired?',
+  'Bunun değerini öğrenmek istiyorum.': "I'd like to know what this is worth.",
+  'Buyurun, inceleyin.': 'Go ahead, take a look.',
+  'Peki, bakın bakalım.': 'All right, have a look.',
+  'Biraz acelem var, uzattık.': "I'm in a bit of a hurry — this is dragging on.",
+  'Anlaştık. Sağ olun.': "We have a deal. Thank you.",
+  'Tamam, anlaştık.': "All right, we have a deal.",
+  'Bu gerçekten iyi bir teklif. Anlaştık.': "That's genuinely a good offer. We have a deal.",
+  'Peki. İhtiyacım olduğu için kabul ediyorum.': "Fine. I'm accepting because I need to.",
+  'Peki, siz bilirsiniz.': 'All right, as you wish.',
+  'Peki, başka yere bakayım.': "All right, I'll look elsewhere.",
+  'Anlıyorum. Yine de teşekkürler.': 'I understand. Thank you anyway.',
+  'Anlıyorum, başka bir yere sorayım.': "I understand — I'll ask somewhere else.",
+  'Bu fiyatlarla olmayacak. Başka yere bakacağım.':
+    "This won't work at these prices. I'll look elsewhere.",
+  'Son sözümü söyledim. Başka yere bakacağım.':
+    "I've said my last word. I'll look elsewhere.",
+  'Bu rakam ciddi değil. Ürünün hâlini biliyorum.':
+    "That number isn't serious. I know the state of this piece.",
+  'Bakın, buradan aşağı inmem artık.': "Look, I won't go below this.",
+  'Son fiyatım bu. Daha aşağısına bırakmam.':
+    "This is my final price. I won't let it go for less.",
+  'Az kaldı. Biraz daha düşünün.': "You're close. Think a little more.",
+  'Aynı rakamı tekrar ediyorsunuz. Cevabım değişmedi.':
+    "You're repeating the same number. My answer hasn't changed.",
+  'Bunu zaten söylediniz.': 'You have already said that.',
+  'Bunu ölçmediniz. Elinizde olmayan bir veriyle konuşuyorsunuz.':
+    "You didn't measure that. You're arguing from data you don't have.",
+  'Nezaketiniz için sağ olun, ama mesele fiyatta.':
+    'Thank you for the courtesy, but the issue is the price.',
+  'İnce düşünmüşsünüz, teşekkür ederim.': "That's thoughtful of you, thank you.",
+
+  // ——— İşlem sonucu ve değerlendirme ———
+  'Anlaşma olmadı': 'No deal',
+  'Sabrı bitti, çıkıp gitti': 'Patience ran out; they walked away',
+  'Servis işi bırakıldı': 'Service job abandoned',
+  'Kapanmış işlem': 'Closed transaction',
+  'Sonuç okunamadı': 'Result unreadable',
+  'İşlem tamamlandı.': 'Transaction complete.',
+  'İşlem kapanmadı.': 'The transaction did not close.',
+  'İşlemi reddettiniz.': 'You refused the transaction.',
+  'Gerçek değerine çok yakın kapattınız.': 'You closed very close to its true value.',
+  'Kesin konuştun ve tutturdun; müşteri etkilendi.':
+    'You spoke with certainty and got it right; the customer was impressed.',
+  'Kesin konuştun ve yanıldın; müşteri bunu unutmayacak.':
+    "You spoke with certainty and got it wrong; the customer won't forget.",
+  'Rapor tuttu; ücret ödendi.': 'The report held up; the fee was paid.',
+  'Rapor ürünün gerçek değerini ıskaladı.': "The report missed the item's true value.",
+  'Rapor doğruydu ama ücreti fazla buldu; ödemeden ayrıldı.':
+    'The report was right but they found the fee steep and left without paying.',
+  'Ücreti fazla buldu ve rapora da güvenmedi.':
+    'They found the fee steep and did not trust the report either.',
+  'Ekspertiz — ücret alınmadı': 'Appraisal — no fee taken',
+  'Ekspertiz ücreti {tutar} alındı.': 'An appraisal fee of {tutar} was collected.',
+  'Müşteri ücreti ödemedi.': 'The customer did not pay the fee.',
+  'Teklifiniz müşterinin kabul sınırının altında kaldı.':
+    "Your offer stayed below the customer's acceptance threshold.",
+  'Masada kabul edilecek bir teklif yok.': 'There is no offer on the table to accept.',
+  'Bu müşteride paket teklif için yeterli kalem yok.':
+    'This customer has too few pieces for a bundle offer.',
+  'Talep kısmen karşılandı; müşteri eksik adede razı oldu.':
+    'The request was partly met; the customer accepted the shortfall.',
+  'Paket talebi tam karşıladı.': 'The bundle met the request in full.',
+  'Yeni müşteri': 'New customer',
+
+  // ——— Mağaza ve ekonomi balonları ———
+  '4x hız açıldı.': '4x speed unlocked.',
+  'Profil güncellendi.': 'Profile updated.',
+  'Müşteri akını başladı — geliş aralığı kısaldı.':
+    'A rush has started — customers arrive more often.',
+  'Kozmetik görünüm uygulandı.': 'The cosmetic look has been applied.',
+  'Market ürünü koleksiyonuna eklendi.': 'The market item was added to your collection.',
+  'Market satın alımı yapılamadı.': 'The market purchase could not be completed.',
+  'Bu ürün kullanılamıyor.': 'This item cannot be equipped.',
+  'HAS işlemi kaydedildi.': 'The fine-gold trade was recorded.',
+  'Ürün eritildi; karşılığı HAS bakiyesine eklendi.':
+    'The item was melted; its value was added to your fine-gold balance.',
+  'İşlem uygulanmadı.': 'The transaction was not applied.',
+  'Alım uygulanamadı.': 'The purchase could not be applied.',
+  'Tedarik uygulanamadı.': 'The supply order could not be applied.',
+  'Yükseltme uygulanamadı.': 'The upgrade could not be applied.',
+  'Mağaza yükseltmeye hazır değil.': 'The store is not ready for an upgrade.',
+  'Bu sürümde son kademe.': 'This is the top tier in this build.',
+  'Bu test için yeterli nakit yok.': 'Not enough cash for this test.',
+  'Parça maliyeti için yeterli nakit yok.': 'Not enough cash for the parts.',
+  'Yetersiz nakit; işlem uygulanmadı.': 'Not enough cash; the transaction was not applied.',
+  'Vadeyi kapatacak nakit yok.': 'No cash to settle the term.',
+  'Borcu kapatacak nakit yok.': 'No cash to clear the debt.',
+  'Tutar yok.': 'No amount.',
+  'Stok yetersiz.': 'Not enough stock.',
+  'Geçersiz stok miktarı.': 'Invalid stock quantity.',
+  'Geçersiz HAS işlemi veya işlem günü.': 'Invalid fine-gold trade or trading day.',
+  'Geçersiz sarrafiye miktarı, tutarı veya stok kapasitesi.':
+    'Invalid bullion quantity, amount or stock capacity.',
+  'Bu ürün müşterinin talebiyle eşleşmiyor.': "This item does not match the customer's request.",
+  'Pazarlık başladı; paket artık değiştirilemez.':
+    'Haggling has started; the bundle can no longer be changed.',
+  'Vitrin ürünü artık satışta değil.': 'The showcase item is no longer for sale.',
+  'Kasasında bu işi çevirecek nakit yok.': 'They have no cash on hand for this trade.',
+  'Bu esnaf bu işi alamıyor.': 'This trader cannot take this on.',
+  'Bu esnafa zaten borcunuz var.': 'You already owe this trader.',
+  'Ağda gecikmiş borcunuz var; yeni borç açılmıyor.':
+    'You have an overdue debt in the network; no new loan is opened.',
+  'Ağ kapasitesi yetti.': 'Network capacity was enough.',
+  'Gecikmiş vadeniz var; yeni vade açılmıyor.':
+    'You have an overdue term; no new term is opened.',
+  'Günlük gider karşılanamadı; gün kapatılmadı.':
+    'The daily overhead could not be covered; the day was not closed.',
+  'Gün kapatılamadı: kayıt doğrulanamadı. Tekrar deneyin.':
+    'The day could not be closed: the save could not be verified. Try again.',
+  'Kayıt yazılamadı; gün özeti açık tutuldu.':
+    'The save could not be written; the day summary was left open.',
+  'Kayıt silindi. Yeni oyun bir sonraki açılışta başlar.':
+    'Save deleted. A new game starts at the next launch.',
+  'Toptancı vadesi': 'Wholesaler term',
+  'Toptancı vadesi ödemesi': 'Wholesaler term payment',
+  'Toptancı güveni': 'Wholesaler trust',
+  'Terazi bakım borcu': 'Scale servicing debt',
+  'Yatırım bedeli': 'Investment cost',
+
+  // ——— Alan bilgi durumu (workbench/InspectStage) ———
+  'doğrulanmadı': 'unverified',
+  'kısmi': 'partial',
+  'doğrulandı': 'verified',
+  'çelişkili': 'conflicting',
+  'referans': 'reference',
+  'beyan': 'declared',
+  '{plan} Seç': 'Choose {plan}',
 };

@@ -25,6 +25,7 @@
  * kapasite, ilişki, borç ve vade muhasebesidir.
  */
 
+import { t } from '@i18n/index';
 import { tl } from '@i18n/money';
 import { NETWORK } from './balance';
 import { bullionMeta, isBullion } from '@data/bullion';
@@ -176,7 +177,7 @@ export function networkLiquidationOffer(
       total: 0,
       grams: 0,
       costBasis: 0,
-      shortfallReason: 'Kasasında bu işi çevirecek nakit yok.',
+      shortfallReason: t('Kasasında bu işi çevirecek nakit yok.'),
     };
   }
 
@@ -301,14 +302,14 @@ export function networkLoanOffer(
 
   let blockedReason: string | null = null;
   if (requested <= 0) {
-    blockedReason = 'Tutar yok.';
+    blockedReason = t('Tutar yok.');
   } else if (member.loan) {
     // §8 — üye başına tek açık borç. Aynı esnafı üst üste borçlandırmak
     // "ikinci banka"nın ta kendisi olurdu.
-    blockedReason = 'Bu esnafa zaten borcunuz var.';
+    blockedReason = t('Bu esnafa zaten borcunuz var.');
   } else if (members.some((m) => m.loan && m.loan.dueDay < today)) {
     // §8 "Gecikme veya kötüye kullanım ... ERİŞİMİ olumsuz etkiler."
-    blockedReason = 'Ağda gecikmiş borcunuz var; yeni borç açılmıyor.';
+    blockedReason = t('Ağda gecikmiş borcunuz var; yeni borç açılmıyor.');
   } else if (requested > memberCeiling) {
     blockedReason = `Bu esnaf en çok ${tl(memberCeiling)} verebilir.`;
   } else if (requested > networkRoom) {

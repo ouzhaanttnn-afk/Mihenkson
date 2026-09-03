@@ -11,6 +11,7 @@
  * hazır olması" diye bir hedefe çalışamaz.
  */
 
+import { t } from '@i18n/index';
 import { nextTierDef, tierDef, type StoreTierDef, type TierRequirement } from '@data/store-tiers';
 import { summarizeWealth, type EconomyState } from './settlement';
 import type { Money, StoreState } from './types';
@@ -79,20 +80,20 @@ export function evaluateUpgrade(
       investment: 0,
       // GDD 19.3 — Marka Ağı post-1.0. Bunu "yakında" diye göstermek
       // olmayan bir hedefi varmış gibi göstermek olurdu.
-      blockedReason: 'Bu sürümde son kademe.',
+      blockedReason: t('Bu sürümde son kademe.'),
     };
   }
 
   const r = next.requires;
   const gates: Gate[] = [
-    gate('netWorth', 'Net servet', snapshot.netWorth, r.netWorth, 'money'),
-    gate('reputation', 'Semt itibarı', snapshot.reputation, r.reputation, 'points'),
-    gate('level', 'Ustalık seviyesi', snapshot.level, r.level, 'count'),
-    gate('supplierTrust', 'Toptancı güveni', snapshot.supplierTrust, r.supplierTrust, 'points'),
-    gate('closedDeals', 'Kapanmış işlem', snapshot.closedDeals, r.closedDeals, 'count'),
-    gate('knownCustomers', 'Tanıdık müşteri', snapshot.knownCustomers, r.knownCustomers, 'count'),
+    gate('netWorth', t('Net servet'), snapshot.netWorth, r.netWorth, 'money'),
+    gate('reputation', t('Semt itibarı'), snapshot.reputation, r.reputation, 'points'),
+    gate('level', t('Ustalık seviyesi'), snapshot.level, r.level, 'count'),
+    gate('supplierTrust', t('Toptancı güveni'), snapshot.supplierTrust, r.supplierTrust, 'points'),
+    gate('closedDeals', t('Kapanmış işlem'), snapshot.closedDeals, r.closedDeals, 'count'),
+    gate('knownCustomers', t('Tanıdık müşteri'), snapshot.knownCustomers, r.knownCustomers, 'count'),
     // Yatırım da bir kapıdır: hazır olmak parayı ayırabilmeyi de içerir.
-    gate('investment', 'Yatırım bedeli', snapshot.cash, next.investment, 'money'),
+    gate('investment', t('Yatırım bedeli'), snapshot.cash, next.investment, 'money'),
   ];
 
   const unmet = gates.filter((g) => !g.met);

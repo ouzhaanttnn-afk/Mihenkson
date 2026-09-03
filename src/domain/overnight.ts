@@ -19,6 +19,7 @@
  * uydurma gelir yaratırdı.
  */
 
+import { t } from '@i18n/index';
 import { tl } from '@i18n/money';
 import { isBullion } from '@data/bullion';
 import { MARKET_DAILY_CAP } from './balance';
@@ -210,13 +211,13 @@ export function marketSignals(
   const volLevel: RiskLevel =
     market.volatility >= 0.015 ? 'high' : market.volatility >= 0.008 ? 'medium' : 'low';
   signals.push({
-    label: 'Oynaklık',
+    label: t('Oynaklık'),
     detail:
       volLevel === 'high'
-        ? 'Hareketin büyüklüğü bugün geniş bir bantta olabilir.'
+        ? t('Hareketin büyüklüğü bugün geniş bir bantta olabilir.')
         : volLevel === 'medium'
-          ? 'Orta ölçekli hareket görülebilir.'
-          : 'Hareketin dar kalması bekleniyor.',
+          ? t('Orta ölçekli hareket görülebilir.')
+          : t('Hareketin dar kalması bekleniyor.'),
     level: volLevel,
   });
 

@@ -137,7 +137,7 @@ export function priceForChannel(input: PricingInput): PricingResult {
       spreadRatio, priceImpact: 0,
       breakdown: { product: 0, volume: 0, channel: spreadRatio, regime: 0, volatility: 0, relationship: 0 },
       capacityLimit, exceedsCapacity: quantity > capacityLimit,
-      rationale: 'Güncel HAS referansı ve müşteri alış-satış bandı.' };
+      rationale: t('Güncel HAS referansı ve müşteri alış-satış bandı.') };
   }
 
   // --- 1. ÜRÜN: likidite, standartlık, piyasa derinliği (§6 "Ürün") ---
@@ -558,20 +558,20 @@ function buildRationale(
   }
   if (market.regime === 'volatile' || market.regime === 'shock') {
     // §7 — oyuncuya görünen metinde teknik terim kullanılmaz.
-    return 'Oynak piyasa alış-satış farkını açıyor.';
+    return t('Oynak piyasa alış-satış farkını açıyor.');
   }
   if (channel === 'wholesaler') {
     return side === 'shopSells'
-      ? 'Yüksek hacimli, hızlı likidite kanalı.'
-      : 'Planlı stok; ödeme baskısı taşır.';
+      ? t('Yüksek hacimli, hızlı likidite kanalı.')
+      : t('Planlı stok; ödeme baskısı taşır.');
   }
   if (channel === 'tradeNetwork') {
-    return 'Yerel ilişkiye dayalı; kapasitesi sonlu.';
+    return t('Yerel ilişkiye dayalı; kapasitesi sonlu.');
   }
   if (channel === 'bulkCustomer') {
-    return 'Hacim büyük; marj sıkışır.';
+    return t('Hacim büyük; marj sıkışır.');
   }
-  return 'Standart tezgâh koşulları.';
+  return t('Standart tezgâh koşulları.');
 }
 
 /**

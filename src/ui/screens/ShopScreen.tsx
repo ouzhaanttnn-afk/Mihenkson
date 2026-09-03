@@ -18,7 +18,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { DAY, NEGOTIATION } from '@domain/balance';
 import { isBlindTradingDay, isShopOpen, nextMarketOpenDay, weekdayLabel } from '@domain/calendar';
-import { shopDisplayName } from '@domain/profile';
+import { DEFAULT_JEWELER_NAME, SHOP_SUFFIX, shopDisplayName } from '@domain/profile';
 import { effectiveCeiling, suggestedChannel } from '@domain/thesis';
 import { isTerminal } from '@domain/negotiation';
 import { liquidityRatio } from '@domain/settlement';
@@ -614,7 +614,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
           />
           <div className="idle__headText">
             <h2 className="idle__title">
-              {shopDisplayName(s.profile.jewelerName)}
+              {shopDisplayName(s.profile.jewelerName, t(SHOP_SUFFIX), t(DEFAULT_JEWELER_NAME))}
               {s.playerMarket.equipped.shopBadge && <span className="idle__badge" title={t('Market profil rozeti')}>◆</span>}
             </h2>
             <p className="idle__sub">
@@ -783,7 +783,7 @@ function WaitingCustomerQueue() {
                 </div>
                 <p>{customerIntentLine(customer, items)}</p>
                 <div className="waitingCustomer__meta">
-                  <span>{archetype.demeanor}</span>
+                  <span>{t(archetype.demeanor)}</span>
                   <span>Bekliyor</span>
                 </div>
               </div>
@@ -919,14 +919,14 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
             items={[
               {
                 id: loupe.tool.id,
-                label: loupe.tool.shortLabel,
+                label: t(loupe.tool.shortLabel),
                 icon: <IconLoupe size={19} />,
                 onPress: () => s.runTest(loupe.tool.id),
                 used: line.testResults.some((r) => r.toolId === loupe.tool.id),
                 locked: loupe.locked,
                 lockReason: loupe.lockReason,
                 onLockedPress: () =>
-                  s.notify(`${loupe.tool.name}: ${loupe.lockReason}`, 'info'),
+                  s.notify(`${t(loupe.tool.name)}: ${t(loupe.lockReason)}`, 'info'),
               },
             ]}
           />
@@ -977,7 +977,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         const used = line.testResults.some((r) => r.toolId === tool.id);
         return {
           id: tool.id,
-          label: tool.shortLabel,
+          label: t(tool.shortLabel),
           icon: <Icon size={19} />,
           onPress: () => s.runTest(tool.id),
           used,
@@ -985,7 +985,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           lockReason,
           // GDD 23.11 — "Locked araç görünüyorsa kilit nedeni kısa metinle
           // açıklanır." Dokunmatikte tooltip yoktur; nedeni toast ile söyle.
-          onLockedPress: () => s.notify(`${tool.name}: ${lockReason}`, 'info'),
+          onLockedPress: () => s.notify(`${t(tool.name)}: ${t(lockReason)}`, 'info'),
           disabled: used || tool.cost > s.store.cash,
           badge: tool.cost > 0 ? tl(tool.cost) : undefined,
           };
@@ -1175,7 +1175,9 @@ function ShopDock({
         summaryLabel={t('Kuyruk')}
         summaryValue={hasQueue ? `${s.queue.length} müşteri bekliyor` : t('Müşteri bekleniyor')}
         primary={{
-          label: hasQueue ? `Müşteriyi Karşıla · ${s.queue.length}` : t('Müşteri bekleniyor'),
+          label: hasQueue
+            ? t('Müşteriyi Karşıla · {n}', { n: s.queue.length })
+            : t('Müşteri bekleniyor'),
           onPress: s.greetCustomer,
           disabled: !hasQueue,
         }}
@@ -1230,7 +1232,7 @@ function ShopDock({
           summaryValue={
             <>
               {verified}/{line.knowledge.length} alan
-              {policy && <span style={{ color: 'var(--muted)' }}> · {policy.note}</span>}
+              {policy && <span style={{ color: 'var(--muted)' }}> · {t(policy.note)}</span>}
               {conflicting && (
                 <span style={{ color: 'var(--negative)' }}> {t('· çelişkili sinyal')}</span>
               )}
@@ -1293,7 +1295,9 @@ function ShopDock({
           summaryLabel={t("Değer bandı")}
           summaryValue={band ? `${tl(band.min)} – ${tl(band.max)}` : '—'}
           primary={{
-            label: skipThesis ? t('Pazarlığa Geç') : `${t(TERM.thesis)} Seç`,
+            label: skipThesis
+              ? t('Pazarlığa Geç')
+              : t('{plan} Seç', { plan: t(TERM.thesis) }),
             onPress: () => s.setStage(skipThesis ? 'negotiate' : 'thesis'),
           }}
           secondary={[

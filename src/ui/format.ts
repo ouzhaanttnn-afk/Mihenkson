@@ -23,9 +23,20 @@ export {
   tlRange,
 } from '@i18n/money';
 
-/** %19 */
+import { getLanguage } from '@i18n/index';
+
+/**
+ * %19 · 19%
+ *
+ * YÜZDE İMİNİN YERİ DİLE GÖRE DEĞİŞİR: Türkçede sayının ÖNÜNDE (%19),
+ * İngilizcede ARKASINDA (19%). Ekran görüntüsünde yakalandı — İngilizce
+ * arayüzde ses düzeyi "%70" yazıyordu; okunuyor ama yabancı duruyor.
+ * Ondalık ayracı da aynı kuralı izler: 0,38 / 0.38.
+ */
 export function pct(ratio: number, digits = 0): string {
-  return `%${(ratio * 100).toFixed(digits).replace('.', ',')}`;
+  const en = getLanguage() === 'en';
+  const body = (ratio * 100).toFixed(digits).replace('.', en ? '.' : ',');
+  return en ? `${body}%` : `%${body}`;
 }
 
 /**
@@ -41,10 +52,10 @@ export function pctSigned(ratio: number, digits = 0): string {
   return `${shown < 0 ? '−' : '+'}${pct(Math.abs(ratio), digits)}`;
 }
 
-/** ▲ %0,38 — yön işareti dahil. */
+/** ▲ %0,38 · ▲ 0.38% — yön işareti dahil. */
 export function pctChange(value: number): string {
   const sign = value > 0 ? '▲' : value < 0 ? '▼' : '—';
-  return `${sign} %${Math.abs(value).toFixed(2).replace('.', ',')}`;
+  return `${sign} ${pct(Math.abs(value) / 100, 2)}`;
 }
 
 /** 10:45 */

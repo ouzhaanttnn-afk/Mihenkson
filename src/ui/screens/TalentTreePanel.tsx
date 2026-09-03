@@ -37,14 +37,20 @@ export function TalentTreePanel() {
         <span className="talentNode__icon" aria-hidden="true"><IconBusiness size={24} /></span>
         <div className="talentNode__body">
           <div className="talentNode__heading">
-            <strong>{sweetTalk?.name ?? t('Tatlı Dil & Esnaf Nüktesi')}</strong>
-            <span>Kademe {progress.tatliDilLevel}/{sweetTalk?.maxLevel ?? 3}</span>
+            <strong>{t(sweetTalk?.name ?? 'Tatlı Dil & Esnaf Nüktesi')}</strong>
+            <span>
+              {t('Kademe {simdi}/{en}', {
+                simdi: progress.tatliDilLevel,
+                en: sweetTalk?.maxLevel ?? 3,
+              })}
+            </span>
           </div>
-          <p>{currentSweetTalk.description}</p>
+          <p>{t(currentSweetTalk.description)}</p>
           <div className="talentLevels">
             {sweetTalk?.effects.map((effect) => (
               <div key={effect.level} className={effect.level <= progress.tatliDilLevel ? 'talentLevel talentLevel--earned' : 'talentLevel'}>
-                <b>{effect.level}</b><span>{effect.description}</span>
+                <b>{effect.level}</b>
+                <span>{t(effect.description)}</span>
               </div>
             ))}
           </div>

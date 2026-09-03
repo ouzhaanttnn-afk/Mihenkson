@@ -10,6 +10,7 @@
  *   lup → stone, mıknatıs → kaba eleme, spektrometre → kesinlik.
  */
 
+import { t } from '@i18n/index';
 import type { TestTool } from '@domain/types';
 
 export const TEST_TOOLS: TestTool[] = [
@@ -110,6 +111,11 @@ export function toolsForLevel(level: number): { tool: TestTool; locked: boolean;
   ).map((tool) => ({
     tool,
     locked: tool.unlockLevel > level,
-    lockReason: tool.unlockLevel > level ? `Seviye ${tool.unlockLevel}'te açılır` : '',
+    /*
+      Kilit gerekçesi ARTIK ÇEVRİLEBİLİR bir şablon üretiyor. Eskiden burada
+      cümle Türkçe olarak birleşiyordu ve arayüz onu olduğu gibi basıyordu;
+      İngilizce oyunda ekranın ortasında tek başına Türkçe bir satır kalırdı.
+    */
+    lockReason: tool.unlockLevel > level ? t("Seviye {sv}'te açılır", { sv: tool.unlockLevel }) : '',
   }));
 }

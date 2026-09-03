@@ -16,6 +16,7 @@
  *   opsiyonel değildir; "tamamen görünmez risk çekirdeğin parçası olmaz".
  */
 
+import { t } from '@i18n/index';
 import { CONDITION_LABEL, GOLD_KARATS, MARKET_BASE, PURITY_TABLE } from './balance';
 import { bullionMeta } from '@data/bullion';
 import { Rng, deriveSeed, makeId } from './rng';
@@ -180,7 +181,7 @@ export function spawnItem(
       craftsmanship,
       hiddenFlaws,
       rarity,
-      provenance: rarity > 0.6 && rng.chance(0.4) ? 'Aile mirası, belgeli' : null,
+      provenance: rarity > 0.6 && rng.chance(0.4) ? t('Aile mirası, belgeli') : null,
       demandTags: template.demandTags,
     },
     declared: {
@@ -387,7 +388,7 @@ function rollAmbientSignals(
   if (template.family === 'collectible' && rng.chance(0.6)) {
     out.push({
       id: 'patina_signal',
-      label: 'Patina dönem parçasıyla uyumlu görünüyor',
+      label: t('Patina dönem parçasıyla uyumlu görünüyor'),
       strength: 'faint',
     });
   }

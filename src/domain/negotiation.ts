@@ -17,6 +17,7 @@
  * bir sonuç veremez — çünkü atılacak bir zar yoktur.
  */
 
+import { t } from '@i18n/index';
 import { tl } from '@i18n/money';
 import { NEGOTIATION, TRUST } from './balance';
 import { getArchetype } from '@data/archetypes';
@@ -233,7 +234,7 @@ export function applyMove(
       session,
       response: {
         state: session.state,
-        message: 'İşlem tamamlandı.',
+        message: t('İşlem tamamlandı.'),
         counterOffer: session.activeCounter,
         patienceDelta: 0,
         trustDelta: 0,
@@ -260,7 +261,7 @@ export function applyMove(
     case 'package':
       // Paket teklif çoklu ürün katmanında ele alınır (GDD 12.2); tek kalemde
       // anlamsızdır ve UI tarafından zaten gösterilmez.
-      return handleNoop(session, 'Bu müşteride paket teklif için yeterli kalem yok.');
+      return handleNoop(session, t('Bu müşteride paket teklif için yeterli kalem yok.'));
   }
 }
 
@@ -295,7 +296,7 @@ function handleOffer(
       session: next,
       response: {
         state: session.state,
-        message: 'Aynı rakamı tekrar ediyorsunuz. Cevabım değişmedi.',
+        message: t('Aynı rakamı tekrar ediyorsunuz. Cevabım değişmedi.'),
         // Karşı teklif de değişmez — yeni bilgi verilmediği için.
         counterOffer: session.activeCounter,
         patienceDelta: -NEGOTIATION.repeatOfferPatiencePenalty,
@@ -387,7 +388,7 @@ function handleOffer(
       },
       response: {
         state: 'REJECTED',
-        message: 'Bu fiyatlarla olmayacak. Başka yere bakacağım.',
+        message: t('Bu fiyatlarla olmayacak. Başka yere bakacağım.'),
         counterOffer: null,
         patienceDelta: -patienceCost,
         trustDelta: -TRUST.rejectPenalty,
@@ -488,7 +489,7 @@ function handleReason(
   move: NegotiationMove,
 ): { session: NegotiationSession; response: NegotiationResponse } {
   const evidence = move.reasonEvidence;
-  if (!evidence) return handleNoop(session, 'Gösterecek doğrulanmış veri yok.');
+  if (!evidence) return handleNoop(session, t('Gösterecek doğrulanmış veri yok.'));
 
   const reasonKey = `${evidence.field}:${evidence.toolId}`;
 
@@ -502,7 +503,7 @@ function handleReason(
       },
       response: {
         state: session.state,
-        message: 'Bunu zaten söylediniz.',
+        message: t('Bunu zaten söylediniz.'),
         counterOffer: session.activeCounter,
         patienceDelta: -1,
         trustDelta: 0,
@@ -528,8 +529,8 @@ function handleReason(
       response: {
         state: session.state,
         message: knowledgeable
-          ? 'Bunu ölçmediniz. Elinizde olmayan bir veriyle konuşuyorsunuz.'
-          : 'Peki, siz bilirsiniz.',
+          ? t('Bunu ölçmediniz. Elinizde olmayan bir veriyle konuşuyorsunuz.')
+          : t('Peki, siz bilirsiniz.'),
         counterOffer: session.activeCounter,
         patienceDelta: -1,
         trustDelta: knowledgeable ? -NEGOTIATION.falseReasonTrustPenalty : -2,
@@ -581,8 +582,8 @@ function handleGesture(
     response: {
       state: session.state,
       message: beyondCap
-        ? 'Nezaketiniz için sağ olun, ama mesele fiyatta.'
-        : 'İnce düşünmüşsünüz, teşekkür ederim.',
+        ? t('Nezaketiniz için sağ olun, ama mesele fiyatta.')
+        : t('İnce düşünmüşsünüz, teşekkür ederim.'),
       counterOffer: session.activeCounter,
       patienceDelta: beyondCap ? -1 : 1,
       trustDelta: beyondCap ? 0 : Math.round(NEGOTIATION.gestureTrustGain * a.gestureResponsiveness),
@@ -658,7 +659,7 @@ function handleRequestCounter(
       },
       response: {
         state: 'REJECTED',
-        message: 'Son sözümü söyledim. Başka yere bakacağım.',
+        message: t('Son sözümü söyledim. Başka yere bakacağım.'),
         counterOffer: null,
         patienceDelta: -patienceCost,
         trustDelta: -TRUST.rejectPenalty,
@@ -715,7 +716,7 @@ function handleAcceptCounter(
   move: NegotiationMove,
 ): { session: NegotiationSession; response: NegotiationResponse } {
   const price = session.finalOffer ?? session.activeCounter;
-  if (price === null) return handleNoop(session, 'Masada kabul edilecek bir teklif yok.');
+  if (price === null) return handleNoop(session, t('Masada kabul edilecek bir teklif yok.'));
 
   const fairness = price / Math.max(1, ctx.customer.reservationPrice);
 
@@ -730,7 +731,7 @@ function handleAcceptCounter(
     },
     response: {
       state: 'ACCEPTED',
-      message: 'Anlaştık. Sağ olun.',
+      message: t('Anlaştık. Sağ olun.'),
       counterOffer: null,
       patienceDelta: 0,
       trustDelta: fairness >= TRUST.fairPriceRatio ? TRUST.fairDealGain : 3,
@@ -756,7 +757,7 @@ function handleReject(
     },
     response: {
       state: 'REJECTED',
-      message: 'Anlıyorum. Yine de teşekkürler.',
+      message: t('Anlıyorum. Yine de teşekkürler.'),
       counterOffer: null,
       patienceDelta: 0,
       // GDD 11.2 — red bazen profesyonelliği korur; ağır ceza yoktur.
@@ -818,9 +819,9 @@ function countBadOffers(session: NegotiationSession, ctx: NegotiationContext): n
 }
 
 function acceptMessage(fairness: number): string {
-  if (fairness >= 1.06) return 'Bu gerçekten iyi bir teklif. Anlaştık.';
-  if (fairness >= 1.0) return 'Tamam, anlaştık.';
-  return 'Peki. İhtiyacım olduğu için kabul ediyorum.';
+  if (fairness >= 1.06) return t('Bu gerçekten iyi bir teklif. Anlaştık.');
+  if (fairness >= 1.0) return t('Tamam, anlaştık.');
+  return t('Peki. İhtiyacım olduğu için kabul ediyorum.');
 }
 
 function counterMessage(
@@ -829,10 +830,10 @@ function counterMessage(
   demeanor: string,
   insulting: boolean,
 ): string {
-  if (state === 'FINAL_OFFER') return 'Son fiyatım bu. Daha aşağısına bırakmam.';
-  if (insulting) return 'Bu rakam ciddi değil. Ürünün hâlini biliyorum.';
-  if (state === 'HARDENING') return 'Bakın, buradan aşağı inmem artık.';
-  if (ratio > 0.95) return 'Az kaldı. Biraz daha düşünün.';
+  if (state === 'FINAL_OFFER') return t('Son fiyatım bu. Daha aşağısına bırakmam.');
+  if (insulting) return t('Bu rakam ciddi değil. Ürünün hâlini biliyorum.');
+  if (state === 'HARDENING') return t('Bakın, buradan aşağı inmem artık.');
+  if (ratio > 0.95) return t('Az kaldı. Biraz daha düşünün.');
   return `${demeanor} davranmak istiyorum ama bu fiyat beklentimin altında.`;
 }
 

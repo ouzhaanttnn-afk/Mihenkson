@@ -18,6 +18,7 @@
  * Bu, çift tap ve reload senaryolarının ikisini birden kapatır.
  */
 
+import { t } from '@i18n/index';
 import { LIQUIDITY_BANDS, XP } from './balance';
 import { hasPoolSupplySpace, poolSupplyQuote, validPoolSupplyItem, validPoolSupplyQuantity } from './pool-supply';
 import { isBullion } from '@data/bullion';
@@ -93,7 +94,7 @@ export function applyTransaction(
   // --- Nakit ---
   const cash = state.store.cash + tx.cashDelta;
   if (!Number.isFinite(cash) || cash < 0) {
-    return { applied: false, state, reason: 'Yetersiz nakit; işlem uygulanmadı.' };
+    return { applied: false, state, reason: t('Yetersiz nakit; işlem uygulanmadı.') };
   }
 
   if (tx.poolPurchase) {
@@ -106,21 +107,21 @@ export function applyTransaction(
         !hasPoolSupplySpace(item.templateId, state.inventory, state.store) ||
         tx.cashDelta !== -quote.totalPrice || !Number.isFinite(item.buyCost) ||
         Math.abs((item.buyCost ?? 0) * quantity - quote.totalPrice) > 1e-6)
-      return { applied: false, state, reason: 'Geçersiz sarrafiye miktarı, tutarı veya stok kapasitesi.' };
+      return { applied: false, state, reason: t('Geçersiz sarrafiye miktarı, tutarı veya stok kapasitesi.') };
   }
 
   const requested = new Map<string, number>();
   for (const out of tx.itemsOut) {
     const position = state.inventory.find(p => p.itemId === out.itemId);
-    if (!position || !validQuantity(position, out.quantity)) return { applied: false, state, reason: 'Geçersiz stok miktarı.' };
+    if (!position || !validQuantity(position, out.quantity)) return { applied: false, state, reason: t('Geçersiz stok miktarı.') };
     requested.set(out.itemId, (requested.get(out.itemId) ?? 0) + out.quantity);
-    if (!validQuantity(position, requested.get(out.itemId)!)) return { applied: false, state, reason: 'Stok yetersiz.' };
+    if (!validQuantity(position, requested.get(out.itemId)!)) return { applied: false, state, reason: t('Stok yetersiz.') };
   }
   if (tx.targetInventoryItemId) {
     const target = state.inventory.find(p => p.itemId === tx.targetInventoryItemId);
     if (!target || target.location !== 'display' || tx.itemsOut.length !== 1 ||
       tx.itemsOut[0]?.itemId !== target.itemId || tx.itemsOut[0].quantity !== 1)
-      return { applied: false, state, reason: 'Vitrin ürünü artık satışta değil.' };
+      return { applied: false, state, reason: t('Vitrin ürünü artık satışta değil.') };
   }
   const hasDelta = tx.hasDeltaMg ?? 0;
   const hasBalanceMg = (state.store.hasBalanceMg ?? 0) + hasDelta;
@@ -131,7 +132,7 @@ export function applyTransaction(
       (tx.hasOperation === 'buy' && (hasDelta <= 0 || tx.cashDelta >= 0 || tx.itemsIn.length > 0 || tx.itemsOut.length > 0)) ||
       (tx.hasOperation === 'sell' && (hasDelta >= 0 || tx.cashDelta <= 0 || tx.itemsIn.length > 0 || tx.itemsOut.length > 0)) ||
       (tx.hasOperation === 'melt' && (hasDelta <= 0 || tx.cashDelta > 0 || tx.itemsOut.length !== 1 || tx.itemsIn.length > 0)))
-    return { applied: false, state, reason: 'Geçersiz HAS işlemi veya işlem günü.' };
+    return { applied: false, state, reason: t('Geçersiz HAS işlemi veya işlem günü.') };
 
   // --- Stok girişleri: cost basis kalem bazında yazılır (GDD 12.3) ---
   const items = { ...state.items };
@@ -441,11 +442,17 @@ export interface LiquidationEstimate {
  */
 export function liquidationEstimate(position: InventoryPosition): LiquidationEstimate {
   const candidates = [
-    { id: 'wholesale', channel: 'Toptancı', time: '1–2 gün' },
-    { id: 'melt', channel: 'Eritme / HAS', time: '1–2 gün' },
-    { id: 'serviceResale', channel: 'Servis + satış', time: '2–5 gün' },
-    { id: 'retail', channel: 'Vitrin', time: '3–7 gün' },
-    { id: 'collection', channel: 'Koleksiyon', time: '7+ gün' },
+    /*
+      KANAL ADI BİR BİRLİK TÜRÜDÜR, ekran metni değil: `LiquidationEstimate`
+      onu sabit dizelerle sınırlıyor ve kod bu değere göre dallanıyor.
+      Çevirisi çizim anında `t(channel)` ile yapılır. Süre etiketi ise
+      yalnız ekrana çıkar, o burada çevrilir.
+    */
+    { id: 'wholesale', channel: 'Toptancı', time: t('1–2 gün') },
+    { id: 'melt', channel: 'Eritme / HAS', time: t('1–2 gün') },
+    { id: 'serviceResale', channel: 'Servis + satış', time: t('2–5 gün') },
+    { id: 'retail', channel: 'Vitrin', time: t('3–7 gün') },
+    { id: 'collection', channel: 'Koleksiyon', time: t('7+ gün') },
   ] as const;
 
   for (const candidate of candidates) {
@@ -464,8 +471,13 @@ export function liquidationEstimate(position: InventoryPosition): LiquidationEst
   // daha güvenli ve geriye uyumludur.
   return {
     value: roundMoney(position.currentValue * 0.88),
+    /*
+      KANAL ADI BİR BİRLİK TÜRÜDÜR, ekran metni değil: tipi sabit dizelerle
+      sınırlı ve karşılaştırmalarda kullanılıyor. Çeviri, çizim anında
+      `t(channel)` ile yapılır.
+    */
     channel: 'Toptancı',
-    time: '1–2 gün',
+    time: t('1–2 gün'),
   };
 }
 
@@ -619,7 +631,7 @@ export function closeDay(
                 id: `scale_maintenance_${day}`,
                 amount: maintenanceDeferred,
                 dueDay: day + 3,
-                label: 'Terazi bakım borcu',
+                label: t('Terazi bakım borcu'),
               }] : []),
           ],
         },
@@ -656,7 +668,7 @@ export function closeDay(
       upcomingLiabilities: [
         ...nextState.store.payables.map((p) => ({ label: p.label, amount: p.amount, dueDay: p.dueDay })),
         ...nextState.store.supplier.openInvoices.map((i) => ({
-          label: 'Toptancı vadesi',
+          label: t('Toptancı vadesi'),
           amount: i.amount,
           dueDay: i.dueDay,
         })),

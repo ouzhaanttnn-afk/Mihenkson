@@ -27,6 +27,7 @@
  * biçimde hesaplanır; GİZLİ veya GERİYE DÖNÜK ücret yaratılmaz."
  */
 
+import { t } from '@i18n/index';
 import { tl } from '@i18n/money';
 import { WHOLESALE } from './balance';
 import { roundMoney } from './v5-rules';
@@ -193,9 +194,9 @@ function liquidationRationale(
   }
   if (edge < 0) {
     // §4.2 "her işlemde mutlak garanti değildir" — söylenmesi gereken tam bu.
-    return 'Bu hacimde tezgâh daha iyi fiyat veriyor; toptancı üstünlüğü bu işlemde yok.';
+    return t('Bu hacimde tezgâh daha iyi fiyat veriyor; toptancı üstünlüğü bu işlemde yok.');
   }
-  return 'Hızlı ve güvenilir likidite; ödeme aynı gün.';
+  return t('Hızlı ve güvenilir likidite; ödeme aynı gün.');
 }
 
 // ---------------------------------------------------------------------------
@@ -275,12 +276,12 @@ export function financeTerms(store: StoreState, amount: Money, today: GameDay): 
 
   let blockedReason: string | null = null;
   if (amount <= 0) {
-    blockedReason = 'Tutar yok.';
+    blockedReason = t('Tutar yok.');
   } else if (financed > availableLimit) {
     blockedReason = `Limit yetmiyor: kullanılabilir ${tl(availableLimit)}.`;
   } else if (store.supplier.openInvoices.some((i) => i.dueDay < today)) {
     // §7 "Gecikme; maliyet, limit, güven veya ERİŞİM üzerinde sonuç doğurur."
-    blockedReason = 'Gecikmiş vadeniz var; yeni vade açılmıyor.';
+    blockedReason = t('Gecikmiş vadeniz var; yeni vade açılmıyor.');
   }
 
   return {

@@ -20,6 +20,7 @@
  *   teslim sözü kişisel güvenin parçasıdır.
  */
 
+import { t } from '@i18n/index';
 import { CONDITION_DEDUCTION, CONDITION_ORDER, SERVICE } from './balance';
 import { getTemplate } from '@data/item-templates';
 import { rulesFor } from '@data/product-classes';
@@ -116,15 +117,15 @@ function describeProblem(item: ItemInstance): string {
 
   switch (item.truth.condition) {
     case 'broken':
-      return 'Parça kırık; kullanılamaz durumda.';
+      return t('Parça kırık; kullanılamaz durumda.');
     case 'damaged':
-      return 'Gövdede belirgin hasar var.';
+      return t('Gövdede belirgin hasar var.');
     case 'worn':
-      return 'Yüzey yıpranmış, parlaklığını kaybetmiş.';
+      return t('Yüzey yıpranmış, parlaklığını kaybetmiş.');
     case 'good':
-      return 'Genel durumu iyi; bakım isteniyor.';
+      return t('Genel durumu iyi; bakım isteniyor.');
     case 'pristine':
-      return 'Kusur yok; isteğe bağlı işlem.';
+      return t('Kusur yok; isteğe bağlı işlem.');
   }
 }
 
@@ -234,11 +235,11 @@ export function buildQuote(
     usesCapacity: venue === 'inHouse',
     rationale:
       venue === 'outsourced'
-        ? 'Kapasite tüketmez; marj düşer, süre uzar.'
+        ? t('Kapasite tüketmez; marj düşer, süre uzar.')
         : inHouseFree <= 1
-          ? 'Son slot: yeni iş alırsan risk ve süre artar.'
-          : 'Kendi atölyende; tam marj, kontrol sende.',
-    blockedReason: capacityBlocked ? 'Atölye dolu' : null,
+          ? t('Son slot: yeni iş alırsan risk ve süre artar.')
+          : t('Kendi atölyende; tam marj, kontrol sende.'),
+    blockedReason: capacityBlocked ? t('Atölye dolu') : null,
   };
 }
 

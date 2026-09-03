@@ -7,6 +7,7 @@
  * GDD 11.3: Sabır sayısal skor olarak gösterilmez; nokta dizisiyle okunur.
  */
 
+import { t } from '@i18n/index';
 import { MEMORY } from '@domain/balance';
 import { loyaltyEffects, type CustomerRecord } from '@domain/customer-memory';
 import { getArchetype } from '@data/archetypes';
@@ -85,7 +86,7 @@ export function CustomerStrip({ customer, record, lineCount, broughtItems }: Pro
       </div>
 
       <div className="customerStrip__meta">
-        <div className="customerStrip__demeanor">{archetype.demeanor}</div>
+        <div className="customerStrip__demeanor">{t(archetype.demeanor)}</div>
         <PatienceDots value={customer.patience} max={customer.patienceMax} />
       </div>
     </div>
@@ -103,7 +104,11 @@ export function PatienceDots({ value, max }: { value: number; max: number }) {
   const tone = ratio <= 0.2 ? 'critical' : ratio <= 0.45 ? 'low' : 'on';
 
   return (
-    <div className="patience" aria-label={`Sabır: ${filled}/${total}`} title={`Müşteri sabrı ${filled}/${total}`}>
+    <div
+      className="patience"
+      aria-label={t('Sabır: {simdi}/{toplam}', { simdi: filled, toplam: total })}
+      title={t('Müşteri sabrı {simdi}/{toplam}', { simdi: filled, toplam: total })}
+    >
       {Array.from({ length: total }, (_, i) => (
         <span
           key={i}

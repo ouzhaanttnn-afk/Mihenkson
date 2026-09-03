@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import { PERSONNEL_MONTHLY, PERSONNEL_SALARIES, PERSONNEL_UNLOCK_LEVELS, canSetPersonnel, personnelCount, personnelDaily, queueCapacity } from '@domain/v5-rules';
 
 import { MARKET_REGIME, WHOLESALE } from '@domain/balance';
-import { shopDisplayName } from '@domain/profile';
+import { DEFAULT_JEWELER_NAME, SHOP_SUFFIX, shopDisplayName } from '@domain/profile';
 import {
   LIQUIDITY_BAND_LABEL,
   liquidityBand,
@@ -153,7 +153,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
         <h1 className="pageHead__title">{t('İşletme')}</h1>
         <p className="pageHead__sub">
           {t('{dukkan} · Kademe {kademe} · Seviye {seviye}', {
-            dukkan: shopDisplayName(s.profile.jewelerName),
+            dukkan: shopDisplayName(s.profile.jewelerName, t(SHOP_SUFFIX), t(DEFAULT_JEWELER_NAME)),
             kademe: s.store.storeTier,
             seviye: s.store.level,
           })}
@@ -220,19 +220,45 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                 gunluk: tl(personnelDaily(s.store)),
               })}
             </p>
-            <p>Maaşlar kişi başına eklenir: {PERSONNEL_SALARIES.map(salary => tl(salary)).join(' + ')} / ay.</p>
-            <p>Yalnız bekleme kapasitesini artırır; müşteri geliş hızını veya atölyeyi değiştirmez.</p>
+            <p>
+              {t('Maaşlar kişi başına eklenir: {liste} / ay.', {
+                liste: PERSONNEL_SALARIES.map((salary) => tl(salary)).join(' + '),
+              })}
+            </p>
+            <p>
+              {t(
+                'Yalnız bekleme kapasitesini artırır; müşteri geliş hızını veya atölyeyi değiştirmez.',
+              )}
+            </p>
             <div className="personnelChoiceRow" role="group" aria-label={t('Personel sayısı')}>
               {[0, 1, 2, 3].map(count => <button key={count} type="button" className="personnelChoice" aria-pressed={personnelCount(s.store) === count}
-                aria-label={`${count} personel${count > 0 ? `, seviye ${PERSONNEL_UNLOCK_LEVELS[count]} gerektirir` : ''}`}
+                aria-label={
+                  count > 0
+                    ? t('{n} personel, seviye {sv} gerektirir', {
+                        n: count,
+                        sv: PERSONNEL_UNLOCK_LEVELS[count] ?? 0,
+                      })
+                    : t('{n} personel', { n: count })
+                }
                 disabled={!canSetPersonnel(s.store, count)}
                 onClick={() => setPendingPersonnel(count)}>
-                <strong>{count}</strong><small>{count > 0 ? `Sv ${PERSONNEL_UNLOCK_LEVELS[count]}` : t('Başlangıç')}</small>
+                <strong>{count}</strong>
+                <small>
+                  {count > 0
+                    ? `${t('Sv')} ${PERSONNEL_UNLOCK_LEVELS[count]}`
+                    : t('Başlangıç')}
+                </small>
               </button>)}
             </div>
             {pendingPersonnel !== null && <div role="group" aria-label={t('Personel onayı')}>
-              <p>{pendingPersonnel} personel · aylık toplam {tl(PERSONNEL_MONTHLY[pendingPersonnel]!)}. Günlük gider kapanışta tahsil edilir.</p>
-              <button type="button" className="chip" onClick={() => { s.setPersonnelCount(pendingPersonnel); setPendingPersonnel(null); }}>Personeli Onayla</button>
+              <p>
+                {t('{n} personel · aylık toplam {tutar}.', {
+                  n: pendingPersonnel,
+                  tutar: tl(PERSONNEL_MONTHLY[pendingPersonnel]!),
+                })}{' '}
+                {t('Günlük gider kapanışta tahsil edilir.')}
+              </p>
+              <button type="button" className="chip" onClick={() => { s.setPersonnelCount(pendingPersonnel); setPendingPersonnel(null); }}>{t('Personeli Onayla')}</button>
               <button type="button" className="chip" onClick={() => setPendingPersonnel(null)}>{t('Vazgeç')}</button>
             </div>}
           </div>}
@@ -264,9 +290,8 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
               value={
                 memory.known === 0
                   ? t('Henüz yok')
-                  : `${memory.known} kişi · ${memory.loyal} sadık${
-                      memory.upset > 0 ? ` · ${memory.upset} küsmüş` : ''
-                    }`
+                  : t('{n} kişi · {sadik} sadık', { n: memory.known, sadik: memory.loyal }) +
+                    (memory.upset > 0 ? t(' · {n} küsmüş', { n: memory.upset }) : '')
               }
               tone={memory.upset > memory.loyal ? 'warning' : undefined}
             />
@@ -385,8 +410,12 @@ function CareerRoute({ onBack }: { onBack: () => void }) {
             {TEST_TOOLS.map((tool) => (
               <StatLine
                 key={tool.id}
-                label={tool.name}
-                value={tool.unlockLevel <= s.store.level ? t('Açık') : `Seviye ${tool.unlockLevel}`}
+                label={t(tool.name)}
+                value={
+                  tool.unlockLevel <= s.store.level
+                    ? t('Açık')
+                    : t('Seviye {sv}', { sv: tool.unlockLevel })
+                }
                 tone={tool.unlockLevel <= s.store.level ? 'positive' : undefined}
               />
             ))}
@@ -619,7 +648,7 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
   return (
     <div className="lotRow">
       <div className="lotRow__head">
-        <span className="lotRow__name">{lot.displayName}</span>
+        <span className="lotRow__name">{t(lot.displayName)}</span>
         <span className="lotRow__price num">{tl(lot.total)}</span>
       </div>
 
@@ -1224,7 +1253,7 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
             <div className="statLine">
               <span className="statLine__label">{regime.label}</span>
               <span className="statLine__value" style={{ fontWeight: 400, fontSize: 12 }}>
-                {regime.note}
+                {t(regime.note)}
               </span>
             </div>
           </div>
@@ -1321,7 +1350,9 @@ function JournalRoute({ onBack }: { onBack: () => void }) {
           {t('← İşletme')}
         </button>
         <h1 className="pageHead__title">{t('İşlem Defteri')}</h1>
-        <p className="pageHead__sub">{deals.length} kayıt · her işlemin gerekçesi ve sonucu</p>
+        <p className="pageHead__sub">
+          {t('{n} kayıt · her işlemin gerekçesi ve sonucu', { n: deals.length })}
+        </p>
       </header>
 
       <div className="page__scroll">
@@ -1332,8 +1363,9 @@ function JournalRoute({ onBack }: { onBack: () => void }) {
             </div>
             <p className="empty__title">{t('Henüz kayıt yok')}</p>
             <p className="empty__text">
-              Kapanan her işlem buraya düşer: kullanılan testler, tahmin bandı, teklif
-              geçmişi ve gerçek sonuç.
+              {t(
+                'Kapanan her işlem buraya düşer: kullanılan testler, tahmin bandı, teklif geçmişi ve gerçek sonuç.',
+              )}
             </p>
           </div>
         ) : (

@@ -48,18 +48,41 @@ export const NAME_MIN = 2;
 export const NAME_MAX = 24;
 export const SHOP_SUFFIX = 'Kuyumculuk';
 
-/** Profilde yalnız temel ad saklanır; sistem eki sondan temizlenir. */
+/**
+ * Profilde yalnız temel ad saklanır; sistem eki sondan temizlenir.
+ *
+ * İKİ DİLİN EKİ DE TEMİZLENİR. Ek ekrana göre değişiyor ("Kuyumculuk" /
+ * "Jewellers") ama KAYDA girmiyor; İngilizce oynayan biri gördüğü adı
+ * ("Alvera Jewellers") olduğu gibi yeniden yazdığında ek iki kez
+ * eklenmemeli. Kayıt her iki dilde de aynı temel adı tutar, yani dil
+ * değiştirmek dükkânın adını bozmaz.
+ */
 export function normalizeShopBaseName(raw: string): string {
   return raw
     .trim()
     .replace(/\s+/g, ' ')
-    .replace(/(?:\s+kuyumculuk)+\s*$/giu, '')
+    .replace(/(?:\s+(?:kuyumculuk|jewellers|jewelers))+\s*$/giu, '')
     .trim();
 }
 
-export function shopDisplayName(baseName: string): string {
-  const normalized = normalizeShopBaseName(baseName) || DEFAULT_JEWELER_NAME;
-  return `${normalized} ${SHOP_SUFFIX}`;
+/**
+ * Ekrandaki tam ad.
+ *
+ * EK PARAMETRE OLARAK GELİR, İÇERİDE ÇEVRİLMEZ. İngilizce arayüzde
+ * tabelanın yarısının Türkçe kalması ("Alvera Kuyumculuk") çevirinin
+ * unutulmuş bir köşesi gibi durur, ama çeviriyi BU MODÜLE sokmak da
+ * doğru değil: profil modülünün hiçbir şey import etmemesi bir testle
+ * korunuyor (bkz. profile.test.ts) ve o kural profili saf veri olarak
+ * tutmak için var. Ek ve varsayılan ad çağıranın verdiği metinlerdir;
+ * arayüz onları çevirerek geçer, alan katmanı hiçbir şey bilmez.
+ */
+export function shopDisplayName(
+  baseName: string,
+  suffix: string = SHOP_SUFFIX,
+  fallbackName: string = DEFAULT_JEWELER_NAME,
+): string {
+  const normalized = normalizeShopBaseName(baseName) || fallbackName;
+  return `${normalized} ${suffix}`;
 }
 
 export type NameCheck =

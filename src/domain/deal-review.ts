@@ -10,6 +10,7 @@
  */
 
 
+import { t } from '@i18n/index';
 import { tl } from '@i18n/money';
 import { trueValue } from './valuation';
 import type {
@@ -55,12 +56,12 @@ export function buildCaseReview(input: ReviewInput): CaseReview {
 
   if (!accepted) {
     return {
-      headline: 'İşlem kapanmadı.',
+      headline: t('İşlem kapanmadı.'),
       missedSignals: [],
       keyDecisionPoint:
         price > 0
-          ? 'Teklifiniz müşterinin kabul sınırının altında kaldı.'
-          : 'İşlemi reddettiniz.',
+          ? t('Teklifiniz müşterinin kabul sınırının altında kaldı.')
+          : t('İşlemi reddettiniz.'),
       alternativeChannelNote: describeBestAlternative(input),
       valueDelta: 0,
       tone: 'neutral',
@@ -90,33 +91,33 @@ export function buildCaseReview(input: ReviewInput): CaseReview {
  */
 function collectMissedSignals(item: ItemInstance, testsUsed: string[]): string[] {
   const out: string[] = [];
-  const t = item.truth;
+  const truth = item.truth;
 
   const testedPurity = testsUsed.some((id) => id === 'touchstone' || id === 'spectrometer' || id === 'density');
   const testedCore = testsUsed.some((id) => id === 'density' || id === 'magnet' || id === 'spectrometer');
   const testedStone = testsUsed.includes('loupe');
   const testedWeight = testsUsed.includes('scale');
 
-  if (!testedPurity && t.actualKarat !== item.declared.claimedKarat) {
+  if (!testedPurity && truth.actualKarat !== item.declared.claimedKarat) {
     out.push(
-      `Beyan ${item.declared.claimedKarat} idi, gerçek ayar ${t.actualKarat}. Damga tutarsızlığı sinyali görünürdü.`,
+      `Beyan ${item.declared.claimedKarat} idi, gerçek ayar ${truth.actualKarat}. Damga tutarsızlığı sinyali görünürdü.`,
     );
   }
 
-  const coreFlaw = t.hiddenFlaws.find(
+  const coreFlaw = truth.hiddenFlaws.find(
     (f) => f.kind === 'plated' || f.kind === 'filled' || f.kind === 'hollow',
   );
   if (!testedCore && coreFlaw) {
     out.push(`${coreFlaw.readableSignal.label} — yoğunluk ölçümü bu riski kapatırdı.`);
   }
 
-  if (!testedStone && t.stoneData.kind !== 'none' && !t.stoneData.genuine) {
-    out.push('Taş taklit çıktı. Lup, değer bandını almadan önce daraltırdı.');
+  if (!testedStone && truth.stoneData.kind !== 'none' && !truth.stoneData.genuine) {
+    out.push(t('Taş taklit çıktı. Lup, değer bandını almadan önce daraltırdı.'));
   }
 
-  if (!testedWeight && Math.abs((item.declared.claimedWeight ?? 0) - t.grossWeight) > 0.3) {
+  if (!testedWeight && Math.abs((item.declared.claimedWeight ?? 0) - truth.grossWeight) > 0.3) {
     out.push(
-      `Beyan edilen gramaj ${item.declared.claimedWeight} g, gerçek ${t.grossWeight} g. Terazi ücretsizdi.`,
+      `Beyan edilen gramaj ${item.declared.claimedWeight} g, gerçek ${truth.grossWeight} g. Terazi ücretsizdi.`,
     );
   }
 
@@ -129,7 +130,7 @@ function buildHeadline(item: ItemInstance, valueDelta: Money, hadMissedSignals: 
       ? `Gerçek değerin ${fmt(-valueDelta)} üstünde ödediniz — kaçırılan sinyal vardı.`
       : `Gerçek değerin ${fmt(-valueDelta)} üstünde ödediniz.`;
   }
-  if (valueDelta === 0) return 'Gerçek değerine çok yakın kapattınız.';
+  if (valueDelta === 0) return t('Gerçek değerine çok yakın kapattınız.');
   return `${item.displayName} için gerçek değerin ${fmt(valueDelta)} altında aldınız.`;
 }
 

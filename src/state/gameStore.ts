@@ -129,7 +129,7 @@ import {
   normalizePreferences,
   type PlayerPreferences,
 } from '@domain/preferences';
-import { setLanguage } from '@i18n/index';
+import { setLanguage, t } from '@i18n/index';
 import { tl } from '@i18n/money';
 import { setCurrency } from '@i18n/currency';
 import { getTemplate } from '@data/item-templates';
@@ -465,6 +465,24 @@ export interface GameState {
  *
  * EKONOMİYE DOKUNMAZ: burada yapılan tek şey iki dizenin yazılmasıdır.
  */
+/**
+ * "N servis işi teslime hazır" balonu — ÜRETİM VE SÜZGEÇ TEK ŞABLONDAN.
+ *
+ * İş teslim edilince bu balon ekrandan kaldırılıyor ve kaldırma işi metne
+ * bakarak yapılıyor. Eskiden sabit bir Türkçe parça aranıyordu; çeviriyle
+ * birlikte o parça artık İngilizce metinde geçmiyor ve balon ekranda
+ * takılı kalırdı. Süzgeç şablondan türetiliyor, yani hangi dilde
+ * üretildiyse o dilde aranıyor.
+ */
+const READY_JOBS_TOAST = '{n} servis işi teslime hazır — Atölyeye bak.';
+
+function readyJobsToastPattern(): RegExp {
+  const parts = t(READY_JOBS_TOAST)
+    .split('{n}')
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(parts.join('\\d+'));
+}
+
 function applyDisplayPreferences(prefs: PlayerPreferences): void {
   setLanguage(prefs.language);
   setCurrency(prefs.currency);
@@ -472,6 +490,12 @@ function applyDisplayPreferences(prefs: PlayerPreferences): void {
 
 function createInitialStore(): StoreState {
   return {
+    /*
+      MAĞAZA ADI ÇEVRİLMEZ. Bu değer kayda yazılıyor; üretim anında
+      çevirmek, dili değiştiren oyuncunun dükkânının adını da değiştirirdi
+      ve eski kayıtla yeni kayıt farklı adlar taşırdı. Ad bir veridir,
+      arayüz metni değil.
+    */
     name: 'MIHENKAYNAK Kuyumculuk',
     cash: START.cash,
     reputation: START.reputation,
@@ -601,10 +625,10 @@ export const useGame = create<GameState>((set, get) => {
       const s = get();
       if (!Number.isFinite(grams) || Math.abs(toMg(grams) / 1000 - grams) > 1e-9) return;
       const outcome = tradeHas(economyOf(s), s.market, side, toMg(grams), txId);
-      if (!outcome.applied) { pushToast(set, get, outcome.reason ?? 'İşlem uygulanmadı.', 'negative'); return; }
+      if (!outcome.applied) { pushToast(set, get, outcome.reason ?? t('İşlem uygulanmadı.'), 'negative'); return; }
       set(economyToState(outcome.state));
       writeSave(get());
-      pushToast(set, get, 'HAS işlemi kaydedildi.', 'positive');
+      pushToast(set, get, t('HAS işlemi kaydedildi.'), 'positive');
     },
     meltStock: (itemId) => {
       const s = get();
@@ -612,7 +636,7 @@ export const useGame = create<GameState>((set, get) => {
       if (!outcome.applied) { pushToast(set, get, outcome.reason ?? 'Eritilemedi.', 'negative'); return; }
       set(economyToState(outcome.state));
       writeSave(get());
-      pushToast(set, get, 'Ürün eritildi; karşılığı HAS bakiyesine eklendi.', 'positive');
+      pushToast(set, get, t('Ürün eritildi; karşılığı HAS bakiyesine eklendi.'), 'positive');
     },
     displayStock: (itemId) => {
       const s = get();
@@ -633,7 +657,7 @@ export const useGame = create<GameState>((set, get) => {
 
     unlock4x: () => {
       set({ speed4xUnlocked: true, speed: 4 });
-      pushToast(set, get, '4x hız açıldı.', 'info');
+      pushToast(set, get, t('4x hız açıldı.'), 'info');
     },
 
     // --- GDD 25 · öğretim ---
@@ -704,7 +728,7 @@ export const useGame = create<GameState>((set, get) => {
       // Tercih ANINDA kalıcı olur; oyunun gün sonu checkpoint'ini beklemez.
       // Yalnız `profile` alanı yamalanır (bkz. persistProfile).
       persistProfile(get());
-      pushToast(set, get, 'Profil güncellendi.', 'positive');
+      pushToast(set, get, t('Profil güncellendi.'), 'positive');
       return true;
     },
 
@@ -713,31 +737,31 @@ export const useGame = create<GameState>((set, get) => {
       // GDD 23.10.1 — yalnız müşteri geliş aralığını kısaltır. Müşteri
       // kalitesi, bütçesi, rezervasyon fiyatı veya hidden truth DEĞİŞMEZ.
       set({ customerRushUntilMinutes: market.clockMinutes + 90 });
-      pushToast(set, get, 'Müşteri akını başladı — geliş aralığı kısaldı.', 'info');
+      pushToast(set, get, t('Müşteri akını başladı — geliş aralığı kısaldı.'), 'info');
     },
 
     buyMarketProduct: (productId) => {
       const s = get();
       const outcome = purchaseMarketProduct(economyOf(s), s.playerMarket, productId, s.market.day);
       if (!outcome.applied) {
-        pushToast(set, get, outcome.reason ?? 'Market satın alımı yapılamadı.', 'negative');
+        pushToast(set, get, outcome.reason ?? t('Market satın alımı yapılamadı.'), 'negative');
         return false;
       }
       set({ ...economyToState(outcome.economy), playerMarket: outcome.playerMarket });
       writeSave(get());
-      pushToast(set, get, 'Market ürünü koleksiyonuna eklendi.', 'positive');
+      pushToast(set, get, t('Market ürünü koleksiyonuna eklendi.'), 'positive');
       return true;
     },
 
     equipMarketProduct: (productId) => {
       const next = equipMarketProduct(get().playerMarket, productId);
       if (!next) {
-        pushToast(set, get, 'Bu ürün kullanılamıyor.', 'negative');
+        pushToast(set, get, t('Bu ürün kullanılamıyor.'), 'negative');
         return false;
       }
       set({ playerMarket: next });
       writeSave(get());
-      pushToast(set, get, 'Kozmetik görünüm uygulandı.', 'positive');
+      pushToast(set, get, t('Kozmetik görünüm uygulandı.'), 'positive');
       return true;
     },
 
@@ -1000,7 +1024,7 @@ export const useGame = create<GameState>((set, get) => {
       if (!quote || quote.blockedReason) return;
 
       if (quote.partsCost > s.store.cash) {
-        pushToast(set, get, 'Parça maliyeti için yeterli nakit yok.', 'negative');
+        pushToast(set, get, t('Parça maliyeti için yeterli nakit yok.'), 'negative');
         return;
       }
 
@@ -1057,7 +1081,7 @@ export const useGame = create<GameState>((set, get) => {
           stage: 'jobQueue',
           service: { ...deal.service, outcome: 'declined' },
         },
-        customerMessage: 'Peki, başka yere bakayım.',
+        customerMessage: t('Peki, başka yere bakayım.'),
       });
     },
 
@@ -1107,7 +1131,7 @@ export const useGame = create<GameState>((set, get) => {
 
       set({
         ...economyToState({ ...outcome.state, items, ledger }),
-        toasts: s.toasts.filter((toast) => !toast.text.includes('servis işi teslime hazır')),
+        toasts: s.toasts.filter((toast) => !readyJobsToastPattern().test(toast.text)),
         jobs: s.jobs.map((j) =>
           j.jobId === jobId ? { ...j, result: 'delivered' as const } : j,
         ),
@@ -1245,7 +1269,9 @@ export const useGame = create<GameState>((set, get) => {
       pushToast(
         set,
         get,
-        verdict.paid ? `Ekspertiz ücreti ${fmt(verdict.fee)} alındı.` : 'Müşteri ücreti ödemedi.',
+        verdict.paid
+          ? t('Ekspertiz ücreti {tutar} alındı.', { tutar: fmt(verdict.fee) })
+          : t('Müşteri ücreti ödemedi.'),
         verdict.paid && verdict.accurate ? 'positive' : verdict.accurate ? 'info' : 'negative',
       );
     },
@@ -1261,7 +1287,7 @@ export const useGame = create<GameState>((set, get) => {
           stage: 'result',
           appraisal: { ...deal.appraisal, outcome: 'declined' },
         },
-        customerMessage: 'Anlıyorum, başka bir yere sorayım.',
+        customerMessage: t('Anlıyorum, başka bir yere sorayım.'),
       });
     },
 
@@ -1306,7 +1332,7 @@ export const useGame = create<GameState>((set, get) => {
         return;
       }
       if (tool.cost > s.store.cash) {
-        pushToast(set, get, 'Bu test için yeterli nakit yok.', 'negative');
+        pushToast(set, get, t('Bu test için yeterli nakit yok.'), 'negative');
         return;
       }
 
@@ -1393,11 +1419,11 @@ export const useGame = create<GameState>((set, get) => {
       if (!deal || !customer || !deal.purchase) return;
       const candidate = s.items[itemId];
       if (!candidate || matchDemand(deal.purchase.demand, candidate) === 'off') {
-        pushToast(set, get, 'Bu ürün müşterinin talebiyle eşleşmiyor.', 'negative');
+        pushToast(set, get, t('Bu ürün müşterinin talebiyle eşleşmiyor.'), 'negative');
         return;
       }
       if (packageLocked(deal)) {
-        pushToast(set, get, 'Pazarlık başladı; paket artık değiştirilemez.', 'negative');
+        pushToast(set, get, t('Pazarlık başladı; paket artık değiştirilemez.'), 'negative');
         return;
       }
 
@@ -1533,7 +1559,7 @@ export const useGame = create<GameState>((set, get) => {
         s.activeDeal.purchase &&
         s.activeDeal.purchase.lines.length === 0
       ) {
-        pushToast(set, get, 'Talep karşılanamadı · stok ve nakit değişmedi.', 'info');
+        pushToast(set, get, t('Talep karşılanamadı · stok ve nakit değişmedi.'), 'info');
       }
       // GDD 10.2 — ziyaret KAPANIRKEN deftere yazılır. İşlem içinde oynayan
       // güveni kaydetmeden müşteriyi göndermek, güveni ekonomik varlık değil
@@ -1658,7 +1684,7 @@ export const useGame = create<GameState>((set, get) => {
         poolPurchase: { quantity }, itemsIn: [item], itemsOut: [],
         trustDelta: 0, reputationDelta: 0, xpDelta: 0, label: `${item.displayName} ortak havuz tedariki`,
       });
-      if (!outcome.applied) { pushToast(set, get, outcome.reason ?? 'Alım uygulanamadı.', 'negative'); return; }
+      if (!outcome.applied) { pushToast(set, get, outcome.reason ?? t('Alım uygulanamadı.'), 'negative'); return; }
       set(economyToState({ ...outcome.state, inventory: revalueInventory(outcome.state.inventory, outcome.state.items, thesisContext(s)) }));
       writeSave(get());
       cue(set, get, 'coins');
@@ -1740,7 +1766,7 @@ export const useGame = create<GameState>((set, get) => {
       if (!outcome.applied) {
         // `outcome.reason` işlem kimliğini taşıyan GELİŞTİRİCİ metnidir;
         // oyuncuya gösterilmez (v1.1 §7 — iç isimler ekrana çıkmaz).
-        pushToast(set, get, 'Tedarik uygulanamadı.', 'negative');
+        pushToast(set, get, t('Tedarik uygulanamadı.'), 'negative');
         return;
       }
 
@@ -1784,7 +1810,7 @@ export const useGame = create<GameState>((set, get) => {
       const invoice = s.store.supplier.openInvoices.find((i) => i.id === invoiceId);
       if (!invoice) return;
       if (invoice.amount > s.store.cash) {
-        pushToast(set, get, 'Vadeyi kapatacak nakit yok.', 'negative');
+        pushToast(set, get, t('Vadeyi kapatacak nakit yok.'), 'negative');
         return;
       }
 
@@ -1798,7 +1824,7 @@ export const useGame = create<GameState>((set, get) => {
         trustDelta: 0,
         reputationDelta: 0,
         xpDelta: 0,
-        label: 'Toptancı vadesi ödemesi',
+        label: t('Toptancı vadesi ödemesi'),
       };
 
       const outcome = applyTransaction(economyOf(s), tx);
@@ -1845,7 +1871,7 @@ export const useGame = create<GameState>((set, get) => {
         s.market,
       );
       if (!offer || offer.quantity <= 0) {
-        pushToast(set, get, offer?.shortfallReason ?? 'Bu esnaf bu işi alamıyor.', 'negative');
+        pushToast(set, get, offer?.shortfallReason ?? t('Bu esnaf bu işi alamıyor.'), 'negative');
         return;
       }
 
@@ -1898,7 +1924,7 @@ export const useGame = create<GameState>((set, get) => {
           reviewData: {
             missedSignals: [],
             keyDecisionPoint: `${member.displayName} ile bozuldu.`,
-            alternativeChannelNote: offer.shortfallReason ?? 'Ağ kapasitesi yetti.',
+            alternativeChannelNote: offer.shortfallReason ?? t('Ağ kapasitesi yetti.'),
           },
         },
       );
@@ -1978,7 +2004,7 @@ export const useGame = create<GameState>((set, get) => {
       const member = s.network.find((m) => m.id === memberId);
       if (!member?.loan) return;
       if (member.loan.totalDue > s.store.cash) {
-        pushToast(set, get, 'Borcu kapatacak nakit yok.', 'negative');
+        pushToast(set, get, t('Borcu kapatacak nakit yok.'), 'negative');
         return;
       }
 
@@ -2024,7 +2050,7 @@ export const useGame = create<GameState>((set, get) => {
       const s = get();
       if (!s.dayReportOpen) return;
       if (!writeSave({ ...s, dayReportOpen: false })) {
-        pushToast(set, get, 'Kayıt yazılamadı; gün özeti açık tutuldu.', 'negative'); return;
+        pushToast(set, get, t('Kayıt yazılamadı; gün özeti açık tutuldu.'), 'negative'); return;
       }
       set({ dayReportOpen: false });
     },
@@ -2038,7 +2064,7 @@ export const useGame = create<GameState>((set, get) => {
         s.missedGuestCountToday,
         lifestyleDailyExpense(s.playerMarket),
       );
-      if (!applied) { pushToast(set, get, 'Günlük gider karşılanamadı; gün kapatılmadı.', 'negative'); return; }
+      if (!applied) { pushToast(set, get, t('Günlük gider karşılanamadı; gün kapatılmadı.'), 'negative'); return; }
       const nextDay = s.market.day + 1;
       const market = createMarketForDay(s.seed, nextDay, s.market);
 
@@ -2098,7 +2124,7 @@ export const useGame = create<GameState>((set, get) => {
       // yazılabildiğini doğrula. Kayıt başarısızsa oyuncu eski günde kalır;
       // sessiz ilerleme kaybı yerine güvenle tekrar deneyebilir.
       if (!writeSave({ ...s, ...nextState } as GameState)) {
-        pushToast(set, get, 'Gün kapatılamadı: kayıt doğrulanamadı. Tekrar deneyin.', 'negative');
+        pushToast(set, get, t('Gün kapatılamadı: kayıt doğrulanamadı. Tekrar deneyin.'), 'negative');
         return;
       }
 
@@ -2137,7 +2163,7 @@ export const useGame = create<GameState>((set, get) => {
 
       const ready = jobs.filter((j) => j.result === 'success' || j.result === 'failed').length;
       if (ready > 0) {
-        pushToast(set, get, `${ready} servis işi teslime hazır — Atölye'ye bak.`, 'info');
+        pushToast(set, get, t(READY_JOBS_TOAST, { n: ready }), 'info');
       }
     },
 
@@ -2152,7 +2178,7 @@ export const useGame = create<GameState>((set, get) => {
       );
 
       if (!evaluation.next || !evaluation.ready) {
-        pushToast(set, get, evaluation.blockedReason ?? 'Mağaza yükseltmeye hazır değil.', 'negative');
+        pushToast(set, get, evaluation.blockedReason ?? t('Mağaza yükseltmeye hazır değil.'), 'negative');
         return;
       }
 
@@ -2176,7 +2202,7 @@ export const useGame = create<GameState>((set, get) => {
       const outcome = applyTransaction(economyOf(s), tx);
       if (!outcome.applied) {
         // Teknik gerekçe oyuncuya gösterilmez; bkz. buyFromWholesaler.
-        pushToast(set, get, 'Yükseltme uygulanamadı.', 'negative');
+        pushToast(set, get, t('Yükseltme uygulanamadı.'), 'negative');
         return;
       }
 
@@ -2216,7 +2242,7 @@ export const useGame = create<GameState>((set, get) => {
         altındaki söz, "yeni oyun bir sonraki açılışta başlar", tutmuyordu.
       */
       suspendSaves();
-      pushToast(set, get, 'Kayıt silindi. Yeni oyun bir sonraki açılışta başlar.', 'info');
+      pushToast(set, get, t('Kayıt silindi. Yeni oyun bir sonraki açılışta başlar.'), 'info');
     },
 
     notify: (text, tone) => pushToast(set, get, text, tone),
@@ -2562,8 +2588,8 @@ function settlePurchase(
       missedSignals: [],
       keyDecisionPoint:
         purchase.fulfilment === 'partial'
-          ? 'Talep kısmen karşılandı; müşteri eksik adede razı oldu.'
-          : 'Paket talebi tam karşıladı.',
+          ? t('Talep kısmen karşılandı; müşteri eksik adede razı oldu.')
+          : t('Paket talebi tam karşıladı.'),
       alternativeChannelNote: `${CHANNEL_LABEL_TR[purchase.channel]} alış-satış farkıyla fiyatlandı.`,
     },
   };
@@ -2644,11 +2670,11 @@ function visitNote(outcome: VisitRecord['outcome'], volume: Money): string {
     case 'accepted':
       return `İşlem kapandı · ${fmt(volume)}`;
     case 'serviceBooked':
-      return 'Servis işi bırakıldı';
+      return t('Servis işi bırakıldı');
     case 'walkedOut':
-      return 'Sabrı bitti, çıkıp gitti';
+      return t('Sabrı bitti, çıkıp gitti');
     default:
-      return 'Anlaşma olmadı';
+      return t('Anlaşma olmadı');
   }
 }
 
@@ -2865,26 +2891,26 @@ function openingLine(customer: Customer): string {
   switch (customer.intent) {
     case 'sell':
       return customer.lineIds.length > 1
-        ? 'Birkaç parça getirdim, bakar mısınız?'
-        : 'Bunu bozdurmak istiyorum.';
+        ? t('Birkaç parça getirdim, bakar mısınız?')
+        : t('Bunu bozdurmak istiyorum.');
     case 'buy':
       // Talep spawn anında sabittir; müşteri ne aradığını ilk cümlede söyler
       // ki oyuncu stok seçimine bilgiyle girsin (GDD 23.23).
       return customer.demand
         ? `${customer.demand.summary} için geldim.`
-        : 'Bir şeye bakıyordum.';
+        : t('Bir şeye bakıyordum.');
     case 'service':
-      return 'Bunun tamiri mümkün mü?';
+      return t('Bunun tamiri mümkün mü?');
     case 'appraisal':
-      return 'Bunun değerini öğrenmek istiyorum.';
+      return t('Bunun değerini öğrenmek istiyorum.');
   }
 }
 
 function patienceComment(customer: Customer): string {
   const ratio = customer.patience / Math.max(1, customer.patienceMax);
-  if (ratio < 0.25) return 'Biraz acelem var, uzattık.';
-  if (ratio < 0.5) return 'Peki, bakın bakalım.';
-  return 'Buyurun, inceleyin.';
+  if (ratio < 0.25) return t('Biraz acelem var, uzattık.');
+  if (ratio < 0.5) return t('Peki, bakın bakalım.');
+  return t('Buyurun, inceleyin.');
 }
 
 // UI-only sequence: never consume the simulation RNG for notification IDs.

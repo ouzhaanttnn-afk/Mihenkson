@@ -51,8 +51,17 @@ const missing = [...keys.keys()].filter((k) => !dictKeys.has(k)).sort();
   düz dize olarak bulunması, o anahtarın kullanıldığına yeter.
 */
 const literal = [...sources.values()].join('\n');
+
+/*
+  ÜRETİLEN ADLAR. Yatırım bileziğinin adı şablon dizesiyle kuruluyor
+  (`22 Ayar İşçiliksiz Bilezik (${weight} g)`), yani kaynakta düz dize
+  olarak HİÇ geçmiyor. Sözlükte on ağırlığın hepsi elle duruyor ve doğru
+  yerde; "kullanılmıyor" diye raporlamak yanlış alarm olurdu.
+*/
+const URETILEN = /^22 Ayar İşçiliksiz Bilezik \(\d+ g\)$/;
+
 const unused = [...dictKeys]
-  .filter((k) => !keys.has(k) && !literal.includes(k))
+  .filter((k) => !keys.has(k) && !literal.includes(k) && !URETILEN.test(k))
   .sort();
 
 if (process.argv.includes('--json')) {

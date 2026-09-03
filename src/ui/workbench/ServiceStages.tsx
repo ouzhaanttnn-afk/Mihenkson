@@ -50,7 +50,7 @@ export function DiagnoseStage({ item, service }: { item: ItemInstance; service: 
           <ProductSilhouette kind={template.silhouette} size={78} />
         </span>
         <div className="svc__heroBody">
-          <h2 className="svc__title">{item.displayName}</h2>
+          <h2 className="svc__title">{t(item.displayName)}</h2>
           <p className="svc__meta">
             Kondisyon: {t(CONDITION_LABEL[item.truth.condition])}
             {diagnosis && diagnosis.targetCondition !== item.truth.condition && (

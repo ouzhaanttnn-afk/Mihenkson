@@ -31,7 +31,7 @@ import { useGame } from '@state/gameStore';
 import { IconStock, IconWarning, ProductSilhouette } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { NAV_ART, productArt } from '@ui/assets';
-import { grams, preciseGrams, pct, tl, tlBare, tlSigned } from '@ui/format';
+import { grams, moneyUnit, preciseGrams, pct, tl, tlBare, tlSigned } from '@ui/format';
 import type { InventoryPosition } from '@domain/types';
 import { WholesalerLiquidationList } from './WholesalerLiquidation';
 
@@ -278,10 +278,14 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
   */
   const minQty = templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1;
   const stepQty = 1;
-  const unitSuffix = templateId === 'gram_gold_1' ? 'g' : gramsPerUnit ? `× ${gramsPerUnit} g` : 'adet';
-  const maxLabel = templateId === 'gram_gold_1'
-    ? preciseGrams(max)
-    : `${max} ${gramsPerUnit ? 'bilezik' : 'adet'}`;
+  const unitSuffix =
+    templateId === 'gram_gold_1' ? 'g' : gramsPerUnit ? `× ${gramsPerUnit} g` : t('adet');
+  const maxLabel =
+    templateId === 'gram_gold_1'
+      ? preciseGrams(max)
+      : gramsPerUnit
+        ? t('{n} bilezik', { n: max })
+        : t('{n} adet', { n: max });
   const shift = (delta: number) => {
     const base = Number.isFinite(qty) ? qty : minQty;
     const next = Math.min(max, Math.max(minQty, base + delta));
@@ -301,22 +305,25 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
     s.buyPoolStock(templateId, qty);
     setQty(templateId === 'gram_gold_1' ? '1.0' : '1');
   };
-  return <section className="offerRow" aria-label={name}>
+  const ad = t(name);
+  return <section className="offerRow" aria-label={ad}>
     <div className="offerRow__head">
-      <span className="offerRow__name">{name}</span>
-      <span className="offerRow__unit num">{tlBare(unitQuote.unitPrice / (gramsPerUnit || 1))} TL/{gramsPerUnit ? 'g' : 'adet'}</span>
+      <span className="offerRow__name">{ad}</span>
+      <span className="offerRow__unit num">
+        {tlBare(unitQuote.unitPrice / (gramsPerUnit || 1))} {moneyUnit(gramsPerUnit ? 'g' : t('adet'))}
+      </span>
     </div>
     <div className="offerRow__meta">
-      Stokta {gramsPerUnit ? preciseGrams(held) : `${held} adet`}
-      {max > 0 && <> · en çok {maxLabel}</>}
+      {t('Stokta {miktar}', { miktar: gramsPerUnit ? preciseGrams(held) : t('{n} adet', { n: held }) })}
+      {max > 0 && <> {t('· en çok {sinir}', { sinir: maxLabel })}</>}
     </div>
     <div className="offerRow__controls">
-      <div className="qtyStep" role="group" aria-label={`${name} miktarı`}>
-        <button type="button" className="qtyStep__btn" aria-label={`${name} miktarını azalt`}
+      <div className="qtyStep" role="group" aria-label={t('{ad} miktarı', { ad })}>
+        <button type="button" className="qtyStep__btn" aria-label={t('{ad} miktarını azalt', { ad })}
           disabled={!Number.isFinite(qty) || qty <= minQty} onClick={() => shift(-stepQty)}>−</button>
         <input
           className="qtyStep__value num"
-          aria-label={`${name} miktarı`}
+          aria-label={t('{ad} miktarı', { ad })}
           type="number"
           inputMode="decimal"
           min={minQty}
@@ -327,7 +334,7 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
           onBlur={() => templateId === 'gram_gold_1' && setQty(formatGramAmount(amount))}
         />
         <span className="qtyStep__unit">{unitSuffix}</span>
-        <button type="button" className="qtyStep__btn" aria-label={`${name} miktarını artır`}
+        <button type="button" className="qtyStep__btn" aria-label={t('{ad} miktarını artır', { ad })}
           disabled={!space || !Number.isFinite(qty) || qty + stepQty > max} onClick={() => shift(stepQty)}>+</button>
       </div>
       <span className="offerRow__total num">{lot ? tl(lot.totalPrice) : '—'}</span>
@@ -372,7 +379,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
         <Art
           art={productArt(item.templateId, template.silhouette)}
           size={64}
-          alt={item.displayName}
+          alt={t(item.displayName)}
           className="art--onDark"
           fallback={<ProductSilhouette kind={template.silhouette} size={30} />}
         />
@@ -380,7 +387,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
 
       <div className="row__body">
         <div className="row__title">
-          {item.displayName}
+          {t(item.displayName)}
           {/* §4.1 — yığılmış sarrafiyede adet gizlenmez; maliyet ve değer
               toplamdır, tek parçanınki değil. */}
           <span className="row__qty num"> · {position.quantityMg === undefined ? `${position.quantity} adet` : preciseGrams(fromMg(position.quantityMg))}</span>
@@ -451,8 +458,9 @@ function StockRow({ position }: { position: InventoryPosition }) {
         </div>
 
         <div className="row__exitEstimate">
-          Bugünkü en hızlı çıkış: <strong>{liquidation.channel}</strong> · tahmini süre{' '}
-          {liquidation.time}. Beklemek daha iyi bir kanal açabilir.
+          {t('Bugünkü en hızlı çıkış:')} <strong>{t(liquidation.channel)}</strong>{' '}
+          {t('· tahmini süre {sure}.', { sure: liquidation.time })}{' '}
+          {t('Beklemek daha iyi bir kanal açabilir.')}
         </div>
 
         {/* Satır uyarısı — tek satır durum (GDD 23.15) */}

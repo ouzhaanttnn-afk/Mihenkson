@@ -85,14 +85,14 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
           <Art
             art={productArt(item.templateId, template.silhouette)}
             size={118}
-            alt={item.displayName}
+            alt={t(item.displayName)}
             className="art--onDark"
             fallback={<ProductSilhouette kind={template.silhouette} size={118} />}
           />
         </div>
 
         <div className="inspect__fields">
-          <h2 className="inspect__title">{item.displayName}</h2>
+          <h2 className="inspect__title">{t(item.displayName)}</h2>
 
           {/*
             İşlem Akışı Ara Düzeltmesi §3 — satırlar ÜRÜNE GÖRE türetilir,
@@ -109,7 +109,7 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
               label={t("Piyasa birim referansı")}
               value={`${tlBare(unitView.unitPrice)} ${unitView.unit}`}
               status="partial"
-              statusLabel="referans"
+              statusLabel={t('referans')}
             />
           )}
           {fields.includes('weight') && (
@@ -117,7 +117,9 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
               label={t("Ağırlık")}
               value={weightVerified ? grams(shownWeight) : `~${grams(shownWeight)}`}
               status={weightStatus}
-              statusLabel={isBullion(item.templateId) && weightStatus === 'partial' ? 'beyan' : undefined}
+              statusLabel={
+                isBullion(item.templateId) && weightStatus === 'partial' ? t('beyan') : undefined
+              }
             />
           )}
           {fields.includes('purity') && (
@@ -125,7 +127,9 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
               label={purityVerified ? 'Ayar' : t('Beyan ayarı')}
               value={t(KARAT_LABEL[shownKarat])}
               status={purityStatus}
-              statusLabel={isBullion(item.templateId) && purityStatus === 'partial' ? 'beyan' : undefined}
+              statusLabel={
+                isBullion(item.templateId) && purityStatus === 'partial' ? t('beyan') : undefined
+              }
             />
           )}
           {fields.includes('coreIntegrity') && (
@@ -209,7 +213,7 @@ function Field({
       <span className="field__label">{label}</span>
       <span className="field__value">
         <span className="num">{value}</span>{' '}
-        <span className={`status status--${status}`}>{statusLabel ?? STATUS_TEXT[status]}</span>
+        <span className={`status status--${status}`}>{t(statusLabel ?? STATUS_TEXT[status])}</span>
       </span>
     </div>
   );

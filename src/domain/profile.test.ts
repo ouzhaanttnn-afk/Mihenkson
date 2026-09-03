@@ -162,3 +162,33 @@ describe('profil bir OYUN MEKANİĞİ DEĞİLDİR', () => {
     }
   });
 });
+
+describe('dükkan adı ekinin dili', () => {
+  /*
+    Ek ARAYÜZDEN gelir; bu modül onu çevirmez. Profilin hiçbir şey import
+    etmemesi kuralı korunuyor, ama İngilizce arayüzde tabela da İngilizce
+    olabiliyor.
+  */
+  it('varsayılan ek Türkçedir — çağıran hiçbir şey vermediğinde', () => {
+    expect(shopDisplayName('Alvera')).toBe('Alvera Kuyumculuk');
+  });
+
+  it('çağıran başka bir ek verebilir', () => {
+    expect(shopDisplayName('Alvera', 'Jewellers')).toBe('Alvera Jewellers');
+  });
+
+  it('HER İKİ DİLİN EKİ DE TEMİZLENİR — ek iki kez eklenmez', () => {
+    expect(shopDisplayName('Alvera Kuyumculuk', 'Jewellers')).toBe('Alvera Jewellers');
+    expect(shopDisplayName('Alvera Jewellers', 'Kuyumculuk')).toBe('Alvera Kuyumculuk');
+    expect(shopDisplayName('Alvera Jewelers', 'Jewellers')).toBe('Alvera Jewellers');
+  });
+
+  it('KAYDA yalnız temel ad girer — dil değişimi dükkânın adını bozmaz', () => {
+    expect(normalizeShopBaseName('Alvera Jewellers')).toBe('Alvera');
+    expect(normalizeShopBaseName('Alvera Kuyumculuk')).toBe('Alvera');
+  });
+
+  it('boş adda çağıranın verdiği varsayılan kullanılır', () => {
+    expect(shopDisplayName('', 'Jewellers', 'Jeweller')).toBe('Jeweller Jewellers');
+  });
+});

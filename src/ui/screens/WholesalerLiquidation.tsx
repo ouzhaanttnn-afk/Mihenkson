@@ -65,7 +65,7 @@ function WholesalerLiquidationRow({
     <div className="lotRow">
       <div className="lotRow__head">
         <span className="lotRow__name">
-          {item.displayName}
+          {t(item.displayName)}
           {position.quantity > 1 && ` · stokta ${position.quantity}`}
         </span>
         <span className="lotRow__price num">{tl(quote.gross)}</span>
