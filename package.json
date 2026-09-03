@@ -12,14 +12,23 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
     "i18n": "node tools/i18n-keys.mjs",
-    "i18n:audit": "node tools/i18n-audit.mjs"
+    "i18n:audit": "node tools/i18n-audit.mjs",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:open:ios": "npx cap open ios",
+    "cap:open:android": "npx cap open android",
+    "cap:assets": "npx capacitor-assets generate"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/ios": "^8.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.1",
     "@types/node": "^22.20.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

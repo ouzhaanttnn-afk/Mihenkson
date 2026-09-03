@@ -1615,6 +1615,78 @@ Suite 977, aynı sayıda test, davranış farklı. `tsc` temiz.
 turda zaten üretildi) veya native paketleme bu kapsamın dışında bırakıldı, kullanıcı
 "canlı demo cilası"nı seçtiği için.
 
+#### YENİ · Capacitor iskelesi + tüm ikon/splash varlıkları — ✅ YAPILDI
+`capacitor.config.ts` (yeni) · `ios/` (yeni) · `android/` (yeni) · `assets/` (yeni) ·
+`public/manifest.webmanifest` · `store/README.md` · `store/*/checklist.md` · `store/assets/eksikler.md`
+
+Kullanıcı: *"App store ve playstore için gerekli olan hazırlıkları başlatalım."* Önceki
+turda ("Hazırlıklara başla") bilerek ERTELENMİŞ tek kalemdi — gerekçe "bu ortamda Xcode/
+Android Studio yok, kör bir iskele bırakmak yanlış olur" idi. Kullanıcı yine de başlatmayı
+istedi; iskele KENDİSİ (npm paketleri, `ios/`/`android/` klasörleri, ikon/splash üretimi)
+Xcode/Android Studio GEREKTİRMEDEN yapılabilir — yalnız SON derleme/imzalama adımı
+gerektiriyor. Bu ayrım netleştirilip iskele kısmı tamamlandı, derleme kısmı hâlâ
+kullanıcının kendi makinesinde.
+
+**Kuruldu:** `@capacitor/core`, `@capacitor/ios`, `@capacitor/android`, `@capacitor/cli`,
+`@capacitor/assets`. `npx cap init` + `cap add ios` + `cap add android` — gerçek, açılabilir
+native projeler oluştu (boş şablon değil). `vite.config.ts`'in `base: './'` ayarı ("Capacitor/
+WebView paketlemesi için göreli asset yolları" — önceden bilerek bırakılmıştı) tam burada
+işe yaradı, ek bir değişiklik gerekmedi.
+
+**Tuzak — Capacitor CLI'nin TS yükleyicisi.** `capacitor.config.ts`'e Türkçe karakterli bir
+JSDoc blok yorumu eklenince `npx cap add ios` "Unexpected end of input" diye çöktü — CLI'nin
+TS'i tam derlemek yerine hafif bir strip-yorumu kullandığı, belirli blok-yorum içeriklerinde
+(muhtemelen `*/` benzeri bir dizi veya unicode kombinasyonu) tökezlediği anlaşıldı. Çözüm:
+blok yorum yerine düz `//` satırları — sorunsuz çalıştı. Konfig dosyası, `appId`'nin GEÇİCİ
+olduğunu ve yayından önce kesinleşmesi gerektiğini bu satırlarla anlatıyor.
+
+**`appId` bilerek uydurulmadı, ama tamamen boş da bırakılmadı:** `com.mihenkaynak.app` —
+gerçek şirket/geliştirici kimliği netleşene kadar geçerli bir GEÇİCİ değer (teknik olarak
+çalışan bir tersine-alan-adı, gerçek bir yasal/ticari kimlik iddiası taşımıyor). Hem
+`capacitor.config.ts` hem üç checklist dosyası bunun yayından ÖNCE kesinleştirilmesi
+gerektiğini (sonra pratikte imkânsız olduğunu) açıkça yazıyor — `[DOLDURULACAK]` deseniyle
+aynı ruhta, yalnız iskelenin çalışması için teknik bir değere ihtiyaç vardı.
+
+**İkon/splash zinciri — tek kaynaktan, uçtan uca:**
+- `assets/icon.png` ← önceki turda üretilmiş `icon-1024-appstore.png`'nin kopyası (1024×1024,
+  RGB, alfasız — zaten ölçülmüştü).
+- `assets/icon-background.png` ← düz `--ink-900` (#0b0f14) dolgusu, PIL ile üretildi.
+- `assets/splash.png` ← ink-900 zemin üzerinde ortalanmış amblem, 2732×2732, PIL ile üretildi
+  ve gözle kontrol edildi (kenarlar kaynaşıyor, dikiş yok — ikonun kendi ink kenar rengiyle
+  splash zemini birebir aynı).
+- `npx capacitor-assets generate` bu üçünden **105 Android + 10 iOS dosyası** üretti: her
+  yoğunluk için launcher ikonu, adaptive icon ön/arka plan katmanı, açık/koyu splash, portre/
+  yatay varyantlar. Hepsi doğrudan `ios/`/`android/` içine yerleşti.
+
+**Android adaptive ikon — önceki turda "riskli, denenmedi" denen madde çözüldü, ama
+gerçek bir kesim değil.** Araç, amblemi zeminden alfa ile ayırmaya ÇALIŞMADI (bu hâlâ
+mümkün değil, katmanlı kaynak yok) — bunun yerine düz kareyi doğrudan "ön plan" yaptı,
+Android'in kendi maskesi (daire/squircle) onu kırpıyor. Bu, tek-katmanlı bir ikondan
+adaptive ikon üretmenin standart ve güvenli yolu — riskli bir "arka planı otomatik sil"
+denemesi değil. `ic_launcher_foreground.png` ve `_background.png` çıktıları gözle kontrol
+edildi, temiz.
+
+**Yan bulgu — kırık bir referans, kastan değil düzeltildi.** `public/manifest.webmanifest`
+`assets/icons/icon-*.webp` yollarına işaret ediyordu ama `public/assets/icons/` klasörü hiç
+var olmamıştı (`git log` ile doğrulandı — hiç iz yok) — yani PWA olarak "Ana ekrana ekle"
+diyen biri kırık ikonlar görürdü. `capacitor-assets generate` bu klasörü de (PWA hedefi
+olarak) doldurdu, referans artık gerçek dosyalara işaret ediyor. Ayrıca manifestteki
+`"type": "image/png"` alanı gerçek `.webp` dosyalarıyla uyuşmuyordu (önceden de böyleydi) —
+`image/webp` olarak düzeltildi, aynı satırda fark edildiği için.
+
+**Testler:** kod tarafına dokunulmadı (yalnız `manifest.webmanifest`'teki MIME düzeltmesi,
+davranışsal etkisi yok). Suite 977, aynı. `tsc` temiz, `npm run i18n` 877/877.
+
+**Doğrulama:** her üretilen görsel `python3`/PIL ile boyut+mod ölçüldü; `git status -n` ile
+`ios/`/`android/`'in kendi `.gitignore`'larının derleme çıktısını (`build/`, `Pods/`,
+`DerivedData`) gerçekten dışladığı doğrulandı — yalnız kaynak/konfig dosyaları depoya giriyor.
+Taze `npm run build` + `npx cap sync` sorunsuz.
+
+**Bilerek dokunulmayan — kullanıcının kendi makinesinde:** gerçek Xcode/Android Studio
+derlemesi, imzalama sertifikası/keystore üretimi, TestFlight/internal-testing yüklemesi.
+`store/README.md`'ye adım adım (paket adını kesinleştir → `npm run cap:sync` → Xcode/Android
+Studio aç → imzala) bir kılavuz eklendi.
+
 ---
 
 ### B. Tasarım ve oynanış önerileri

@@ -16,11 +16,13 @@ Bu klasörün işi o adımlara gelene kadarki her şeyi hazır bulundurmak.
 | Parça | Durum |
 |---|---|
 | Web uygulaması (kod) | ✅ Hazır — bkz. `DEVIR_VE_IYILESTIRME_PAKETI.md` |
-| iOS/Android native derleme (Capacitor vb.) | ❌ Hiç kurulmadı |
+| iOS/Android native proje iskelesi (Capacitor) | ✅ Kuruldu — depo kökünde `ios/`, `android/`; **derleme/imzalama senin makinende, aşağıda** |
 | 1024×1024 App Store ikonu (alfasız) | ✅ Üretildi — `assets/generated/icon-1024-appstore.png` |
-| Android adaptive ikon (ön/arka plan katmanı) | ❌ Yok — kaynak sanat eserinde şeffaf/katmanlı bir versiyon yok, otomatik kesim riskli (bkz. `assets/eksikler.md`) |
+| Android adaptive ikon (ön/arka plan katmanı) | ✅ Üretildi — `@capacitor/assets` ile, düz ikonu güvenli-alan mantığıyla katmanladı (gerçek bir alfa kesimi değil — bkz. `assets/eksikler.md`) |
+| iOS/Android uygulama ikonları (tüm yoğunluklar) + splash ekranı | ✅ Üretildi — `assets/icon.png`, `assets/splash.png` kaynağından, `ios/` ve `android/` içine yerleştirildi |
 | Play Store öne çıkan görsel (1024×500) | ✅ Üretildi — `assets/generated/feature-graphic-1024x500.png` |
 | Mağaza ekran görüntüleri | ✅ 4 adet, gerçek cihaz çözünürlüğünde (1290×2796) — `assets/generated/screenshots/` |
+| Bundle ID / paket adı | 🟡 GEÇİCİ yer tutucu — `com.mihenkaynak.app` (`capacitor.config.ts`) — yayından önce kesinleşmeli, bkz. aşağıda |
 | Gizlilik politikası | 🟡 Taslak hazır (`legal/gizlilik-politikasi.md`) — barındırılacak bir URL gerekiyor |
 | Kullanım şartları | 🟡 Taslak hazır (`legal/kullanim-sartlari.md`) |
 | Apple Developer hesabı | ❓ Sende — bu oturumun bilgisi yok |
@@ -38,6 +40,11 @@ Bu klasörün işi o adımlara gelene kadarki her şeyi hazır bulundurmak.
 - `legal/gizlilik-politikasi.md` — Taslak; kodun bugünkü hâlini dürüstçe anlatıyor (bkz. aşağıda).
 - `legal/kullanim-sartlari.md` — Taslak.
 
+**Depo köküne de eklenenler** (bu dosyanın konumu `store/` olduğu için ayrıca not
+düşülüyor): `capacitor.config.ts`, `ios/`, `android/` (native proje iskeleleri) ve
+`assets/` (`icon.png`, `icon-background.png`, `splash.png` — `@capacitor/assets`'in
+kaynak dosyaları, `npm run cap:assets` ile yeniden üretilebilir).
+
 ## Gizlilik politikası neden "dürüstçe" diyor
 
 Kodda tarandı: **oyun hiçbir sunucuya veri göndermiyor.** Tek ağ isteği paket
@@ -48,24 +55,41 @@ hesap/kayıt sistemi eklendiğinde bu doküman güncellenmeli** — o an gerçek
 bir veri toplama başlayacak (en azından e-posta/hesap kimliği), aksi hâlde
 politika yalan söylemiş olur.
 
-## Sıradaki adım — kararını bekliyor
+## Native paketleme — ne yapıldı, ne senin elinde
 
-1. **Native paketleme.** Bu bir web uygulaması (Vite + React); mağazaya
-   çıkmak için Capacitor (önerilir, `vite.config.ts` zaten göreli yollarla
-   buna hazır) ya da benzer bir sarmalayıcı kurulmalı. **Bilerek yapmadım:**
-   bu ortamda Xcode/Android Studio yok, yani bir iskele kursam bile onu
-   gerçekten derleyip test edemem — kör bir yapılandırma bırakmak, "hazır"
-   görünüp aslında doğrulanmamış bir şey teslim etmek olurdu. İstersen
-   yine de iskeleyi kurayım (npm paketleri + `ios/`/`android/` klasörleri,
-   additive ve geri alınabilir) ama son derleme/imzalama adımı Xcode/Android
-   Studio olan bir makinede senin elinle doğrulanmalı.
-2. **Android adaptive ikon.** Kaynak sanat eserinde (`mihenkaynak_mark_secondary.png`)
-   amblem, arka plandan (krem kart + koyu mürekkep zemin) hiçbir zaman
-   şeffaf olarak ayrılmamış — otomatik bir "arka planı sil" denemesi
-   yumuşak gölgeli, 3B-görünümlü bir logoda pürüzlü/hatalı bir kesim
-   üretme riski taşıyordu, o yüzden denemedim. Gerçek bir katmanlı kaynak
-   (ör. amblemin şeffaf PNG'si) sağlanırsa buradan iki katman (ön plan +
-   arka plan, 512×512) üretmek hızlı bir iş.
-3. **Apple/Google hesap bilgileri.** Bu doküman bilerek `[DOLDURULACAK]`
-   bıraktığım yerler taşıyor — şirket/geliştirici adı, destek e-postası,
-   destek URL'si gibi. Ben bunları uydurmadım.
+**Kuruldu:** Capacitor (`@capacitor/core`, `@capacitor/ios`, `@capacitor/android`,
+`@capacitor/cli`, `@capacitor/assets`). `capacitor.config.ts` depo kökünde. `ios/` ve
+`android/` klasörleri gerçek, açılabilir native projeler — boş iskelet değil, uygulama
+ikonları ve splash ekranları da içine yerleştirilmiş durumda (`npm run cap:assets` ile
+`assets/icon.png` + `assets/splash.png`'den üretildi).
+
+**Bilerek YAPILMADI — gerçek derleme.** Bu ortamda Xcode ve Android Studio yok; bir
+derleme/imza adımını kör bir şekilde "tamamladım" demek, hiç doğrulanmamış bir şeyi
+hazır göstermek olurdu. Sıradaki adım **senin makinende**:
+
+1. `git pull` ile depoyu çek, `npm install` çalıştır.
+2. **Paket adını (bundle ID) kesinleştir.** Şu an `capacitor.config.ts`'de
+   `com.mihenkaynak.app` yazıyor — **geçici bir yer tutucu**, gerçek şirket/geliştirici
+   kimliğin netleşince değiştirilmeli (`store/*/checklist.md`'deki `[DOLDURULACAK]`
+   ile aynı boşluk). Yayından ÖNCE değiştirmek bedava; yayından SONRA pratikte
+   imkânsız — o yüzden ilk gerçek derlemeden önce kesinleştirilmesi şart.
+3. `npm run cap:sync` (derler + `ios/`/`android/`'i günceller).
+4. iOS: `npm run cap:open:ios` → Xcode açılır → imzalama takımını (Apple Developer
+   hesabın) seç → cihazında veya TestFlight'ta dene.
+5. Android: `npm run cap:open:android` → Android Studio açılır → keystore üret
+   (**güvenli bir yere yedekle** — kaybedilirse uygulama bir daha güncellenemez) →
+   internal testing kanalına yükle.
+
+**Android adaptive ikon — çözüldü, ama not düşülmeli.** `@capacitor/assets` düz
+1024×1024 ikonu (`assets/icon.png`) doğrudan "ön plan katmanı" olarak kullandı ve
+arka planı `assets/icon-background.png` (marka `--ink-900` rengi) ile doldurdu —
+bu, amblemi zeminden gerçek bir alfa kesimiyle AYIRMIYOR (öyle bir kaynak hâlâ yok),
+ama riskli bir "arka planı otomatik sil" denemesi de değil: yalnız var olan kareyi
+güvenli-alan içinde konumlandırıp maskeye bırakıyor. Sonuç (`android/app/src/main/res/
+mipmap-*/ic_launcher*.png`) gözle kontrol edildi, temiz görünüyor. Gerçek katmanlı bir
+kaynak (amblemin şeffaf PNG'si) sağlanırsa daha keskin bir adaptive ikon üretilebilir.
+
+## Apple/Google hesap bilgileri
+
+Bu doküman bilerek `[DOLDURULACAK]` bıraktığım yerler taşıyor — şirket/geliştirici adı,
+destek e-postası, destek URL'si gibi. Ben bunları uydurmadım.

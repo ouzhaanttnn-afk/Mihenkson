@@ -5,23 +5,32 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 ## 1. Hesap ve kimlik
 - [ ] Play Console hesabı açık, geliştirici profili tamamlandı
 - [ ] Yeni uygulama kaydı oluşturuldu
-- [ ] Paket adı (application ID) belirlendi — örnek:
-      `com.[şirket].mihenkaynak` — `[DOLDURULACAK]`, bu depoda henüz yok
+- [ ] Paket adı (application ID) kesinleştirildi — `capacitor.config.ts`'de şu an
+      **GEÇİCİ** `com.mihenkaynak.app` yazıyor; gerçek şirket/geliştirici kimliğin
+      netleşince değiştirilmeli (bkz. `../README.md`). Yayından önce değiştirmek
+      bedava, sonra pratikte imkânsız.
 
 ## 2. Native derleme
-- [ ] Capacitor (veya eşdeğeri) kuruldu — bu depoda **henüz yok**
-- [ ] `android/` Gradle projesi oluşturuldu
+- [x] Capacitor kuruldu — `@capacitor/core`, `@capacitor/android`, `@capacitor/cli`
+- [x] `android/` Gradle projesi oluşturuldu (`npx cap add android`) — depoda,
+      `npm run cap:open:android` ile açılır
+- [x] Uygulama ikonu (tüm yoğunluklar) + splash ekranı yerleştirildi
+      (`@capacitor/assets`)
+- [ ] Paket adı kesinleşince `npm run cap:sync` ile yeniden senkronize et
 - [ ] İmzalama anahtarı (keystore) üretildi ve **güvenli bir yere yedeklendi**
-      (kaybedilirse uygulama bir daha güncellenemez)
+      (kaybedilirse uygulama bir daha güncellenemez) — **bu ortamda Android
+      Studio yok, senin makinende yapılmalı**
 - [ ] App Bundle (.aab) internal testing kanalına yüklendi ve kendi
       cihazında denendi
 
 ## 3. Görseller (bkz. `../assets/eksikler.md`)
 - [x] Uygulama ikonu 512×512 (32-bit PNG, alfa **olabilir**) — mevcut
       `public/assets/brand/icon-512.png` bu boyutta, doğrudan kullanılabilir
-- [ ] Adaptive icon: ön plan + arka plan katmanı ayrı — **hâlâ yok**,
-      kaynak sanat eserinde şeffaf/katmanlı bir versiyon bulunmuyor;
-      otomatik kesim denenmedi (risk — bkz. `../README.md`)
+- [x] Adaptive icon: ön plan + arka plan katmanı — üretildi
+      (`android/app/src/main/res/mipmap-*/ic_launcher_foreground.png` /
+      `_background.png`). **Not:** gerçek bir alfa kesimi değil — düz ikon
+      güvenli-alan içinde ön plana, marka rengi arka plana konuldu (bkz.
+      `../README.md`); gözle kontrol edildi, temiz görünüyor.
 - [x] Öne çıkan görsel (feature graphic) 1024×500 — üretildi:
       `../assets/generated/feature-graphic-1024x500.png`
 - [x] Telefon ekran görüntüleri — en az 2, en çok 8 (16:9 veya 9:16) —

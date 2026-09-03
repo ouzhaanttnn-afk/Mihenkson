@@ -19,6 +19,7 @@
 | `icon-1024-appstore.png` | 1024×1024, **RGB, alfasız** — ölçüldü | Kaynak: mevcut `icon-512.png` (alfası zaten 100% opak — ölçüldü, `min=max=255` — ama PNG **modu** hâlâ RGBA'ydı ve Apple'ın yükleyicisi bunu reddediyor). Lanczos ile 2× büyütüldü, alfa kanalı düşürüldü. **Not:** kaynak sanat eserinde "MIHENKAYNAK" yazısı ve "TRADE·COLLECT·PROSPER" alt başlığı ikonun içine gömülü — küçük boyutlarda (mağaza aramasında 60px'e kadar küçülür) bu metin okunmaz hale gelir; bu bir teknik format düzeltmesi, bir yeniden tasarım değil — istersen metinsiz, amblem-only bir versiyon ayrıca üretilebilir. |
 | `feature-graphic-1024x500.png` | 1024×500, RGB | Sıfırdan tasarlandı: HTML+Playwright ile render edildi, önce küçük denemelerle (metin taşması vb.) gözle kontrol edildi. Marka paletinden (`--ink-900`, `--brass-400/500`) renkler, köşede mevcut ikon, "MİHENKAYNAK" başlığı + kısa slogan. |
 | `screenshots/01-dukkan.png` … `04-atolye.png` | 1290×2796, RGB (iPhone 6.7" fiziksel çözünürlüğü) | Playwright, `viewport 430×932` + `deviceScaleFactor 3` — uygulamanın kendi `max-width:430px` tasarım tavanıyla birebir örtüşüyor, hiç yatay boşluk/kırpma yok. Gerçek oynanıştan: Dükkan (bekleyen müşteri + alınan sarrafiye bildirimleri), Stok (4 kalem envanter), İşletme (finans özeti), Atölye. Konsol hatası yok, doğrulandı. |
+| `/assets/icon.png`, `/assets/icon-background.png`, `/assets/splash.png` (depo kökü) | 1024×1024 / 1024×1024 / 2732×2732 | `@capacitor/assets`'in kaynak dosyaları — `icon.png` = `icon-1024-appstore.png`'nin kopyası, `icon-background.png` = düz `--ink-900` dolgusu, `splash.png` = aynı ink zemin üzerinde ortalanmış amblem (PIL ile birleştirildi). `npx capacitor-assets generate` bunlardan iOS/Android'in TÜM ikon yoğunluklarını ve splash varyantlarını (açık/koyu, portre/yatay) üretti — `ios/App/App/Assets.xcassets/`, `android/app/src/main/res/mipmap-*/` ve `drawable*/` altına. |
 
 **Denendi, vazgeçildi — pazarlık/inceleme ekranı.** Beşinci, daha "satış
 yapan" bir görüntü olarak müşteri inceleme/pazarlık ekranını da yakalamayı
@@ -34,9 +35,22 @@ karede bıraktım. İstersen ayrı bir turda yeniden denerim.
 |---|---|---|
 | iPhone 6.5" ekran görüntüleri | 1284×2778 | Apple bazı durumlarda ister — 6.7" setiyle aynı yöntemle (viewport 428×926, dsf 3) kolayca üretilebilir, istenirse |
 
-## Eksik — Play Store
+## Play Store — Adaptive icon çözüldü, ama gerçek kesim değil
 
-| Varlık | Gereken boyut | Not |
-|---|---|---|
-| Adaptive icon — ön plan katmanı | 512×512, şeffaf zemin | Amblemin zeminden ayrık, tek başına kesilmiş hâli gerekiyor — kaynak sanat eserinde böyle bir katman yok, otomatik kesim (renk eşiğiyle arka planı silme) 3B-gölgeli bir logoda pürüzlü sonuç riski taşıdığı için denenmedi (bkz. `store/README.md` "Sıradaki adım") |
-| Adaptive icon — arka plan katmanı | 512×512, düz/desenli | Yukarıdakiyle aynı sebep — ön plan yoksa arka plan tek başına anlamsız |
+Önceki turda burada "eksik" olarak listeliydi çünkü kaynak sanat eserinde amblemi
+zeminden ayıran gerçek bir alfa katmanı yok, ve otomatik "arka planı sil" (renk
+eşiğiyle) 3B-gölgeli bir logoda pürüzlü sonuç riski taşıyordu.
+
+**Ne değişti:** `@capacitor/assets`, riski olan bir kesim DENEMEDİ — bunun yerine
+düz `icon.png`'yi doğrudan "ön plan katmanı" yaptı ve `icon-background.png`'yi
+(marka `--ink-900`'ü) arka plan yaptı. Android bu ikisini kendi maskesiyle (daire/
+squircle/vb.) birleştiriyor; ön plandaki kare kenarları maskeye kırpılıyor, tıpkı
+tek-katmanlı bir ikonun launcher'da her zaman yaptığı gibi. Bu, ayrı bir sanat
+eseri olmadan **standart ve güvenli** bir düşüş noktası — birçok küçük stüdyo
+tam olarak bunu yapıyor. Çıktı (`android/app/src/main/res/mipmap-*/ic_launcher*.png`)
+gözle kontrol edildi, temiz.
+
+**Hâlâ eksik olan:** gerçek bir katmanlı kaynak (amblemin kendi başına, şeffaf
+zeminli bir PNG'si) sağlanırsa, ön plan yalnız amblemi taşır ve maske ile
+kırpıldığında daha keskin/daha "adaptive" bir sonuç verir — ama bu şu an
+elimizdeki sanat eserinden türetilemiyor, ayrı bir görsel üretim işi.

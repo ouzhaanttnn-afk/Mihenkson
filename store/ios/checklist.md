@@ -6,14 +6,20 @@ senin yerine atamaz. Sırayla:
 ## 1. Hesap ve kimlik
 - [ ] Apple Developer Program üyeliği aktif (developer.apple.com)
 - [ ] App Store Connect'te yeni uygulama kaydı açıldı
-- [ ] Bundle ID belirlendi — örnek: `com.[şirket].mihenkaynak`
-      `[DOLDURULACAK]` — bu depoda henüz bir bundle ID tanımlı değil.
+- [ ] Bundle ID kesinleştirildi — `capacitor.config.ts`'de şu an **GEÇİCİ**
+      `com.mihenkaynak.app` yazıyor; gerçek şirket/geliştirici kimliğin
+      netleşince değiştirilmeli (bkz. `../README.md`). Yayından önce
+      değiştirmek bedava, sonra pratikte imkânsız.
 - [ ] SKU (iç referans kodu) belirlendi
 
 ## 2. Native derleme
-- [ ] Capacitor (veya eşdeğeri) kuruldu — bu depoda **henüz yok**
-- [ ] `ios/` Xcode projesi oluşturuldu
-- [ ] İmzalama sertifikası + provisioning profile Xcode'da tanımlı
+- [x] Capacitor kuruldu — `@capacitor/core`, `@capacitor/ios`, `@capacitor/cli`
+- [x] `ios/` Xcode projesi oluşturuldu (`npx cap add ios`) — depoda,
+      `npm run cap:open:ios` ile açılır
+- [x] Uygulama ikonu + splash ekranı yerleştirildi (`@capacitor/assets`)
+- [ ] Bundle ID kesinleşince `npm run cap:sync` ile yeniden senkronize et
+- [ ] İmzalama sertifikası + provisioning profile Xcode'da tanımlı — **bu
+      ortamda Xcode yok, senin makinende yapılmalı**
 - [ ] TestFlight'a ilk derleme yüklendi ve kendi cihazında denendi
 
 ## 3. Görseller (bkz. `../assets/eksikler.md`)
