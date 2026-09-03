@@ -33,7 +33,19 @@ beforeEach(() => {
     removeItem: (k: string) => data.delete(k),
   });
   useGame.setState(
-    { ...initial, settingsOpen: false, seenLessons: [], preferences: defaultPreferences() },
+    {
+      ...initial,
+      settingsOpen: false,
+      seenLessons: [],
+      preferences: defaultPreferences(),
+      /*
+        Testte hiç kayıt yok, o yüzden mağaza "ilk açılış" hâlinde doğar ve
+        karşılama ekranı da saati durdurur (§4). Buradaki konu ayarlar
+        penceresi olduğundan o ekran geçilmiş sayılır; aksi halde test,
+        ölçmek istediği donmayı yanlış sebeple ölçerdi.
+      */
+      profileSetupDone: true,
+    },
     true,
   );
 });

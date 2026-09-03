@@ -151,7 +151,15 @@ import {
   toolWithSkillBonuses,
   type SkillProgress,
 } from '@domain/skill-tree';
-import { clearSave, persistPreferences, persistProfile, readSave, writeSave } from './save';
+import {
+  clearSave,
+  persistPreferences,
+  persistProfile,
+  readSave,
+  resumeSaves,
+  suspendSaves,
+  writeSave,
+} from './save';
 import type { SoundId } from '@ui/audio';
 import type {
   ActiveDeal,
@@ -245,6 +253,11 @@ export interface GameState {
   preferences: PlayerPreferences;
   /** Profil düzenleme penceresi açık mı (yalnız arayüz durumu). */
   profileOpen: boolean;
+  /**
+   * İlk açılış ekranı (ad + portre) tamamlandı mı. Kayda YAZILIR: oyuncuya
+   * bir kez sorulur.
+   */
+  profileSetupDone: boolean;
   /**
    * Ayarlar penceresi açık mı (yalnız arayüz durumu).
    *
@@ -361,6 +374,8 @@ export interface GameState {
   updateProfile: (next: { jewelerName: string; avatarId: string }) => boolean;
   openProfile: () => void;
   closeProfile: () => void;
+  /** İlk açılış ekranını tamamlar: profili yazar ve bir daha sormaz. */
+  completeProfileSetup: (next: { jewelerName: string; avatarId: string }) => boolean;
   openSettings: () => void;
   closeSettings: () => void;
   /** Tek bir sunum tercihini değiştirir ve anında kalıcı kılar. */
@@ -496,6 +511,12 @@ export const useGame = create<GameState>((set, get) => {
     seenLessons: [],
     settingsOpen: false,
     profile: defaultProfile(),
+    /*
+      HİÇ KAYIT YOKSA yeni oyundur → ekran gösterilir. Kayıt varsa
+      `deserialize` bu alanı taşır ve eksikse `true`ya düşer (bkz. save.ts):
+      zaten oynamış oyuncuya hoş geldin ekranı çıkmaz.
+    */
+    profileSetupDone: restored ? (restored.profileSetupDone ?? true) : false,
     playerMarket: defaultPlayerMarket(),
     skillProgress: defaultSkillProgress(),
     preferences: defaultPreferences(),
@@ -614,6 +635,22 @@ export const useGame = create<GameState>((set, get) => {
     openProfile: () => set({ profileOpen: true }),
     closeProfile: () => set({ profileOpen: false }),
 
+    /*
+      `updateProfile` ile aynı doğrulamayı kullanır — ad kuralı tek yerde
+      kalsın diye. Fark yalnız bayrağın yazılması ve balonun çıkmaması:
+      oyuncu daha oyuna girmeden "güncellendi" bildirimi görmemeli.
+    */
+    completeProfileSetup: (next) => {
+      const check = checkJewelerName(next.jewelerName);
+      if (!check.ok) return false;
+      set({
+        profile: { jewelerName: check.value, avatarId: normalizeAvatarId(next.avatarId) },
+        profileSetupDone: true,
+      });
+      persistProfile(get());
+      return true;
+    },
+
     openSettings: () => set({ settingsOpen: true }),
     closeSettings: () => set({ settingsOpen: false }),
 
@@ -683,6 +720,9 @@ export const useGame = create<GameState>((set, get) => {
       // günün ve müşteri kuyruğunun ilerlemesi cezaya dönüşmemeli.
       // §4 — modal açıkken oyun zamanı durur. Oyuncu ayarlara bakarken
       // saatin işlemesi, kuyruğun ilerlemesi ve günün akması cezaya dönerdi.
+      // İlk açılış ekranı da bir modaldır: oyuncu adını ve portresini seçerken
+      // gün akmaya başlamamalı — daha dükkâna girmeden müşteri kaçırmasın.
+      if (!s.profileSetupDone) return;
       if (s.profileOpen || s.settingsOpen || s.dayCloseConfirmOpen || s.dayReportOpen) return;
       // Aktif pazarlık sırasında saat ilerlemez: oyuncu düşünürken müşteri
       // sabrı gerçek zamanla erimez (GDD 11 — refleks oyunu değildir).
@@ -2130,6 +2170,8 @@ export const useGame = create<GameState>((set, get) => {
     loadGame: () => {
       const loaded = readSave();
       if (!loaded) return false;
+      // Oyuncu devam etmeyi seçti: "Kaydı sil"den kalan yazma kilidi kalkar.
+      resumeSaves();
       set(loaded);
       pushToast(set, get, `Kayıt yüklendi · Gün ${loaded.market.day}`, 'info');
       return true;
@@ -2137,6 +2179,13 @@ export const useGame = create<GameState>((set, get) => {
 
     resetGame: () => {
       clearSave();
+      /*
+        SİLMEK YETMİYOR. Ekrandaki oyun kapanmıyor ve otomatik kayıt
+        (App.tsx · pagehide/flush) sayfa kapanırken dosyayı aynı durumdan
+        geri yazıyordu — tarayıcıda ölçüldü. Kilit olmadan bu satırın
+        altındaki söz, "yeni oyun bir sonraki açılışta başlar", tutmuyordu.
+      */
+      suspendSaves();
       pushToast(set, get, 'Kayıt silindi. Yeni oyun bir sonraki açılışta başlar.', 'info');
     },
 

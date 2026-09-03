@@ -40,6 +40,8 @@ export function App() {
   const dismissToast = useGame((s) => s.dismissToast);
   const profile = useGame((s) => s.profile);
   const profileOpen = useGame((s) => s.profileOpen);
+  const profileSetupDone = useGame((s) => s.profileSetupDone);
+  const completeProfileSetup = useGame((s) => s.completeProfileSetup);
   const closeProfile = useGame((s) => s.closeProfile);
   const updateProfile = useGame((s) => s.updateProfile);
   const workshopAttention = useGame((s) => {
@@ -203,6 +205,28 @@ export function App() {
             profile={profile}
             onCancel={closeProfile}
             onSave={updateProfile}
+          />
+        )}
+
+        {/*
+          İLK AÇILIŞ — ad ve portre.
+
+          Oyunun ilk ekranı budur; oyuncu kendini tanıtmadan tezgâhın
+          arkasına geçmez. Yalnız HİÇ KAYIT YOKKEN çıkar: kaydı olan oyuncuda
+          `profileSetupDone` true gelir (eski kayıtlarda alan eksikse de
+          `true`ya düşer — bkz. save.ts), yani zaten oynamış birine hoş geldin
+          ekranı gösterilmez.
+
+          Profil penceresiyle aynı anda açılamaz: bu ekran kapanmadan oyuna
+          girilmiyor, dolayısıyla profil penceresini açacak düğmeye de
+          ulaşılamıyor.
+        */}
+        {!profileSetupDone && (
+          <ProfileDialog
+            profile={profile}
+            mode="welcome"
+            onCancel={() => undefined}
+            onSave={completeProfileSetup}
           />
         )}
 

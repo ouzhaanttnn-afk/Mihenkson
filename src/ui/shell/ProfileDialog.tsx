@@ -11,7 +11,8 @@
  *
  * ERİŞİLEBİLİRLİK:
  *  - role="dialog" + aria-modal, başlıkla ilişkilendirilmiş.
- *  - Escape kapatır, dış tıklama kapatır.
+ *  - Escape kapatır, dış tıklama kapatır (karşılama kipinde İKİSİ DE yok:
+ *    oyuncu henüz kendini tanıtmadı, kapatılacak bir önceki hâl yok).
  *  - Açılışta odak ad alanına gider; Tab pencerede döner (odak tuzağı) —
  *    aksi halde klavye kullanıcısı arkadaki oyun ekranına düşerdi.
  *  - Avatar ızgarası bir radio grubudur: TEK tab durağı vardır ve seçim ok
@@ -34,13 +35,31 @@ import { IconTrust } from '@ui/icons';
 
 interface Props {
   profile: PlayerProfile;
+  /**
+   * `welcome`: oyunun ilk açılışı. Aynı pencere, farklı çerçeve — iptal ve
+   * dış tıklamayla kapatma YOKTUR, çünkü kapatılacak bir "önceki hâl" yok:
+   * oyuncu henüz kendini tanıtmadı.
+   *
+   * AD ALANI BOŞ AÇILIR. Düzenleme kipinde varsayılan "Kuyumcu" doludur,
+   * ama karşılamada dolu gelseydi oyuncu tek dokunuşla "Kuyumcu
+   * Kuyumculuk"a razı olurdu — istenen "isim giriniz" ekranı değil, atlanan
+   * bir ekran olurdu. Boş alanda "Dükkânı Aç" kapalı durur; açan şey adın
+   * kendisidir.
+   *
+   * Ayrı bir ekran yazmak yerine bu pencere yeniden kullanılıyor: ad
+   * doğrulaması, odak tuzağı ve avatar ızgarasının roving tabindex'i burada
+   * zaten çözülmüş. İkinci bir kopya, o çözümlerin birinde sessizce
+   * geride kalırdı.
+   */
+  mode?: 'edit' | 'welcome';
   onCancel: () => void;
   /** @returns kaydedildiyse true; ad geçersizse false (pencere açık kalır). */
   onSave: (next: { jewelerName: string; avatarId: string }) => boolean;
 }
 
-export function ProfileDialog({ profile, onCancel, onSave }: Props) {
-  const [name, setName] = useState(profile.jewelerName);
+export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Props) {
+  const welcome = mode === 'welcome';
+  const [name, setName] = useState(welcome ? '' : profile.jewelerName);
   const [avatarId, setAvatarId] = useState<string>(profile.avatarId);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,7 +81,8 @@ export function ProfileDialog({ profile, onCancel, onSave }: Props) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onCancel();
+        // Karşılama ekranında kapatacak bir "önceki hâl" yok; Escape yutulur.
+        if (!welcome) onCancel();
         return;
       }
       if (e.key !== 'Tab') return;
@@ -87,7 +107,7 @@ export function ProfileDialog({ profile, onCancel, onSave }: Props) {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onCancel]);
+  }, [onCancel, welcome]);
 
   const submit = () => {
     const check = checkJewelerName(name);
@@ -108,7 +128,7 @@ export function ProfileDialog({ profile, onCancel, onSave }: Props) {
       onMouseDown={(e) => {
         // Yalnız zemine basıldığında kapanır: panelin içinde başlayan bir
         // sürükleme (metin seçimi) zeminde bitince pencere kapanmamalı.
-        if (e.target === e.currentTarget) onCancel();
+        if (!welcome && e.target === e.currentTarget) onCancel();
       }}
     >
       <div
@@ -119,8 +139,14 @@ export function ProfileDialog({ profile, onCancel, onSave }: Props) {
         ref={panelRef}
       >
         <h2 className="profileDialog__title" id={titleId}>
-          Profili Düzenle
+          {welcome ? 'Hoş geldin, sarraf' : 'Profili Düzenle'}
         </h2>
+        {welcome && (
+          <p className="profileDialog__welcome">
+            Tezgâhın arkasına geçmeden önce: dükkânın adı ne olsun, sen kimsin?
+            İkisini de sonradan Ayarlar'dan değiştirebilirsin.
+          </p>
+        )}
 
         <label className="profileDialog__label" htmlFor={nameId}>
           Dükkan Adı
@@ -136,7 +162,12 @@ export function ProfileDialog({ profile, onCancel, onSave }: Props) {
             checkJewelerName'de — tek doğruluk kaynağı orası.
           */
           maxLength={NAME_MAX + SHOP_SUFFIX.length + 1}
-          placeholder="İsim koyunuz — örn. Alvera Kuyumculuk"
+          /*
+            Karşılamada örnek "Kuyumculuk" EKİ OLMADAN verilir: hemen
+            altındaki ipucu ekin kendiliğinden geldiğini söylüyor, örnek
+            ekli olsaydı iki satır birbirini yalanlardı.
+          */
+          placeholder={welcome ? 'örn. Alvera' : 'İsim koyunuz — örn. Alvera Kuyumculuk'}
           autoComplete="off"
           spellCheck={false}
           aria-invalid={error ? true : undefined}
@@ -152,7 +183,11 @@ export function ProfileDialog({ profile, onCancel, onSave }: Props) {
             }
           }}
         />
-        <p className="profileDialog__hint">İsim koyunuz — örn. Alvera Kuyumculuk</p>
+        <p className="profileDialog__hint">
+          {welcome
+            ? `Dükkânın adını yaz — sonuna "${SHOP_SUFFIX}" kendiliğinden eklenir.`
+            : 'İsim koyunuz — örn. Alvera Kuyumculuk'}
+        </p>
         {error && (
           <p className="profileDialog__error" id={errorId} role="alert">
             {error}
@@ -226,16 +261,18 @@ export function ProfileDialog({ profile, onCancel, onSave }: Props) {
         </div>
 
         <div className="profileDialog__actions">
-          <button type="button" className="profileDialog__cancel" onClick={onCancel}>
-            İptal
-          </button>
+          {!welcome && (
+            <button type="button" className="profileDialog__cancel" onClick={onCancel}>
+              İptal
+            </button>
+          )}
           <button
             type="button"
             className="profileDialog__save"
             onClick={submit}
             disabled={!nameCheck.ok}
           >
-            Değişiklikleri Kaydet
+            {welcome ? 'Dükkânı Aç' : 'Değişiklikleri Kaydet'}
           </button>
         </div>
       </div>

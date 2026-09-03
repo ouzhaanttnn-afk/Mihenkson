@@ -122,6 +122,19 @@ export interface SaveFile {
    * kayıtları `migrate`'ten geçmeye zorlamamalı.
    */
   preferences?: PlayerPreferences;
+
+  /**
+   * İlk açılıştaki "adını ve portreni seç" ekranı tamamlandı mı.
+   *
+   * ESKİ KAYITTA BU ALAN YOKTUR ve orada varsayılan **true** olmalıdır:
+   * zaten oynamış bir oyuncuya açılışta hoş geldin ekranı göstermek, ona
+   * oyunu yeni açmış gibi davranmak olurdu. Yalnız HİÇ KAYIT YOKKEN false
+   * olur — o da `gameStore`daki ilk durumda kurulur, burada değil.
+   *
+   * Bu yüzden `deserialize` bu alanı `?? true` ile okur; diğer isteğe bağlı
+   * alanların aksine varsayılanı "yapılmış" tarafındadır.
+   */
+  profileSetupDone?: boolean;
 }
 
 /**
@@ -161,6 +174,7 @@ export function serialize(state: GameState): SaveFile {
     playerMarket: state.playerMarket,
     skillProgress: state.skillProgress,
     preferences: state.preferences,
+    profileSetupDone: state.profileSetupDone,
   };
 }
 
@@ -184,6 +198,7 @@ export type LoadedState = Pick<
   | 'seenLessons'
   | 'profile'
   | 'preferences'
+  | 'profileSetupDone'
   | 'playerMarket'
   | 'skillProgress'
   | 'queue'
@@ -240,6 +255,8 @@ export function deserialize(file: SaveFile): LoadedState {
     // Profil alanı olmayan (bu özellikten önceki) kayıtlar varsayılana
     // düşer; bozuk bir ad veya bilinmeyen avatar da normalize edilir.
     profile: normalizeProfile(save.profile),
+    // Eski kayıtta alan yok → zaten oynamış oyuncu → ekran gösterilmez.
+    profileSetupDone: save.profileSetupDone ?? true,
     preferences: normalizePreferences(save.preferences),
     playerMarket: save.playerMarket ?? defaultPlayerMarket(),
     skillProgress,
@@ -311,11 +328,44 @@ const STORAGE_KEY = 'mihenkaynak.save.v1';
 const BACKUP_STORAGE_KEY = 'mihenkaynak.save.v1.backup';
 
 /**
+ * YAZMA KİLİDİ — "Kaydı sil"in sözünü tutan şey.
+ *
+ * TARAYICIDA ÖLÇÜLDÜ, tahmin değil: `clearSave()` iki anahtarı da siliyordu
+ * ama oyun ekranda açık kalıyor ve `pagehide` ile sayfa kapanırken otomatik
+ * kayıt (App.tsx · flush) dosyayı AYNI DURUMDAN geri yazıyordu. Sonuç:
+ * "yeni oyun bir sonraki açılışta başlar" yazan onay metni yalan söylüyordu;
+ * oyuncu kaydı siliyor, uygulamayı kapatıp açıyor ve eski dükkânını
+ * buluyordu. Karşılama ekranı bu hatayı görünür kıldı — kaydı silen oyuncuya
+ * "adın ne?" ekranı hiç gelmiyordu.
+ *
+ * Kilit BURADA, tek noktada: `writeSave` de `patchSave` de buradan geçer,
+ * dolayısıyla hiçbir çağrı yerinden kaçamaz. `true` döner çünkü yazmamak
+ * burada bir HATA değil, verilen karardır — `false` dönseydi arayüz
+ * "Kayıt yazılamadı" diye yanlış bir uyarı gösterirdi.
+ *
+ * Kilit modül ömrü boyunca sürer: sayfa yenilendiğinde modül yeniden
+ * yüklenir ve kilit kendiliğinden kalkar — zaten istenen de o, çünkü o
+ * noktada silinmiş kayıt gerçekten yoktur ve yeni oyun başlar.
+ */
+let savesSuspended = false;
+
+/** "Kaydı sil"den sonra çağrılır: bu oturum artık diske yazmaz. */
+export function suspendSaves(): void {
+  savesSuspended = true;
+}
+
+/** Kayıt yüklendiğinde çağrılır: oyuncu devam etmeyi seçti, yazma açılır. */
+export function resumeSaves(): void {
+  savesSuspended = false;
+}
+
+/**
  * Kaydı iki aşamalı yazar ve tarayıcı deposundan geri okuyarak doğrular.
  * Bir önceki sağlam kayıt yedekte tutulur; sekme kapanması veya kota hatası
  * yarım bir JSON bırakırsa oyuncunun son checkpoint'i kaybolmaz.
  */
 function commitRawSave(raw: string): boolean {
+  if (savesSuspended) return true;
   try {
     const previous = localStorage.getItem(STORAGE_KEY);
     if (previous && parseSave(previous)) localStorage.setItem(BACKUP_STORAGE_KEY, previous);
@@ -486,6 +536,7 @@ function patchSave(state: GameState, patch: (file: SaveFile) => void): boolean {
 export function persistProfile(state: GameState): boolean {
   return patchSave(state, (file) => {
     file.profile = state.profile;
+    file.profileSetupDone = state.profileSetupDone;
   });
 }
 

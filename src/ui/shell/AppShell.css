@@ -1319,6 +1319,28 @@
   color: var(--text-light-1);
 }
 
+/*
+  Karşılama kipindeki tek ek metin. Ekranın niye çıktığını bir cümlede
+  söyler; oyuncu "bir şey mi bozuldu" diye düşünmesin.
+*/
+.profileDialog__welcome {
+  margin: 0 0 var(--sp-3);
+  color: var(--text-light-2);
+  font-size: var(--fs-body);
+  line-height: 1.45;
+}
+
+/*
+  Ayarlar kutusunda ölçerek öğrenilen kural burada da geçerli: bu pencere
+  bir flex sütunudur ve `max-height` ile sınırlıdır. Varsayılan
+  `flex-shrink: 1` yüzünden içerik sığmadığında SATIRLAR eziliyor ve
+  metin komşu satırın üstüne taşıyordu. Taşmaya izin verilen tek bölge
+  avatar ızgarasıdır — o kendi içinde kayar.
+*/
+.profileDialog > *:not(.avatarGrid) {
+  flex-shrink: 0;
+}
+
 .profileDialog__label {
   display: block;
   margin-bottom: var(--sp-1);
@@ -1561,6 +1583,20 @@
   color: var(--ink-900);
   border: 1px solid var(--brass-300);
   box-shadow: 0 0 18px rgba(215, 170, 74, 0.22);
+}
+
+/*
+  KAPALI HÂLİ GÖRÜNÜR OLMALI. Düzenleme kipinde ad hep dolu geldiği için bu
+  durum neredeyse hiç görünmüyordu; karşılama ekranı ad alanını BOŞ açtığı
+  için artık ilk gördüğü hâl budur. Pırıl pırıl duran ama basınca hiçbir şey
+  yapmayan bir düğme, oyuncuya "oyun bozuk" dedirtir — kapalıysa kapalı
+  görünsün, eksik olanın ad olduğu ipucu metninden okunsun.
+*/
+.profileDialog__save:disabled {
+  background: var(--stone-300);
+  color: var(--text-light-3);
+  border-color: var(--line-light-strong);
+  box-shadow: none;
 }
 
 .profileDialog__cancel:focus-visible,

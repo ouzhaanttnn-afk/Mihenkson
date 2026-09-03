@@ -497,6 +497,61 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · İlk açılışta ad ve portre ekranı — ✅ YAPILDI
+`src/state/save.ts` · `src/state/gameStore.ts` · `src/ui/shell/ProfileDialog.tsx` ·
+`src/ui/App.tsx` · `AppShell.css`
+
+Kullanıcı: *"Oyunu açar açmaz ilk ekranda isim giriniz ve profil fotosu seçiniz ekranı
+gelsin."*
+
+**Yeni ekran YAZILMADI, var olan pencere yeniden kullanıldı.** `ProfileDialog`'a
+`mode="welcome"` eklendi. Gerekçe: ad doğrulaması, odak tuzağı ve avatar ızgarasının
+roving tabindex'i o pencerede zaten çözülmüş; ikinci bir kopya o çözümlerin birinde
+sessizce geride kalırdı. Karşılama kipinde farklı olanlar: **İptal yok**, **dış tıklama
+ve Escape kapatmaz** (kapatılacak bir "önceki hâl" yok), başlık *"Hoş geldin, sarraf"*,
+düğme *"Dükkânı Aç"*.
+
+**Ad alanı BOŞ açılır.** Düzenleme kipinde varsayılan `Kuyumcu` doludur; karşılamada da
+dolu gelseydi oyuncu tek dokunuşla `Kuyumcu Kuyumculuk`'a razı olurdu — istenen "isim
+giriniz" ekranı değil, atlanan bir ekran olurdu.
+
+**KAPALI DÜĞMENİN GÖRÜNÜMÜ EKSİKTİ.** Alan boş açılınca ilk görülen hâl kapalı düğme
+oldu ve düğme pırıl pırıl duruyordu — basınca hiçbir şey yapmayan bir düğme oyuncuya
+"oyun bozuk" dedirtir. `.profileDialog__save:disabled` eklendi.
+
+**ESKİ KAYITLAR — bu maddenin can alıcı yeri.** `SaveFile.profileSetupDone` sonradan
+eklendi, eski kayıtlarda YOKTUR ve orada varsayılanı **`true`** olmalıdır
+(`save.profileSetupDone ?? true`). `?? false` olsaydı yıllardır oynayan bir oyuncuya,
+dükkânı kurulmuşken, "adın ne?" diye sorulurdu. `SAVE_VERSION` artmadı; alan eksik olan
+dosya olduğu gibi yüklenmeye devam ediyor.
+
+**Oyun zamanı da duruyor** (§4, diğer modallarla aynı kural): oyuncu adını yazarken saat
+işleseydi, daha tezgâhın arkasına geçmeden müşteri kaçırırdı.
+
+**ÖLÇÜM BİR YAN HATAYI AÇIĞA ÇIKARDI — "Kaydı sil" sözünü tutmuyordu.** Karşılama
+ekranının doğrulaması sırasında görüldü: kaydı silen oyuncuya, uygulamayı kapatıp açınca
+ekran gelmiyordu. Sebep `resetGame`'de değil: `clearSave()` iki anahtarı da siliyor, ama
+oyun ekranda açık kaldığı için sayfa kapanırken çalışan otomatik kayıt
+(`App.tsx` · `pagehide` → `flush`) dosyayı **aynı durumdan geri yazıyordu**. Onay
+metnindeki *"yeni oyun bir sonraki açılışta başlar"* cümlesi yalandı. Düzeltme
+`save.ts`'te tek noktada: `suspendSaves()` / `resumeSaves()` — kilit `commitRawSave`'in
+başında olduğu için `writeSave` de `patchSave` de kaçamıyor. Yazmamak `true` döner
+(karar, hata değil), yoksa arayüz yanlışlıkla *"Kayıt yazılamadı"* uyarısı gösterirdi.
+Kilit modül ömürlüdür; sayfa yenilendiğinde kendiliğinden kalkar.
+
+**Testler:** `src/state/profile-setup.test.ts` — 18 test. Bekçi olanlar: *alanı olmayan
+kayıtta varsayılan `true`*, *geçersiz ad ekranı kapatmaz*, *yalnız `profile`e dokunur —
+para/seviye/XP/stok aynı kalır*, *sildikten sonra otomatik kayıt dosyayı geri yazamaz*.
+
+**Tarayıcıda ölçüldü (390×844 ve 390×667):**
+ilk açılışta pencere geliyor · ad alanı boş, düğme kapalı · Escape ve dış tıklama
+kapatmıyor · saat `09:00`da donuyor, `Dükkânı Aç`tan sonra akıyor · kayda
+`{"jewelerName":"Alvera","profileSetupDone":true}` yazılıyor · yeniden yüklemede ekran
+çıkmıyor · **alanı silinmiş (eski sürüm) kayıtla da çıkmıyor, profil korunuyor** ·
+`Kaydı sil` → yeniden yükle → ekran geri geliyor, depoda anahtar kalmıyor. İki
+yükseklikte de pencere ekrana sığıyor (812/635 px), giriş ve düğme 44 px. Konsol
+hatası yok.
+
 #### YENİ · Ayarlar düğmesinin yeri ve ikonu — ✅ YAPILDI
 `src/ui/shell/StatusStrip.tsx` · `src/ui/icons.tsx` · `AppShell.css`
 
@@ -530,7 +585,7 @@ ayar) yan yana durunca ad için pay dardır. `Kuyumcu` sığıyor ama daha uzun 
 ile tasarlanmış kademeli davranış. Tam adın her zaman görünmesi isteniyorsa XP sayısı
 (`0/580`) şeritten çıkarılabilir — altındaki çubuk aynı bilgiyi zaten gösteriyor.
 
-**Doğrulandı:** 895 test geçiyor; beş ekranda yatay taşma ve konsol hatası yok; düğme
+**Doğrulandı:** 913 test geçiyor; beş ekranda yatay taşma ve konsol hatası yok; düğme
 tıklanınca ayarlar açılıyor, Escape kapatıyor.
 
 #### YENİ · Ayarlarda ses, titreşim ve dil — ✅ YAPILDI (davranış sonra bağlanacak)
