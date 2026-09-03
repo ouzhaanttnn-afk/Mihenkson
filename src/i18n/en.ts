@@ -1743,4 +1743,6 @@ export const EN: Record<string, string> = {
   '{n} koşul eksik.': '{n} conditions unmet.',
   'Kayıt yazılamadı; depolama alanını kontrol edin.':
     'The save could not be written; check your storage space.',
+  '{kanal} · {gerekce}': '{kanal} · {gerekce}',
+  '{kanal} · {gerekce} · Hacim indirimi {oran}': '{kanal} · {gerekce} · Volume discount {oran}',
 };

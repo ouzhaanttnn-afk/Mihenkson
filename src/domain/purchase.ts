@@ -23,6 +23,7 @@
  */
 
 import { t } from '@i18n/index';
+import { pct } from '@i18n/money';
 import { PURCHASE } from './balance';
 import { isMassPool, poolForItem, poolForTemplate, poolUnitGrams, validQuantity } from './stock-pools';
 import { customerPriceBand, isCrafted } from './customer-pricing';
@@ -318,9 +319,17 @@ export function quotePackage(
     fair,
     suggested: roundMoney(quote.totalPrice * (1 - bulkDiscount)),
     channel,
-    rationale: `${CHANNEL_LABEL_TR[channel]} · ${quote.rationale}${
-      bulkDiscount > 0 ? ` · Hacim indirimi %${(bulkDiscount * 100).toFixed(1)}` : ''
-    }`,
+    rationale:
+      bulkDiscount > 0
+        ? t('{kanal} · {gerekce} · Hacim indirimi {oran}', {
+            kanal: t(CHANNEL_LABEL_TR[channel]),
+            gerekce: quote.rationale,
+            oran: pct(bulkDiscount, 1),
+          })
+        : t('{kanal} · {gerekce}', {
+            kanal: t(CHANNEL_LABEL_TR[channel]),
+            gerekce: quote.rationale,
+          }),
   };
 }
 

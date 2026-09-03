@@ -38,6 +38,7 @@ import {
   VOLUME_STEP,
 } from '@domain/preferences';
 import { USD_RATE } from '@i18n/currency';
+import { pct } from '@ui/format';
 import { t } from '@i18n/index';
 import { hapticsSupported } from '@ui/haptics';
 import { useGame } from '@state/gameStore';
@@ -223,7 +224,13 @@ export function SettingsDialog() {
             <strong>{t('Ses düzeyi')}</strong>
             <small>
               {preferences.soundEnabled
-                ? `%${preferences.soundVolume}`
+                ? /*
+                     YÜZDE İMİ ELLE YAZILMIYOR. Bir kez daha ekran görüntüsü
+                     yakaladı: `pct` dile bağlanmıştı ama burada im hâlâ
+                     şablonun içinde sabitti ve İngilizce arayüzde "%70"
+                     yazıyordu.
+                   */
+                  pct(preferences.soundVolume / 100)
                 : t('Ses kapalıyken ayarlanamaz')}
             </small>
           </span>

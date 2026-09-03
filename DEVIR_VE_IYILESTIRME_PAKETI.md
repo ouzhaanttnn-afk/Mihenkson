@@ -543,32 +543,62 @@ yüzlerce dokunuş ve biri unutulunca sessiz hata demekti.
 - **Müşteri adları** Türkçe kalır. İngilizce arayüzde de bir Türk sarrafın müşterisi Türk
   adı taşır.
 
-**İKİ ARAÇ — "çevirdim" iddiasını ölçüyle karşılamak için.**
-`npm run i18n` sözlükte karşılığı olmayan anahtarları sayar (şu an **685/685**).
+**ÜÇ ARAÇ — "çevirdim" iddiasını ölçüyle karşılamak için.**
+`npm run i18n` sözlükte karşılığı olmayan anahtarları sayar (şu an **866/866**).
+`npm run i18n:audit` KAYNAĞI tarar: `t()` içinden geçmeyen ve sözlükte karşılığı
+olmayan her Türkçe metni listeler.
 Tarayıcı sızıntı dedektörü İngilizce seçiliyken ekranda kalan Türkçe metni toplar.
+
+**TARAYICI TARAMASI YETMEDİ — kullanıcı yakaladı.** İlk turda beş sekmede sızıntı sıfırdı
+ama kullanıcı "bazı yerler azıcık Türkçe kalmış" dedi ve haklıydı: tarama ancak
+GİDEBİLDİĞİ ekranı görüyor, akışlar rastgele olduğu için ulaşılamayan diyalog ve alt
+rotalar sessizce temiz görünüyordu. Kapsamı akışa değil DOSYAYA bağlı olan statik
+tarayıcı (`i18n:audit`) o turda 431 gerçek aday buldu; hepsi elden geçti ve sözlük
+685 → 866'ya çıktı. Ders: rastgele bir yürüyüşün sıfır bulması, sıfır olduğu anlamına
+gelmez.
 
 **SIZINTI DEDEKTÖRÜ İKİ KEZ YANILDI ve ikisi de düzeltildi.** Önce yalnız Türkçeye özgü
 harfe bakıyordu; `sahip olunan` hiçbirini içermediği için kaçtı — **ekran görüntüsü
 yakaladı, ölçüm değil**. Kelime listesi eklenince bu kez `Gram Gold` ve `once a customer`
 yanlış alarm verdi; liste İngilizcede de geçen kelimelerden temizlendi.
 
-**EKRAN GÖRÜNTÜSÜ BİR KEZ DAHA ÖLÇÜMÜN KAÇIRDIĞINI GÖRDÜ.** Sızıntı sıfırdı ama İngilizce
+**EKRAN GÖRÜNTÜSÜ İKİ KEZ ÖLÇÜMÜN KAÇIRDIĞINI GÖRDÜ.** Sızıntı sıfırdı ama İngilizce
 arayüzde ses düzeyi `%70` yazıyordu: yüzde imi Türkçede sayının önünde, İngilizcede
-arkasındadır. `pct` dile bağlandı (`%70` / `70%`), ondalık ayracı da öyle.
+arkasındadır. `pct` dile bağlandı (`%70` / `70%`), ondalık ayracı da öyle. Düzelttikten
+sonra görüntüde **hâlâ `%70` yazıyordu**: ayarlar penceresi `pct`'yi kullanmıyor, imi kendi
+şablonuna sabitlemişti. İkincisini de yine ölçüm değil, ekran görüntüsü buldu.
 
 **Bir hata da düzeldi:** teslim edilen işin balonu metne bakılarak kaldırılıyordu ve aranan
 parça sabit Türkçeydi. Çeviriyle birlikte o balon İngilizce oyunda ekranda takılı kalırdı;
 süzgeç artık şablondan türetiliyor.
 
+**ÇEVİRİ SESSİZCE EKONOMİYİ DEĞİŞTİRECEKTİ — en ciddi bulgu.** Toplu geçişte
+`tags.includes('düğün')` yanlışlıkla `tags.includes(t('düğün'))` oldu. Talep etiketi bir
+VERİ kimliğidir, ekran metni değil: İngilizce oynayan oyuncuda karşılaştırma `'wedding'`
+arayacak, ürünün etiketi `'düğün'` kalacaktı — düğün sezonu olayı talebi hiç
+artırmayacaktı. Geri alındı ve **iki testle** kapatıldı: biri kaynakta bu kalıbı arıyor
+(`includes(t(`, `=== t(`), öbürü aynı ürün ve piyasada çıkış planı beklentilerinin iki
+dilde birebir aynı çıktığını ölçüyor.
+
+**DEĞİŞMEZLİK TESTİ BİR HATAYI KENDİ YAKALADI.** Kondisyon izi etiketini üretim anında
+çevirmiştim; o etiket ürünün gizli gerçeğine yazılıp KAYDA giriyor, dolayısıyla Türkçe ve
+İngilizce oynanan iki oyun farklı ürün üretmiş oluyordu. Üretim tek dilde kalıyor, çeviri
+çizimde yapılıyor. Aynı gerekçeyle havuz adı ve mağaza adı da üretimde çevrilmiyor.
+
 **Codemod üç kez yanlış yaptı, üçü de yakalandı:** `=>` işaretini JSX kapanışı sandı,
 yorumların içindeki tırnaklı cümleleri bozdu, ve zaten sarılmış metni `t(t(...))` yaptı.
 Öznitelikler süslü paranteze alındı. Hepsi `tsc` + testler + tarama ile yakalandı.
 
-**Testler:** `src/i18n/invariance.test.ts` (7), `src/i18n/money.test.ts` (15),
-`src/state/settings.test.ts`'e 6 yeni test. Suite 933 → **946**.
+**Testler:** `src/i18n/invariance.test.ts` (9), `src/i18n/money.test.ts` (15),
+`src/state/settings.test.ts`'e 6 yeni test. Suite 933 → **948**.
+
+**Kaynakta ölçüldü:** `npm run i18n:audit` geriye 70 sarılmamış metin bırakıyor ve **hepsi
+bilerek** — tasarım notu, geliştirici hatası (`throw`), veri kimliği (talep etiketi, ürün
+sınıfı, ünlü listesi) ve kişi adları. Araç bunu çıktısında yazıyor: sayı "0 olmalı" diye
+değil, "arttı mı" diye okunur.
 
 **Tarayıcıda ölçüldü (390×844):** beş kök sekme + müşteri akışı + hızlı stok + İşletme alt
-rotaları + gün kapanışı + ayarlar dolaşıldı; **277 farklı metin tarandı, sızıntı 0** (beş
+rotaları + gün kapanışı + ayarlar dolaşıldı; **277 farklı metin tarandı, sızıntı 0** (dört
 ardışık koşuda). İngilizce + $ seçiliyken şerit `Lv 1 · DAY 1 · MON · CASH $30,817`,
 navigasyon `Shop / Stock / Workshop / Market / Business`, gün kapanışı *"The daily overhead
 of $36.98 is charged either way."* Sayı yereli de dile uyuyor (`30,817` · `36.98`).
