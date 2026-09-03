@@ -86,14 +86,22 @@ function ensureContext(): Ctx | null {
 }
 
 /**
- * İlk kullanıcı hareketinde çağrılır. Tarayıcı politikası gereği
- * `AudioContext` ancak bir jestten sonra çalışmaya başlar.
+ * Kullanıcı hareketinde çağrılır. Tarayıcı politikası gereği `AudioContext`
+ * ancak bir jestten sonra çalışmaya başlar.
+ *
+ * BİR KEZ DEĞİL, HER SEFERİNDE ÇAĞRILABİLİR OLMALI. iOS'ta bağlam yalnız
+ * ilk açılışta askıya alınmıyor: uygulama arka plana atıldığında, telefon
+ * çaldığında ya da sekme değiştiğinde `suspended`/`interrupted` durumuna
+ * düşüyor ve kendiliğinden geri gelmiyor. Kilit tek seferlik bir dinleyiciye
+ * bağlıyken bunun sonucu şuydu — ses ilk başta çalışıyor, telefonla bir kez
+ * ilgilenildikten sonra oturum boyunca bir daha hiç çıkmıyordu. Bu yordam
+ * artık her jestte ve her geri dönüşte çağrılıyor (bkz. App.tsx).
  */
 export function unlockAudio(): void {
   const c = ensureContext();
   if (!c) return;
   unlocked = true;
-  if (c.state === 'suspended') void c.resume().catch(() => undefined);
+  if (c.state !== 'running') void c.resume().catch(() => undefined);
 }
 
 export function isAudioUnlocked(): boolean {
@@ -141,9 +149,29 @@ export function playSound(id: SoundId, enabled: boolean, volume: number): void {
   if (previous !== undefined && now - previous < MIN_REPEAT_MS) return;
   lastPlayed.set(id, now);
 
-  void loadBuffer(id).then((buffer) => {
+  void loadBuffer(id).then(async (buffer) => {
     const c = ctx;
-    if (!buffer || !c || !master || c.state !== 'running') return;
+    if (!buffer || !c || !master) return;
+    /*
+      BAĞLAM UYUYORSA SES ATILMIYOR, ÖNCE UYANDIRILIYOR.
+
+      Eskiden `state !== 'running'` olan her istek sessizce düşüyordu. İki
+      yerde ısırıyordu: `resume()` eşzamansız olduğu için kilidi açan ilk
+      dokunuşun kendi sesi kaybolabiliyordu, ve iOS'ta arka plandan dönen
+      bağlam bir daha hiç 'running' olmadığı için ses kalıcı olarak
+      susuyordu. Uyandırma denemesi başarısız olursa yine sessiz kalınır —
+      sözleşme bozulmuyor, yalnız pes etmeden önce bir kez deneniyor.
+    */
+    if (c.state !== 'running') {
+      try {
+        await c.resume();
+      } catch {
+        return;
+      }
+      // `state` await'ten sonra yeniden okunur; TS aksi hâlde daraltmayı
+      // taşıyıp karşılaştırmayı imkânsız sanıyor.
+      if ((c.state as AudioContextState) !== 'running') return;
+    }
     try {
       const source = c.createBufferSource();
       source.buffer = buffer;
@@ -156,6 +184,22 @@ export function playSound(id: SoundId, enabled: boolean, volume: number): void {
       // Oynatma başarısızsa ses yok; oyun akışı etkilenmez.
     }
   });
+}
+
+/**
+ * Ses yolunun O ANKİ durumu — arayüzün dürüst konuşabilmesi için.
+ *
+ * "Ses çalmıyor" şikâyeti kör bir şikâyettir: oyuncu tarayıcının mı, ayarın
+ * mı, dosyanın mı yoksa telefonun sessiz düğmesinin mi sustuğunu göremez.
+ * Ayarlar penceresindeki "Sesi dene" bu üç veriyi okuyup söyleyebilsin diye
+ * dışarı veriliyor. Hiçbir şeyi değiştirmez, yalnız bakar.
+ */
+export function audioStatus(): { supported: boolean; unlocked: boolean; state: string | null } {
+  return {
+    supported: audioSupported(),
+    unlocked,
+    state: ctx ? ctx.state : null,
+  };
 }
 
 /** Testler için: modül durumunu sıfırlar. */

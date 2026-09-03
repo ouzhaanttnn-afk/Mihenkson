@@ -40,7 +40,8 @@ import {
 import { USD_RATE } from '@i18n/currency';
 import { pct } from '@ui/format';
 import { t } from '@i18n/index';
-import { hapticsSupported } from '@ui/haptics';
+import { hapticsSupported, playHaptic } from '@ui/haptics';
+import { audioStatus, playSound, unlockAudio } from '@ui/audio';
 import { useGame } from '@state/gameStore';
 
 export function SettingsDialog() {
@@ -59,6 +60,21 @@ export function SettingsDialog() {
   const [confirmReset, setConfirmReset] = useState(false);
   // Cihaz desteği render sırasında sabittir; her çizimde sormaya gerek yok.
   const [titresimVar] = useState(hapticsSupported);
+  /*
+    iOS'ta Web Audio, telefonun fiziksel sessiz düğmesine tabidir; Apple'ın
+    bunu aşan bir web API'si yok. Bu yüzden ipucu YALNIZ orada gösterilir.
+    Modern iPad'ler kendini "MacIntel" diye tanıtıyor, dokunma noktası sayısı
+    ikisini ayırır.
+  */
+  const [sessizDugmeliCihaz] = useState(
+    () =>
+      typeof navigator !== 'undefined' &&
+      (/iP(hone|ad|od)/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)),
+  );
+  const [sesNotu, setSesNotu] = useState(() =>
+    t('Kısa bir tıngırtı çalar; ses yolunun çalışıp çalışmadığını gösterir.'),
+  );
   const boxRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLButtonElement>(null);
 
@@ -187,7 +203,17 @@ export function SettingsDialog() {
         <button
           type="button"
           className="settingsRow"
-          aria-pressed={preferences.vibrationEnabled}
+          aria-pressed={titresimVar ? preferences.vibrationEnabled : undefined}
+          /*
+            DESTEKLENMEYEN CİHAZDA ANAHTAR KAPALI.
+
+            Alt metin "bu cihaz desteklemiyor" diyordu ama anahtar hâlâ
+            basılıyor ve açık/kapalı arasında gidip geliyordu. Yani ekran bir
+            cümleyle doğruyu, bir hareketle yalanı söylüyordu — oyuncu açıp
+            beklemeye devam ediyordu. Ses düzeyi kaydırıcısında verilen karar
+            burada da geçerli: hiçbir şey yapmayan denetim ekranda tutulmaz.
+          */
+          disabled={!titresimVar}
           onClick={() => setPreference('vibrationEnabled', !preferences.vibrationEnabled)}
         >
           <span className="settingsRow__copy">
@@ -245,6 +271,50 @@ export function SettingsDialog() {
             aria-label={t('Ses düzeyi')}
             onChange={(e) => setPreference('soundVolume', Number(e.target.value))}
           />
+        </div>
+
+        {/*
+          "SESİ DENE" — görünmez bir arızayı görünür kılar.
+
+          "Ses çalmıyor" kör bir şikâyettir: oyuncu tarayıcının mı, ayarın mı,
+          dosyanın mı yoksa telefonun yan tarafındaki sessiz düğmesinin mi
+          sustuğunu göremez; hiçbiri ekrana yansımaz. Bu düğme tek dokunuşta
+          hem sesi çalmayı dener hem de ses yolunun o anki durumunu söyler.
+
+          KİLİT BURADA DA AÇILIR: düğmenin kendisi bir kullanıcı jestidir,
+          yani tarayıcının beklediği izin tam bu anda doğar.
+
+          iOS NOTU HERKESE DEĞİL, YALNIZ iPhone/iPad'e. Web Audio orada
+          telefonun fiziksel sessiz düğmesine tabidir ve bunu tahmin etmenin
+          yolu yoktur; Android'de böyle bir davranış olmadığı için oradaki
+          oyuncuya yanlış ipucu verilmez.
+        */}
+        <div className="settingsRow settingsRow--static settingsRow--stack">
+          <span className="settingsRow__copy">
+            <strong>{t('Sesi dene')}</strong>
+            <small>{sesNotu}</small>
+          </span>
+          <button
+            type="button"
+            className="chip"
+            onClick={() => {
+              unlockAudio();
+              playSound('coins', true, preferences.soundVolume);
+              playHaptic('coins', preferences.vibrationEnabled);
+              const durum = audioStatus();
+              setSesNotu(
+                !durum.supported
+                  ? t('Bu tarayıcı ses çalamıyor.')
+                  : durum.state === 'running'
+                    ? sessizDugmeliCihaz
+                      ? t('Ses açıldı. Duymuyorsanız telefonun yan tarafındaki sessiz düğmesini kontrol edin.')
+                      : t('Ses açıldı — kısa bir tıngırtı duymalısınız.')
+                    : t('Ses açılamadı; tarayıcı izin vermedi.'),
+              );
+            }}
+          >
+            {t('Çal')}
+          </button>
         </div>
 
         {/*

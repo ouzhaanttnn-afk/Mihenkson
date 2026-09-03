@@ -74,14 +74,31 @@ export function App() {
     if (!vibrationEnabled) stopHaptics();
   }, [vibrationEnabled]);
 
+  /*
+    SES KİLİDİ TEK SEFERLİK DEĞİL.
+
+    Dinleyiciler `once: true` idi: ilk dokunuşta bağlam açılıyor, sonra
+    dinleyici kendini kaldırıyordu. Bu, iOS'ta sesi oturum ortasında kalıcı
+    olarak öldüren şeydi — uygulama arka plana atıldığında, telefon çaldığında
+    veya sekme değiştiğinde `AudioContext` askıya alınıyor, kendiliğinden geri
+    gelmiyor ve onu uyandıracak dinleyici de artık yok. Oyuncunun gördüğü:
+    "ses başta vardı, sonra kesildi".
+
+    Artık her dokunuşta ve ekran geri geldiğinde uyandırılıyor. Maliyeti yok:
+    `unlockAudio` zaten çalışan bir bağlamda hiçbir şey yapmıyor, `preloadAudio`
+    da çözülmüş tamponu yeniden indirmiyor.
+  */
   useEffect(() => {
     const ac = () => { unlockAudio(); preloadAudio(); };
-    const opts = { once: true, passive: true } as const;
+    const opts = { passive: true } as const;
+    const gorunurluk = () => { if (document.visibilityState === 'visible') unlockAudio(); };
     window.addEventListener('pointerdown', ac, opts);
     window.addEventListener('keydown', ac, opts);
+    document.addEventListener('visibilitychange', gorunurluk);
     return () => {
       window.removeEventListener('pointerdown', ac);
       window.removeEventListener('keydown', ac);
+      document.removeEventListener('visibilitychange', gorunurluk);
     };
   }, []);
 

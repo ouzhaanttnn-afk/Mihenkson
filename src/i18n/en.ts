@@ -105,6 +105,17 @@ export const EN: Record<string, string> = {
   '· işlem ve gün sesleri': '· transaction and day sounds',
   'Titreşim': 'Vibration',
   '· işlem ve gün olayları': '· transaction and day events',
+  /* Ses tanı satırı — "çalmıyor" şikâyetini görünür kılan metinler. */
+  'Sesi dene': 'Test the sound',
+  'Çal': 'Play',
+  'Kısa bir tıngırtı çalar; ses yolunun çalışıp çalışmadığını gösterir.':
+    'Plays a short chime so you can tell whether audio works at all.',
+  'Bu tarayıcı ses çalamıyor.': 'This browser cannot play sound.',
+  'Ses açıldı — kısa bir tıngırtı duymalısınız.':
+    'Audio is on \u2014 you should hear a short chime.',
+  'Ses açıldı. Duymuyorsanız telefonun yan tarafındaki sessiz düğmesini kontrol edin.':
+    'Audio is on. If you hear nothing, check the silent switch on the side of your phone.',
+  'Ses açılamadı; tarayıcı izin vermedi.': 'Audio could not start; the browser refused.',
   'Bu cihaz titreşimi desteklemiyor': 'This device does not support vibration',
   'Ses düzeyi': 'Volume',
   'Ses kapalıyken ayarlanamaz': 'Cannot be set while sound is off',

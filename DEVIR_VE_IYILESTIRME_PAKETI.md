@@ -497,6 +497,65 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · "Telefonda ses ve titreşim yok" — ✅ ARAŞTIRILDI ve İKİ KUSUR DÜZELTİLDİ
+`src/ui/audio.ts` · `src/ui/App.tsx` · `src/ui/shell/SettingsDialog.tsx`
+
+Kullanıcı: *"Telefonda müzikler çalmıyor veya titreşimli geri bildirim çalışmıyor."*
+
+**ÖNCE İKİ GERÇEĞİ AYIRMAK GEREKİYOR — ikisi de düzeltilecek bir hata değil:**
+
+1. **Oyunda MÜZİK YOK.** `public/assets/audio` altında sekiz kısa efekt var
+   (`tap, coins, deal, deny, chime, customer, test, levelup`) ve tek bir müzik parçası yok.
+   Kodda da müzik diye bir kavram yok; `preferences` tek bir `soundEnabled` anahtarı tutuyor
+   ve nedeni orada yazılı. Yani "müzik çalmıyor" doğru: çalacak müzik hiç yok.
+2. **iPhone'da web titreşimi YOK.** `navigator.vibrate` Android/Chrome'da var, iOS Safari'de
+   yok ve Apple'ın web'e açtığı bir haptik API'si de yok. Bu bir hata değil, platform sınırı.
+
+**AMA İKİ GERÇEK KUSUR ÇIKTI ve ikisi de tam bu şikâyeti üretir:**
+
+**KUSUR 1 — ses oturum ortasında kalıcı olarak ölüyordu.** Ses kilidi `once: true` dinleyiciye
+bağlıydı: ilk dokunuşta `AudioContext` açılıyor, dinleyici kendini kaldırıyordu. iOS'ta bağlam
+yalnız açılışta askıya alınmıyor — uygulama arka plana atıldığında, telefon çaldığında veya
+sekme değiştiğinde `suspended` oluyor ve **kendiliğinden geri gelmiyor**. Üstelik `playSound`
+`state !== 'running'` olan her isteği sessizce atıyordu. Sonuç: ses başta çalışıyor, telefonla
+bir kez ilgilenildikten sonra oturum boyunca bir daha hiç çıkmıyordu.
+
+*Ölçüldü — önceki sürüm ile yeni sürüm, aynı senaryo (bağlam askıya alınır, oyuncu dokunmaya
+devam eder):*
+
+| | bağlam askıdan sonra | ses |
+|---|---|---|
+| önceki sürüm | `suspended` kalıyor | çıkmıyor |
+| yeni sürüm | `running`a dönüyor | çıkıyor (`source.start()` ölçüldü) |
+
+Düzeltme iki parçalı: dinleyiciler artık tek seferlik değil (her dokunuşta + ekran geri
+geldiğinde `visibilitychange`), ve `playSound` uyuyan bağlamı atmadan önce bir kez uyandırmayı
+deniyor. Maliyeti yok: çalışan bağlamda `unlockAudio` hiçbir şey yapmıyor, çözülmüş tampon
+yeniden indirilmiyor.
+
+**KUSUR 2 — titreşim anahtarı desteklenmeyen cihazda hâlâ basılıyordu.** Alt metin doğruyu
+söylüyordu ("Bu cihaz titreşimi desteklemiyor") ama anahtar açılıp kapanıyordu; ekran bir
+cümleyle doğruyu, bir hareketle yalanı söylüyordu ve oyuncu açıp beklemeye devam ediyordu.
+Artık `disabled`. Ses düzeyi kaydırıcısında verilmiş olan karar burada da geçerli: hiçbir şey
+yapmayan denetim ekranda tutulmaz.
+
+**"SESİ DENE" SATIRI EKLENDİ.** "Ses çalmıyor" kör bir şikâyettir: oyuncu tarayıcının mı,
+ayarın mı, dosyanın mı yoksa telefonun yan tarafındaki sessiz düğmesinin mi sustuğunu göremez.
+Yeni satır tek dokunuşta hem sesi çalmayı dener hem de ses yolunun durumunu söyler. Düğmenin
+kendisi bir kullanıcı jesti olduğu için tarayıcının beklediği izin tam o anda doğar. **iOS
+ipucu yalnız iPhone/iPad'de** gösterilir: *"Ses açıldı. Duymuyorsanız telefonun yan tarafındaki
+sessiz düğmesini kontrol edin."* — Web Audio orada fiziksel sessiz düğmesine tabidir ve bunu
+tahmin etmenin yolu yoktur; Android'de böyle bir davranış olmadığı için oradaki oyuncuya
+yanlış ipucu verilmez.
+
+**Tarayıcıda ölçüldü.** Sekiz ses dosyasının sekizi de indiriliyor (yol doğru). "Sesi dene"
+`source.start()`e ulaşıyor, yani ses gerçekten ses grafiğine giriyor. `navigator.vibrate`
+silinmiş bir bağlamda titreşim satırı hem "desteklemiyor" diyor hem de `disabled` geliyor.
+
+**DÜRÜST SINIR:** bunlar gerçek bir iPhone'da değil, masaüstü Chromium'da iOS davranışı taklit
+edilerek ölçüldü. Düzeltilen iki kusur kod düzeyinde kesin; sesin o telefonda duyulup
+duyulmayacağını "Sesi dene" düğmesi artık kullanıcının kendisine söyleyebilir.
+
 #### YENİ · İşlem sonucu balonu — "satış yapıldı / yapılmadı" — ✅ YAPILDI
 `src/state/gameStore.ts` · `src/state/deal-result-toast.test.ts` (yeni) · `src/i18n/en.ts`
 
