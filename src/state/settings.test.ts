@@ -356,3 +356,57 @@ describe('ses işareti', () => {
     expect(useGame.getState().store.cash).toBe(nakit);
   });
 });
+
+// ---------------------------------------------------------------------------
+/*
+  PARA BİRİMİ VE DİL — mağaza sözleşmesi.
+
+  Asıl korunan şey ikisinin de SUNUM tercihi kalması: kayıtta saklanırlar,
+  ekranı değiştirirler, oyunun durumuna dokunmazlar.
+*/
+describe('para birimi ve dil tercihi', () => {
+  it('varsayılan TL ve Türkçedir', () => {
+    expect(useGame.getState().preferences.currency).toBe('try');
+    expect(useGame.getState().preferences.language).toBe('tr');
+  });
+
+  it('değiştirmek GÖSTERİM KATMANINA da yansır — mağaza tek yazardır', async () => {
+    const { getCurrency } = await import('@i18n/currency');
+    const { getLanguage } = await import('@i18n/index');
+
+    useGame.getState().setPreference('currency', 'usd');
+    useGame.getState().setPreference('language', 'en');
+    expect(getCurrency()).toBe('usd');
+    expect(getLanguage()).toBe('en');
+
+    useGame.getState().setPreference('currency', 'try');
+    useGame.getState().setPreference('language', 'tr');
+    expect(getCurrency()).toBe('try');
+    expect(getLanguage()).toBe('tr');
+  });
+
+  it('KASADAKİ PARAYA DOKUNMAZ — dolar seçmek serveti bölmez', () => {
+    const before = useGame.getState().store.cash;
+    useGame.getState().setPreference('currency', 'usd');
+    expect(useGame.getState().store.cash).toBe(before);
+    useGame.getState().setPreference('currency', 'try');
+    expect(useGame.getState().store.cash).toBe(before);
+  });
+
+  it('kayda yazılır ve kayıttan geri gelir', () => {
+    useGame.getState().setPreference('currency', 'usd');
+    expect(readSave()?.preferences.currency).toBe('usd');
+    expect(deserialize(serialize(useGame.getState())).preferences.currency).toBe('usd');
+  });
+
+  it('ALANI OLMAYAN ESKİ KAYIT TL’ye düşer — bozulmaz', () => {
+    const file = serialize(useGame.getState());
+    delete (file.preferences as Partial<{ currency: unknown }>).currency;
+    expect(deserialize(file).preferences.currency).toBe('try');
+  });
+
+  it('bozuk para birimi kimliği varsayılana düşer', () => {
+    useGame.getState().setPreference('currency', 'altın' as never);
+    expect(useGame.getState().preferences.currency).toBe('try');
+  });
+});

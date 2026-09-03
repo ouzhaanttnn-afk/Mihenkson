@@ -497,6 +497,88 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · Dil ve para birimi — ✅ YAPILDI
+`src/i18n/` (yeni) · `src/domain/preferences.ts` · `src/ui/format.ts` ·
+`src/ui/shell/SettingsDialog.tsx` · `tools/i18n-keys.mjs` (yeni)
+
+Kullanıcı: *"Ayarlarda dil seçeneği var para birimi seçeneği yok. Hem çeviriyi mantıklı bir
+şekilde her şeye entegre et hem de para birimi kısmı ekleyip $'a çevir her şeyi. Sanki bu
+çok zor mu olacak öyleyse geri dönüşü mümkün kıl."*
+
+**İKİSİ DE SUNUM KATMANI — geri dönüşü işte bu sağlıyor.** Ne dil ne para birimi oyunun
+durumuna dokunuyor. Testle korunuyor (`src/i18n/invariance.test.ts`): aynı tohumla oynanan
+iki oyun, biri Türkçe/₺ diğeri İngilizce/$ olsa bile 90 günlük piyasa zincirini, gizli
+gerçeği ve zar tüketimini BİRE BİR aynı üretiyor.
+
+**PARA BİRİMİ OYUNUN PARASINI ÇEVİRMEZ, YAZISINI ÇEVİRİR.** Kasa, maliyet, teklif, defter
+ve kayıt dosyası TL kalır; bölme ekrana basılmadan hemen önce, tek noktada yapılır. Kasayı
+bölüp saklamak yuvarlama hatalarını kayda yazardı ve ₺'ye dönüşte para kaybolurdu —
+"oyuncunun parası sıfırlanmaz" kuralı ilk gün kırılırdı. Bu yüzden ₺'ye dönmek bir dönüşüm
+değil, çarpanı 1 yapmaktır.
+
+**Kur sabit ve oyunun kendi verisinden:** `MARKET_BASE.usd` (1 $ = 32,45 ₺). Canlı `fxIndex`
+denenmedi ve gerekçesi yazıldı: oyuncu hiçbir şey yapmadan kasası değişir görünürdü, dünkü
+"3.000 $ kâr" bugün başka bir sayı olurdu ve gün raporları karşılaştırılamaz hâle gelirdi.
+Kur panosundaki **Dolar ve Euro satırları bilerek ₺ kaldı** — bir pano yabancı parayı yerel
+parayla kote eder; "Dolar · 1,00 $" doğru ama boş olurdu.
+
+**Çeviride anahtar = Türkçe metnin kendisi.** Ayrı bir anahtar şeması (`shop.title` gibi)
+kurulmadı: 1100'den fazla metinde yanlış anahtar yazma riski demekti. Metnin kendisi anahtar
+olunca yanlış eşleşme mümkün değil, ve **sözlükte karşılığı olmayan her metin Türkçe kalıyor**
+— yani bugünkü davranış. Katman tamamen kaldırılsa ekranda tek harf değişmez.
+
+**Metin TANIMDA değil ÇİZİMDE çevriliyor** (`t(label)`). Dizi tanımına `t()` koymak modül
+yüklenirken bir kez çalışır ve dil sonradan değişince metin ilk dilde donardı.
+
+**Dil değişince tüm ağaç yeniden kuruluyor** (`key`). `t()` etkin dili modül düzeyinde
+okuyor ve React bunu bağımlılık olarak göremiyor; abone olmayan bileşenler eski dilde
+kalır, ekranın yarısı bir dilde yarısı öbüründe olurdu. Her bileşene ayrı abonelik eklemek
+yüzlerce dokunuş ve biri unutulunca sessiz hata demekti.
+
+**ÜÇ ŞEY BİLEREK ÇEVRİLMEDİ** — çevrilmeleri hata olurdu:
+- **Mağaza adı** kayda yazılıyor; üretimde çevirmek dili değiştiren oyuncunun dükkânının
+  adını da değiştirirdi.
+- **Kanal adı** (Vitrin / Toptancı / Eritme) bir birlik türüdür, ekran metni değil; kod ona
+  göre dallanıyor. Çizimde `t(channel)` ile çevrilir.
+- **Müşteri adları** Türkçe kalır. İngilizce arayüzde de bir Türk sarrafın müşterisi Türk
+  adı taşır.
+
+**İKİ ARAÇ — "çevirdim" iddiasını ölçüyle karşılamak için.**
+`npm run i18n` sözlükte karşılığı olmayan anahtarları sayar (şu an **685/685**).
+Tarayıcı sızıntı dedektörü İngilizce seçiliyken ekranda kalan Türkçe metni toplar.
+
+**SIZINTI DEDEKTÖRÜ İKİ KEZ YANILDI ve ikisi de düzeltildi.** Önce yalnız Türkçeye özgü
+harfe bakıyordu; `sahip olunan` hiçbirini içermediği için kaçtı — **ekran görüntüsü
+yakaladı, ölçüm değil**. Kelime listesi eklenince bu kez `Gram Gold` ve `once a customer`
+yanlış alarm verdi; liste İngilizcede de geçen kelimelerden temizlendi.
+
+**EKRAN GÖRÜNTÜSÜ BİR KEZ DAHA ÖLÇÜMÜN KAÇIRDIĞINI GÖRDÜ.** Sızıntı sıfırdı ama İngilizce
+arayüzde ses düzeyi `%70` yazıyordu: yüzde imi Türkçede sayının önünde, İngilizcede
+arkasındadır. `pct` dile bağlandı (`%70` / `70%`), ondalık ayracı da öyle.
+
+**Bir hata da düzeldi:** teslim edilen işin balonu metne bakılarak kaldırılıyordu ve aranan
+parça sabit Türkçeydi. Çeviriyle birlikte o balon İngilizce oyunda ekranda takılı kalırdı;
+süzgeç artık şablondan türetiliyor.
+
+**Codemod üç kez yanlış yaptı, üçü de yakalandı:** `=>` işaretini JSX kapanışı sandı,
+yorumların içindeki tırnaklı cümleleri bozdu, ve zaten sarılmış metni `t(t(...))` yaptı.
+Öznitelikler süslü paranteze alındı. Hepsi `tsc` + testler + tarama ile yakalandı.
+
+**Testler:** `src/i18n/invariance.test.ts` (7), `src/i18n/money.test.ts` (15),
+`src/state/settings.test.ts`'e 6 yeni test. Suite 933 → **946**.
+
+**Tarayıcıda ölçüldü (390×844):** beş kök sekme + müşteri akışı + hızlı stok + İşletme alt
+rotaları + gün kapanışı + ayarlar dolaşıldı; **277 farklı metin tarandı, sızıntı 0** (beş
+ardışık koşuda). İngilizce + $ seçiliyken şerit `Lv 1 · DAY 1 · MON · CASH $30,817`,
+navigasyon `Shop / Stock / Workshop / Market / Business`, gün kapanışı *"The daily overhead
+of $36.98 is charged either way."* Sayı yereli de dile uyuyor (`30,817` · `36.98`).
+Türkçe/₺ seçiliyken ekran eskisiyle birebir aynı.
+
+**Kalan sınır, dürüstçe:** üst şeritte XP sayısı (`0/580`) Türkçe + ₺ birleşiminde 5 px
+kırpılıyor — `1.000.000 ₺` dolar karşılığından geniş olduğu için. Bu, ayarlar düğmesi
+maddesinde zaten yazılmış olan 390 px sınırının aynısı; çözümü de orada duruyor (XP sayısını
+şeritten çıkarmak, çubuk aynı bilgiyi veriyor).
+
 #### YENİ · İlk açılışta ad ve portre ekranı — ✅ YAPILDI
 `src/state/save.ts` · `src/state/gameStore.ts` · `src/ui/shell/ProfileDialog.tsx` ·
 `src/ui/App.tsx` · `AppShell.css`
@@ -588,7 +670,7 @@ ile tasarlanmış kademeli davranış. Tam adın her zaman görünmesi isteniyor
 **Doğrulandı:** 913 test geçiyor; beş ekranda yatay taşma ve konsol hatası yok; düğme
 tıklanınca ayarlar açılıyor, Escape kapatıyor.
 
-#### YENİ · Ayarlarda ses, titreşim ve dil — ✅ YAPILDI (davranış sonra bağlanacak)
+#### YENİ · Ayarlarda ses, titreşim ve dil — ✅ YAPILDI (hepsi bağlandı)
 `src/domain/preferences.ts` (yeni) · `src/state/save.ts` · `src/state/gameStore.ts` ·
 `src/ui/shell/SettingsDialog.tsx`
 
