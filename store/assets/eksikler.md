@@ -12,28 +12,31 @@
 | `mihenkaynak_logo_primary.png` | — | — | Tanıtım/pazarlama malzemesi kaynağı |
 | `mihenkaynak_mark_secondary.png` | — | — | İkon/amblem kaynağı |
 
+## Üretildi (`store/assets/generated/`)
+
+| Varlık | Boyut | Nasıl üretildi |
+|---|---|---|
+| `icon-1024-appstore.png` | 1024×1024, **RGB, alfasız** — ölçüldü | Kaynak: mevcut `icon-512.png` (alfası zaten 100% opak — ölçüldü, `min=max=255` — ama PNG **modu** hâlâ RGBA'ydı ve Apple'ın yükleyicisi bunu reddediyor). Lanczos ile 2× büyütüldü, alfa kanalı düşürüldü. **Not:** kaynak sanat eserinde "MIHENKAYNAK" yazısı ve "TRADE·COLLECT·PROSPER" alt başlığı ikonun içine gömülü — küçük boyutlarda (mağaza aramasında 60px'e kadar küçülür) bu metin okunmaz hale gelir; bu bir teknik format düzeltmesi, bir yeniden tasarım değil — istersen metinsiz, amblem-only bir versiyon ayrıca üretilebilir. |
+| `feature-graphic-1024x500.png` | 1024×500, RGB | Sıfırdan tasarlandı: HTML+Playwright ile render edildi, önce küçük denemelerle (metin taşması vb.) gözle kontrol edildi. Marka paletinden (`--ink-900`, `--brass-400/500`) renkler, köşede mevcut ikon, "MİHENKAYNAK" başlığı + kısa slogan. |
+| `screenshots/01-dukkan.png` … `04-atolye.png` | 1290×2796, RGB (iPhone 6.7" fiziksel çözünürlüğü) | Playwright, `viewport 430×932` + `deviceScaleFactor 3` — uygulamanın kendi `max-width:430px` tasarım tavanıyla birebir örtüşüyor, hiç yatay boşluk/kırpma yok. Gerçek oynanıştan: Dükkan (bekleyen müşteri + alınan sarrafiye bildirimleri), Stok (4 kalem envanter), İşletme (finans özeti), Atölye. Konsol hatası yok, doğrulandı. |
+
+**Denendi, vazgeçildi — pazarlık/inceleme ekranı.** Beşinci, daha "satış
+yapan" bir görüntü olarak müşteri inceleme/pazarlık ekranını da yakalamayı
+denedim (bir denemede gerçekten çok iyi bir kare çıktı: yüzük görseli +
+ekspertiz araçları). Ama müşteri türü (alım/satım/servis) her taze oturumda
+rastgele geliyor ve tekrarlanabilir biçimde yakalamak beklenenden çok script
+denemesi gerektirdi; bir noktada zaman/fayda dengesizleşti ve dört sağlam
+karede bıraktım. İstersen ayrı bir turda yeniden denerim.
+
 ## Eksik — App Store
 
 | Varlık | Gereken boyut | Not |
 |---|---|---|
-| Uygulama ikonu | **1024×1024, alfasız** | Mevcut 512'lik **alfa taşıyor**, doğrudan kullanılamaz — düz bir arka plan rengiyle (`--ink-900` `#0b0f14` markanın kendi zemin rengi, veya `--brass-500` `#c48d2b`) yeniden dışa aktarılmalı |
-| iPhone 6.7" ekran görüntüleri | 1290×2796 | Oyun zaten 390×844 referans tuvalde tasarlı; gerçek cihazda veya ölçekli simülatörde alınmalı |
-| iPhone 6.5" ekran görüntüleri | 1284×2778 | Apple bazı durumlarda ister |
+| iPhone 6.5" ekran görüntüleri | 1284×2778 | Apple bazı durumlarda ister — 6.7" setiyle aynı yöntemle (viewport 428×926, dsf 3) kolayca üretilebilir, istenirse |
 
 ## Eksik — Play Store
 
 | Varlık | Gereken boyut | Not |
 |---|---|---|
-| Adaptive icon — ön plan katmanı | 512×512, şeffaf zemin | Amblemin zeminden ayrık, tek başına kesilmiş hâli gerekiyor |
-| Adaptive icon — arka plan katmanı | 512×512, düz/desenli | Marka zemin rengiyle düz bir kare yeterli |
-| Öne çıkan görsel (feature graphic) | 1024×500 | Play mağaza sayfasının üst banner'ı — hiç yok, sıfırdan tasarlanmalı |
-| Telefon ekran görüntüleri | min 2, max 8 | 9:16 veya 16:9 |
-
-## Ekran görüntüsü alma notu
-
-Oyun 390×844 (iPhone standardı) referans tuvalde tasarlandı ve bu oturumda
-Playwright ile bu boyutta defalarca doğrulandı (bkz.
-`DEVIR_VE_IYILESTIRME_PAKETI.md`). Mağaza ekran görüntüleri için gerçek
-cihaz çözünürlüğüne (1290×2796 vb.) ölçeklenmesi gerekecek — bu, tasarımı
-bozmadan yapılabilir bir dış-kaynak işi (Xcode simülatörü veya gerçek cihaz
-üzerinden alınabilir), kod tarafında bir değişiklik gerektirmiyor.
+| Adaptive icon — ön plan katmanı | 512×512, şeffaf zemin | Amblemin zeminden ayrık, tek başına kesilmiş hâli gerekiyor — kaynak sanat eserinde böyle bir katman yok, otomatik kesim (renk eşiğiyle arka planı silme) 3B-gölgeli bir logoda pürüzlü sonuç riski taşıdığı için denenmedi (bkz. `store/README.md` "Sıradaki adım") |
+| Adaptive icon — arka plan katmanı | 512×512, düz/desenli | Yukarıdakiyle aynı sebep — ön plan yoksa arka plan tek başına anlamsız |

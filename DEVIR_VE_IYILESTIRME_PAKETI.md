@@ -1514,6 +1514,63 @@ preview` önceki (kod değişikliğinden ÖNCEKİ) `dist/` çıktısını sunmay
 hâlâ eski dört satırlı "Bağla" metni görünüyordu. `npm run build` çalıştırılmadan `vite preview`
 başlatılırsa bu her zaman olur; bu depoda ders zaten biliniyordu, burada bir kez daha doğrulandı.
 
+#### YENİ · Mağaza görselleri üretildi — ✅ KISMEN YAPILDI
+`store/assets/generated/` (yeni klasör) · `store/README.md` · `store/assets/eksikler.md` ·
+`store/ios/checklist.md` · `store/android/checklist.md`
+
+Kullanıcı: *"Hazırlıklara başlaaa"* — önceki turda listelenen üç yayına-hazırlık kaleminden
+(native paketleme, gerçek mağaza görselleri, bulut hesap altyapısı) **görsel** olanı bu turda
+yapıldı; diğer ikisi bilerek başlatılmadı (aşağıda neden).
+
+**Üretildi, ölçüldü:**
+- `icon-1024-appstore.png` — 1024×1024, **RGB, alfasız** (`PIL` ile doğrulandı). Kaynak
+  `public/assets/brand/icon-512.png`'nin alfası zaten **tamamen opaktı** (`min=max=255`,
+  ölçüldü) ama PNG **modu** RGBA'ydı ve Apple'ın yükleyicisi bunu reddediyor — bu yüzden
+  önceki turda "alfa taşıyor" notu doğruydu, teknik anlamda. Lanczos ile 2× büyütülüp alfa
+  kanalı düşürüldü; büyütme sonrası görsel gözle karşılaştırıldı, bulanıklaşma yok.
+- `feature-graphic-1024x500.png` — Play Store'un hiç var olmayan öne çıkan görseli, sıfırdan
+  tasarlandı. Yöntem: HTML + Playwright render (bu oturumda daha önce ikon-önizleme için
+  kullanılan aynı "küçük mockup → ekran görüntüsü → gözle kontrol et → düzelt" döngüsü) —
+  ilk denemede başlık sağdan taşıyordu, ölçüler küçültülüp yeniden render edildi. Marka
+  paletinden (`--ink-900`, `--brass-400/500`) renkler kullanıldı, uydurma marka rengi yok.
+- `screenshots/01-dukkan.png … 04-atolye.png` — gerçek oynanıştan, gerçek cihaz fiziksel
+  çözünürlüğünde (1290×2796 = iPhone 6.7"). **Ölçüm notu:** Apple'ın istediği rakamlar
+  fiziksel piksel; uygulamanın kendi CSS tavanı `max-width:430px` (mantıksal px) — Playwright
+  `viewport 430×932` + `deviceScaleFactor 3` verince ikisi birebir örtüşüyor, hiç boşluk/kırpma
+  yok. Dükkan (bekleyen müşteri + iki "sarrafiye alındı" bildirimi — ilk halinde bildirimler
+  başlığın üstüne biniyordu, 3,5 sn ekstra beklemeyle temizlendi), Stok (4 kalem envanter),
+  İşletme (finans özeti), Atölye (boş kuyruk — 1. gün için dürüst bir an, zorlama "dolu kuyruk"
+  sahnesi kurulmadı).
+
+**Denendi, bırakıldı — pazarlık ekranı.** Beşinci bir kare olarak müşteri inceleme/pazarlık
+akışını da yakalamayı denedim; GDD 28.3'ün RNG determinizmi *ekonomiyi* korusa da hangi
+müşteri türünün (alım/satım/servis) önce geleceği taze bir oturumda RNG'ye bağlı — aynı script
+farklı çalıştırmalarda farklı müşteri tipiyle karşılaştı (bir denemede gerçekten iyi bir kare
+çıktı: yüzük + ekspertiz araçları, ama küçük bir "kilitli araç" tooltip'i kadrajı bozuyordu).
+Yedi-sekiz script denemesinden sonra zaman/fayda dengesi bozuldu; dört sağlam karede bırakıp
+bunu dürüstçe not ettim (`assets/eksikler.md`).
+
+**Bilerek YAPILMADI — native paketleme (Capacitor) ve bulut hesap altyapısı.** İkisi de
+listede vardı ama:
+- **Native paketleme**, bu ortamda Xcode/Android Studio olmadığı için kurulsa bile
+  derlenip doğrulanamaz — kör bir iskele bırakmak, "hazır" görünüp aslında hiç test
+  edilmemiş bir şey teslim etmek olurdu. `store/README.md`'de bu gerekçeyle açıkça
+  ertelendi, istenirse iskele (npm paketleri + `ios/`/`android/` klasörleri, additive) yine
+  de kurulabilir.
+- **Bulut hesap altyapısı** mimari bir karar (hangi sağlayıcı, kimlik doğrulama kapsamı,
+  maliyet) — kullanıcıyla konuşulmadan başlatılmadı; tek taraflı bir seçim, geri dönüşü zor
+  bir bağımlılık kurardı.
+
+**Görsel envanterinden bilerek atlanan bir madde daha var:** Android adaptive icon (ön
+plan/arka plan katmanı ayrı, şeffaf zemin) — kaynak sanat eserinde amblem hiçbir zaman zeminden
+gerçek alfa ile ayrılmamış; renk-eşiğiyle otomatik "arka planı sil" denemek, yumuşak gölgeli
+3B-görünümlü bir logoda pürüzlü/hatalı bir kesim üretme riski taşıyordu. Denenmedi, riski
+`store/README.md`'de ve `assets/eksikler.md`'de açıkça yazılı.
+
+**Doğrulama:** `python3 -c "from PIL import Image; ..."` ile her üretilen dosyanın boyutu ve
+modu ölçüldü (yukarıdaki tabloda). Kod tarafında hiçbir değişiklik yok — bu tur yalnız
+`store/` klasörüne yeni dosyalar ekledi, `src/` dokunulmadı; test suite'i etkilemez.
+
 ---
 
 ### B. Tasarım ve oynanış önerileri

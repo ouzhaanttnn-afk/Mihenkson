@@ -17,11 +17,13 @@ senin yerine atamaz. Sırayla:
 - [ ] TestFlight'a ilk derleme yüklendi ve kendi cihazında denendi
 
 ## 3. Görseller (bkz. `../assets/eksikler.md`)
-- [ ] 1024×1024 App Store ikonu — **alfa kanalı OLMAMALI**, köşeler
-      kare (Apple kendi yuvarlıyor)
-- [ ] iPhone 6.7" ekran görüntüleri (1290×2796) — en az 3, en çok 10
+- [x] 1024×1024 App Store ikonu — **alfa kanalı OLMAMALI**, köşeler
+      kare (Apple kendi yuvarlıyor) — üretildi:
+      `../assets/generated/icon-1024-appstore.png` (1024×1024, RGB, ölçüldü)
+- [x] iPhone 6.7" ekran görüntüleri (1290×2796) — en az 3, en çok 10 —
+      4 adet üretildi: `../assets/generated/screenshots/`
 - [ ] iPhone 6.5" ekran görüntüleri (1284×2778) — gerekebilir, cihaz
-      matrisine göre değişir
+      matrisine göre değişir — henüz üretilmedi, istenirse aynı yöntemle eklenir
 - [ ] (opsiyonel) Önizleme videosu
 
 ## 4. Mağaza metni (bkz. `metadata-taslak.md`)

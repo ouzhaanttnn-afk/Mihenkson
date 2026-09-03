@@ -17,12 +17,15 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
       cihazında denendi
 
 ## 3. Görseller (bkz. `../assets/eksikler.md`)
-- [ ] Uygulama ikonu 512×512 (32-bit PNG, alfa **olabilir**) — mevcut
+- [x] Uygulama ikonu 512×512 (32-bit PNG, alfa **olabilir**) — mevcut
       `public/assets/brand/icon-512.png` bu boyutta, doğrudan kullanılabilir
-- [ ] Adaptive icon: ön plan + arka plan katmanı ayrı — **şu an yok**,
-      mevcut tek katmanlı ikondan türetilmeli
-- [ ] Öne çıkan görsel (feature graphic) 1024×500 — **yok**
-- [ ] Telefon ekran görüntüleri — en az 2, en çok 8 (16:9 veya 9:16)
+- [ ] Adaptive icon: ön plan + arka plan katmanı ayrı — **hâlâ yok**,
+      kaynak sanat eserinde şeffaf/katmanlı bir versiyon bulunmuyor;
+      otomatik kesim denenmedi (risk — bkz. `../README.md`)
+- [x] Öne çıkan görsel (feature graphic) 1024×500 — üretildi:
+      `../assets/generated/feature-graphic-1024x500.png`
+- [x] Telefon ekran görüntüleri — en az 2, en çok 8 (16:9 veya 9:16) —
+      4 adet üretildi (1290×2796, 9:16 içinde): `../assets/generated/screenshots/`
 - [ ] (opsiyonel) 7" ve 10" tablet ekran görüntüleri
 
 ## 4. Mağaza girişi (bkz. `metadata-taslak.md`)

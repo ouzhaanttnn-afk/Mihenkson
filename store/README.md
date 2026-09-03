@@ -17,10 +17,10 @@ Bu klasörün işi o adımlara gelene kadarki her şeyi hazır bulundurmak.
 |---|---|
 | Web uygulaması (kod) | ✅ Hazır — bkz. `DEVIR_VE_IYILESTIRME_PAKETI.md` |
 | iOS/Android native derleme (Capacitor vb.) | ❌ Hiç kurulmadı |
-| 1024×1024 App Store ikonu (alfasız) | ❌ Yok — yalnız 512×512 (alfalı) var |
-| Android adaptive ikon (ön/arka plan katmanı) | ❌ Yok |
-| Play Store öne çıkan görsel (1024×500) | ❌ Yok |
-| Mağaza ekran görüntüleri | ❌ Yok |
+| 1024×1024 App Store ikonu (alfasız) | ✅ Üretildi — `assets/generated/icon-1024-appstore.png` |
+| Android adaptive ikon (ön/arka plan katmanı) | ❌ Yok — kaynak sanat eserinde şeffaf/katmanlı bir versiyon yok, otomatik kesim riskli (bkz. `assets/eksikler.md`) |
+| Play Store öne çıkan görsel (1024×500) | ✅ Üretildi — `assets/generated/feature-graphic-1024x500.png` |
+| Mağaza ekran görüntüleri | ✅ 4 adet, gerçek cihaz çözünürlüğünde (1290×2796) — `assets/generated/screenshots/` |
 | Gizlilik politikası | 🟡 Taslak hazır (`legal/gizlilik-politikasi.md`) — barındırılacak bir URL gerekiyor |
 | Kullanım şartları | 🟡 Taslak hazır (`legal/kullanim-sartlari.md`) |
 | Apple Developer hesabı | ❓ Sende — bu oturumun bilgisi yok |
@@ -34,6 +34,7 @@ Bu klasörün işi o adımlara gelene kadarki her şeyi hazır bulundurmak.
 - `android/checklist.md` — Play Console için aynı liste.
 - `android/metadata-taslak.md` — Play Store mağaza girişi taslağı.
 - `assets/eksikler.md` — Hangi görsel hangi boyutta eksik, mevcut kaynaklar nerede.
+- `assets/generated/` — Bu oturumda üretilen, doğrudan yüklenebilir görseller (ikon, öne çıkan görsel, ekran görüntüleri). Nasıl üretildikleri `assets/eksikler.md`'de kayıtlı.
 - `legal/gizlilik-politikasi.md` — Taslak; kodun bugünkü hâlini dürüstçe anlatıyor (bkz. aşağıda).
 - `legal/kullanim-sartlari.md` — Taslak.
 
@@ -51,12 +52,20 @@ politika yalan söylemiş olur.
 
 1. **Native paketleme.** Bu bir web uygulaması (Vite + React); mağazaya
    çıkmak için Capacitor (önerilir, `vite.config.ts` zaten göreli yollarla
-   buna hazır) ya da benzer bir sarmalayıcı kurulmalı. İstersen bunu da
-   şimdi kurayım.
-2. **1024×1024 ikon.** Mevcut `public/assets/brand/icon-512.png` alfa
-   kanalı taşıyor; App Store alfasız ister. Mevcut sanat eserinden
-   (`mihenkaynak_mark_secondary.png`) türetilebilir ama tasarım kararı
-   (arka plan rengi ne olacak) sana ait.
+   buna hazır) ya da benzer bir sarmalayıcı kurulmalı. **Bilerek yapmadım:**
+   bu ortamda Xcode/Android Studio yok, yani bir iskele kursam bile onu
+   gerçekten derleyip test edemem — kör bir yapılandırma bırakmak, "hazır"
+   görünüp aslında doğrulanmamış bir şey teslim etmek olurdu. İstersen
+   yine de iskeleyi kurayım (npm paketleri + `ios/`/`android/` klasörleri,
+   additive ve geri alınabilir) ama son derleme/imzalama adımı Xcode/Android
+   Studio olan bir makinede senin elinle doğrulanmalı.
+2. **Android adaptive ikon.** Kaynak sanat eserinde (`mihenkaynak_mark_secondary.png`)
+   amblem, arka plandan (krem kart + koyu mürekkep zemin) hiçbir zaman
+   şeffaf olarak ayrılmamış — otomatik bir "arka planı sil" denemesi
+   yumuşak gölgeli, 3B-görünümlü bir logoda pürüzlü/hatalı bir kesim
+   üretme riski taşıyordu, o yüzden denemedim. Gerçek bir katmanlı kaynak
+   (ör. amblemin şeffaf PNG'si) sağlanırsa buradan iki katman (ön plan +
+   arka plan, 512×512) üretmek hızlı bir iş.
 3. **Apple/Google hesap bilgileri.** Bu doküman bilerek `[DOLDURULACAK]`
    bıraktığım yerler taşıyor — şirket/geliştirici adı, destek e-postası,
    destek URL'si gibi. Ben bunları uydurmadım.
