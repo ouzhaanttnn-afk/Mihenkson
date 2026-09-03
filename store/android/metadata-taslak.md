@@ -43,7 +43,8 @@ Pazar ikisi de kapalı.
 
 Türkçe ve İngilizce arayüz; ₺ ve $ gösterimi.
 
-Reklam yok, izleyici yok — kayıt yalnız cihazında durur.
+İsteğe bağlı ödüllü reklam var (Google AdMob) — yalnız oyuncu "reklamla aç"a
+dokununca gösterilir; izleyici/analitik yok, kayıt yalnız cihazında durur.
 ```
 
 ## Kategori

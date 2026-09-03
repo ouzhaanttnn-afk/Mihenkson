@@ -43,7 +43,8 @@ hikâyenin doğru olduğu garanti değildir. Mihenk taşı, terazi ve yoğunluk
   riski taşır. Pazar ikisi de kapalı.
 • Türkçe ve İngilizce; ₺ ve $ gösterimi.
 
-Reklam yok, izleyici yok — kayıt yalnız cihazında durur.
+İsteğe bağlı ödüllü reklam var (Google AdMob) — yalnız oyuncu "reklamla aç"a
+dokununca gösterilir; izleyici/analitik yok, kayıt yalnız cihazında durur.
 ```
 
 ## Anahtar kelimeler (≤100 karakter, virgülle, boşluksuz)

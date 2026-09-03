@@ -38,7 +38,8 @@ export const EN: Record<string, string> = {
   'Nakit': 'Cash',
   'Oyun hızı': 'Game speed',
   '{n}x hız': '{n}x speed',
-  '{n}x hızı aç': 'Unlock {n}x speed',
+  '{n}x hızı reklamla aç': 'Unlock {n}x speed with an ad',
+  'Reklam yükleniyor…': 'Loading ad…',
   'Ayarlar': 'Settings',
   'Profili düzenle — {ad}': 'Edit profile — {ad}',
   'Gün {gun}, {haftaGunu}, saat {saat}': 'Day {gun}, {haftaGunu}, {saat}',
@@ -592,12 +593,13 @@ export const EN: Record<string, string> = {
     erişilebilir isimde (title) duruyor, orada yer sıkıntısı yok.
   */
   'Canlandır': 'Liven',
+  'Reklam…': 'Ad…',
   '{dk} dk': '{dk} min',
   'Dükkân kapalı — bugün müşteri akışı yok.': 'The shop is closed — no customers today.',
   'Müşteri akını sürüyor — {dk} dakika kaldı. Süreyi uzatmak için dokun.':
     'A customer rush is running — {dk} minutes left. Tap to extend it.',
-  'Dükkânı Canlandır — müşteri geliş aralığını 90 dakika boyunca kısaltır.':
-    'Liven Up the Shop — shortens the gap between customers for 90 minutes.',
+  'Dükkânı Canlandır — ödüllü reklam izle, müşteri geliş aralığı 90 dakika boyunca kısalsın.':
+    'Liven Up the Shop — watch a rewarded ad to shorten the gap between customers for 90 minutes.',
   'Teslim Et': 'Deliver',
   'Öde': 'Pay',
   'En çok': 'At most',
@@ -1251,9 +1253,11 @@ export const EN: Record<string, string> = {
 
   // ——— Mağaza ve ekonomi balonları ———
   '4x hız açıldı.': '4x speed unlocked.',
+  'Reklam tamamlanmadı — 4x hız açılmadı.': 'The ad did not finish — 4x speed was not unlocked.',
   'Profil güncellendi.': 'Profile updated.',
   'Müşteri akını başladı — geliş aralığı kısaldı.':
     'A rush has started — customers arrive more often.',
+  'Reklam tamamlanmadı — akın başlamadı.': 'The ad did not finish — the rush did not start.',
   'Kozmetik görünüm uygulandı.': 'The cosmetic look has been applied.',
   'Market ürünü koleksiyonuna eklendi.': 'The market item was added to your collection.',
   'Market satın alımı yapılamadı.': 'The market purchase could not be completed.',

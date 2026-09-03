@@ -50,25 +50,28 @@ export function RushFab() {
       ? 0
       : Math.max(0, Math.ceil(s.customerRushUntilMinutes - s.market.clockMinutes)),
   );
-  const triggerCustomerRush = useGame((s) => s.triggerCustomerRush);
+  const requestCustomerRush = useGame((s) => s.requestCustomerRush);
+  const adPending = useGame((s) => s.rewardedAdPending === 'customerRush');
 
   const open = isShopOpen(day);
   const active = open && remaining > 0;
 
-  const label = active ? t('{dk} dk', { dk: remaining }) : t('Canlandır');
-  const title = !open
-    ? t('Dükkân kapalı — bugün müşteri akışı yok.')
-    : active
-      ? t('Müşteri akını sürüyor — {dk} dakika kaldı. Süreyi uzatmak için dokun.', { dk: remaining })
-      : t('Dükkânı Canlandır — müşteri geliş aralığını 90 dakika boyunca kısaltır.');
+  const label = adPending ? t('Reklam…') : active ? t('{dk} dk', { dk: remaining }) : t('Canlandır');
+  const title = adPending
+    ? t('Reklam yükleniyor…')
+    : !open
+      ? t('Dükkân kapalı — bugün müşteri akışı yok.')
+      : active
+        ? t('Müşteri akını sürüyor — {dk} dakika kaldı. Süreyi uzatmak için dokun.', { dk: remaining })
+        : t('Dükkânı Canlandır — ödüllü reklam izle, müşteri geliş aralığı 90 dakika boyunca kısalsın.');
 
   return (
     <div className="rushFabAnchor">
       <button
         type="button"
         className={`rushFab ${active ? 'rushFab--active' : ''}`}
-        onClick={triggerCustomerRush}
-        disabled={!open}
+        onClick={requestCustomerRush}
+        disabled={!open || adPending}
         aria-label={title}
         title={title}
       >

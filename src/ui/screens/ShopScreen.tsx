@@ -191,8 +191,9 @@ export function ShopScreen() {
         market={s.market}
         speed={s.speed}
         speed4xUnlocked={s.speed4xUnlocked}
+        speed4xAdPending={s.rewardedAdPending === 'speed4x'}
         onSpeed={s.setSpeed}
-        onUnlock4x={s.unlock4x}
+        onUnlock4x={s.requestUnlock4x}
         onOpenSettings={s.openSettings}
         profile={s.profile}
         profileFrame={s.playerMarket.equipped.profileFrame}

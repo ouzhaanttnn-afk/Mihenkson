@@ -17,6 +17,12 @@ senin yerine atamaz. Sırayla:
 - [x] `ios/` Xcode projesi oluşturuldu (`npx cap add ios`) — depoda,
       `npm run cap:open:ios` ile açılır
 - [x] Uygulama ikonu + splash ekranı yerleştirildi (`@capacitor/assets`)
+- [x] Google AdMob (ödüllü reklam) eklendi — `@capacitor-community/admob`,
+      `Info.plist`'e `GADApplicationIdentifier`/`SKAdNetworkItems`/
+      `NSUserTrackingUsageDescription` işlendi (bkz. `src/ui/ads.ts`)
+- [ ] `GADApplicationIdentifier` hâlâ Google'ın **TEST** App ID'si
+      (`ca-app-pub-3940256099942544~1458002511`) — gerçek AdMob hesabından
+      alınan iOS App ID ile değiştirilmeden yayına çıkma
 - [ ] Bundle ID kesinleşince `npm run cap:sync` ile yeniden senkronize et
 - [ ] İmzalama sertifikası + provisioning profile Xcode'da tanımlı — **bu
       ortamda Xcode yok, senin makinende yapılmalı**
@@ -46,10 +52,11 @@ senin yerine atamaz. Sırayla:
       https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
 - [x] Sayfa herkese açık — kullanıcı paylaşım menüsünden yaptı, doğrulandı
       ("shared with anyone with the link"). Apple incelemecisi erişebilir.
-- [ ] "App Privacy" anketi (App Store Connect içinde) — bugünkü koda göre
-      doldurulacak alan: **"Veri Toplanmıyor"** (kodda hiç ağ isteği,
-      analitik veya üçüncü taraf SDK yok — bkz. depo kökü `store/README.md`).
-      Bulut kayıt eklenince bu anket YENİDEN doldurulmalı.
+- [ ] "App Privacy" anketi (App Store Connect içinde) — AdMob eklendiğinden
+      beri **"Veri Toplanmıyor" ARTIK DOĞRU DEĞİL**: "Identifiers → Device
+      ID", kullanım amacı "Third-Party Advertising" olarak işaretlenmeli
+      (bkz. `../README.md` "Mağaza konsollarında AYRICA doldurulması
+      gerekenler"). Bulut kayıt eklenince bu anket YENİDEN doldurulmalı.
 - [ ] Yaş derecelendirmesi anketi — oyun şiddet/kumar/yetişkin içerik
       taşımıyor; ekonomi simülasyonu. Muhtemel derece: 4+. Anket yine de
       dürüstçe doldurulmalı, burada varsayım yapılmadı.

@@ -66,5 +66,25 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+
+	<!--
+	  AdMob (bkz. src/ui/ads.ts). GADApplicationIdentifier ŞU AN Google'ın
+	  herkese açık TEST App ID'si — yayından önce gerçek AdMob hesabından
+	  alınan iOS App ID ile değiştirilmeli.
+	-->
+	<key>GADIsAdManagerApp</key>
+	<true/>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
+	<!-- App Tracking Transparency — reklamı kişiselleştirmek için sorulur (bkz. AdMob.requestTrackingAuthorization). -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Bu kimlik, sana daha ilgili reklamlar göstermek için kullanılır. İstersen reddedebilirsin; reklamlar yine de gösterilir.</string>
 </dict>
 </plist>

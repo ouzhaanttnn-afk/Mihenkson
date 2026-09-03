@@ -165,6 +165,7 @@ import {
   writeSave,
 } from './save';
 import type { SoundId } from '@ui/audio';
+import { showRewardedAd, type RewardKind } from '@ui/ads';
 import type {
   ActiveDeal,
   AppraisalSession,
@@ -270,6 +271,15 @@ export interface GameState {
    */
   settingsOpen: boolean;
   customerRushUntilMinutes: number | null;
+  /**
+   * Şu an gösterilmekte olan ödüllü reklamın türü, yoksa `null`.
+   *
+   * Yalnız arayüz durumu — kayda girmez, eski kayıtları etkilemez. Tek işi:
+   * reklam yüklenip gösterilirken düğmeye ikinci bir dokunuşun aynı anda
+   * ikinci bir reklam isteği açmasını engellemek (bkz. `requestUnlock4x`,
+   * `requestCustomerRush`).
+   */
+  rewardedAdPending: RewardKind | null;
 
   /**
    * Günün karakteri — Addendum §3'ün %24'lük dinamik havuzu.
@@ -365,6 +375,8 @@ export interface GameState {
   setTab: (tab: RootTab) => void;
   setSpeed: (speed: SpeedStep) => void;
   unlock4x: () => void;
+  /** Ödüllü reklamı gösterir; ödül kazanılırsa `unlock4x()`i çağırır. */
+  requestUnlock4x: () => Promise<void>;
 
   /** GDD 25 — dersi kapat; bir daha gösterilmez. */
   dismissLesson: (id: string) => void;
@@ -393,6 +405,8 @@ export interface GameState {
    */
   restoreOnboarding: () => void;
   triggerCustomerRush: () => void;
+  /** Ödüllü reklamı gösterir; ödül kazanılırsa `triggerCustomerRush()`u çağırır. */
+  requestCustomerRush: () => Promise<void>;
   buyMarketProduct: (productId: string) => boolean;
   equipMarketProduct: (productId: string) => boolean;
 
@@ -559,6 +573,7 @@ export const useGame = create<GameState>((set, get) => {
     speed: 1,
     speed4xUnlocked: false,
     customerRushUntilMinutes: null,
+    rewardedAdPending: null,
     seenLessons: [],
     settingsOpen: false,
     profile: defaultProfile(),
@@ -661,6 +676,15 @@ export const useGame = create<GameState>((set, get) => {
       pushToast(set, get, t('4x hız açıldı.'), 'info');
     },
 
+    requestUnlock4x: async () => {
+      if (get().speed4xUnlocked || get().rewardedAdPending) return;
+      set({ rewardedAdPending: 'speed4x' });
+      const granted = await showRewardedAd('speed4x');
+      set({ rewardedAdPending: null });
+      if (granted) get().unlock4x();
+      else pushToast(set, get, t('Reklam tamamlanmadı — 4x hız açılmadı.'), 'negative');
+    },
+
     // --- GDD 25 · öğretim ---
     // Ders KAPATMAK oyunu hiç değiştirmez; yalnız o dersin bir daha
     // gösterilmemesini kaydeder. Bu yüzden atlamak da hiçbir şeyi eksik
@@ -739,6 +763,15 @@ export const useGame = create<GameState>((set, get) => {
       // kalitesi, bütçesi, rezervasyon fiyatı veya hidden truth DEĞİŞMEZ.
       set({ customerRushUntilMinutes: market.clockMinutes + 90 });
       pushToast(set, get, t('Müşteri akını başladı — geliş aralığı kısaldı.'), 'info');
+    },
+
+    requestCustomerRush: async () => {
+      if (get().rewardedAdPending) return;
+      set({ rewardedAdPending: 'customerRush' });
+      const granted = await showRewardedAd('customerRush');
+      set({ rewardedAdPending: null });
+      if (granted) get().triggerCustomerRush();
+      else pushToast(set, get, t('Reklam tamamlanmadı — akın başlamadı.'), 'negative');
     },
 
     buyMarketProduct: (productId) => {

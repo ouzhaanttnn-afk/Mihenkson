@@ -16,6 +16,11 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
       `npm run cap:open:android` ile açılır
 - [x] Uygulama ikonu (tüm yoğunluklar) + splash ekranı yerleştirildi
       (`@capacitor/assets`)
+- [x] Google AdMob (ödüllü reklam) eklendi — `@capacitor-community/admob`,
+      `AndroidManifest.xml`'e App ID meta-data'sı işlendi (bkz. `src/ui/ads.ts`)
+- [ ] `strings.xml`'deki `admob_app_id` hâlâ Google'ın **TEST** App ID'si
+      (`ca-app-pub-3940256099942544~3347511713`) — gerçek AdMob hesabından
+      alınan Android App ID ile değiştirilmeden yayına çıkma
 - [ ] Paket adı kesinleşince `npm run cap:sync` ile yeniden senkronize et
 - [ ] İmzalama anahtarı (keystore) üretildi ve **güvenli bir yere yedeklendi**
       (kaybedilirse uygulama bir daha güncellenemez) — **bu ortamda Android
@@ -50,10 +55,11 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 - [ ] Hedef kitle ve içerik beyanı
 
 ## 6. Data safety (veri güvenliği formu)
-- [ ] Bugünkü koda göre: **"Herhangi bir veri toplanmıyor veya
-      paylaşılmıyor"** seçilebilir — kodda ağ isteği, analitik veya SDK
-      yok (bkz. depo kökü `store/README.md`)
-- [ ] Bulut kayıt eklenince bu form **yeniden doldurulmalı**
+- [ ] AdMob eklendiğinden beri **"Herhangi bir veri toplanmıyor" ARTIK
+      DOĞRU DEĞİL** — "Reklam kimliği" topluyor, amaç "Reklam veya
+      pazarlama", "Google AdMob" ile paylaşılıyor olarak işaretle (bkz.
+      `../README.md` "Mağaza konsollarında AYRICA doldurulması gerekenler")
+- [ ] Bulut kayıt eklenince bu form AYRICA **yeniden doldurulmalı**
 
 ## 7. Gizlilik politikası
 - [x] Barındırıldı — `../legal/gizlilik-politikasi.md` taslağının

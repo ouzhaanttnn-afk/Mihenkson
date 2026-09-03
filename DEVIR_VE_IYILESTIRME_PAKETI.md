@@ -1841,6 +1841,90 @@ hatası. `dist/assets/audio/` artık yalnız efekt dosyaları (236 KB, önceden
 
 ---
 
+#### YENİ · Ödüllü reklam altyapısı (Google AdMob) — ✅ YAPILDI
+`src/ui/ads.ts` (yeni) · `src/state/gameStore.ts` · `src/ui/shell/RushFab.tsx` ·
+`src/ui/shell/StatusStrip.tsx` · `src/ui/screens/ShopScreen.tsx` · `src/i18n/en.ts` ·
+`capacitor.config.ts` iskeleti — `android/…AndroidManifest.xml`,
+`android/…strings.xml`, `ios/App/App/Info.plist` · `store/legal/gizlilik-politikasi.md` ·
+`store/README.md`, `store/*/checklist.md`, `store/*/metadata-taslak.md`
+
+Kullanıcı isteği: "rewarded reklam zamanı hızlandırmak dükkana müşteri
+çağırmak gibi ödül reklamlarımız olacak" — ve bunun için önce AdMob mı
+başka bir ağ mı, test kimlikleriyle mi başlanacağı soruldu, "Google AdMob"
++ "Test ID'leriyle başla" seçildi.
+
+**Keşif — hook'lar ZATEN oradaydı.** GDD, bu iki ödülü baştan öngörmüş:
+`unlock4x()` (GDD 26.2, "4x yalnız rewarded ile geçici açılır") ve
+`triggerCustomerRush()` (GDD 23.10.1, "Dükkânı Canlandır" — yalnız müşteri
+geliş aralığını 90 dk kısaltır; müşteri kalitesi/bütçesi/rezervasyon fiyatı
+DEĞİŞMEZ). `RushFab.tsx` ve `StatusStrip.tsx`'te video ikonlu düğmeler de
+vardı — ama gerçek sağlayıcı yokken ikisi de tıklanır tıklanmaz ÜCRETSİZ
+ödül veriyordu (kod bunu bilerek belgelemişti: "video izle" iddiasında
+bulunmuyoruz). Bu turda yapılan iş yeni bir mekanik icat etmek değil, bu iki
+çağrının önüne gerçek bir "reklamı gerçekten izledin mi" kapısı koymaktı.
+
+**`src/ui/ads.ts` (yeni) — `@capacitor-community/admob` köprüsü:**
+- `showRewardedAd(kind)`: native'de SDK'yı başlatır (initialize → iOS ATT
+  izni → GDPR/UMP onay formu gerekirse), reklamı yükler, gösterir; ödülü
+  YALNIZ `Rewarded` OLAYI ateşlenirse `true` döner. `Dismissed`/
+  `FailedToShow` → `false`. Web/dev'de (Capacitor native değilken) SESSİZCE
+  `false` döner — sahte "izledin" simülasyonu yapılmaz.
+- NEDEN promise'e değil olaya güveniliyor: `@capacitor-community/admob`'un
+  web stub'ı `showRewardVideoAd()`'ı ödül olayı hiç ateşlemeden sahte bir
+  sonuçla çözüyor (paketin kendi `web.js`'i okunarak doğrulandı) — yalnız
+  promise'e güvenseydik web'de her tıklama bedava ödül verirdi.
+- Test reklam kimlikleri Google'ın herkese açık ÖRNEK ID'leri — `appId`
+  placeholder'ıyla (`capacitor.config.ts`) aynı disiplin: yayından önce
+  gerçek AdMob hesabından alınan App ID + iki Ad Unit ID ile değiştirilmeli.
+
+**`gameStore.ts`:** `requestUnlock4x()` ve `requestCustomerRush()` eklendi —
+`showRewardedAd()`i çağırır, ödül kazanılırsa mevcut `unlock4x()`/
+`triggerCustomerRush()`u (değişmedi) çağırır, kazanılmazsa
+"Reklam tamamlanmadı" balonu gösterir. Yeni `rewardedAdPending` alanı
+(yalnız arayüz durumu, kayda girmez) çift tıklamayla iki reklam isteği
+açılmasını engelliyor. `RushFab`/`StatusStrip` artık bu iki yeni action'ı
+çağırıyor; eski `unlock4x`/`triggerCustomerRush` store içinde hâlâ var,
+yalnız UI'dan doğrudan çağrılmıyor.
+
+**Native config — GEÇİCİ test kimlikleriyle:** Android
+`AndroidManifest.xml`'e AdMob App ID meta-data'sı, `strings.xml`'e
+`admob_app_id` (test), iOS `Info.plist`'e `GADApplicationIdentifier`
+(test), `SKAdNetworkItems`, `NSUserTrackingUsageDescription` eklendi.
+`npm run cap:sync` ile native projelere işlendi, `@capacitor-community/
+admob@8.1.0` her iki platformda da plugin listesinde göründü.
+
+**Gizlilik politikası — artık gerçeği yansıtıyor:** "Reklam göstermez"
+iddiası kaldırıldı; yeni "Reklamlar — Google AdMob" bölümü eklendi (yalnız
+rewarded, ne zaman gösterildiği, Google'a giden veri, ATT/UMP, test-kimliği
+uyarısı). `store/README.md` ve dört mağaza dosyası (`checklist.md` ×2,
+`metadata-taslak.md` ×2) aynı gerçeğe göre güncellendi; Play Console "Data
+safety" ve App Store "App Privacy" formlarının ARTIK "veri toplanmıyor"
+diyemeyeceği, "Reklam kimliği" / "Third-Party Advertising" işaretlenmesi
+gerektiği not edildi — bu formları ben dolduramam, hesap sahibi doldurmalı.
+
+**Barındırılan gizlilik sayfası pin sorunu (ÇÖZÜLMEDİ, kullanıcı elinde):**
+Sayfa güncel içerikle aynı URL'e yeniden yayınlandı, ama paylaşım linki
+eski bir sürüme pinli kaldığı ortaya çıktı — ziyaretçiler hâlâ ESKİ
+"reklam yok" metnini görüyor. Bunu düzeltmek sayfanın SAHİBİNİN elinde
+(paylaşım menüsünden pini taşımalı); `store/legal/gizlilik-politikasi.md`
+üstündeki not bunu açıkça uyarıyor.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 877/877 (0 kullanılmayan), 966/966
+test yeşil (bu turda test değişmedi — yeni davranış ağırlıkla platform I/O,
+birim testi değil, tarayıcıda doğrulandı). Taze `npm run build` + `cap:sync`
+sonrası tarayıcı kontrolü: hem "Canlandır" hem "4x hızı reklamla aç"
+düğmesine tıklanınca (web/dev ortamında, gerçek sağlayıcı yok) ÖDÜL
+VERİLMEDİĞİ ve "Reklam tamamlanmadı" balonunun çıktığı doğrulandı — yani
+sağlayıcı bağlandıktan sonra artık web'de bedava ödül YOK, 0 konsol hatası.
+
+**Bilerek YAPILMADI:** IAP (uygulama içi satın alma) — kullanıcı "iap
+tarafını oluşturmadık bile" dedi, bu turun kapsamı dışında bırakıldı.
+Banner/interstitial reklam da bilerek eklenmedi (öneri gerekçesi: bu oyunun
+temel değeri ekonomi/pazarlık matematiği, sürekli görünen ya da oynanışı
+kesen reklam retention'a zarar verir — kullanıcıyla konuşulup onaylandı).
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

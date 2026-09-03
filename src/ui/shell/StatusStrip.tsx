@@ -20,6 +20,8 @@ interface Props {
   market: MarketState;
   speed: SpeedStep;
   speed4xUnlocked: boolean;
+  /** Ödüllü reklam şu an gösteriliyor mu — düğmenin çift tetiklenmesini önler. */
+  speed4xAdPending: boolean;
   onSpeed: (s: SpeedStep) => void;
   onUnlock4x: () => void;
   onOpenSettings: () => void;
@@ -34,6 +36,7 @@ export function StatusStrip({
   market,
   speed,
   speed4xUnlocked,
+  speed4xAdPending,
   onSpeed,
   onUnlock4x,
   onOpenSettings,
@@ -116,6 +119,7 @@ export function StatusStrip({
       <SpeedControl
         speed={speed}
         unlocked={speed4xUnlocked}
+        adPending={speed4xAdPending}
         onSpeed={onSpeed}
         onUnlock={onUnlock4x}
         onOpenSettings={onOpenSettings}
@@ -126,19 +130,22 @@ export function StatusStrip({
 }
 
 /**
- * 1x/2x temel erişimdir; 4x isteğe bağlı açılır. Bu prototip gerçek bir
- * reklam sağlayıcısına bağlı olmadığı için arayüz "video izle" iddiasında
- * bulunmaz; kilit yalnız hızın henüz açılmadığını anlatır.
+ * 1x/2x temel erişimdir; 4x yalnız ödüllü reklamla geçici açılır (GDD 26.2,
+ * gerçek sağlayıcı: AdMob, bkz. `@ui/ads`). `onUnlock` reklamı GÖSTERİR;
+ * kilit yalnız reklam GERÇEKTEN tamamlanıp ödül kazanılınca kalkar —
+ * `requestUnlock4x` (gameStore.ts) reklam yarıda bırakılırsa hızı açmaz.
  */
 function SpeedControl({
   speed,
   unlocked,
+  adPending,
   onSpeed,
   onUnlock,
   onOpenSettings,
 }: {
   speed: SpeedStep;
   unlocked: boolean;
+  adPending: boolean;
   onSpeed: (s: SpeedStep) => void;
   onUnlock: () => void;
   onOpenSettings: () => void;
@@ -148,6 +155,12 @@ function SpeedControl({
       {SPEED_STEPS.map((step) => {
         const isLocked = step === 4 && !unlocked;
         const isActive = speed === step;
+        const waiting = isLocked && adPending;
+        const label = waiting
+          ? t('Reklam yükleniyor…')
+          : isLocked
+            ? t('{n}x hızı reklamla aç', { n: step })
+            : t('{n}x hız', { n: step });
 
         return (
           <button
@@ -161,11 +174,10 @@ function SpeedControl({
               .filter(Boolean)
               .join(' ')}
             onClick={() => (isLocked ? onUnlock() : onSpeed(step))}
+            disabled={waiting}
             aria-pressed={isActive}
-            aria-label={
-              isLocked ? t('{n}x hızı aç', { n: step }) : t('{n}x hız', { n: step })
-            }
-            title={isLocked ? t('{n}x hızı aç', { n: step }) : t('{n}x hız', { n: step })}
+            aria-label={label}
+            title={label}
           >
             {step}x
             {isLocked && <IconLock size={9} />}

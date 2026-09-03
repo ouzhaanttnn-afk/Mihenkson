@@ -47,13 +47,28 @@ kaynak dosyaları, `npm run cap:assets` ile yeniden üretilebilir).
 
 ## Gizlilik politikası neden "dürüstçe" diyor
 
-Kodda tarandı: **oyun hiçbir sunucuya veri göndermiyor.** Tek ağ isteği paket
-içindeki ses dosyalarını yerelden okumak (`src/ui/audio.ts`); analitik,
-reklam SDK'sı, çökme raporlama veya üçüncü taraf izleyici yok. Kayıt yalnız
-cihazın `localStorage`'ında duruyor. Taslak bunu yazıyor. **Bulut tabanlı
-hesap/kayıt sistemi eklendiğinde bu doküman güncellenmeli** — o an gerçek
-bir veri toplama başlayacak (en azından e-posta/hesap kimliği), aksi hâlde
-politika yalan söylemiş olur.
+Kodda tarandı: **oyun kendisi hiçbir sunucuya veri göndermiyor**, analitik
+veya çökme raporlama yok. Kayıt yalnız cihazın yerel depolamasında duruyor.
+
+**Tek istisna — Google AdMob (ödüllü reklam), YENİ eklendi:** oyuncu "4x
+hızı reklamla aç" veya "Dükkânı Canlandır" düğmesine dokununca `src/ui/ads.ts`
+üzerinden bir video reklam gösteriliyor (bkz. `DEVIR_VE_IYILESTIRME_PAKETI.md`
+"Ödüllü reklam altyapısı" bölümü). Bu, Google'a reklam kimliği/cihaz bilgisi
+giden tek yol — `legal/gizlilik-politikasi.md`'nin "Reklamlar" bölümü bunu
+tam anlatıyor, artık "reklam yok" demiyor. **Bulut tabanlı hesap/kayıt
+sistemi eklendiğinde bu doküman AYRICA güncellenmeli** — o an gerçek bir
+hesap kimliği (e-posta) de işlenmeye başlayacak.
+
+**Mağaza konsollarında AYRICA doldurulması gerekenler** (bu .md dosyaları
+kodu anlatır, ama Apple/Google'ın kendi formları ayrı doldurulur):
+- **Google Play Console → Data safety:** "Reklam kimliği" topluyor, amaç
+  "Reklam veya pazarlama", "Google AdMob" ile paylaşılıyor olarak işaretle.
+- **App Store Connect → App Privacy (Nutrition Label):** "Identifiers →
+  Device ID", kullanım amacı "Third-Party Advertising" olarak işaretle;
+  App Tracking Transparency kullanıldığı için `NSUserTrackingUsageDescription`
+  zaten `Info.plist`'te (bkz. `ios/App/App/Info.plist`).
+- İkisi de kodun DEĞİL, geliştirici hesabının içinde doldurulan formlar —
+  ben dolduramam, hesabı açan kişi doldurmalı.
 
 ## Native paketleme — ne yapıldı, ne senin elinde
 
