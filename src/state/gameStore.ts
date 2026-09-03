@@ -1049,7 +1049,7 @@ export const useGame = create<GameState>((set, get) => {
         trustDelta: 0,
         reputationDelta: 0,
         xpDelta: SERVICE.xpOnAccept,
-        label: `${quote.label} · parça maliyeti`,
+        label: t('{is} · parça maliyeti', { is: t(quote.label) }),
       };
 
       const outcome = applyTransaction(economyOf(s), tx);
@@ -1067,7 +1067,7 @@ export const useGame = create<GameState>((set, get) => {
           stage: 'jobQueue',
           service: { ...deal.service, createdJobId: job.jobId, outcome: 'accepted' },
         },
-        customerMessage: `Anlaştık. ${job.promisedDay}. gün için sözünüzü aldım.`,
+        customerMessage: t('Anlaştık. {gun}. gün için sözünüzü aldım.', { gun: job.promisedDay }),
       });
     },
 
@@ -1328,7 +1328,7 @@ export const useGame = create<GameState>((set, get) => {
       const tool = toolWithSkillBonuses(getTool(toolId), s.skillProgress);
       if (tool.unlockLevel > s.store.level) return;
       if (line.testResults.some((test) => test.toolId === tool.id)) {
-        pushToast(set, get, `${tool.name} bu üründe zaten uygulandı.`, 'info');
+        pushToast(set, get, t('{arac} bu üründe zaten uygulandı.', { arac: t(tool.name) }), 'info');
         return;
       }
       if (tool.cost > s.store.cash) {
@@ -1432,7 +1432,12 @@ export const useGame = create<GameState>((set, get) => {
       const limit = maxPackageLines(s.store);
 
       if (!existing && lines.length >= limit) {
-        pushToast(set, get, `Bu dükkân kademesinde pakete en fazla ${limit} kalem konur.`, 'negative');
+        pushToast(
+        set,
+        get,
+        t('Bu dükkân kademesinde pakete en fazla {n} kalem konur.', { n: limit }),
+        'negative',
+      );
         return;
       }
 
@@ -1613,7 +1618,7 @@ export const useGame = create<GameState>((set, get) => {
         trustDelta: 0,
         reputationDelta: 0,
         xpDelta: 0,
-        label: `${quote.quantity} adet ${item.displayName} bozma`,
+        label: t('{n} adet {ad} bozma', { n: quote.quantity, ad: t(item.displayName) }),
       };
 
       const outcome = applyTransaction(economyOf(s), tx);
@@ -1666,7 +1671,11 @@ export const useGame = create<GameState>((set, get) => {
       pushToast(
         set,
         get,
-        `${quote.quantity} adet bozuldu · ${fmt(quote.gross)} · ${fmt(profit)} kâr`,
+        t('{n} adet bozuldu · {brut} · {kar} kâr', {
+          n: quote.quantity,
+          brut: fmt(quote.gross),
+          kar: fmt(profit),
+        }),
         profit >= 0 ? 'positive' : 'negative',
       );
     },
@@ -1688,7 +1697,7 @@ export const useGame = create<GameState>((set, get) => {
       set(economyToState({ ...outcome.state, inventory: revalueInventory(outcome.state.inventory, outcome.state.items, thesisContext(s)) }));
       writeSave(get());
       cue(set, get, 'coins');
-      pushToast(set, get, `Sarrafiye alındı · ${fmt(quote.totalPrice)}`, 'positive');
+      pushToast(set, get, t('Sarrafiye alındı · {tutar}', { tutar: fmt(quote.totalPrice) }), 'positive');
     },
     /**
      * §7 — other wholesale routes retain their existing financed lot system.
@@ -1759,7 +1768,7 @@ export const useGame = create<GameState>((set, get) => {
         trustDelta: 0,
         reputationDelta: 0,
         xpDelta: 0,
-        label: `${units} adet ${lot.displayName} tedariki`,
+        label: t('{n} adet {ad} tedariki', { n: units, ad: t(lot.displayName) }),
       };
 
       const outcome = applyTransaction(economyOf(s), tx);
@@ -1798,8 +1807,13 @@ export const useGame = create<GameState>((set, get) => {
         set,
         get,
         terms.financed > 0
-          ? `${units} adet alındı · ${fmt(terms.fromCash)} peşin, ${fmt(terms.totalDue)} ${terms.dueDay}. güne vadeli`
-          : `${units} adet alındı · ${fmt(amount)} peşin`,
+          ? t('{n} adet alındı · {pesin} peşin, {vade} {gun}. güne vadeli', {
+              n: units,
+              pesin: fmt(terms.fromCash),
+              vade: fmt(terms.totalDue),
+              gun: terms.dueDay,
+            })
+          : t('{n} adet alındı · {pesin} peşin', { n: units, pesin: fmt(amount) }),
         'info',
       );
     },
@@ -1846,8 +1860,8 @@ export const useGame = create<GameState>((set, get) => {
         set,
         get,
         onTime
-          ? `Vade kapandı · güven ${supplier.trust}/100`
-          : `Vade GECİKMELİ kapandı · güven ${supplier.trust}/100`,
+          ? t('Vade kapandı · güven {guven}/100', { guven: supplier.trust })
+          : t('Vade GECİKMELİ kapandı · güven {guven}/100', { guven: supplier.trust }),
         onTime ? 'positive' : 'negative',
       );
     },
@@ -1888,7 +1902,11 @@ export const useGame = create<GameState>((set, get) => {
         trustDelta: 0,
         reputationDelta: 0,
         xpDelta: 0,
-        label: `${offer.quantity} adet ${item.displayName} · ${member.displayName}`,
+        label: t('{n} adet {ad} · {esnaf}', {
+        n: offer.quantity,
+        ad: t(item.displayName),
+        esnaf: member.displayName,
+      }),
       };
 
       const outcome = applyTransaction(economyOf(s), tx);
@@ -1923,7 +1941,7 @@ export const useGame = create<GameState>((set, get) => {
           reputationDelta: 0,
           reviewData: {
             missedSignals: [],
-            keyDecisionPoint: `${member.displayName} ile bozuldu.`,
+            keyDecisionPoint: t('{esnaf} ile bozuldu.', { esnaf: member.displayName }),
             alternativeChannelNote: offer.shortfallReason ?? t('Ağ kapasitesi yetti.'),
           },
         },
@@ -1947,7 +1965,11 @@ export const useGame = create<GameState>((set, get) => {
       pushToast(
         set,
         get,
-        `${offer.quantity} adet bozuldu · ${fmt(offer.total)} · ${fmt(profit)} kâr`,
+        t('{n} adet bozuldu · {brut} · {kar} kâr', {
+          n: offer.quantity,
+          brut: fmt(offer.total),
+          kar: fmt(profit),
+        }),
         profit >= 0 ? 'positive' : 'negative',
       );
     },
@@ -1978,7 +2000,7 @@ export const useGame = create<GameState>((set, get) => {
         trustDelta: 0,
         reputationDelta: 0,
         xpDelta: 0,
-        label: `${member.displayName} · kısa vadeli borç`,
+        label: t('{esnaf} · kısa vadeli borç', { esnaf: member.displayName }),
       };
 
       const outcome = applyTransaction(economyOf(s), tx);
@@ -1994,7 +2016,11 @@ export const useGame = create<GameState>((set, get) => {
       pushToast(
         set,
         get,
-        `${fmt(offer.amount)} alındı · ${fmt(offer.totalDue)} ${offer.dueDay}. güne`,
+        t('{alinan} alındı · {borc} {gun}. güne', {
+          alinan: fmt(offer.amount),
+          borc: fmt(offer.totalDue),
+          gun: offer.dueDay,
+        }),
         'info',
       );
     },
@@ -2018,7 +2044,7 @@ export const useGame = create<GameState>((set, get) => {
         trustDelta: 0,
         reputationDelta: 0,
         xpDelta: 0,
-        label: `${member.displayName} · borç ödemesi`,
+        label: t('{esnaf} · borç ödemesi', { esnaf: member.displayName }),
       };
 
       const outcome = applyTransaction(economyOf(s), tx);
@@ -2034,8 +2060,14 @@ export const useGame = create<GameState>((set, get) => {
         set,
         get,
         onTime
-          ? `${member.displayName} kapandı · ilişki ${next.trust}/100`
-          : `${member.displayName} GECİKMELİ kapandı · ilişki ${next.trust}/100`,
+          ? t('{esnaf} kapandı · ilişki {iliski}/100', {
+              esnaf: member.displayName,
+              iliski: next.trust,
+            })
+          : t('{esnaf} GECİKMELİ kapandı · ilişki {iliski}/100', {
+              esnaf: member.displayName,
+              iliski: next.trust,
+            }),
         onTime ? 'positive' : 'negative',
       );
     },
@@ -2133,7 +2165,11 @@ export const useGame = create<GameState>((set, get) => {
       pushToast(
         set,
         get,
-        `Gün ${report.day} kapandı · Gerçekleşmiş kâr ${fmt(report.realizedTradeProfit)} · Gider ${fmt(report.overhead)}`,
+        t('Gün {gun} kapandı · Gerçekleşmiş kâr {kar} · Gider {gider}', {
+          gun: report.day,
+          kar: fmt(report.realizedTradeProfit),
+          gider: fmt(report.overhead),
+        }),
         report.netCashChange >= 0 ? 'positive' : 'negative',
       );
 
@@ -2147,7 +2183,10 @@ export const useGame = create<GameState>((set, get) => {
         pushToast(
           set,
           get,
-          `${networkOverdue.lateMembers.length} esnaf borcu gecikti · ${fmt(networkOverdue.penalty)} yük`,
+          t('{n} esnaf borcu gecikti · {yuk} yük', {
+            n: networkOverdue.lateMembers.length,
+            yuk: fmt(networkOverdue.penalty),
+          }),
           'negative',
         );
       }
@@ -2156,7 +2195,10 @@ export const useGame = create<GameState>((set, get) => {
         pushToast(
           set,
           get,
-          `${overdue.overdueIds.length} vade gecikti · ${fmt(overdue.penalty)} gecikme yükü`,
+          t('{n} vade gecikti · {yuk} gecikme yükü', {
+            n: overdue.overdueIds.length,
+            yuk: fmt(overdue.penalty),
+          }),
           'negative',
         );
       }
@@ -2196,7 +2238,7 @@ export const useGame = create<GameState>((set, get) => {
         trustDelta: 0,
         reputationDelta: 0,
         xpDelta: 0,
-        label: `${next.name} yatırımı`,
+        label: t('{kademe} yatırımı', { kademe: t(next.name) }),
       };
 
       const outcome = applyTransaction(economyOf(s), tx);
@@ -2211,7 +2253,10 @@ export const useGame = create<GameState>((set, get) => {
       pushToast(
         set,
         get,
-        `${next.name} açıldı · günlük gider ${fmt(next.grants.dailyOverhead)}`,
+        t('{kademe} açıldı · günlük gider {gider}', {
+          kademe: t(next.name),
+          gider: fmt(next.grants.dailyOverhead),
+        }),
         'positive',
       );
     },
@@ -2229,7 +2274,7 @@ export const useGame = create<GameState>((set, get) => {
       set(loaded);
       // Kayıttaki dil ve para birimi ekrana da uygulanmalı.
       applyDisplayPreferences(loaded.preferences);
-      pushToast(set, get, `Kayıt yüklendi · Gün ${loaded.market.day}`, 'info');
+      pushToast(set, get, t('Kayıt yüklendi · Gün {gun}', { gun: loaded.market.day }), 'info');
       return true;
     },
 
@@ -2357,7 +2402,7 @@ function settleLine(
         confidence: band.confidence,
         margin,
       }),
-      label: `${item.displayName} alımı`,
+      label: t('{ad} alımı', { ad: t(item.displayName) }),
     };
 
     const outcome = applyTransaction(economy, tx);
@@ -2375,7 +2420,11 @@ function settleLine(
       pushToast(
         set,
         get,
-        `Vitrin dolu (${s.store.displaySlots}/${s.store.displaySlots}) — ${item.displayName} arka stoğa girdi.`,
+        t('Vitrin dolu ({dolu}/{toplam}) — {ad} arka stoğa girdi.', {
+            dolu: s.store.displaySlots,
+            toplam: s.store.displaySlots,
+            ad: t(item.displayName),
+          }),
         'negative',
       );
     }
@@ -2542,8 +2591,8 @@ function settlePurchase(
       }),
       label:
         purchase.units > soldItems.length
-          ? `${purchase.units} adet sarrafiye satışı`
-          : `${soldItems.length} kalem satışı`,
+          ? t('{n} adet sarrafiye satışı', { n: purchase.units })
+          : t('{n} kalem satışı', { n: soldItems.length }),
     };
 
     const outcome = applyTransaction(economy, tx);
@@ -2590,7 +2639,9 @@ function settlePurchase(
         purchase.fulfilment === 'partial'
           ? t('Talep kısmen karşılandı; müşteri eksik adede razı oldu.')
           : t('Paket talebi tam karşıladı.'),
-      alternativeChannelNote: `${CHANNEL_LABEL_TR[purchase.channel]} alış-satış farkıyla fiyatlandı.`,
+      alternativeChannelNote: t('{kanal} alış-satış farkıyla fiyatlandı.', {
+        kanal: t(CHANNEL_LABEL_TR[purchase.channel]),
+      }),
     },
   };
 
@@ -2668,7 +2719,7 @@ function dealVolume(deal: ActiveDeal): Money {
 function visitNote(outcome: VisitRecord['outcome'], volume: Money): string {
   switch (outcome) {
     case 'accepted':
-      return `İşlem kapandı · ${fmt(volume)}`;
+      return t('İşlem kapandı · {tutar}', { tutar: fmt(volume) });
     case 'serviceBooked':
       return t('Servis işi bırakıldı');
     case 'walkedOut':
@@ -2897,7 +2948,7 @@ function openingLine(customer: Customer): string {
       // Talep spawn anında sabittir; müşteri ne aradığını ilk cümlede söyler
       // ki oyuncu stok seçimine bilgiyle girsin (GDD 23.23).
       return customer.demand
-        ? `${customer.demand.summary} için geldim.`
+        ? t('{ne} için geldim.', { ne: customer.demand.summary })
         : t('Bir şeye bakıyordum.');
     case 'service':
       return t('Bunun tamiri mümkün mü?');

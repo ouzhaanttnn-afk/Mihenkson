@@ -58,10 +58,16 @@ const literal = [...sources.values()].join('\n');
   olarak HİÇ geçmiyor. Sözlükte on ağırlığın hepsi elle duruyor ve doğru
   yerde; "kullanılmıyor" diye raporlamak yanlış alarm olurdu.
 */
-const URETILEN = /^22 Ayar İşçiliksiz Bilezik \(\d+ g\)$/;
+const URETILEN = [
+  /^22 Ayar İşçiliksiz Bilezik \(\d+ g\)$/,
+  // Kondisyon izi cümlesi `CONDITION_LABEL` ile birleşiyor (item-spawn.ts).
+  /^Yüzeyde .+ izleri var$/,
+  // Ad doğrulama metni sınır sabitleriyle birleşiyor (domain/profile.ts).
+  /^Kuyumcu adı en (az|fazla) \d+ karakter/,
+];
 
 const unused = [...dictKeys]
-  .filter((k) => !keys.has(k) && !literal.includes(k) && !URETILEN.test(k))
+  .filter((k) => !keys.has(k) && !literal.includes(k) && !URETILEN.some((re) => re.test(k)))
   .sort();
 
 if (process.argv.includes('--json')) {

@@ -76,7 +76,7 @@ export function DiagnoseStage({ item, service }: { item: ItemInstance; service: 
 
       <div className="svc__note">
         {diagnosis && diagnosis.availableTypeIds.length > 0
-          ? `${diagnosis.availableTypeIds.length} servis türü uygulanabilir.`
+          ? t('{n} servis türü uygulanabilir.', { n: diagnosis.availableTypeIds.length })
           : t('Bu ürüne uygulanabilir servis bulunamadı.')}
       </div>
     </div>
@@ -118,8 +118,8 @@ export function QuoteStage({
   return (
     <div className="svc">
       <div className="svc__typeHead">
-        <h2 className="svc__title">{type.label}</h2>
-        <p className="svc__meta">{type.description}</p>
+        <h2 className="svc__title">{t(type.label)}</h2>
+        <p className="svc__meta">{t(type.description)}</p>
       </div>
 
       {/* GDD 17.2 — dış usta ile kendi atölye YAN YANA karşılaştırılır. */}
@@ -168,7 +168,7 @@ export function QuoteStage({
 
               <span className="venue__rows">
                 <QuoteRow label={t("Ücret")} value={tl(quote.fee)} />
-                <QuoteRow label={t("Süre")} value={`${quote.durationDays} gün`} />
+                <QuoteRow label={t('Süre')} value={t('{n} gün', { n: quote.durationDays })} />
                 <QuoteRow label={t("İşçilik")} value={tl(quote.laborCost)} />
                 {quote.partsCost > 0 && (
                   <QuoteRow label={t("Parça")} value={tl(quote.partsCost)} tone="negative" />
@@ -268,7 +268,7 @@ export function PromiseStage({
               onClick={() => onSetBuffer(days)}
             >
               <span className="buffer__title">
-                {days === 0 ? t('Sıkı') : days === 1 ? 'Normal' : `+${days} gün`}
+                {days === 0 ? t('Sıkı') : days === 1 ? t('Normal') : `+${t('{n} gün', { n: days })}`}
               </span>
               <span className="buffer__note">
                 {days === 0
@@ -318,14 +318,14 @@ export function JobQueueStage({
     <div className="svc">
       <div className="workOrder">
         <span className="workOrder__badge">{t('İŞ EMRİ')}</span>
-        <h2 className="svc__title">{type.label}</h2>
+        <h2 className="svc__title">{t(type.label)}</h2>
         <p className="svc__meta">
-          {job.itemName} · {job.customerName}
+          {t(job.itemName)} · {job.customerName}
         </p>
 
         <div className="workOrder__rows">
-          <QuoteRow label={t("Teslim sözü")} value={`${job.promisedDay}. gün`} />
-          <QuoteRow label={t("Süre")} value={`${job.duration} gün`} />
+          <QuoteRow label={t('Teslim sözü')} value={t('{gun}. gün', { gun: job.promisedDay })} />
+          <QuoteRow label={t('Süre')} value={t('{n} gün', { n: job.duration })} />
           <QuoteRow
             label={t('Mekân')}
             value={job.venue === 'inHouse' ? t('Kendi atölyem') : t('Dış usta')}

@@ -698,8 +698,8 @@ function handleRequestCounter(
       state: nextState,
       message:
         nextState === 'FINAL_OFFER'
-          ? `Son sözüm ${formatTl(counter)}. Daha fazla uzatmayalım.`
-          : `Benim beklentim ${formatTl(counter)} civarı.`,
+          ? t('Son sözüm {tutar}. Daha fazla uzatmayalım.', { tutar: formatTl(counter) })
+          : t('Benim beklentim {tutar} civarı.', { tutar: formatTl(counter) }),
       counterOffer: counter,
       patienceDelta: -patienceCost,
       trustDelta: 0,
@@ -834,15 +834,18 @@ function counterMessage(
   if (insulting) return t('Bu rakam ciddi değil. Ürünün hâlini biliyorum.');
   if (state === 'HARDENING') return t('Bakın, buradan aşağı inmem artık.');
   if (ratio > 0.95) return t('Az kaldı. Biraz daha düşünün.');
-  return `${demeanor} davranmak istiyorum ama bu fiyat beklentimin altında.`;
+  return t('{tavir} davranmak istiyorum ama bu fiyat beklentimin altında.', {
+    tavir: t(demeanor),
+  });
 }
 
 function reasonReplyFor(archetypeId: string, claim: string): string {
   if (archetypeId === 'investor' || archetypeId === 'informedSeller') {
-    return `${claim} — doğru, ölçüm mantıklı.`;
+    return t('{iddia} — doğru, ölçüm mantıklı.', { iddia: claim });
   }
-  if (archetypeId === 'collector') return `${claim} demek. Bunu bilmek iyi oldu.`;
-  return `${claim} diyorsunuz. Anlıyorum.`;
+  if (archetypeId === 'collector')
+    return t('{iddia} demek. Bunu bilmek iyi oldu.', { iddia: claim });
+  return t('{iddia} diyorsunuz. Anlıyorum.', { iddia: claim });
 }
 
 /* Para birimi ve sayı yereli tek yerden — bkz. `@i18n/money`. */

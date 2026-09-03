@@ -11,6 +11,8 @@
  * alan katmanı da para yazıyor ve `@ui`'yi import edemez). Burada yeniden
  * dışa aktarılıyorlar ki arayüzdeki yüzlerce çağrı yeri değişmesin.
  */
+import { t } from '@i18n/index';
+
 export {
   tl,
   tlBare,
@@ -23,40 +25,7 @@ export {
   tlRange,
 } from '@i18n/money';
 
-import { getLanguage } from '@i18n/index';
-
-/**
- * %19 · 19%
- *
- * YÜZDE İMİNİN YERİ DİLE GÖRE DEĞİŞİR: Türkçede sayının ÖNÜNDE (%19),
- * İngilizcede ARKASINDA (19%). Ekran görüntüsünde yakalandı — İngilizce
- * arayüzde ses düzeyi "%70" yazıyordu; okunuyor ama yabancı duruyor.
- * Ondalık ayracı da aynı kuralı izler: 0,38 / 0.38.
- */
-export function pct(ratio: number, digits = 0): string {
-  const en = getLanguage() === 'en';
-  const body = (ratio * 100).toFixed(digits).replace('.', en ? '.' : ',');
-  return en ? `${body}%` : `%${body}`;
-}
-
-/**
- * −%7 · +%2 — işaret YÜZDE İMİNİN ÖNÜNDE.
- *
- * `pct(-0.07)` "%-7" üretirdi; Türkçede işaret yüzde iminden önce yazılır.
- * Sıfır işaretsiz kalır: "+%0" bir yönü varmış gibi okunur, oysa yoktur.
- * Eksi imi `tlSigned` ile aynı karakterdir (U+2212), tire değil.
- */
-export function pctSigned(ratio: number, digits = 0): string {
-  const shown = Number((ratio * 100).toFixed(digits));
-  if (shown === 0) return pct(0, digits);
-  return `${shown < 0 ? '−' : '+'}${pct(Math.abs(ratio), digits)}`;
-}
-
-/** ▲ %0,38 · ▲ 0.38% — yön işareti dahil. */
-export function pctChange(value: number): string {
-  const sign = value > 0 ? '▲' : value < 0 ? '▼' : '—';
-  return `${sign} ${pct(Math.abs(value) / 100, 2)}`;
-}
+export { pct, pctSigned, pctChange } from '@i18n/money';
 
 /** 10:45 */
 export function clock(minutes: number): string {
@@ -65,11 +34,11 @@ export function clock(minutes: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-/** 3–7 gün */
+/** 3–7 gün · 3–7 days */
 export function dayRange([lo, hi]: [number, number]): string {
-  if (lo === hi) return `${lo} gün`;
-  if (lo === 0) return `<1 gün`;
-  return `${lo}–${hi} gün`;
+  if (lo === hi) return t('{n} gün', { n: lo });
+  if (lo === 0) return t('<1 gün');
+  return t('{alt}–{ust} gün', { alt: lo, ust: hi });
 }
 
 /**
@@ -77,9 +46,9 @@ export function dayRange([lo, hi]: [number, number]): string {
  * Renk tonuna eşlik eden metin etiketi.
  */
 export function tonWord(delta: number): string {
-  if (delta > 0) return 'kâr';
-  if (delta < 0) return 'zarar';
-  return 'başabaş';
+  if (delta > 0) return t('kâr');
+  if (delta < 0) return t('zarar');
+  return t('başabaş');
 }
 
 export type Tone = 'positive' | 'negative' | 'neutral' | 'warning';

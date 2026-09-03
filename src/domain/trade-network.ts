@@ -196,8 +196,8 @@ export function networkLiquidationOffer(
   const shortfallReason =
     quantity < inStock
       ? quantity === affordable
-        ? `Kasası ${quantity} adede yetiyor.`
-        : `Tek seferde en çok ${depth} adet alıyor.`
+        ? t('Kasası {n} adede yetiyor.', { n: quantity })
+        : t('Tek seferde en çok {n} adet alıyor.', { n: depth })
       : null;
 
   return {
@@ -311,9 +311,9 @@ export function networkLoanOffer(
     // §8 "Gecikme veya kötüye kullanım ... ERİŞİMİ olumsuz etkiler."
     blockedReason = t('Ağda gecikmiş borcunuz var; yeni borç açılmıyor.');
   } else if (requested > memberCeiling) {
-    blockedReason = `Bu esnaf en çok ${tl(memberCeiling)} verebilir.`;
+    blockedReason = t('Bu esnaf en çok {tutar} verebilir.', { tutar: tl(memberCeiling) });
   } else if (requested > networkRoom) {
-    blockedReason = `Ağ kapasitesi doldu; kalan ${tl(networkRoom)}.`;
+    blockedReason = t('Ağ kapasitesi doldu; kalan {tutar}.', { tutar: tl(networkRoom) });
   }
 
   return {

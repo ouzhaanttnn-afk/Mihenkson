@@ -137,3 +137,84 @@ describe('para birimi çevrimi', () => {
     expect(getLanguage()).toBe('tr');
   });
 });
+
+// ---------------------------------------------------------------------------
+/*
+  ÇEVİRİ KARŞILAŞTIRMAYA GİREMEZ.
+
+  Bu test gerçek bir hatadan doğdu. Toplu bir çeviri geçişinde
+  `tags.includes('düğün')` yanlışlıkla `tags.includes(t('düğün'))` olmuştu.
+  Talep etiketi bir VERİ kimliğidir, ekran metni değil: İngilizce oynayan
+  oyuncuda karşılaştırma `'wedding'` arayacak, ürünün etiketi ise `'düğün'`
+  kalacaktı — düğün sezonu olayı talebi hiç artırmayacaktı. Yani çeviri
+  sessizce EKONOMİYİ değiştirecekti.
+
+  Kaynağı tarayan bir testtir, çünkü hatanın kendisi çalışma anında
+  görünmez: iki dil karşılaştırıldığında bile ancak o olay çıkarsa ayrışır.
+*/
+describe('çeviri karşılaştırmada kullanılmaz', () => {
+  it('kaynakta `includes(t(`, `=== t(` gibi bir kalıp yok', async () => {
+    const { readdirSync, readFileSync, statSync } = await import('node:fs');
+    const { join } = await import('node:path');
+
+    const walk = (dir: string, out: string[] = []): string[] => {
+      for (const name of readdirSync(dir)) {
+        const p = join(dir, name);
+        if (statSync(p).isDirectory()) walk(p, out);
+        else if (/\.(ts|tsx)$/.test(name) && !name.includes('.test.')) out.push(p);
+      }
+      return out;
+    };
+
+    /*
+      `t(` ÖNÜNDE SÖZCÜK SINIRI ŞART. İlk hâlinde yoktu ve
+      `personnelCount(s.store) === count` yanlış alarm verdi: "Count(" da
+      "t(" ile bitiyor. Yanlış alarm, gerçek bulguyu gürültüye gömer.
+    */
+    const kalip =
+      /(?:includes|startsWith|endsWith|indexOf)\(\s*(?<![A-Za-z0-9_$])t\(|[=!]==\s*(?<![A-Za-z0-9_$])t\(/;
+    const kirli = walk('src').filter((p) => kalip.test(readFileSync(p, 'utf8')));
+
+    expect(kirli, `çeviri karşılaştırmada kullanılmış: ${kirli.join(', ')}`).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe('çıkış planı dile bakmaz', () => {
+  /*
+    Yukarıdaki hatanın davranışa yansıyan hâli: talep seviyesi ve dolayısıyla
+    kanal beklentileri iki dilde de aynı olmalı.
+  */
+  it('AYNI ÜRÜN, AYNI PİYASA → aynı kanal beklentileri', async () => {
+    const { buildThesisOptions } = await import('@domain/thesis');
+    const { createMarketForDay } = await import('@domain/market');
+    const { spawnItem } = await import('@domain/item-spawn');
+    const { estimateBand } = await import('@domain/valuation');
+    const { ITEM_TEMPLATES } = await import('@data/item-templates');
+
+    const parmakIzi = () => {
+      const market = createMarketForDay(31_337, 12);
+      const rows: string[] = [];
+      for (let index = 0; index < 24; index += 1) {
+        const template = ITEM_TEMPLATES[index % ITEM_TEMPLATES.length]!;
+        const item = spawnItem(31_337, index, template.id);
+        const band = estimateBand(item, market, []);
+        const options = buildThesisOptions(item, band, {
+          market,
+          store: useGame.getState().store,
+          skills: useGame.getState().skillProgress,
+        } as never);
+        rows.push(
+          options
+            .map((o) => `${o.channel}:${o.expectedNet}:${o.buyCeiling}:${o.demandRisk}`)
+            .join(','),
+        );
+      }
+      return rows.join('|');
+    };
+
+    const tr = underSettings('tr', 'try', parmakIzi);
+    const en = underSettings('en', 'usd', parmakIzi);
+    expect(en).toBe(tr);
+  });
+});

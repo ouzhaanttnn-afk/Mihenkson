@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
-    "i18n": "node tools/i18n-keys.mjs"
+    "i18n": "node tools/i18n-keys.mjs",
+    "i18n:audit": "node tools/i18n-audit.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

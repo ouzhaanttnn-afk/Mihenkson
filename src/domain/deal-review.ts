@@ -100,7 +100,10 @@ function collectMissedSignals(item: ItemInstance, testsUsed: string[]): string[]
 
   if (!testedPurity && truth.actualKarat !== item.declared.claimedKarat) {
     out.push(
-      `Beyan ${item.declared.claimedKarat} idi, gerçek ayar ${truth.actualKarat}. Damga tutarsızlığı sinyali görünürdü.`,
+      t('Beyan {beyan} idi, gerçek ayar {gercek}. Damga tutarsızlığı sinyali görünürdü.', {
+        beyan: t(item.declared.claimedKarat),
+        gercek: t(truth.actualKarat),
+      }),
     );
   }
 
@@ -108,7 +111,11 @@ function collectMissedSignals(item: ItemInstance, testsUsed: string[]): string[]
     (f) => f.kind === 'plated' || f.kind === 'filled' || f.kind === 'hollow',
   );
   if (!testedCore && coreFlaw) {
-    out.push(`${coreFlaw.readableSignal.label} — yoğunluk ölçümü bu riski kapatırdı.`);
+    out.push(
+      t('{sinyal} — yoğunluk ölçümü bu riski kapatırdı.', {
+        sinyal: t(coreFlaw.readableSignal.label),
+      }),
+    );
   }
 
   if (!testedStone && truth.stoneData.kind !== 'none' && !truth.stoneData.genuine) {
@@ -117,7 +124,10 @@ function collectMissedSignals(item: ItemInstance, testsUsed: string[]): string[]
 
   if (!testedWeight && Math.abs((item.declared.claimedWeight ?? 0) - truth.grossWeight) > 0.3) {
     out.push(
-      `Beyan edilen gramaj ${item.declared.claimedWeight} g, gerçek ${truth.grossWeight} g. Terazi ücretsizdi.`,
+      t('Beyan edilen gramaj {beyan} g, gerçek {gercek} g. Terazi ücretsizdi.', {
+        beyan: item.declared.claimedWeight ?? 0,
+        gercek: truth.grossWeight,
+      }),
     );
   }
 
@@ -127,26 +137,40 @@ function collectMissedSignals(item: ItemInstance, testsUsed: string[]): string[]
 function buildHeadline(item: ItemInstance, valueDelta: Money, hadMissedSignals: boolean): string {
   if (valueDelta < 0) {
     return hadMissedSignals
-      ? `Gerçek değerin ${fmt(-valueDelta)} üstünde ödediniz — kaçırılan sinyal vardı.`
-      : `Gerçek değerin ${fmt(-valueDelta)} üstünde ödediniz.`;
+      ? t('Gerçek değerin {fark} üstünde ödediniz — kaçırılan sinyal vardı.', {
+          fark: fmt(-valueDelta),
+        })
+      : t('Gerçek değerin {fark} üstünde ödediniz.', { fark: fmt(-valueDelta) });
   }
   if (valueDelta === 0) return t('Gerçek değerine çok yakın kapattınız.');
-  return `${item.displayName} için gerçek değerin ${fmt(valueDelta)} altında aldınız.`;
+  return t('{ad} için gerçek değerin {fark} altında aldınız.', {
+    ad: t(item.displayName),
+    fark: fmt(valueDelta),
+  });
 }
 
 function buildDecisionNote(input: ReviewInput, actual: Money): string {
   const { band, price } = input;
 
   if (price > band.max) {
-    return `Teklifiniz kendi tahmin bandınızın (${fmt(band.min)}–${fmt(band.max)}) üstündeydi.`;
+    return t('Teklifiniz kendi tahmin bandınızın ({alt}–{ust}) üstündeydi.', {
+      alt: fmt(band.min),
+      ust: fmt(band.max),
+    });
   }
   if (band.confidence === 'low') {
-    return `Düşük güvenle karar verdiniz. Band ${fmt(band.min)}–${fmt(band.max)} kadar genişti; gerçek değer ${fmt(actual)} çıktı.`;
+    return t(
+      'Düşük güvenle karar verdiniz. Band {alt}–{ust} kadar genişti; gerçek değer {gercek} çıktı.',
+      { alt: fmt(band.min), ust: fmt(band.max), gercek: fmt(actual) },
+    );
   }
   if (band.confidence === 'high') {
-    return `Yüksek güven bandıyla girdiniz; teklif ${fmt(price)}, gerçek değer ${fmt(actual)}.`;
+    return t('Yüksek güven bandıyla girdiniz; teklif {teklif}, gerçek değer {gercek}.', {
+      teklif: fmt(price),
+      gercek: fmt(actual),
+    });
   }
-  return `Orta güvenle kapattınız. Tek ek test bandı belirgin daraltabilirdi.`;
+  return t('Orta güvenle kapattınız. Tek ek test bandı belirgin daraltabilirdi.');
 }
 
 /**
@@ -168,11 +192,28 @@ function describeBestAlternative(input: ReviewInput): string {
       .filter((o) => o.channel !== best.channel)
       .sort((a, b) => b.expectedNet - a.expectedNet)[0];
     if (!runnerUp) return '';
-    return `${best.shortLabel} en yüksek net getiriyi verdi; ${runnerUp.shortLabel} ${fmt(best.expectedNet - runnerUp.expectedNet)} daha az ama ${runnerUp.daysToCash[0]}–${runnerUp.daysToCash[1]} günde nakde dönerdi.`;
+    return t(
+      '{enIyi} en yüksek net getiriyi verdi; {ikinci} {fark} daha az ama {alt}–{ust} günde nakde dönerdi.',
+      {
+        enIyi: t(best.shortLabel),
+        ikinci: t(runnerUp.shortLabel),
+        fark: fmt(best.expectedNet - runnerUp.expectedNet),
+        alt: runnerUp.daysToCash[0],
+        ust: runnerUp.daysToCash[1],
+      },
+    );
   }
 
   const diff = best.expectedNet - selected.expectedNet;
-  return `${best.shortLabel} kanalı ${fmt(diff)} daha fazla net getiri üretebilirdi; karşılığında ${best.daysToCash[0]}–${best.daysToCash[1]} gün sermaye bağlar.`;
+  return t(
+    '{kanal} kanalı {fark} daha fazla net getiri üretebilirdi; karşılığında {alt}–{ust} gün sermaye bağlar.',
+    {
+      kanal: t(best.shortLabel),
+      fark: fmt(diff),
+      alt: best.daysToCash[0],
+      ust: best.daysToCash[1],
+    },
+  );
 }
 
 /** DealRecord'un reviewData alanını doldurur. */

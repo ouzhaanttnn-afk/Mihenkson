@@ -451,12 +451,17 @@ export function resolveDelivery(
 
 function buildDeliveryMessage(succeeded: boolean, lateDays: number, label: string): string {
   if (!succeeded) {
-    return `${label} işinde hata oluştu. Tazmin ödendi ve müşteri memnun ayrılmadı.`;
+    return t('{is} işinde hata oluştu. Tazmin ödendi ve müşteri memnun ayrılmadı.', {
+      is: t(label),
+    });
   }
   if (lateDays > 0) {
-    return `${label} tamamlandı ama söz verilen günden ${lateDays} gün sonra teslim edildi.`;
+    return t('{is} tamamlandı ama söz verilen günden {gun} gün sonra teslim edildi.', {
+      is: t(label),
+      gun: lateDays,
+    });
   }
-  return `${label} sözünde teslim edildi.`;
+  return t('{is} sözünde teslim edildi.', { is: t(label) });
 }
 
 /** Servis sonrası ürünün kondisyonunu günceller (başarılı işlerde). */

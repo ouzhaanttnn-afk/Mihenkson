@@ -78,7 +78,7 @@ export const CHANNEL_SHORT: Record<ExitChannel, string> = {
   Düzeltme yalnızca adlandırmadır: kanal, net getiri ve tavan aynen korunur.
 */
 export function channelLabel(channel: ExitChannel, bullionItem: boolean): string {
-  return channel === 'retail' && bullionItem ? t('Tezgâhtan Sat') : CHANNEL_LABEL[channel];
+  return channel === 'retail' && bullionItem ? t('Tezgâhtan Sat') : t(CHANNEL_LABEL[channel]);
 }
 
 export function channelShort(channel: ExitChannel, bullionItem: boolean): string {
@@ -470,16 +470,26 @@ function fullKnowledgeBand(item: ItemInstance, ctx: ThesisContext): ValuationBan
   };
 }
 
+/**
+ * TALEP ETİKETLERİ VERİDİR, EKRAN METNİ DEĞİL.
+ *
+ * Buradaki `'düğün'`, `'yatırım'`, `'yavaş'` gibi diziler ürünün gizli
+ * gerçeğinde duran KİMLİKLERDİR ve kod onlara göre dallanıyor. Bir çeviri
+ * geçişinde yanlışlıkla `t()` ile sarılmışlardı; İngilizce oynayan oyuncuda
+ * `tags.includes('wedding')` hiçbir zaman tutmayacağı için düğün sezonu
+ * olayı talebi hiç artırmayacaktı — yani ÇEVİRİ SESSİZCE EKONOMİYİ
+ * DEĞİŞTİRECEKTİ. Karşılaştırmada asla çeviri kullanılmaz.
+ */
 function demandLevel(item: ItemInstance, ctx: ThesisContext): 'cold' | 'steady' | 'hot' {
   const event = ctx.market.activeEvent;
   if (event) {
     const tags = item.truth.demandTags;
-    if (event.id === 'wedding_season' && tags.includes(t('düğün'))) return 'hot';
-    if (event.id === 'market_rally' && tags.includes(t('yatırım'))) return 'hot';
+    if (event.id === 'wedding_season' && tags.includes('düğün')) return 'hot';
+    if (event.id === 'market_rally' && tags.includes('yatırım')) return 'hot';
     if (event.id === 'fx_calm' && tags.includes('perakende')) return 'hot';
   }
   if (item.truth.demandTags.includes('likit')) return 'hot';
-  if (item.truth.demandTags.includes(t('yavaş')) || item.truth.demandTags.includes('koleksiyon')) {
+  if (item.truth.demandTags.includes('yavaş') || item.truth.demandTags.includes('koleksiyon')) {
     return 'cold';
   }
   return 'steady';

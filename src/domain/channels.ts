@@ -554,7 +554,9 @@ function buildRationale(
   market: MarketState,
 ): string {
   if (quantity > capacity) {
-    return `${CHANNEL_LABEL_TR[channel]} bu hacmi tek seferde karşılayamıyor; dilimleme gerekir.`;
+    return t('{kanal} bu hacmi tek seferde karşılayamıyor; dilimleme gerekir.', {
+      kanal: t(CHANNEL_LABEL_TR[channel]),
+    });
   }
   if (market.regime === 'volatile' || market.regime === 'shock') {
     // §7 — oyuncuya görünen metinde teknik terim kullanılmaz.

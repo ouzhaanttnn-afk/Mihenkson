@@ -1,3 +1,4 @@
+import { t } from '@i18n/index';
 import type { EconomyState } from './settlement';
 import { applyTransaction } from './settlement';
 import type { GameDay, Money, StoreState } from './types';
@@ -198,12 +199,12 @@ export function purchaseMarketProduct(
   day: GameDay,
 ): MarketPurchaseOutcome {
   const product = productById(productId);
-  if (!product) return { applied: false, economy, playerMarket, reason: 'Ürün bulunamadı.' };
-  if (playerMarket.owned.includes(productId)) return { applied: false, economy, playerMarket, reason: 'Bu ürün zaten sende.' };
-  if (product.serverClaim) return { applied: false, economy, playerMarket, reason: 'Bu sınırlı rozet sunucu sıralaması doğrulanınca verilir.' };
-  if (!isUnlocked(product, economy.store.level, economy.store.reputation, economy.store.hasBalanceMg)) return { applied: false, economy, playerMarket, reason: 'Ürün henüz açılmadı.' };
+  if (!product) return { applied: false, economy, playerMarket, reason: t('Ürün bulunamadı.') };
+  if (playerMarket.owned.includes(productId)) return { applied: false, economy, playerMarket, reason: t('Bu ürün zaten sende.') };
+  if (product.serverClaim) return { applied: false, economy, playerMarket, reason: t('Bu sınırlı rozet sunucu sıralaması doğrulanınca verilir.') };
+  if (!isUnlocked(product, economy.store.level, economy.store.reputation, economy.store.hasBalanceMg)) return { applied: false, economy, playerMarket, reason: t('Ürün henüz açılmadı.') };
   if (economy.store.cash < marketPurchaseCashRequirement(product, playerMarket, economy.store)) {
-    return { applied: false, economy, playerMarket, reason: 'Satın alma sonrası gün sonu gideri için yeterli nakit kalmıyor.' };
+    return { applied: false, economy, playerMarket, reason: t('Satın alma sonrası gün sonu gideri için yeterli nakit kalmıyor.') };
   }
 
   const transaction = applyTransaction(economy, {

@@ -190,7 +190,9 @@ function liquidationRationale(
   edge: Money,
 ): string {
   if (slices.some((s) => s.overCapacity)) {
-    return `Dilim başına kapasite ${capacity} adet; aşan dilim daha kötü fiyat alır.`;
+    return t('Dilim başına kapasite {n} adet; aşan dilim daha kötü fiyat alır.', {
+      n: capacity,
+    });
   }
   if (edge < 0) {
     // §4.2 "her işlemde mutlak garanti değildir" — söylenmesi gereken tam bu.
@@ -278,7 +280,7 @@ export function financeTerms(store: StoreState, amount: Money, today: GameDay): 
   if (amount <= 0) {
     blockedReason = t('Tutar yok.');
   } else if (financed > availableLimit) {
-    blockedReason = `Limit yetmiyor: kullanılabilir ${tl(availableLimit)}.`;
+    blockedReason = t('Limit yetmiyor: kullanılabilir {tutar}.', { tutar: tl(availableLimit) });
   } else if (store.supplier.openInvoices.some((i) => i.dueDay < today)) {
     // §7 "Gecikme; maliyet, limit, güven veya ERİŞİM üzerinde sonuç doğurur."
     blockedReason = t('Gecikmiş vadeniz var; yeni vade açılmıyor.');

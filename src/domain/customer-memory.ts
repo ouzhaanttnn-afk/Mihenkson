@@ -222,9 +222,9 @@ const NEUTRAL_LOYALTY: LoyaltyEffects = {
 
 function loyaltyLabel(loyalty: number, record: CustomerRecord): string {
   if (record.visits === 0) return t('Yeni müşteri');
-  if (loyalty >= 0.55) return `Sadık müşteri · ${record.visits}. ziyaret`;
-  if (loyalty <= -0.35) return `Küsmüş müşteri · ${record.visits}. ziyaret`;
-  return `Tanıdık · ${record.visits}. ziyaret`;
+  if (loyalty >= 0.55) return t('Sadık müşteri · {n}. ziyaret', { n: record.visits });
+  if (loyalty <= -0.35) return t('Küsmüş müşteri · {n}. ziyaret', { n: record.visits });
+  return t('Tanıdık · {n}. ziyaret', { n: record.visits });
 }
 
 // ---------------------------------------------------------------------------

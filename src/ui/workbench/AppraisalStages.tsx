@@ -103,7 +103,7 @@ export function ReportStage({
               <span className="stance__range num">
                 {tlRange(range.min, range.max)}
               </span>
-              <span className="stance__desc">{profile.description}</span>
+              <span className="stance__desc">{t(profile.description)}</span>
             </button>
           );
         })}

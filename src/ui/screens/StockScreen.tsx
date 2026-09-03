@@ -80,7 +80,8 @@ export function StockScreen() {
       <header className="pageHead">
         <h1 className="pageHead__title">{t('Stok')}</h1>
         <p className="pageHead__sub">
-          {s.inventory.length === 0 ? t('Stok boş') : `${s.inventory.length} ürün`} · Vitrin {counts.display}/{s.store.displaySlots} · Arka stok{' '}
+          {s.inventory.length === 0 ? t('Stok boş') : t('{n} ürün', { n: s.inventory.length })} ·{' '}
+          {t('Vitrin')} {counts.display}/{s.store.displaySlots} · {t('Arka stok')}{' '}
           {counts.backStock}/{s.store.backStockSlots}
         </p>
         {/*
@@ -96,8 +97,16 @@ export function StockScreen() {
         {counts.display > 0 && (
           <p className="pageHead__note">
             {counts.display === 1
-              ? `Vitrindeki tek ürün her alıcıda ${pct(showcaseTargetChancePerItem(1), 1)} ilgi görür`
-              : `Vitrindeki ${counts.display} ürün aynı ilgiyi paylaşır · ürün başına ortalama ${pct(showcaseTargetChancePerItem(counts.display), 1)} · bekleyen mal daha az`}
+              ? t('Vitrindeki tek ürün her alıcıda {oran} ilgi görür', {
+                oran: pct(showcaseTargetChancePerItem(1), 1),
+              })
+              : t(
+                'Vitrindeki {n} ürün aynı ilgiyi paylaşır · ürün başına ortalama {oran} · bekleyen mal daha az',
+                {
+                  n: counts.display,
+                  oran: pct(showcaseTargetChancePerItem(counts.display), 1),
+                },
+              )}
           </p>
         )}
 
@@ -344,7 +353,11 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
     {!lot && <p className="offerRow__shortfall">{t('Pozitif, geçerli bir miktar seçin. Gram altın hassasiyeti 0,1 g.')}</p>}
     {lot && !affordable && <p className="offerRow__shortfall">{!space
       ? t('Arka stokta yeni ürün ailesi için yer yok.')
-      : `Minimum ${templateId === 'gram_gold_1' ? t('0,1 g') : '1 adet'} · Yetersiz Nakit · ${tl(lot.totalPrice)} gerekli, ${tl(s.store.cash)} mevcut`}</p>}
+      : t('Minimum {enAz} · Yetersiz Nakit · {gerekli} gerekli, {mevcut} mevcut', {
+              enAz: templateId === 'gram_gold_1' ? t('0,1 g') : t('{n} adet', { n: 1 }),
+              gerekli: tl(lot.totalPrice),
+              mevcut: tl(s.store.cash),
+            })}</p>}
   </section>;
 }
 
@@ -390,7 +403,9 @@ function StockRow({ position }: { position: InventoryPosition }) {
           {t(item.displayName)}
           {/* §4.1 — yığılmış sarrafiyede adet gizlenmez; maliyet ve değer
               toplamdır, tek parçanınki değil. */}
-          <span className="row__qty num"> · {position.quantityMg === undefined ? `${position.quantity} adet` : preciseGrams(fromMg(position.quantityMg))}</span>
+          <span className="row__qty num"> · {position.quantityMg === undefined
+            ? t('{n} adet', { n: position.quantity })
+            : preciseGrams(fromMg(position.quantityMg))}</span>
         </div>
         <div className="row__meta">
           {t(KARAT_LABEL[item.declared.claimedKarat])} · {position.poolId ? t('Ortak havuz') : grams(item.truth.grossWeight)} ·{' '}
@@ -399,7 +414,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
           <span className={`tag ${position.thesis ? '' : 'tag--neutral'}`}>
             {position.thesis
               ? `${t(TERM.thesisShort)}: ${channelShort(position.thesis, isBullion(item.templateId))}`
-              : `${t(TERM.thesis)} yok`}
+              : t('{plan} yok', { plan: t(TERM.thesis) })}
           </span>
           {/*
             B4 — VİTRİNDE BEKLEYEN MALIN İLGİSİ DÜŞTÜ.
@@ -482,7 +497,12 @@ function StockRow({ position }: { position: InventoryPosition }) {
           <div className="rowDetailPanel">
             {isCrafted(item) && position.location !== 'workshop' && <>
               <button type="button" className="chip" disabled={position.location === 'display'} onClick={() => s.displayStock(item.id)}>Vitrine Koy</button>
-              <button type="button" className="chip" onClick={() => { if (window.confirm('Ürün fiziksel stoktan çıkarılıp HAS bakiyesine dönüşecek. Mevcut 180 ₺ eritme bedeli alınır. Onaylıyor musunuz?')) s.meltStock(item.id); }}>Erit → HAS</button>
+              <button type="button" className="chip" onClick={() => { if (window.confirm(
+                t(
+                  'Ürün fiziksel stoktan çıkarılıp HAS bakiyesine dönüşecek. Mevcut {bedel} eritme bedeli alınır. Onaylıyor musunuz?',
+                  { bedel: tl(180) },
+                ),
+              )) s.meltStock(item.id); }}>Erit → HAS</button>
             </>}
             <p><strong>Konum:</strong> {position.location === 'display' ? 'Vitrin' : position.location === 'backStock' ? t('Arka stok') : position.location === 'workshop' ? 'Serviste' : t('Müşteride')}</p>
             <p><strong>{t('Çıkış planı:')}</strong> {position.thesis ? channelShort(position.thesis, isBullion(item.templateId)) : t('Henüz seçilmedi.')}</p>
@@ -558,7 +578,7 @@ function HasCounter() {
           disabled={maxMg <= 0} onChange={e => { setAmountMg(Math.min(maxMg, Math.max(0, toMg(Number(e.target.value))))); setPending(null); }} />
       </label>
       <div className="hasCompact__actions">
-        <span className="hasCompact__total">{side === 'buy' ? 'Tutar' : 'Alınacak'}<strong className="num">{tl(total)}</strong></span>
+        <span className="hasCompact__total">{side === 'buy' ? t('Tutar') : t('Alınacak')}<strong className="num">{tl(total)}</strong></span>
         <button type="button" className="hasCompact__max" disabled={maxMg <= 0}
           onClick={() => { setAmountMg(maxMg); setPending(null); }}>MAX</button>
         <button type="button" className="hasCompact__continue" disabled={!open || !valid} onClick={() => setPending(signature)}>Devam Et</button>

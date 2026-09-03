@@ -9,7 +9,7 @@
 
 import { isBullion } from '@data/bullion';
 import { unitPriceView } from '@domain/channels';
-import { t } from '@i18n/index';
+import { getLanguage, t } from '@i18n/index';
 import { moneyUnit, tlBare } from '@ui/format';
 import type { ItemInstance, Money } from '@domain/types';
 
@@ -38,23 +38,37 @@ export function offerUnitLabel(
 
   if (!single) {
     // Karışık paket: adet gerçek, birim fiyat değil.
-    return `${units} adet`;
+    return t('{n} adet', { n: units });
   }
 
   if (!isBullion(first.templateId)) {
     // İşçilikli üründe adet 1'dir ve "birim fiyat" toplamın kendisidir.
     return units > 1
-      ? `${units} ${t('adet')} · ${tlBare(Math.round(total / units))} ${moneyUnit(t('adet'))}`
+      ? t('{n} adet · {birim}', {
+          n: units,
+          birim: `${tlBare(Math.round(total / units))} ${moneyUnit(t('adet'))}`,
+        })
       : null;
   }
 
   const view = unitPriceView(first, Math.round(total / units));
   if (view.perGram) {
     const grams = view.gramsPerPiece * units;
-    return `${grams.toLocaleString('tr-TR')} g · ${tlBare(view.unitPrice)} ${view.unit}`;
+    return t('{gram} g · {birim}', {
+      gram: numberFmt(grams),
+      birim: `${tlBare(view.unitPrice)} ${view.unit}`,
+    });
   }
   // Tek adet ziynette birim fiyat toplamın kendisidir; aynı sayıyı iki kez
   // yazmak bilgi değil gürültüdür.
   if (units === 1) return null;
-  return `${units} adet · ${tlBare(view.unitPrice)} ${view.unit}`;
+  return t('{n} adet · {birim}', {
+    n: units,
+    birim: `${tlBare(view.unitPrice)} ${view.unit}`,
+  });
+}
+
+/** Ağırlık sayısını dilin yereliyle yazar (ondalık ayracı). */
+function numberFmt(value: number): string {
+  return new Intl.NumberFormat(getLanguage() === 'en' ? 'en-US' : 'tr-TR').format(value);
 }

@@ -20,6 +20,7 @@
  * Varlık bulunamazsa <Art> bileşeni SVG ikonuna düşer — kırık görsel yok.
  */
 
+import { t } from '@i18n/index';
 import type { Silhouette } from '@ui/icons';
 
 /** Paket içindeki göreli yol → uygulama URL'i. Vite `base: './'` ile uyumlu. */
@@ -87,7 +88,7 @@ const BULLION_ART: Record<string, Art> = {
       `investment_bangle_22k_${weight}`,
       art(
         'realistic/inventory/investment-bangle-22k.png',
-        `${weight} gram 22 ayar işçiliksiz yatırım bileziği`,
+        t('{g} gram 22 ayar işçiliksiz yatırım bileziği', { g: weight }),
       ),
     ]),
   ),
@@ -212,7 +213,7 @@ function stableIndex(key: string, length: number): number {
 export function customerArt(displayName: string): Art {
   const pool = displayName.endsWith('Hanım') ? CUSTOMER_F : CUSTOMER_M;
   const picked = pool[stableIndex(displayName, pool.length)] ?? CUSTOMER_M[0]!;
-  return { src: picked.src, alt: `${displayName} portresi` };
+  return { src: picked.src, alt: t('{ad} portresi', { ad: displayName }) };
 }
 
 export function merchantArt(memberId: string, name: string): Art {

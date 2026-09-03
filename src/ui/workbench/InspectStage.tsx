@@ -188,7 +188,7 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
               <span className="signal__mark">
                 <IconWarning size={13} />
               </span>
-              {signal.label}
+              {t(signal.label)}
             </span>
           ))}
         </div>
@@ -227,8 +227,10 @@ function stoneText(item: ItemInstance, knowledge: FieldKnowledge[]): string {
   const status = statusOf(knowledge, 'stone');
   const { count, genuine, kind } = item.truth.stoneData;
   const kindLabel = STONE_LABEL[kind] ? t(STONE_LABEL[kind]) : t("Taş");
-  if (status !== 'verified') return `${count} adet · tür belirsiz`;
-  return `${count} adet ${kindLabel}${genuine ? '' : ' (taklit)'}`;
+  if (status !== 'verified') return t('{n} adet · tür belirsiz', { n: count });
+  return genuine
+    ? t('{n} adet {tur}', { n: count, tur: kindLabel })
+    : t('{n} adet {tur} (taklit)', { n: count, tur: kindLabel });
 }
 
 const STONE_LABEL: Record<string, string> = {

@@ -12,6 +12,11 @@ import { t } from '@i18n/index';
 import { tlSigned } from '@ui/format';
 import type { CaseReview } from '@domain/deal-review';
 
+/*
+  MODÜL DÜZEYİNDE `t()` YOK. Burada çağırmak modül yüklenirken bir kez
+  çalışır ve dil sonradan değişince rozet ilk dilde donardı; çeviri
+  kullanıldığı yerde yapılıyor.
+*/
 const BADGE_TEXT: Record<CaseReview['tone'], string> = {
   good: 'İyi karar',
   neutral: 'Nötr sonuç',
@@ -27,7 +32,7 @@ export function ResultStage({ review, accepted }: Props) {
   return (
     <div className="result">
       <span className={`result__badge result__badge--${review.tone}`}>
-        {accepted ? BADGE_TEXT[review.tone] : t('İşlem kapanmadı')}
+        {accepted ? t(BADGE_TEXT[review.tone]) : t('İşlem kapanmadı')}
       </span>
 
       <h2 className="result__headline">{review.headline}</h2>

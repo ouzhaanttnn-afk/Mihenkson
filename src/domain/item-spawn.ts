@@ -381,7 +381,18 @@ function rollAmbientSignals(
   if (condition === 'worn' || condition === 'damaged') {
     out.push({
       id: 'wear_signal',
-      label: `Yüzeyde ${CONDITION_LABEL[condition].toLowerCase()} izleri var`,
+      /*
+        BURADA ÇEVİRİ YOK — VE BUNU BİR TEST ÖĞRETTİ.
+
+        Önce `t()` ile çevirmiştim; `invariance.test.ts` anında kırıldı:
+        etiket ürünün gizli gerçeğine yazılıp KAYDA giriyor, dolayısıyla
+        Türkçe ve İngilizce oynanan iki oyun farklı ürün üretmiş oluyordu.
+        Dil bir oyun kararı değildir; üretim tek dilde kalır.
+
+        Beş kondisyonun ürettiği beş cümle sözlükte anahtar olarak duruyor
+        ve çizimde `t(label)` ile çevriliyor.
+      */
+      label: `Yüzeyde ${CONDITION_LABEL[condition].toLocaleLowerCase('tr')} izleri var`,
       strength: 'faint',
     });
   }

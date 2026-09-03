@@ -113,7 +113,12 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
   const submit = () => {
     const check = checkJewelerName(name);
     if (!check.ok) {
-      setError(check.error);
+      /*
+        Ad doğrulama metni ALAN KATMANINDAN geliyor ve orası hiçbir şey
+        import etmiyor (profile.test.ts bunu koruyor). Çeviri burada,
+        gösterim anında yapılıyor.
+      */
+      setError(t(check.error));
       nameRef.current?.focus();
       return;
     }

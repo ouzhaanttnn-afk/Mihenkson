@@ -88,11 +88,13 @@ export function WorkshopScreen() {
           <section className={`deliveryResult ${s.lastServiceDelivery.succeeded ? 'deliveryResult--success' : 'deliveryResult--failed'}`} aria-live="polite">
             <div className="deliveryResult__head">
               <div>
-                <span className="deliveryResult__eyebrow">Son teslimat</span>
+                <span className="deliveryResult__eyebrow">{t('Son teslimat')}</span>
                 <h2>{s.lastServiceDelivery.jobName}</h2>
                 <p>{s.lastServiceDelivery.customerName} · {s.lastServiceDelivery.succeeded ? t('Başarılı') : t('Hatalı sonuç')}</p>
               </div>
-              <span className="tag">{s.lastServiceDelivery.succeeded ? 'BAŞARILI' : 'HATALI'}</span>
+              <span className="tag">
+                {s.lastServiceDelivery.succeeded ? t('BAŞARILI') : t('HATALI')}
+              </span>
             </div>
             <div className="deliveryResult__grid">
               <span>{t('Ücret')} <strong>{tl(s.lastServiceDelivery.fee)}</strong></span>
@@ -277,7 +279,7 @@ function JobRow({
 
       <div className="row__body">
         <div className="row__title">
-          {type.label}{' '}
+          {t(type.label)}{' '}
           <span className={`tag ${job.venue === 'outsourced' ? 'tag--neutral' : ''}`}>
             {job.venue === 'inHouse' ? t('Kendi atölyem') : t('Dış usta')}
           </span>

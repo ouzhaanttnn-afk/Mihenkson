@@ -611,7 +611,9 @@ export function closeDay(
     trustDelta: 0,
     reputationDelta: 0,
     xpDelta: 0,
-    label: `Gün ${day} kira + sabit gider + personel + şahsi bakım + terazi bakımı`,
+    label: t('Gün {gun} kira + sabit gider + personel + şahsi bakım + terazi bakımı', {
+      gun: day,
+    }),
   };
 
   const outcome = applyTransaction(state, tx);

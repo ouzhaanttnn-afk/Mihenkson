@@ -14,6 +14,7 @@
  * `Art` tipi zaten alt'sız kurulamaz.
  */
 
+import { t } from '@i18n/index';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Art as ArtSource } from '@ui/assets';
@@ -53,7 +54,7 @@ export function Art({ art, size, fallback, decorative, alt, className }: Props) 
       src={art.src}
       width={size}
       height={size}
-      alt={decorative ? '' : (alt ?? art.alt)}
+      alt={decorative ? '' : t(alt ?? art.alt)}
       aria-hidden={decorative || undefined}
       loading="lazy"
       decoding="async"

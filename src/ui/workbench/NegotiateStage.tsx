@@ -274,7 +274,7 @@ export function NegotiateStage({
       {saleAccounting && <div className="refPanel" aria-label={t('Vitrin satış hesabı')}>
         <div className="refPanel__row"><span className="refPanel__key">{t('Alış Maliyetim')}</span><span className="refPanel__val num">{tl(saleAccounting.acquisitionCost)}</span></div>
         <div className="refPanel__row"><span className="refPanel__key">{t('Güncel Metal Değeri')}</span><span className="refPanel__val num">{tl(saleAccounting.metalValue)}</span></div>
-        <div className="refPanel__row"><span className="refPanel__key">{counter !== null ? 'Müşteri Teklifi' : 'Satış Teklifim'}</span><span className="refPanel__val num">{tl(counter ?? offer)}</span></div>
+        <div className="refPanel__row"><span className="refPanel__key">{counter !== null ? t('Müşteri Teklifi') : t('Satış Teklifim')}</span><span className="refPanel__val num">{tl(counter ?? offer)}</span></div>
         <div className="refPanel__row"><span className="refPanel__key">{t('Kâr / Zarar')}</span><span className="refPanel__val num">{tlSigned((counter ?? offer) - saleAccounting.acquisitionCost)}</span></div>
       </div>}
       {!saleAccounting && (band || reference) && (

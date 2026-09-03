@@ -23,6 +23,7 @@
  * eğimin işareti gün karakterinden türer — art arda aynı yöne yığılamaz.
  */
 
+import { t } from '@i18n/index';
 import { INTENT_MIX } from './balance';
 import { dailyIntentSplit, dailyTraffic } from './v5-rules';
 import { Rng, deriveSeed } from './rng';
@@ -169,13 +170,13 @@ export function recordIntent(
 }
 
 /** Gerçekleşen paylar — denge turlarında ve §12 kabul testlerinde okunur. */
-export function intentShares(t: IntentTelemetry): Record<CustomerIntent, number> {
-  const n = Math.max(1, t.total);
+export function intentShares(tel: IntentTelemetry): Record<CustomerIntent, number> {
+  const n = Math.max(1, tel.total);
   return {
-    buy: t.counts.buy / n,
-    sell: t.counts.sell / n,
-    service: t.counts.service / n,
-    appraisal: t.counts.appraisal / n,
+    buy: tel.counts.buy / n,
+    sell: tel.counts.sell / n,
+    service: tel.counts.service / n,
+    appraisal: tel.counts.appraisal / n,
   };
 }
 
@@ -183,8 +184,8 @@ export function intentShares(t: IntentTelemetry): Record<CustomerIntent, number>
  * §3 "fiili alış-satış dengesi" — 1'e yakın olmalı. Sürekli tek yöne
  * yığılma bu oranı kalıcı olarak bozardı.
  */
-export function tradeBalance(t: IntentTelemetry): number {
-  return t.counts.buy / Math.max(1, t.counts.sell);
+export function tradeBalance(tel: IntentTelemetry): number {
+  return tel.counts.buy / Math.max(1, tel.counts.sell);
 }
 
 /**
@@ -211,10 +212,10 @@ export interface IntentAlarm {
   warning: string | null;
 }
 
-export function intentAlarm(t: IntentTelemetry): IntentAlarm {
-  const shares = intentShares(t);
-  const balance = tradeBalance(t);
-  const sampled = t.total >= INTENT_MIX.alarmMinSample;
+export function intentAlarm(tel: IntentTelemetry): IntentAlarm {
+  const shares = intentShares(tel);
+  const balance = tradeBalance(tel);
+  const sampled = tel.total >= INTENT_MIX.alarmMinSample;
 
   // Örneklem hatası payı: küçük pencerede taban biraz altına inebilir.
   const tolerance = INTENT_MIX.baseTolerance;
@@ -227,21 +228,21 @@ export function intentAlarm(t: IntentTelemetry): IntentAlarm {
 
   let warning: string | null = null;
   if (sampled && !baseIntact) {
-    warning = 'Ölçülen niyet oranı beklenen tabanın altında; kısa örneklem sapabilir. Telafi müşterisi üretilmez.';
+    warning = t('Ölçülen niyet oranı beklenen tabanın altında; kısa örneklem sapabilir. Telafi müşterisi üretilmez.');
   } else if (sampled && !balanced) {
-    warning = `Alış-satış dengesi bandın dışında (${balance.toFixed(2)}).`;
+    warning = t('Alış-satış dengesi bandın dışında ({oran}).', { oran: balance.toFixed(2) });
   }
 
   return { sampled, baseIntact, balanced, balance, warning };
 }
 
 function characterLabel(bulk: number, bullion: number, tempo: number, tilt: number): string {
-  if (bulk >= 0.22) return 'Toplu sipariş günü';
-  if (tempo <= 0.85) return 'Yoğun gün';
-  if (bullion >= 0.72) return 'Sarrafiye günü';
-  if (tilt >= 0.2) return 'Alıcı ağırlıklı gün';
-  if (tilt <= -0.2) return 'Satıcı ağırlıklı gün';
-  return 'Olağan gün';
+  if (bulk >= 0.22) return t('Toplu sipariş günü');
+  if (tempo <= 0.85) return t('Yoğun gün');
+  if (bullion >= 0.72) return t('Sarrafiye günü');
+  if (tilt >= 0.2) return t('Alıcı ağırlıklı gün');
+  if (tilt <= -0.2) return t('Satıcı ağırlıklı gün');
+  return t('Olağan gün');
 }
 
 function clamp(n: number, lo: number, hi: number): number {

@@ -137,18 +137,26 @@ function describeOutcome(
   opportunityCost: Money,
   gapDays: number,
 ): string {
-  const period = gapDays > 0 ? `${gapDays} kapalı gün sonrası açılışta` : 'Gecelik';
-  if (Math.abs(spotChange) < 0.0005) return `${period} fiyat neredeyse yerinde kaldı.`;
+  const period =
+    gapDays > 0 ? t('{n} kapalı gün sonrası açılışta', { n: gapDays }) : t('Gecelik');
+  if (Math.abs(spotChange) < 0.0005)
+    return t('{donem} fiyat neredeyse yerinde kaldı.', { donem: period });
 
   if (spotChange > 0) {
     return position.metalShare >= 0.5
-      ? `${period} fiyat yükseldi; ağırlığı altında taşımak işe yaradı.`
-      : `${period} fiyat yükseldi; nakitte kalan kısım ${tl(Math.abs(opportunityCost))} tutarında fırsatı kaçırdı.`;
+      ? t('{donem} fiyat yükseldi; ağırlığı altında taşımak işe yaradı.', { donem: period })
+      : t('{donem} fiyat yükseldi; nakitte kalan kısım {tutar} tutarında fırsatı kaçırdı.', {
+          donem: period,
+          tutar: tl(Math.abs(opportunityCost)),
+        });
   }
 
   return position.metalShare >= 0.5
-    ? `${period} fiyat düştü; altında kalan pozisyon ${tl(Math.abs(metalDelta))} geriledi.`
-    : `${period} fiyat düştü; nakit ağırlığı zararı sınırladı.`;
+    ? t('{donem} fiyat düştü; altında kalan pozisyon {tutar} geriledi.', {
+        donem: period,
+        tutar: tl(Math.abs(metalDelta)),
+      })
+    : t('{donem} fiyat düştü; nakit ağırlığı zararı sınırladı.', { donem: period });
 }
 
 export interface WeekendRisk {
@@ -170,7 +178,14 @@ export function weekendRisk(day: GameDay, position: OvernightPosition): WeekendR
     closedDays,
     nextOpenDay,
     maxEstimatedExposure,
-    note: `Piyasa ${closedDays} gün kapalı kalacak; ${weekdayLabel(nextOpenDay)} açılışına kadar fiyat donuk görünür. Altın pozisyonunun tahmini açılış riski ±${tl(maxEstimatedExposure)} bandındadır.`,
+    note: t(
+      'Piyasa {gun} gün kapalı kalacak; {acilis} açılışına kadar fiyat donuk görünür. Altın pozisyonunun tahmini açılış riski ±{risk} bandındadır.',
+      {
+        gun: closedDays,
+        acilis: t(weekdayLabel(nextOpenDay)),
+        risk: tl(maxEstimatedExposure),
+      },
+    ),
   };
 }
 
@@ -204,7 +219,7 @@ export function marketSignals(
 
   signals.push({
     label: 'Rejim',
-    detail: REGIME_NOTE[market.regime],
+    detail: t(REGIME_NOTE[market.regime]),
     level: market.regime === 'shock' ? 'high' : market.regime === 'volatile' ? 'medium' : 'low',
   });
 
@@ -234,13 +249,18 @@ export function marketSignals(
     // söylemez, yalnız neye maruz kaldığını söyler.
     const share = Math.round(position.metalShare * 100);
     signals.push({
-      label: 'Pozisyon',
+      label: t('Pozisyon'),
       detail:
         share >= 65
-          ? `Servetinin %${share}'sı altına bağlı; fiyat düşüşüne açıksın.`
+          ? t("Servetinin %{pay}'sı altına bağlı; fiyat düşüşüne açıksın.", { pay: share })
           : share <= 35
-            ? `Varlığın %${100 - share}'i nakitte; yükselişte fırsat maliyeti taşırsınız.`
-            : `Altın %${share} / nakit %${100 - share} — dengeli duruyorsunuz.`,
+            ? t("Varlığın %{pay}'i nakitte; yükselişte fırsat maliyeti taşırsınız.", {
+                pay: 100 - share,
+              })
+            : t('Altın %{altin} / nakit %{nakit} — dengeli duruyorsunuz.', {
+                altin: share,
+                nakit: 100 - share,
+              }),
       level: share >= 80 || share <= 15 ? 'medium' : 'low',
     });
   }

@@ -15,6 +15,7 @@
  */
 
 import { t } from '@i18n/index';
+import { pct } from '@i18n/money';
 import {
   CONDITION_DEDUCTION,
   CONFIDENCE_THRESHOLD,
@@ -279,7 +280,10 @@ function buildReadout(item: ItemInstance, tool: TestTool): string {
 
   switch (tool.id) {
     case 'scale':
-      return `Brüt ${fmtG(truth.grossWeight)} · net metal ${fmtG(truth.netMetalWeight)}`;
+      return t('Brüt {brut} · net metal {net}', {
+        brut: fmtG(truth.grossWeight),
+        net: fmtG(truth.netMetalWeight),
+      });
 
     case 'magnet': {
       const suspicious = detectsSuspicion(item, tool);
@@ -292,7 +296,7 @@ function buildReadout(item: ItemInstance, tool: TestTool): string {
       // GDD EK A adım 3: "Mihenk testi 18K–22K arası verir; band daralır fakat
       // kesinleşmez." Bant gerçeği içine alır ama tek noktaya indirmez.
       const [lo, hi] = karatBand(item, 1);
-      return `Ayar bandı ${lo}–${hi} görünüyor`;
+      return t('Ayar bandı {alt}–{ust} görünüyor', { alt: t(lo), ust: t(hi) });
     }
 
     case 'density': {
@@ -301,15 +305,19 @@ function buildReadout(item: ItemInstance, tool: TestTool): string {
       );
       if (flaw && detectsSuspicion(item, tool)) {
         const label =
-          flaw.kind === 'plated' ? 'kaplama' : flaw.kind === 'filled' ? 'dolgu' : t('içi boşluk');
-        return `Yoğunluk beyan edilen ayarın altında — ${label} riski yüksek`;
+          flaw.kind === 'plated'
+            ? t('kaplama')
+            : flaw.kind === 'filled'
+              ? t('dolgu')
+              : t('içi boşluk');
+        return t('Yoğunluk beyan edilen ayarın altında — {kusur} riski yüksek', { kusur: label });
       }
-      return `Yoğunluk ${truth.actualKarat} ile tutarlı — dolgu riski düşük`;
+      return t('Yoğunluk {ayar} ile tutarlı — dolgu riski düşük', { ayar: t(truth.actualKarat) });
     }
 
     case 'loupe': {
       if (truth.stoneData.kind === 'none') {
-        return `Taş yok · kondisyon incelemesi: ${conditionText(item)}`;
+        return t('Taş yok · kondisyon incelemesi: {durum}', { durum: conditionText(item) });
       }
       const genuineText =
         detectsSuspicion(item, tool) && !truth.stoneData.genuine
@@ -317,11 +325,18 @@ function buildReadout(item: ItemInstance, tool: TestTool): string {
           : truth.stoneData.genuine
             ? t('doğal taş özellikleri')
             : t('net ayrım yapılamadı');
-      return `${truth.stoneData.count} taş · ${genuineText} · kalite ${Math.round(truth.stoneData.qualityBand * 100)}/100`;
+      return t('{n} taş · {tur} · kalite {kalite}/100', {
+        n: truth.stoneData.count,
+        tur: genuineText,
+        kalite: Math.round(truth.stoneData.qualityBand * 100),
+      });
     }
 
     case 'spectrometer':
-      return `Saflık ölçümü: ${truth.actualKarat} (%${(truth.actualPurity * 100).toFixed(1)})`;
+      return t('Saflık ölçümü: {ayar} ({oran})', {
+        ayar: t(truth.actualKarat),
+        oran: pct(truth.actualPurity, 1),
+      });
 
     default:
       return t('Sonuç okunamadı');

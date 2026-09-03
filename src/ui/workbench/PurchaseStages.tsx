@@ -183,9 +183,15 @@ export function StockPickStage({
 function outcomeText(outcome: DemandOutcome, available: number, demand: CustomerDemand): string {
   switch (outcome) {
     case 'partial':
-      return `Stokta ${amountLabel(demand, available)} var; ${amountLabel(demand, demand.quantity)} isteniyor. Müşteri eksiğe razı.`;
+      return t('Stokta {mevcut} var; {istenen} isteniyor. Müşteri eksiğe razı.', {
+      mevcut: amountLabel(demand, available),
+      istenen: amountLabel(demand, demand.quantity),
+    });
     case 'sourceNeeded':
-      return `Stokta ${amountLabel(demand, available)} var; müşteri ${amountLabel(demand, demand.quantity)} altını kabul etmiyor. Ticari kanaldan tedarik gerekir.`;
+      return t(
+      'Stokta {mevcut} var; müşteri {istenen} altını kabul etmiyor. Ticari kanaldan tedarik gerekir.',
+      { mevcut: amountLabel(demand, available), istenen: amountLabel(demand, demand.quantity) },
+    );
     case 'reject':
       return t('Bu talebi karşılayacak mal yok.');
     default:
@@ -289,10 +295,15 @@ function fulfilmentText(purchase: PurchaseSession, demand: CustomerDemand): stri
       return t('Talep tam karşılandı.');
     case 'partial':
       // §4.1 "Toplu talepler ... kısmen karşılanabilir."
-      return `Kısmi karşılama · ${amountLabel(demand, purchase.units)} / ${amountLabel(demand, demand.quantity)}.`;
+      return t('Kısmi karşılama · {verilen} / {istenen}.', {
+        verilen: amountLabel(demand, purchase.units),
+        istenen: amountLabel(demand, demand.quantity),
+      });
     default:
       return demand.acceptsPartial
         ? `Yetersiz · en az ${amountLabel(demand, demand.minQuantity)} gerekiyor.`
-        : `Yetersiz · ${amountLabel(demand, demand.quantity)} tamamı gerekiyor.`;
+        : t('Yetersiz · {istenen} tamamı gerekiyor.', {
+        istenen: amountLabel(demand, demand.quantity),
+      });
   }
 }

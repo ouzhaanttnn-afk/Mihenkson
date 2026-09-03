@@ -76,7 +76,17 @@ export function consolidatePools(inventory: InventoryPosition[], source: Record<
         : UNIT_POOL_TEMPLATE[pool]!;
     const meta = bullionMeta(templateId)!;
     items[canonicalId] = { ...item, templateId,
-      displayName: pool === '24K_GRAM_GOLD_POOL' ? '24 Ayar Gram Altın' : pool === '22K_INVESTMENT_BANGLE_POOL' ? '22 Ayar İşçiliksiz Bilezik' : item.displayName,
+      /*
+        HAVUZ ADI ÜRETİMDE ÇEVRİLMEZ — ürünle birlikte kayda giriyor ve iki
+        dilde farklı ürün üretmek determinizmi bozardı (bkz. item-spawn.ts).
+        Çizimde `t(item.displayName)` ile çevriliyor.
+      */
+      displayName:
+        pool === '24K_GRAM_GOLD_POOL'
+          ? '24 Ayar Gram Altın'
+          : pool === '22K_INVESTMENT_BANGLE_POOL'
+            ? '22 Ayar İşçiliksiz Bilezik'
+            : item.displayName,
       truth: { ...item.truth, grossWeight: meta.unitWeightGrams, netMetalWeight: meta.unitWeightGrams, actualPurity: meta.unitPurity },
       declared: { ...item.declared, claimedWeight: meta.unitWeightGrams },
     };

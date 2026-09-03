@@ -108,8 +108,8 @@ export function evaluateUpgrade(
       unmet.length === 0
         ? null
         : unmet.length === 1
-          ? `${unmet[0]!.label} yetersiz.`
-          : `${unmet.length} koşul eksik.`,
+          ? t('{kosul} yetersiz.', { kosul: t(unmet[0]!.label) })
+          : t('{n} koşul eksik.', { n: unmet.length }),
   };
 }
 

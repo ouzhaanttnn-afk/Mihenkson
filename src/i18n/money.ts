@@ -167,3 +167,36 @@ export function tlRange(min: number, max: number): string {
 export function priceRawTl(n: number): string {
   return nf(2).format(n);
 }
+
+/**
+ * %19 · 19%
+ *
+ * YÜZDE İMİNİN YERİ DİLE GÖRE DEĞİŞİR: Türkçede sayının ÖNÜNDE (%19),
+ * İngilizcede ARKASINDA (19%). Ekran görüntüsünde yakalandı — İngilizce
+ * arayüzde ses düzeyi "%70" yazıyordu; okunuyor ama yabancı duruyor.
+ * Ondalık ayracı da aynı kuralı izler: 0,38 / 0.38.
+ */
+export function pct(ratio: number, digits = 0): string {
+  const en = getLanguage() === 'en';
+  const body = (ratio * 100).toFixed(digits).replace('.', en ? '.' : ',');
+  return en ? `${body}%` : `%${body}`;
+}
+
+/**
+ * −%7 · +%2 — işaret YÜZDE İMİNİN ÖNÜNDE.
+ *
+ * `pct(-0.07)` "%-7" üretirdi; Türkçede işaret yüzde iminden önce yazılır.
+ * Sıfır işaretsiz kalır: "+%0" bir yönü varmış gibi okunur, oysa yoktur.
+ * Eksi imi `tlSigned` ile aynı karakterdir (U+2212), tire değil.
+ */
+export function pctSigned(ratio: number, digits = 0): string {
+  const shown = Number((ratio * 100).toFixed(digits));
+  if (shown === 0) return pct(0, digits);
+  return `${shown < 0 ? '−' : '+'}${pct(Math.abs(ratio), digits)}`;
+}
+
+/** ▲ %0,38 · ▲ 0.38% — yön işareti dahil. */
+export function pctChange(value: number): string {
+  const sign = value > 0 ? '▲' : value < 0 ? '▼' : '—';
+  return `${sign} ${pct(Math.abs(value) / 100, 2)}`;
+}

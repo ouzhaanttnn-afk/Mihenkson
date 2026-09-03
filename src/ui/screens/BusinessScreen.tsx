@@ -435,13 +435,24 @@ function SaveRoute({ onBack }: { onBack: () => void }) {
   const save = () => {
     const ok = s.saveGame();
     if (ok) setSaved(readSaveSummary());
-    setLastAction(ok ? `Kaydedildi · Gün ${s.market.day}, ${clock(s.market.clockMinutes)}` : t('Kayıt oluşturulamadı.'));
+    setLastAction(
+      ok
+        ? t('Kaydedildi · Gün {gun}, {saat}', {
+            gun: s.market.day,
+            saat: clock(s.market.clockMinutes),
+          })
+        : t('Kayıt oluşturulamadı.'),
+    );
   };
 
   const load = () => {
     const ok = s.loadGame();
     setConfirmLoad(false);
-    setLastAction(ok ? `Son kayıt yüklendi · Gün ${useGame.getState().market.day}` : t('Yüklenecek kayıt bulunamadı.'));
+    setLastAction(
+      ok
+        ? t('Son kayıt yüklendi · Gün {gun}', { gun: useGame.getState().market.day })
+        : t('Yüklenecek kayıt bulunamadı.'),
+    );
   };
 
   return (
@@ -455,7 +466,13 @@ function SaveRoute({ onBack }: { onBack: () => void }) {
         <div className="group">
           <h2 className="group__title">{t('Mevcut oyun')}</h2>
           <div className="group__body">
-            <StatLine label={t("Gün / Saat")} value={`${s.market.day}. gün · ${clock(s.market.clockMinutes)}`} />
+            <StatLine
+              label={t('Gün / Saat')}
+              value={t('{gun}. gün · {saat}', {
+                gun: s.market.day,
+                saat: clock(s.market.clockMinutes),
+              })}
+            />
             <StatLine label={t('Nakit')} value={tl(s.store.cash)} />
             <button type="button" className="cta" onClick={save}>{t('Şimdi Kaydet')}</button>
           </div>
@@ -465,8 +482,20 @@ function SaveRoute({ onBack }: { onBack: () => void }) {
           <div className="group__body">
             {saved ? (
               <>
-                <StatLine label={t("Gün / Saat")} value={`${saved.day}. gün · ${clock(saved.clockMinutes)}`} />
-                <StatLine label={t("Nakit / Stok")} value={`${tl(saved.cash)} · ${saved.stockUnits} adet`} />
+                <StatLine
+                  label={t('Gün / Saat')}
+                  value={t('{gun}. gün · {saat}', {
+                    gun: saved.day,
+                    saat: clock(saved.clockMinutes),
+                  })}
+                />
+                <StatLine
+                  label={t('Nakit / Stok')}
+                  value={t('{nakit} · {n} adet', {
+                    nakit: tl(saved.cash),
+                    n: saved.stockUnits,
+                  })}
+                />
                 <StatLine
                   label={t("Kayıt zamanı")}
                   value={saved.savedAt ? new Date(saved.savedAt).toLocaleString('tr-TR') : t('Eski kayıt')}
@@ -570,7 +599,7 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
                 return (
                   <div key={inv.id} className="statLine">
                     <span className="statLine__label">
-                      {late ? t('GECİKMİŞ') : `${inv.dueDay}. gün`} vadesi
+                      {late ? t('GECİKMİŞ') : t('{gun}. gün', { gun: inv.dueDay })} {t('vadesi')}
                     </span>
                     <span className="statLine__value">
                       <span className={`num ${late ? 'statLine__value--negative' : ''}`}>
@@ -659,9 +688,12 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
 
       <div className="lotRow__terms">
         {terms.financed > 0
-          ? `${tl(terms.fromCash)} peşin + ${tl(terms.financed)} vadeli · vade farkı ${tl(
-              terms.financeCost,
-            )} · ${terms.dueDay}. gün`
+          ? t('{pesin} peşin + {vadeli} vadeli · vade farkı {fark} · {gun}. gün', {
+              pesin: tl(terms.fromCash),
+              vadeli: tl(terms.financed),
+              fark: tl(terms.financeCost),
+              gun: terms.dueDay,
+            })
           : t('Tamamı peşin')}
       </div>
 
@@ -694,7 +726,8 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
           onClick={buy}
           disabled={!!terms.blockedReason}
         >
-          {terms.blockedReason ?? (confirming ? `${tl(lot.total)} ödemeyi onayla` : 'Al')}
+          {terms.blockedReason ??
+                (confirming ? t('{tutar} ödemeyi onayla', { tutar: tl(lot.total) }) : t('Al'))}
         </button>
       </div>
       {confirming && (
@@ -837,7 +870,7 @@ function NetworkMemberCard({
         <span>
           {member.displayName} · ilişki {member.trust}/100
         </span>
-        <span className="networkMember__summary">{tl(member.cashOnHand)} · {buysBullion(member) ? 'altın alır' : 'hizmet ağı'}</span>
+        <span className="networkMember__summary">{tl(member.cashOnHand)} · {buysBullion(member) ? t('altın alır') : t('hizmet ağı')}</span>
       </summary>
       <div className="group__body">
         <StatLine label={t("Kasasındaki nakit")} value={tl(member.cashOnHand)} />
@@ -846,7 +879,7 @@ function NetworkMemberCard({
         {member.loan ? (
           <div className="statLine">
             <span className="statLine__label">
-              {late ? t('GECİKMİŞ borç') : `${member.loan.dueDay}. gün borcu`}
+              {late ? t('GECİKMİŞ borç') : t('{gun}. gün borcu', { gun: member.loan.dueDay })}
             </span>
             <span className="statLine__value">
               <span className={`num ${late ? 'statLine__value--negative' : ''}`}>
@@ -1022,7 +1055,8 @@ function storeSub(s: ReturnType<typeof useGame.getState>): string {
       Object.keys(s.customers).length,
     ),
   );
-  if (!evaluation.next) return `${evaluation.current.name} · son kademe`;
+  if (!evaluation.next)
+    return t('{kademe} · son kademe', { kademe: t(evaluation.current.name) });
   const acik = evaluation.gates.filter((g) => g.met).length;
   return t('{kademe} · {acik}/{toplam} koşul hazır', {
     kademe: t(evaluation.current.name),
@@ -1063,7 +1097,7 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
         <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>
           {t('← İşletme')}
         </button>
-        <h1 className="pageHead__title">{evaluation.current.name}</h1>
+        <h1 className="pageHead__title">{t(evaluation.current.name)}</h1>
         <p className="pageHead__sub">
           Kademe {evaluation.current.tier} · {evaluation.current.theme}
         </p>
@@ -1074,10 +1108,13 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
           <h2 className="group__title">{t('Bu kademede açık')}</h2>
           <div className="group__body">
             {evaluation.current.unlocks.map((u) => (
-              <StatLine key={u} label={u} value="" />
+              <StatLine key={u} label={t(u)} value="" />
             ))}
             <StatLine label={t("Vitrin / arka stok")} value={`${s.store.displaySlots} / ${s.store.backStockSlots}`} />
-            <StatLine label={t("Atölye kapasitesi")} value={`${s.store.workshopCapacity} slot`} />
+            <StatLine
+              label={t('Atölye kapasitesi')}
+              value={t('{n} slot', { n: s.store.workshopCapacity })}
+            />
             <StatLine label={t("Günlük gider")} value={tl(s.store.dailyOverhead)} />
           </div>
         </div>
@@ -1093,7 +1130,9 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
         ) : (
           <>
             <div className="group">
-              <h2 className="group__title">{evaluation.next.name} · koşullar</h2>
+              <h2 className="group__title">
+                {t('{kademe} · koşullar', { kademe: t(evaluation.next.name) })}
+              </h2>
               <div className="group__body">
                 {evaluation.gates.map((g) => (
                   <StatLine
@@ -1119,10 +1158,12 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
             </div>
 
             <div className="group">
-              <h2 className="group__title">{evaluation.next.name} · açılım</h2>
+              <h2 className="group__title">
+                {t('{kademe} · açılım', { kademe: t(evaluation.next.name) })}
+              </h2>
               <div className="group__body">
                 {evaluation.next.unlocks.map((u) => (
-                  <StatLine key={u} label={u} value="" />
+                  <StatLine key={u} label={t(u)} value="" />
                 ))}
                 <StatLine
                   label={t("Yeni günlük gider")}
@@ -1141,7 +1182,7 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
                     disabled={!evaluation.ready}
                   >
                     {evaluation.ready
-                      ? `${tl(evaluation.investment)} öde ve yükselt`
+                      ? t('{tutar} öde ve yükselt', { tutar: tl(evaluation.investment) })
                       : (evaluation.blockedReason ?? t('Hazır değil'))}
                   </button>
                 </div>
@@ -1199,12 +1240,12 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
 
         {market.activeEvent && (
           <div className="eventCard">
-            <div className="eventCard__title">{market.activeEvent.label}</div>
-            <div className="eventCard__text">{market.activeEvent.description}</div>
+            <div className="eventCard__title">{t(market.activeEvent.label)}</div>
+            <div className="eventCard__text">{t(market.activeEvent.description)}</div>
             <div className="eventCard__list">
               {market.activeEvent.counterplay.map((play) => (
                 <span key={play} className="tag tag--neutral">
-                  {play}
+                  {t(play)}
                 </span>
               ))}
             </div>
@@ -1225,7 +1266,7 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
             {signals.map((signal) => (
               <StatLine
                 key={signal.label}
-                label={signal.label}
+                label={t(signal.label)}
                 value={signal.detail}
                 tone={
                   signal.level === 'high'

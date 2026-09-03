@@ -108,7 +108,7 @@ import { poolForItem, poolForTemplate } from '@domain/stock-pools';
 import { customerPriceBand } from '@domain/customer-pricing';
 import { BullionCatalog } from '@ui/screens/StockScreen';
 import { clock, grams, moneyUnit, pct, tl, tlBare, tlSigned, tonWord, preciseGrams } from '@ui/format';
-import { t } from '@i18n/index';
+import { getLanguage, t } from '@i18n/index';
 import { offerUnitLabel } from '@ui/offer-view';
 import type {
   DealLine,
@@ -508,7 +508,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
     */
     alerts.push({
       key: 'closed',
-      title: `${weekdayLabel(s.market.day)} · piyasa da kapalı`,
+      title: t('{gun} · piyasa da kapalı', { gun: t(weekdayLabel(s.market.day)) }),
       detail: t('Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.'),
       tone: 'warning',
       Icon: IconClock,
@@ -532,8 +532,11 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
   if (isBlindTradingDay(s.market.day)) {
     alerts.push({
       key: 'blind',
-      title: `${weekdayLabel(s.market.day)} · piyasa kapalı, dükkân açık`,
-      detail: `Fiyat cuma kapanışında donuk. Bugün aldığın mal ${weekdayLabel(nextMarketOpenDay(s.market.day))} açılışına kadar fiyat riski taşır.`,
+      title: t('{gun} · piyasa kapalı, dükkân açık', { gun: t(weekdayLabel(s.market.day)) }),
+      detail: t(
+        'Fiyat cuma kapanışında donuk. Bugün aldığın mal {gun} açılışına kadar fiyat riski taşır.',
+        { gun: t(weekdayLabel(nextMarketOpenDay(s.market.day))) },
+      ),
       tone: 'warning',
       Icon: IconClock,
     });
@@ -542,8 +545,8 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
   if (s.market.activeEvent) {
     alerts.push({
       key: 'event',
-      title: s.market.activeEvent.label,
-      detail: s.market.activeEvent.description,
+      title: t(s.market.activeEvent.label),
+      detail: t(s.market.activeEvent.description),
       tone: 'warning',
       Icon: IconWarning,
     });
@@ -619,7 +622,11 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
             </h2>
             <p className="idle__sub">
               {shopOverviewOpen
-                ? `Gün ${s.market.day} · ${weekdayLabel(s.market.day)} · Semt itibarı ${Math.round(s.store.reputation)}`
+                ? t('Gün {gun} · {haftaGunu} · Semt itibarı {itibar}', {
+                    gun: s.market.day,
+                    haftaGunu: t(weekdayLabel(s.market.day)),
+                    itibar: Math.round(s.store.reputation),
+                  })
                 : t('Dükkan ve finans özetini göster')}
             </p>
           </div>
@@ -653,7 +660,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
             <span className="position__copy">
               <span className="position__label">{t('Stok')}</span>
               <span className="position__value num">
-                {stockCount === 0 ? t('Stok yok') : `${stockCount} ürün`}
+                {stockCount === 0 ? t('Stok yok') : t('{n} ürün', { n: stockCount })}
               </span>
             </span>
           </span>
@@ -750,7 +757,7 @@ function WaitingCustomerQueue() {
       >
         <span className="waitingQueue__heading">
           <strong id="waiting-queue-title">{t('Bekleyen Müşteriler')}</strong>
-          <small>{expanded ? t('Kuyruğu daralt') : queue.length > 1 ? `${queue.length - 1} müşteriyi daha göster` : t('Sıradaki müşteri')}</small>
+          <small>{expanded ? t('Kuyruğu daralt') : queue.length > 1 ? t('{n} müşteriyi daha göster', { n: queue.length - 1 }) : t('Sıradaki müşteri')}</small>
         </span>
         <span className="waitingQueue__count">
           {queue.length}/{capacity}
@@ -779,7 +786,7 @@ function WaitingCustomerQueue() {
               <div className="waitingCustomer__body">
                 <div className="waitingCustomer__identity">
                   <strong>{customer.displayName}</strong>
-                  <span>{isNext ? t('Şimdi') : `${index + 1}. sırada`}</span>
+                  <span>{isNext ? t('Şimdi') : t('{n}. sırada', { n: index + 1 })}</span>
                 </div>
                 <p>{customerIntentLine(customer, items)}</p>
                 <div className="waitingCustomer__meta">
@@ -1173,7 +1180,9 @@ function ShopDock({
         idle
         hideSummary
         summaryLabel={t('Kuyruk')}
-        summaryValue={hasQueue ? `${s.queue.length} müşteri bekliyor` : t('Müşteri bekleniyor')}
+        summaryValue={
+          hasQueue ? t('{n} müşteri bekliyor', { n: s.queue.length }) : t('Müşteri bekleniyor')
+        }
         primary={{
           label: hasQueue
             ? t('Müşteriyi Karşıla · {n}', { n: s.queue.length })
@@ -1318,7 +1327,22 @@ function ShopDock({
 
       return (
         <DecisionDock
-          summaryLabel={selected ? `Seçili ${t(TERM.thesis).toLocaleLowerCase('tr')}` : `${t(TERM.thesis)} seçilmedi`}
+          summaryLabel={
+            selected
+              ? t('Seçili {plan}', {
+                  /*
+                    Türkçede cümle içinde küçük harfle akıyor ("Seçili çıkış
+                    planı"); İngilizcede özel bir ad gibi büyük kalır. Küçültme
+                    Türkçe yereliyle yapılır — `toLowerCase()` "I"yı "i" yapıp
+                    Türkçe kelimeyi bozardı.
+                  */
+                  plan:
+                    getLanguage() === 'en'
+                      ? t(TERM.thesis)
+                      : t(TERM.thesis).toLocaleLowerCase('tr'),
+                })
+              : t('{plan} seçilmedi', { plan: t(TERM.thesis) })
+          }
           summaryValue={
             selected
               ? `${selected.label} · net ${tl(selected.expectedNet)}`
@@ -1363,8 +1387,8 @@ function ShopDock({
           summaryLabel={isFinal ? t('Son teklif') : 'Teklifiniz'}
           summaryValue={
             isFinal && counter !== null
-              ? `Müşteri: ${tl(counter)} — geri dönüş yok`
-              : `Alış tavanı ${tl(ceiling)}`
+              ? t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter) })
+              : t('Alış tavanı {tutar}', { tutar: tl(ceiling) })
           }
           primary={
             isFinal && counter !== null
@@ -1373,7 +1397,11 @@ function ShopDock({
                   onPress: () => s.negotiationMove({ kind: 'acceptCounter', atRound: session.round }),
                   disabled: counter > s.store.cash,
                   disabledReason: counter > s.store.cash
-                    ? `Minimum teklif ${tl(counter)} · mevcut nakit ${tl(s.store.cash)} · eksik ${tl(counter - s.store.cash)}`
+                    ? t('Minimum teklif {teklif} · mevcut nakit {nakit} · eksik {eksik}', {
+                        teklif: tl(counter),
+                        nakit: tl(s.store.cash),
+                        eksik: tl(counter - s.store.cash),
+                      })
                     : undefined,
                   icon: <IconSend size={18} />,
                 }
@@ -1384,7 +1412,11 @@ function ShopDock({
                   disabledReason: offer <= 0
                     ? t('Teklif tutarı sıfırdan büyük olmalı.')
                     : !canAfford
-                      ? `Teklif ${tl(offer)} · mevcut nakit ${tl(s.store.cash)} · eksik ${tl(offer - s.store.cash)}`
+                      ? t('Teklif {teklif} · mevcut nakit {nakit} · eksik {eksik}', {
+                          teklif: tl(offer),
+                          nakit: tl(s.store.cash),
+                          eksik: tl(offer - s.store.cash),
+                        })
                       : undefined,
                   icon: <IconSend size={18} />,
                 }
@@ -1474,7 +1506,15 @@ function PurchaseDock({
           summaryValue={
             count === 0
               ? t('Henüz ürün seçilmedi')
-              : `${purchase.demand.poolId === '24K_GRAM_GOLD_POOL' ? preciseGrams(count) : purchase.demand.poolId === '22K_INVESTMENT_BANGLE_POOL' ? preciseGrams(count * 10) : `${count} adet`} · ${tl(purchase.packageFairValue)} adil değer`
+              : t('{miktar} · {tutar} adil değer', {
+                  miktar:
+                    purchase.demand.poolId === '24K_GRAM_GOLD_POOL'
+                      ? preciseGrams(count)
+                      : purchase.demand.poolId === '22K_INVESTMENT_BANGLE_POOL'
+                        ? preciseGrams(count * 10)
+                        : t('{n} adet', { n: count }),
+                  tutar: tl(purchase.packageFairValue),
+                })
           }
           primary={{
             label: t('Paketi Değerle'),
@@ -1527,7 +1567,7 @@ function PurchaseDock({
       const profit = offer - purchase.packageCost;
       const impacts: OfferImpact[] = [
         {
-          label: 'Kâr',
+          label: t('Kâr'),
           value: `${tlSigned(profit)} ${tonWord(profit)}`,
           tone: profit >= 0 ? 'positive' : 'negative',
         },
@@ -1546,8 +1586,8 @@ function PurchaseDock({
           summaryLabel={isFinal ? t('Son teklif') : t('İstediğiniz fiyat')}
           summaryValue={
             isFinal && counter !== null
-              ? `Müşteri: ${tl(counter)} — geri dönüş yok`
-              : `Adil değer ${tl(purchase.packageFairValue)}`
+              ? t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter) })
+              : t('Adil değer {tutar}', { tutar: tl(purchase.packageFairValue) })
           }
           primary={{
             label: isFinal ? t('Son Teklifi Kabul Et') : t('Fiyatı Ver'),
@@ -1601,7 +1641,7 @@ function PurchaseDock({
           summaryLabel={t("Sonuç")}
           summaryValue={
             line.negotiation.state === 'ACCEPTED'
-              ? `Satıldı · ${tl(line.negotiation.settledPrice ?? 0)}`
+              ? t('Satıldı · {tutar}', { tutar: tl(line.negotiation.settledPrice ?? 0) })
               : t('Satış olmadı')
           }
           primary={{ label: t('Sonraki Müşteri'), onPress: s.finishDeal }}
@@ -1655,7 +1695,9 @@ function ServiceDock({ deal }: { deal: NonNullable<GameStateDeal> }) {
         <DecisionDock
           summaryLabel={t("Tanı")}
           summaryValue={
-            count > 0 ? `${count} servis türü uygulanabilir` : t('Uygun servis bulunamadı')
+            count > 0
+              ? t('{n} servis türü uygulanabilir', { n: count })
+              : t('Uygun servis bulunamadı')
           }
           primary={{
             label: t('Teklif Hazırla'),
@@ -1674,7 +1716,11 @@ function ServiceDock({ deal }: { deal: NonNullable<GameStateDeal> }) {
           summaryLabel={quote ? t('Seçili teklif') : t('Servis türü seçilmedi')}
           summaryValue={
             quote
-              ? `${tl(quote.fee)} · ${quote.durationDays} gün · risk ${pct(quote.risk)}`
+              ? t('{ucret} · {gun} gün · risk {risk}', {
+                  ucret: tl(quote.fee),
+                  gun: quote.durationDays,
+                  risk: pct(quote.risk),
+                })
               : t('Raydan bir tür seçin')
           }
           primary={{
@@ -1773,7 +1819,9 @@ function AppraisalDock({
         <DecisionDock
           summaryLabel={t('Ekspertiz')}
           summaryValue={
-            tests > 0 ? `${tests} test yapıldı` : t('Henüz ölçüm yok — raydan araç seçin')
+            tests > 0
+              ? t('{n} test yapıldı', { n: tests })
+              : t('Henüz ölçüm yok — raydan araç seçin')
           }
           primary={{ label: t('Ölçüme Geç'), onPress: () => s.setStage('test') }}
           secondary={[{ label: t('İşi Reddet'), onPress: s.declineAppraisal, danger: true }]}
@@ -1809,7 +1857,10 @@ function AppraisalDock({
           summaryLabel={ready ? 'Rapor' : t('Duruş seçilmedi')}
           summaryValue={
             ready
-              ? `${getStance(appraisal.stance!).label} · ${tl(appraisal.fee)} ücret`
+              ? t('{durus} · {ucret} ücret', {
+                  durus: t(getStance(appraisal.stance!).label),
+                  ucret: tl(appraisal.fee),
+                })
               : t('Yukarıdan bir rapor duruşu seçin')
           }
           primary={{
@@ -1834,7 +1885,7 @@ function AppraisalDock({
               ? t('Ekspertiz yapılmadı')
               : v
                 ? v.paid
-                  ? `${tl(v.fee)} ücret alındı`
+                  ? t('{tutar} ücret alındı', { tutar: tl(v.fee) })
                   : t('Ücret ödenmedi')
                 : '—'
           }
@@ -1929,7 +1980,7 @@ function buildPackageReference(
     const showTotal = units > 1 || (refView.perGram && refView.gramsPerPiece > 1);
     const amountLabel = refView.perGram
       ? `${(units * refView.gramsPerPiece).toLocaleString('tr-TR')} g`
-      : `${units} adet`;
+      : t('{n} adet', { n: units });
 
     return {
       direction: 'shopSells' as const,
