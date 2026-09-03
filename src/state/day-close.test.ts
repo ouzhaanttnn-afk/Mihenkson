@@ -7,9 +7,12 @@ import {
   canSetPersonnel,
   dailyOperatingCost,
   PERSONNEL_MONTHLY,
-  personnelAdUnlockCost,
-  personnelAdUnlockLevel,
+  PERSONNEL_TEMP_UNLOCK_DAYS,
+  personnelPaidUnlockCost,
+  personnelPaidUnlockLevel,
   personnelDaily,
+  personnelEffectiveMaxTier,
+  personnelTempUnlockActive,
   scaleMaintenanceCost,
   weekdayName,
 } from '@domain/v5-rules';
@@ -60,24 +63,24 @@ describe('personnel additive salaries and level gates', () => {
 
 describe('personnel ad-unlock + daily waiver (kullanıcı: "40k verip açtığın personel...")', () => {
   it('unlock cost equals the tier\'s cumulative monthly total, not a new number', () => {
-    expect(personnelAdUnlockCost(1)).toBe(PERSONNEL_MONTHLY[1]);
-    expect(personnelAdUnlockCost(2)).toBe(PERSONNEL_MONTHLY[2]);
-    expect(personnelAdUnlockCost(3)).toBe(PERSONNEL_MONTHLY[3]);
-    expect([personnelAdUnlockCost(1), personnelAdUnlockCost(2), personnelAdUnlockCost(3)]).toEqual([40000, 90000, 150000]);
+    expect(personnelPaidUnlockCost(1)).toBe(PERSONNEL_MONTHLY[1]);
+    expect(personnelPaidUnlockCost(2)).toBe(PERSONNEL_MONTHLY[2]);
+    expect(personnelPaidUnlockCost(3)).toBe(PERSONNEL_MONTHLY[3]);
+    expect([personnelPaidUnlockCost(1), personnelPaidUnlockCost(2), personnelPaidUnlockCost(3)]).toEqual([40000, 90000, 150000]);
   });
 
   it('canSetPersonnel bypasses the level gate up to the ad-unlocked tier, no further', () => {
-    const store = { ...initial.store, level: 1, personnelAdUnlockLevel: 2 };
+    const store = { ...initial.store, level: 1, personnelPaidUnlockLevel: 2 };
     expect(canSetPersonnel(store, 2)).toBe(true); // seviye 6 gerekirdi, ad-unlock ile geçildi
     expect(canSetPersonnel(store, 3)).toBe(false); // 3. kademe hâlâ kilitli — ne seviye ne ad-unlock yeterli
   });
 
   it('unlockPersonnelTier charges cash once, sets both unlock level and headcount, never twice for the same tier', () => {
-    useGame.setState({ store: { ...useGame.getState().store, cash: 200_000, level: 1, personnelCount: 0, personnelAdUnlockLevel: 0 } });
+    useGame.setState({ store: { ...useGame.getState().store, cash: 200_000, level: 1, personnelCount: 0, personnelPaidUnlockLevel: 0 } });
     const ok = useGame.getState().unlockPersonnelTier(2);
     expect(ok).toBe(true);
     expect(useGame.getState().store.cash).toBe(200_000 - PERSONNEL_MONTHLY[2]!);
-    expect(personnelAdUnlockLevel(useGame.getState().store)).toBe(2);
+    expect(personnelPaidUnlockLevel(useGame.getState().store)).toBe(2);
     expect(useGame.getState().store.personnelCount).toBe(2);
     expect(canSetPersonnel(useGame.getState().store, 2)).toBe(true);
 
@@ -89,11 +92,11 @@ describe('personnel ad-unlock + daily waiver (kullanıcı: "40k verip açtığı
   });
 
   it('unlockPersonnelTier fails without charging when cash is insufficient', () => {
-    useGame.setState({ store: { ...useGame.getState().store, cash: 10_000, level: 1, personnelAdUnlockLevel: 0 } });
+    useGame.setState({ store: { ...useGame.getState().store, cash: 10_000, level: 1, personnelPaidUnlockLevel: 0 } });
     const ok = useGame.getState().unlockPersonnelTier(1);
     expect(ok).toBe(false);
     expect(useGame.getState().store.cash).toBe(10_000);
-    expect(personnelAdUnlockLevel(useGame.getState().store)).toBe(0);
+    expect(personnelPaidUnlockLevel(useGame.getState().store)).toBe(0);
   });
 
   it.each([0, 4, 1.5, NaN])('rejects an invalid tier %s', count => {
@@ -134,6 +137,66 @@ describe('personnel ad-unlock + daily waiver (kullanıcı: "40k verip açtığı
     await useGame.getState().requestPersonnelAdWaiver();
     expect(useGame.getState().personnelCostWaivedToday).toBe(false);
     expect(useGame.getState().rewardedAdPending).toBeNull();
+  });
+});
+
+describe('personnel temp unlock via ad (kullanıcı: "reklamı bir kere izleyip oyun içi 1 hafta personel açık kalıyor")', () => {
+  it('personnelTempUnlockActive is true through the expiry day, false the day after', () => {
+    const store = { ...initial.store, personnelTempUnlockUntilDay: 10 };
+    expect(personnelTempUnlockActive(store, 9)).toBe(true);
+    expect(personnelTempUnlockActive(store, 10)).toBe(true);
+    expect(personnelTempUnlockActive(store, 11)).toBe(false);
+  });
+
+  it('personnelEffectiveMaxTier takes the highest of level, paid unlock and an active temp unlock', () => {
+    const store = { ...initial.store, level: 1, personnelPaidUnlockLevel: 1, personnelTempUnlockTier: 3, personnelTempUnlockUntilDay: 20 };
+    expect(personnelEffectiveMaxTier(store, 20)).toBe(3); // hâlâ geçerli
+    expect(personnelEffectiveMaxTier(store, 21)).toBe(1); // süresi bitti, yalnız ödenmiş kademe kalır
+  });
+
+  it('canSetPersonnel honours an active temp unlock only when the current day is passed in', () => {
+    const store = { ...initial.store, level: 1, personnelTempUnlockTier: 2, personnelTempUnlockUntilDay: 5 };
+    expect(canSetPersonnel(store, 2, 5)).toBe(true);
+    expect(canSetPersonnel(store, 2, 6)).toBe(false); // süresi doldu
+    expect(canSetPersonnel(store, 2)).toBe(false); // day verilmezse (eski çağıranlar) geçici açılış hiç sayılmaz
+  });
+
+  it('requestPersonnelTempUnlock never grants free personnel outside a native build', async () => {
+    useGame.setState({ store: { ...useGame.getState().store, level: 1, personnelTempUnlockTier: 0, personnelTempUnlockUntilDay: 0 } });
+    await useGame.getState().requestPersonnelTempUnlock(2);
+    expect(useGame.getState().store.personnelCount).toBe(0);
+    expect(personnelTempUnlockActive(useGame.getState().store, useGame.getState().market.day)).toBe(false);
+    expect(useGame.getState().rewardedAdPending).toBeNull();
+  });
+
+  it('requestPersonnelTempUnlock is a no-op when the tier is already reachable', async () => {
+    useGame.setState({ store: { ...useGame.getState().store, level: 99 } }); // seviye zaten her kademeyi açar
+    await useGame.getState().requestPersonnelTempUnlock(3);
+    // Hiçbir reklam isteği açılmadı — zaten erişilebilirdi.
+    expect(useGame.getState().rewardedAdPending).toBeNull();
+    expect(useGame.getState().store.personnelTempUnlockTier ?? 0).toBe(0);
+  });
+
+  it('advanceDay claws back headcount once a temp unlock expires, but never before', () => {
+    // Kademe 2'yi bugünden itibaren tam PERSONNEL_TEMP_UNLOCK_DAYS gün açık bırak.
+    const day = useGame.getState().market.day;
+    useGame.setState({
+      store: {
+        ...useGame.getState().store,
+        level: 1,
+        cash: 1_000_000,
+        personnelCount: 2,
+        personnelTempUnlockTier: 2,
+        personnelTempUnlockUntilDay: day + PERSONNEL_TEMP_UNLOCK_DAYS,
+      },
+    });
+    for (let i = 0; i < PERSONNEL_TEMP_UNLOCK_DAYS; i += 1) {
+      useGame.getState().advanceDay();
+      useGame.getState().startNewDay();
+      expect(useGame.getState().store.personnelCount).toBe(2); // süre dolmadan düşmez
+    }
+    useGame.getState().advanceDay();
+    expect(useGame.getState().store.personnelCount).toBe(0); // süre bitti, seviye 1 hiçbir kademeyi açmaz
   });
 });
 

@@ -753,11 +753,24 @@ export interface StoreState {
   /** Queue personnel are distinct from workshop staff/masters. */
   personnelCount?: number;
   /**
-   * Reklamla açılan personel kademesi (0–3) — `PERSONNEL_UNLOCK_LEVELS`
-   * seviye şartını bu kademeye kadar BAYPAS eder (bkz. `canSetPersonnel`).
-   * Kalıcı, asla düşmez; `speed4xUnlocked` ile aynı disiplin.
+   * TEK SEFERLİK GERÇEK PARAYLA açılan personel kademesi (0–3) — reklam
+   * DEĞİL. `PERSONNEL_UNLOCK_LEVELS` seviye şartını bu kademeye kadar
+   * BAYPAS eder (bkz. `canSetPersonnel`). Kalıcı, asla düşmez;
+   * `speed4xUnlocked` ile aynı disiplin. Reklamla açılan GEÇİCİ kademe için
+   * bkz. `personnelTempUnlockTier` / `personnelTempUnlockUntilDay`.
    */
-  personnelAdUnlockLevel?: number;
+  personnelPaidUnlockLevel?: number;
+  /**
+   * Ödüllü reklamla GEÇİCİ açılan personel kademesi (0–3) — yalnız
+   * `personnelTempUnlockUntilDay`e kadar geçerli, o günden sonra
+   * `canSetPersonnel` bu alanı artık saymaz ve `advanceDay()` fazla
+   * kadroyu kendiliğinden geri düşürür (bkz. `personnelEffectiveMaxTier`).
+   * Kullanıcı isteği: "reklamı bir kere izleyip oyun içi 1 hafta personel
+   * açık kalıyor."
+   */
+  personnelTempUnlockTier?: number;
+  /** `personnelTempUnlockTier`in geçerli olduğu SON gün (dahil). */
+  personnelTempUnlockUntilDay?: number;
   hasBalanceMg?: number;
   hasCostBasis?: number;
   name: string;

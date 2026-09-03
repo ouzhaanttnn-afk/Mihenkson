@@ -17,12 +17,14 @@ import { customerDensity } from '@domain/customer-traffic';
 import {
   PERSONNEL_MONTHLY,
   PERSONNEL_SALARIES,
+  PERSONNEL_TEMP_UNLOCK_DAYS,
   PERSONNEL_UNLOCK_LEVELS,
   canSetPersonnel,
-  personnelAdUnlockCost,
-  personnelAdUnlockLevel,
+  personnelPaidUnlockCost,
   personnelCount,
   personnelDaily,
+  personnelTempUnlockActive,
+  personnelTempUnlockTier,
   queueCapacity,
 } from '@domain/v5-rules';
 
@@ -262,7 +264,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                         sv: seviye,
                       })
                     : t('Personelsiz — maaş ödenmez');
-                const seviyeYetmez = count > 0 && !canSetPersonnel(s.store, count) && personnelAdUnlockLevel(s.store) < count;
+                const locked = count > 0 && !canSetPersonnel(s.store, count, s.market.day);
                 return (
                   <div key={count} className="personnelChoice__cell">
                     <button
@@ -271,7 +273,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                       aria-pressed={personnelCount(s.store) === count}
                       aria-label={isim}
                       title={isim}
-                      disabled={!canSetPersonnel(s.store, count)}
+                      disabled={!canSetPersonnel(s.store, count, s.market.day)}
                       onClick={() => setPendingPersonnel(count)}
                     >
                       <strong>{count}</strong>
@@ -281,29 +283,60 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                       </small>
                     </button>
                     {/*
-                      SEVİYE YETMEZSE tek seferlik ödemeyle atlanabilir —
-                      kullanıcı isteği: "40k verip açtığın personel...".
-                      Bedel kademenin AYLIK toplamıyla AYNI (bkz.
-                      `personnelAdUnlockCost`), gerçek nakit — reklam
-                      DEĞİL. Reklam yalnız GÜNLÜK dolum için (aşağıda).
+                      KİLİTLİYSE İKİ ATLAMA YOLU VAR — kullanıcının üç turda
+                      netleştirdiği iki AYRI mekanik:
+                      1. Tek seferlik GERÇEK PARA (kademenin aylık toplamıyla
+                         aynı, bkz. `personnelPaidUnlockCost`) → KALICI açar.
+                      2. Ödüllü reklam, PARA YOK → yalnız `PERSONNEL_TEMP_UNLOCK_DAYS`
+                         gün (7) için açar; süre dolunca `advanceDay()` geri düşürür.
+                      İkisi birbirinin YERİNE DEĞİL, YANINDA durur.
                     */}
-                    {seviyeYetmez && (
-                      <button
-                        type="button"
-                        className="chip personnelChoice__unlock"
-                        onClick={() => s.unlockPersonnelTier(count)}
-                        title={t('Seviye {sv} beklemeden {tutar} ödeyip kalıcı aç', {
-                          sv: seviye,
-                          tutar: tl(personnelAdUnlockCost(count)),
-                        })}
-                      >
-                        {t('{tutar} öde, hemen aç', { tutar: tl(personnelAdUnlockCost(count)) })}
-                      </button>
+                    {locked && (
+                      <>
+                        <button
+                          type="button"
+                          className="chip personnelChoice__unlock"
+                          onClick={() => s.unlockPersonnelTier(count)}
+                          title={t('Seviye {sv} beklemeden {tutar} ödeyip kalıcı aç', {
+                            sv: seviye,
+                            tutar: tl(personnelPaidUnlockCost(count)),
+                          })}
+                        >
+                          {t('{tutar} öde, hemen aç', { tutar: tl(personnelPaidUnlockCost(count)) })}
+                        </button>
+                        <button
+                          type="button"
+                          className="chip personnelChoice__unlock"
+                          disabled={s.rewardedAdPending === 'personnelTempUnlock'}
+                          onClick={() => s.requestPersonnelTempUnlock(count)}
+                          title={t('Reklam izle, {gun} gün boyunca ücretsiz aç', {
+                            gun: PERSONNEL_TEMP_UNLOCK_DAYS,
+                          })}
+                        >
+                          <IconVideo size={11} />{' '}
+                          {s.rewardedAdPending === 'personnelTempUnlock'
+                            ? t('Reklam yükleniyor…')
+                            : t('Reklamla {gun} gün aç', { gun: PERSONNEL_TEMP_UNLOCK_DAYS })}
+                        </button>
+                      </>
                     )}
                   </div>
                 );
               })}
             </div>
+            {/*
+              GEÇİCİ AÇILIŞ DURUMU — reklamla açılan kademe hâlâ süresi
+              dolmadıysa kalan gün burada görünür; ne zaman biteceğini
+              bilmeden oyuncu "neden düştü" diye şaşırmasın.
+            */}
+            {personnelTempUnlockActive(s.store, s.market.day) && (
+              <p className="personnelWaiver">
+                {t('{n} personel reklamla açık — {gun} gün kaldı.', {
+                  n: personnelTempUnlockTier(s.store),
+                  gun: s.store.personnelTempUnlockUntilDay! - s.market.day + 1,
+                })}
+              </p>
+            )}
             {pendingPersonnel !== null && <div role="group" aria-label={t('Personel onayı')}>
               <p>
                 {t('{n} personel · aylık toplam {tutar}.', {

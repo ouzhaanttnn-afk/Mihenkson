@@ -2080,6 +2080,63 @@ gideri: 1.333 ₺" — `40000/30` doğru), reklam düğmesine basınca web'de
 
 ---
 
+#### YENİ · Personel kademesi reklamla da GEÇİCİ (7 gün) açılabiliyor — ✅ YAPILDI
+`src/domain/types.ts` (`personnelTempUnlockTier`, `personnelTempUnlockUntilDay`) ·
+`src/domain/v5-rules.ts` (`personnelEffectiveMaxTier`, `personnelTempUnlockActive`,
+`PERSONNEL_TEMP_UNLOCK_DAYS`) · `src/state/gameStore.ts`
+(`requestPersonnelTempUnlock`, `advanceDay()` geri düşürme) · `src/state/save.ts` ·
+`src/ui/screens/BusinessScreen.tsx` · `src/i18n/en.ts` · `src/state/day-close.test.ts`
+(+6 test)
+
+Bir önceki turda "40k öde, kalıcı aç" mekaniğini yaptıktan sonra kullanıcı
+ekran görüntüsüyle düzeltti: "bunlar seviyeye bağlı açılacakcı... her
+kademe atladıkça bir sonraki kademeyi 15 dk reklam izleyip açmak idi."
+Netleştirme turunda ortaya çıktı: **iki mekanik BİRLİKTE var, biri
+diğerinin yerine değil** — "seviye+para ile açılacak ama reklam izleyince
+oyun içi 1 gün kalıcı olsun" → "1 gün ya da 1 hafta, hangisi mantıklıysa
+sen seç." 1 hafta (7 gün) seçildi: 1 gün zaten `personnelCostWaivedToday`nin
+işi (günlük gider muafiyeti), tek bir reklamı ayrıca anlamlı kılmak için
+daha uzun bir pencere gerekiyordu.
+
+**Yeniden adlandırma:** Önceki turda `personnelAdUnlockLevel` diye
+adlandırdığım alan aslında GERÇEK PARA ile açılıyordu — "ad" (reklam) adı
+yanıltıcıydı. `personnelPaidUnlockLevel` / `personnelPaidUnlockCost` olarak
+yeniden adlandırıldı (tx etiketi de "...reklamla aç" → "...seviye şartı
+olmadan aç" düzeltildi). Şimdi GERÇEKTEN reklamla açılan yeni alanlar
+`personnelTempUnlockTier` / `personnelTempUnlockUntilDay` adını aldı —
+isim karışıklığı bir daha olmasın diye.
+
+**`personnelEffectiveMaxTier(store, day)`** üç kaynağın (seviye,
+kalıcı-ödenmiş, aktif-geçici) EN YÜKSEĞİNİ döner; `canSetPersonnel`in 3.
+parametresi artık `day` — verilmezse (eski çağıranlar/testler)
+`Number.POSITIVE_INFINITY`'ye düşer, yani geçici açılış HİÇ sayılmaz
+(varsayılanı `0` yapmıştım ilk denemede, `personnelTempUnlockUntilDay`
+gerçek bir gün taşıyorsa `0 <= 5` yanlışlıkla "hâlâ geçerli" sayıyordu —
+kendi testimde yakalandı, düzeltildi).
+
+**`advanceDay()`** her gün `personnelEffectiveMaxTier(store, nextDay)`i
+yeniden hesaplar; süresi dolan geçici kademe varsa `personnelCount`
+kendiliğinden geri düşer — oyuncu hiçbir şey yapmasa bile 7. günün sonunda
+fazla kadro sessizce kaybolur, ekonomi asla eksi bakiyeye düşmez (yalnız
+kapasite/kadro geri çekilir, kasaya dokunulmaz).
+
+**UI:** Her kilitli kademe sütununda artık İKİ buton yan yana: "{tutar}
+öde, hemen aç" (kalıcı, gerçek para) ve "Reklamla 7 gün aç" (geçici,
+ücretsiz). Geçici açılış aktifken ayrı bir durum satırı kalan günü
+gösterir ("2 personel reklamla açık — 5 gün kaldı").
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 892/892, 984/984 test yeşil (6
+yeni: `personnelTempUnlockActive` sınır günü, `personnelEffectiveMaxTier`
+üç kaynağın maksimumu, `canSetPersonnel`in `day` olmadan geçiciyi hiç
+saymadığı, web/dev'de asla bedava vermediği, zaten erişilebilirse reklam
+istemediği, ve en önemlisi — `advanceDay()`'in tam 7 gün boyunca kadroyu
+KORUDUĞU, 8. günde geri düştüğü). Taze build + tarayıcı ucuca doğrulama: 3
+kilitli kademede 6 buton (3×2) doğru etiketle göründü, reklam düğmesine
+basınca web'de "personel açılmadı" toast'ı çıktı, geçici-açık durum
+satırı YANLIŞLIKLA görünmedi (ödül verilmediği için doğru), 0 konsol hatası.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

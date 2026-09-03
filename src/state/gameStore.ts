@@ -15,9 +15,12 @@ import {
   queueCapacity,
   toMg,
   canSetPersonnel,
-  personnelAdUnlockLevel,
-  personnelAdUnlockCost,
+  personnelPaidUnlockLevel,
+  personnelPaidUnlockCost,
   personnelCount,
+  personnelEffectiveMaxTier,
+  personnelTempUnlockTier,
+  PERSONNEL_TEMP_UNLOCK_DAYS,
 } from '@domain/v5-rules';
 import { customerDelayFactor } from '@domain/customer-traffic';
 import { tradeHas, meltToHas } from '@domain/has-account';
@@ -322,11 +325,16 @@ export interface GameState {
   /**
    * Bir personel kademesini seviye şartı olmadan, tek seferlik ödeyerek
    * kalıcı açar (ve o kademeye hemen işe alır). Kullanıcı isteği: "40k
-   * verip açtığın personel..." — bkz. `personnelAdUnlockCost`.
+   * verip açtığın personel..." — bkz. `personnelPaidUnlockCost`.
    */
   unlockPersonnelTier: (count: number) => boolean;
   /** Bugünkü personel giderini ödüllü reklamla ücretsizleştirir. */
   requestPersonnelAdWaiver: () => Promise<void>;
+  /**
+   * Bir personel kademesini ödüllü reklamla `PERSONNEL_TEMP_UNLOCK_DAYS`
+   * gün boyunca GEÇİCİ açar — para YOK, ama kalıcı da değil.
+   */
+  requestPersonnelTempUnlock: (count: number) => Promise<void>;
   tradeHas: (side: 'buy' | 'sell', grams: number, txId: string) => void;
   meltStock: (itemId: string) => void;
   displayStock: (itemId: string) => void;
@@ -651,7 +659,7 @@ export const useGame = create<GameState>((set, get) => {
     setStockCatalogOpen: (stockCatalogOpen) => set({ stockCatalogOpen }),
     setPersonnelCount: (count) => {
       const s = get();
-      if (!canSetPersonnel(s.store, count)) return;
+      if (!canSetPersonnel(s.store, count, s.market.day)) return;
       set({ store: { ...s.store, personnelCount: count } });
       writeSave(get());
     },
@@ -662,12 +670,12 @@ export const useGame = create<GameState>((set, get) => {
     unlockPersonnelTier: (count) => {
       const s = get();
       if (!Number.isInteger(count) || count < 1 || count > 3) return false;
-      if (personnelAdUnlockLevel(s.store) >= count) return false;
+      if (personnelPaidUnlockLevel(s.store) >= count) return false;
 
-      const cost = personnelAdUnlockCost(count);
+      const cost = personnelPaidUnlockCost(count);
       const tx: SettlementTransaction = {
-        txId: `personnel_ad_unlock_tier_${count}`,
-        dealId: `personnel_ad_unlock_tier_${count}`,
+        txId: `personnel_paid_unlock_tier_${count}`,
+        dealId: `personnel_paid_unlock_tier_${count}`,
         day: s.market.day,
         cashDelta: -cost,
         itemsIn: [],
@@ -685,7 +693,7 @@ export const useGame = create<GameState>((set, get) => {
 
       const nextStore = {
         ...outcome.state.store,
-        personnelAdUnlockLevel: Math.max(personnelAdUnlockLevel(outcome.state.store), count),
+        personnelPaidUnlockLevel: Math.max(personnelPaidUnlockLevel(outcome.state.store), count),
         personnelCount: Math.max(personnelCount(outcome.state.store), count),
       };
       set(economyToState({ ...outcome.state, store: nextStore }));
@@ -709,6 +717,44 @@ export const useGame = create<GameState>((set, get) => {
         pushToast(set, get, t('Reklam tamamlanmadı — personel gideri ücretsizleşmedi.'), 'negative');
       }
     },
+
+    /**
+     * Bir personel kademesini reklam karşılığında GEÇİCİ (7 gün) açar —
+     * seviye şartını beklemeden. Kullanıcı isteği: "reklamı bir kere
+     * izleyip oyun içi 1 hafta personel açık kalıyor." `unlockPersonnelTier`
+     * ile KARIŞTIRILMAZ: bu ücretsizdir ama KALICI DEĞİLDİR; süre dolunca
+     * `advanceDay()` fazla kadroyu kendiliğinden geri düşürür.
+     */
+    requestPersonnelTempUnlock: async (count) => {
+      const s = get();
+      if (!Number.isInteger(count) || count < 1 || count > 3) return;
+      if (s.rewardedAdPending) return;
+      if (canSetPersonnel(s.store, count, s.market.day)) return; // zaten erişilebilir
+      set({ rewardedAdPending: 'personnelTempUnlock' });
+      const granted = await showRewardedAd('personnelTempUnlock');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — personel açılmadı.'), 'negative');
+        return;
+      }
+      const store2 = get().store;
+      set({
+        store: {
+          ...store2,
+          personnelTempUnlockTier: Math.max(personnelTempUnlockTier(store2), count),
+          personnelTempUnlockUntilDay: get().market.day + PERSONNEL_TEMP_UNLOCK_DAYS,
+          personnelCount: Math.max(personnelCount(store2), count),
+        },
+      });
+      pushToast(
+        set,
+        get,
+        t('{n} personel {gun} gün boyunca açık.', { n: count, gun: PERSONNEL_TEMP_UNLOCK_DAYS }),
+        'positive',
+      );
+      writeSave(get());
+    },
+
     tradeHas: (side, grams, txId) => {
       const s = get();
       if (!Number.isFinite(grams) || Math.abs(toMg(grams) / 1000 - grams) > 1e-9) return;
@@ -2227,7 +2273,18 @@ export const useGame = create<GameState>((set, get) => {
       // doğurur." Gecikme yükü borcun kendisine biner ve gün raporunda
       // görünür — geriye dönük veya gizli bir kalem açılmaz.
       const overdue = accrueOverdue(closed.store.supplier, nextDay);
-      const store = { ...closed.store, supplier: overdue.supplier };
+      let store = { ...closed.store, supplier: overdue.supplier };
+
+      /*
+        Geçici reklam açılışının (`requestPersonnelTempUnlock`) süresi bugün
+        dolduysa fazla kadro kendiliğinden geri düşer. `personnelEffectiveMaxTier`
+        `nextDay`i aldığı için süresi geçen kademeyi zaten dışarıda bırakır —
+        burada yalnız GÜNCEL kadronun bu tavanı aşıp aşmadığına bakılır.
+      */
+      const maxTier = personnelEffectiveMaxTier(store, nextDay);
+      if (personnelCount(store) > maxTier) {
+        store = { ...store, personnelCount: maxTier };
+      }
 
       // §8 aynı kural ağda da işler; ayrıca esnafın kasası kısmen tazelenir
       // ki ağ kalıcı olarak kurumasın.

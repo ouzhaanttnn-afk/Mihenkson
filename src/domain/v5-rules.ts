@@ -1,5 +1,5 @@
 import { Rng, deriveSeed } from './rng';
-import type { StoreState } from './types';
+import type { GameDay, StoreState } from './types';
 import { weekdayLabel } from './calendar';
 
 /** Integer milligrams are the physical source of truth. TL is rounded only at payment. */
@@ -9,10 +9,43 @@ export const roundMoney = (tl: number): number => Math.round(tl);
 export const PERSONNEL_SALARIES = [40_000, 50_000, 60_000] as const;
 export const PERSONNEL_MONTHLY = [0, PERSONNEL_SALARIES[0], PERSONNEL_SALARIES[0] + PERSONNEL_SALARIES[1], PERSONNEL_SALARIES[0] + PERSONNEL_SALARIES[1] + PERSONNEL_SALARIES[2]] as const;
 export const PERSONNEL_UNLOCK_LEVELS = [1, 3, 6, 10] as const;
-export const personnelAdUnlockLevel = (store: StoreState): number =>
-  Math.min(3, Math.max(0, Math.trunc(store.personnelAdUnlockLevel ?? 0)));
-export const canSetPersonnel = (store: StoreState, count: number): boolean => Number.isInteger(count) && count >= 0 && count <= 3 &&
-  (count <= personnelCount(store) || store.level >= PERSONNEL_UNLOCK_LEVELS[count]! || count <= personnelAdUnlockLevel(store));
+export const personnelPaidUnlockLevel = (store: StoreState): number =>
+  Math.min(3, Math.max(0, Math.trunc(store.personnelPaidUnlockLevel ?? 0)));
+/**
+ * Ödüllü reklamla geçici açılan kademe kaç gün sürer. Kullanıcı isteği bir
+ * kere izleyip "1 gün ya da 1 hafta, hangisi mantıklıysa" dedi — 1 gün zaten
+ * `personnelCostWaivedToday`nin (günlük gider muafiyeti) işi; burada AYRI
+ * bir ödül olması için 1 HAFTA seçildi, tek bir reklamı anlamlı kılan
+ * kademeyi bir sonraki güne kadar değil bir sonraki haftaya kadar açıyor.
+ */
+export const PERSONNEL_TEMP_UNLOCK_DAYS = 7;
+export const personnelTempUnlockTier = (store: StoreState): number =>
+  Math.min(3, Math.max(0, Math.trunc(store.personnelTempUnlockTier ?? 0)));
+/** Geçici açılan kademe bugün (`day`) hâlâ geçerli mi. */
+export const personnelTempUnlockActive = (store: StoreState, day: GameDay): boolean =>
+  day <= (store.personnelTempUnlockUntilDay ?? -1);
+/**
+ * Üç kaynağın (seviye, kalıcı ödeme, geçici reklam) EN YÜKSEĞİ — o gün
+ * oyuncunun seviye şartı olmadan erişebileceği en üst personel kademesi.
+ */
+export const personnelEffectiveMaxTier = (store: StoreState, day: GameDay): number => {
+  let max = personnelPaidUnlockLevel(store);
+  if (personnelTempUnlockActive(store, day)) max = Math.max(max, personnelTempUnlockTier(store));
+  for (let count = 3; count > max; count -= 1) {
+    if (store.level >= PERSONNEL_UNLOCK_LEVELS[count]!) { max = count; break; }
+  }
+  return max;
+};
+/**
+ * `day` verilmezse (eski çağıranlar, testler) geçici açılış hiç SAYILMAZ —
+ * varsayılan davranış bu özellikten önceki hâliyle birebir aynı kalır.
+ * Varsayılan BİLEREK `Infinity`, `0` DEĞİL: `personnelTempUnlockUntilDay`
+ * gerçek bir günü (ör. 5) tutuyorsa `0` onu YANLIŞLIKLA "hâlâ geçerli"
+ * sayardı (`0 <= 5`); `Infinity` hiçbir sonlu `untilDay`i asla geçemez.
+ */
+export const canSetPersonnel = (store: StoreState, count: number, day: GameDay = Number.POSITIVE_INFINITY): boolean =>
+  Number.isInteger(count) && count >= 0 && count <= 3 &&
+  (count <= personnelCount(store) || count <= personnelEffectiveMaxTier(store, day));
 export const personnelCount = (store: StoreState): number => Math.min(3, Math.max(0, Math.trunc(store.personnelCount ?? 0)));
 export const queueCapacity = (store: StoreState): number => Math.min(10, 4 + personnelCount(store) * 2);
 export const personnelDaily = (store: StoreState): number => PERSONNEL_MONTHLY[personnelCount(store)]! / 30;
@@ -24,7 +57,7 @@ export const personnelDaily = (store: StoreState): number => PERSONNEL_MONTHLY[p
  * bedeli (bkz. `personnelDaily`, reklamla ücretsiz olabilir) BİLEREK AYNI
  * kaynaktan (`PERSONNEL_MONTHLY`) geliyor, iki ayrı sayı icat edilmedi.
  */
-export const personnelAdUnlockCost = (count: number): number => PERSONNEL_MONTHLY[count]!;
+export const personnelPaidUnlockCost = (count: number): number => PERSONNEL_MONTHLY[count]!;
 export const dailyOperatingCost = (store: StoreState): number => roundMoney(store.dailyOverhead + personnelDaily(store));
 export const SCALE_MAINTENANCE_INTERVAL_DAYS = 30;
 export const scaleMaintenanceCost = (store: StoreState, day: number): number =>
