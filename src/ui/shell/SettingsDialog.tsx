@@ -18,6 +18,16 @@
  * duruyor (testler ve ileride hesap çıkışı onu kullanabilir) — kaldırılan
  * yalnız bu penceredeki DÜĞMEYDİ.
  *
+ * "MÜZİK" ANAHTARI VE "MÜZİK DÜZEYİ" DE KALDIRILDI. Kullanıcı geri bildirimi:
+ * "müziği beğenmedim" → önce varsayılan kapatıldı, sonra kullanıcı özelliğin
+ * kendisinin kaldırılmasını istedi ("müziği kaldıracaktın"). Ses altyapısı
+ * (`src/ui/music.ts`, `public/assets/audio/music/`, `tools/muzik-uret.py`)
+ * ve `PlayerPreferences`teki `musicEnabled`/`musicVolume` alanları tamamen
+ * silindi — geri getirmek istenirse `git log`'da bu değişiklikten önceki
+ * sürüm referans alınabilir. Eski (bu değişiklikten önceki) bir kayıtta bu
+ * alanlar olabilir; `normalizePreferences` artık onları OKUMUYOR bile —
+ * fazladan JSON alanı sessizce göz ardı edilir, kayıt bozulmaz.
+ *
  * ARTIK HİÇBİR SATIRDA "HAZIRLANIYOR" YOK. Bu dosya uzun süre o ibareyi
  * taşıdı, çünkü anahtarlar konulmuş ama davranışları bağlanmamıştı ve
  * çalışmayan bir anahtarı çalışıyormuş gibi göstermek, ayarlar ekranının
@@ -192,36 +202,6 @@ export function SettingsDialog() {
         </button>
 
         {/*
-          MÜZİK — EFEKTLERDEN AYRI ANAHTAR.
-
-          İkisini tek anahtarda tutmak artık yanlış olurdu: efektler kısa ve
-          olaya bağlı, müzik süreklidir. Biri isteyip diğerini istemeyen
-          oyuncu yaygındır (toplu taşımada müziksiz efekt, ya da tersi).
-
-          ESKİ KAYITTA `musicEnabled` YOK ve `normalizePreferences` onu AÇIK
-          varsayana düşürür (bkz. preferences.ts): müzik oyuna sonradan
-          girdi, eski oyuncunun onu "kapatmış" olması mümkün değil.
-        */}
-        <button
-          type="button"
-          className="settingsRow"
-          aria-pressed={preferences.musicEnabled}
-          onClick={() => setPreference('musicEnabled', !preferences.musicEnabled)}
-        >
-          <span className="settingsRow__copy">
-            <strong>{t('Müzik')}</strong>
-            <small>
-              {preferences.musicEnabled ? t('Açık') : t('Kapalı')} {t('· fon müziği, sözsüz')}
-            </small>
-          </span>
-          <span
-            className={`settingsRow__switch ${preferences.musicEnabled ? 'settingsRow__switch--on' : ''}`}
-          >
-            <span className="settingsRow__knob" />
-          </span>
-        </button>
-
-        {/*
           TİTREŞİM ARTIK BAĞLI — ama her cihazda çalışmaz.
 
           `navigator.vibrate` Android/Chrome'da var, **iOS Safari'de YOK** ve
@@ -271,12 +251,6 @@ export function SettingsDialog() {
           eklemek onunla çelişmiyor. Oradaki değer kesin bir sayıydı (kaç
           çeyrek), yazmak doğruydu. Ses düzeyi sürekli ve yaklaşık bir
           tercihtir; kimse "%65 istiyorum" diye düşünmez, kulağıyla ayarlar.
-
-          MÜZİĞİ ARTIK BESLEMİYOR. Bir önceki sürümde `soundVolume` hem
-          efektleri hem müziği ölçekliyordu; oyuncu müziği efekti susturmadan
-          kısamıyordu. Şimdi ikisi ayrı kaydırıcı, ayrı tercih — bu satır
-          yalnız `soundEnabled`e bakar, aşağıdaki "Müzik düzeyi" kendi
-          anahtarına.
         */}
         <div className="settingsRow settingsRow--static settingsRow--stack">
           <span className="settingsRow__copy">
@@ -303,37 +277,6 @@ export function SettingsDialog() {
             disabled={!preferences.soundEnabled}
             aria-label={t('Ses düzeyi')}
             onChange={(e) => setPreference('soundVolume', Number(e.target.value))}
-          />
-        </div>
-
-        {/*
-          MÜZİK DÜZEYİ — kendi kaydırıcısı.
-
-          Kullanıcı isteği: "Bu müziğin sesini manuel düşürmem lazım onu da
-          ekle, ses düzeyi var müzik ses düzeyi diye de olsun." Efekt
-          kaydırıcısıyla aynı desen (aynı ölçek, aynı devre-dışı-bırakma
-          mantığı, aynı yüzde biçimi) — yalnız hangi tercihe yazdığı ve hangi
-          anahtara bağlı olduğu farklı.
-        */}
-        <div className="settingsRow settingsRow--static settingsRow--stack">
-          <span className="settingsRow__copy">
-            <strong>{t('Müzik düzeyi')}</strong>
-            <small>
-              {preferences.musicEnabled
-                ? pct(preferences.musicVolume / 100)
-                : t('Müzik kapalıyken ayarlanamaz')}
-            </small>
-          </span>
-          <input
-            className="settingsSlider"
-            type="range"
-            min={VOLUME_MIN}
-            max={VOLUME_MAX}
-            step={VOLUME_STEP}
-            value={preferences.musicVolume}
-            disabled={!preferences.musicEnabled}
-            aria-label={t('Müzik düzeyi')}
-            onChange={(e) => setPreference('musicVolume', Number(e.target.value))}
           />
         </div>
 

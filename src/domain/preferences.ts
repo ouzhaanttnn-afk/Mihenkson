@@ -37,39 +37,14 @@ export const VOLUME_MAX = 100;
   Varsayılan EFEKT düzeyi %50 — önceki değer %70'ti.
 
   Kullanıcı isteği: "Sesi bayağı kısman lazım, orijinal düzeyi 50 olsun."
-  O an efekt ve müzik hâlâ aynı tek kaydırıcıdan besleniyordu; %70'te ikisi
-  üst üste binince kulakta kalabalık duruyordu. Bir adım sonra müzik kendi
-  düzeyine ayrıldı (aşağıdaki `DEFAULT_MUSIC_VOLUME`), ama efektin varsayılanı
-  %50'de kaldı — kendi başına da makul bir başlangıç.
 */
 export const DEFAULT_VOLUME = 50;
-/*
-  MÜZİK KENDİ DÜZEYİNE SAHİP — efekt kaydırıcısıyla ayrıştı.
-
-  Kullanıcı isteği: "Bu müziğin sesini manuel düşürmem lazım onu da ekle,
-  ses düzeyi var müzik ses düzeyi diye de olsun." Önceki tasarımda müzik
-  efektin düzeyinden TÜREYEN sabit bir oranla (0,42) çalıyordu; oyuncunun
-  müziği efektten bağımsız kısması mümkün değildi. %20, o eski türetilmiş
-  değere yakın (%50 × 0,42 ≈ %21) seçildi — geçiş algısal bir sıçrama
-  yaratmasın diye — ama artık BAĞIMSIZ bir sayı, bir oran değil.
-*/
-export const DEFAULT_MUSIC_VOLUME = 20;
 /** Kaydırıcının adımı; 21 durak, başparmakla ayarlanabilir bir hassasiyet. */
 export const VOLUME_STEP = 5;
 
 export interface PlayerPreferences {
-  /**
-   * EFEKT sesleri — işlem, gün ve müşteri olayları.
-   *
-   * Bir zamanlar bu tek anahtardı ve yorumu "müzik ile efekti ayırmak
-   * oyuncuya var olmayan bir ayrım sunmak olurdu" diyordu. Artık bir fon
-   * müziği var (`assets/audio/music`), yani ayrım gerçek: efektler kısa ve
-   * olaya bağlıdır, müzik süreklidir ve insanların ilkini isteyip ikincisini
-   * istememesi (ya da tersi) çok yaygındır.
-   */
+  /** EFEKT sesleri — işlem, gün ve müşteri olayları. */
   soundEnabled: boolean;
-  /** Sürekli çalan fon müziği — efektlerden AYRI açılıp kapanır. */
-  musicEnabled: boolean;
   /**
    * Ses düzeyi, 0–100 tam sayı.
    *
@@ -79,14 +54,6 @@ export interface PlayerPreferences {
    * çevirmek tek bölme işlemi: `gain = soundVolume / 100`.
    */
   soundVolume: number;
-  /**
-   * Fon müziğinin düzeyi, 0–100 tam sayı — `soundVolume`den BAĞIMSIZ.
-   *
-   * Efektle aynı kaydırıcıyı paylaşsaydı oyuncu müziği efekti susturmadan
-   * kısamazdı; ayrı alan olması istekti. Aynı gerekçelerle tam sayı: kayıtta
-   * kararlı, ekranda doğrudan okunur.
-   */
-  musicVolume: number;
   /** Dokunsal geri bildirim (haptik). */
   vibrationEnabled: boolean;
   language: LanguageId;
@@ -101,19 +68,17 @@ export interface PlayerPreferences {
  * Varsayılanlar. Ses efektleri ve titreşim AÇIK başlar: oyuncu bir şeyi
  * kapatmayı seçmediyse, oyunun kendini tam hâliyle tanıtması beklenir.
  *
- * MÜZİK İSTİSNA — varsayılan KAPALI. Kullanıcı geri bildirimi: "açık
- * konuşayım müziği beğenmedim." Sentez altyapısı (`tools/muzik-uret.py`,
- * telifsiz) yerinde duruyor ve Ayarlar'dan istenildiğinde açılabiliyor —
- * kaldırılmadı, yalnız artık kendiliğinden çalmıyor. Oyuncuya beğenmediği
- * bir şeyi ilk açılışta dayatmamak, "özelliği göster" kaygısından önce
- * gelir.
+ * MÜZİK YOK. Bir fon müziği özelliği vardı (`musicEnabled`/`musicVolume`,
+ * `src/ui/music.ts`); kullanıcı geri bildirimi ("müziği beğenmedim", sonra
+ * "müziği kaldıracaktın") üzerine önce varsayılanı kapatıldı, sonra özelliğin
+ * kendisi tamamen kaldırıldı. Eski bir kayıtta bu alanlar hâlâ olabilir —
+ * `normalizePreferences` onları artık okumuyor, kayıt bozulmadan sessizce
+ * göz ardı edilirler.
  */
 export function defaultPreferences(): PlayerPreferences {
   return {
     soundEnabled: true,
-    musicEnabled: false,
     soundVolume: DEFAULT_VOLUME,
-    musicVolume: DEFAULT_MUSIC_VOLUME,
     vibrationEnabled: true,
     language: DEFAULT_LANGUAGE,
     currency: DEFAULT_CURRENCY,
@@ -127,10 +92,9 @@ export function defaultPreferences(): PlayerPreferences {
  * kaydırıcının davranışıdır; ileride adım değişirse ya da başka bir yoldan
  * 73 yazılırsa o değer geçerli kalmalı, sessizce oynatılmamalı.
  *
- * `fallback` PARAMETRELİ: efekt ve müzik düzeyi aynı sınırları (0–100) ve
- * aynı yuvarlama kuralını paylaşıyor ama bozuk girdide FARKLI varsayılana
- * düşmesi gerekiyor — ikisini ayrı fonksiyona kopyalamak yerine tek
- * fonksiyon parametreleşti.
+ * `fallback` PARAMETRELİ — geri kalan tek çağıran (`soundVolume`) sabit
+ * `DEFAULT_VOLUME`e düşse de, bozuk girdide farklı bir varsayılana düşmesi
+ * gerekebilecek gelecekteki bir çağıran için parametre olarak bırakıldı.
  */
 export function normalizeVolume(raw: unknown, fallback: number = DEFAULT_VOLUME): number {
   if (typeof raw !== 'number' || !Number.isFinite(raw)) return fallback;
@@ -164,23 +128,15 @@ export function normalizePreferences(raw: unknown): PlayerPreferences {
   return {
     soundEnabled:
       typeof source.soundEnabled === 'boolean' ? source.soundEnabled : fallback.soundEnabled,
-    /*
-      ESKİ KAYITTA BU ALAN YOK ve varsayılana düşer — artık KAPALI (bkz.
-      `defaultPreferences`). Önceki gerekçe ("eklenen şeyi hiç göstermeme")
-      geçerliydi ama kullanıcı geri bildirimi bunun önüne geçti: müziği
-      beğenmedi. Zaten AÇIK olarak kaydedilmiş bir tercihi bu satır
-      değiştirmiyor — yalnız hiç dokunmamış eski/yeni kayıtların düştüğü yer.
-    */
-    musicEnabled:
-      typeof source.musicEnabled === 'boolean' ? source.musicEnabled : fallback.musicEnabled,
     soundVolume: normalizeVolume(source.soundVolume, fallback.soundVolume),
     /*
-      ESKİ KAYITTA BU ALAN DA YOK ve `DEFAULT_MUSIC_VOLUME`e düşer — 0'a
-      değil. 0'a düşseydi müzik `musicEnabled` açık gelen eski kayıtta
-      sessizce çalışmayan bir özellik gibi dururdu (bkz. gain <= 0 kontrolü,
-      music.ts).
+      Eski bir kayıtta `musicEnabled`/`musicVolume` alanları olabilir —
+      kaldırılan müzik özelliğinden kalma. Burada bilerek OKUNMUYORLAR;
+      `source`ta var olsalar bile bu fonksiyonun döndürdüğü nesneye
+      girmezler, kayıt bir sonraki kaydedişte onlardan kendiliğinden
+      temizlenir. Çökme yok, veri kaybı yok — yalnız artık anlamı olmayan
+      bir alan sessizce düşüyor.
     */
-    musicVolume: normalizeVolume(source.musicVolume, fallback.musicVolume),
     vibrationEnabled:
       typeof source.vibrationEnabled === 'boolean'
         ? source.vibrationEnabled

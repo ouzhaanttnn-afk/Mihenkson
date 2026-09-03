@@ -24,7 +24,6 @@ import { SettingsDialog } from '@ui/shell/SettingsDialog';
 import { DayCloseDialog } from '@ui/shell/DayCloseDialog';
 import { overdueJobs, readyJobs } from '@domain/service';
 import { playSound, preloadAudio, unlockAudio, type SoundId } from '@ui/audio';
-import { applyMusic, resumeMusic } from '@ui/music';
 import { playHaptic, stopHaptics } from '@ui/haptics';
 
 import '@ui/tokens.css';
@@ -69,18 +68,6 @@ export function App() {
     İlk dokunuş/tuşta açıp dosyaları önden çözüyoruz; dinleyici bir kez
     çalışıp kendini kaldırır.
   */
-  /*
-    FON MÜZİĞİ tercihe abone. Efektlerden farkı sürekli olması: bir olayla
-    tetiklenmiyor, açıkken çalıyor. Bu yüzden `soundCue` aboneliğinde değil,
-    doğrudan tercih değişiminde uygulanıyor — ilk çizimde de çalışır, yani
-    oyuncu oyuna girer girmez (ilk dokunuşundan sonra) müzik başlar.
-  */
-  const musicEnabled = useGame((s) => s.preferences.musicEnabled);
-  const musicVolumePref = useGame((s) => s.preferences.musicVolume);
-  useEffect(() => {
-    applyMusic(musicEnabled, musicVolumePref);
-  }, [musicEnabled, musicVolumePref]);
-
   /* Titreşim ayardan kapatılınca elde süren darbe kalmasın. */
   const vibrationEnabled = useGame((s) => s.preferences.vibrationEnabled);
   useEffect(() => {
@@ -102,12 +89,11 @@ export function App() {
     da çözülmüş tamponu yeniden indirmiyor.
   */
   useEffect(() => {
-    const ac = () => { unlockAudio(); preloadAudio(); resumeMusic(); };
+    const ac = () => { unlockAudio(); preloadAudio(); };
     const opts = { passive: true } as const;
     const gorunurluk = () => {
       if (document.visibilityState !== 'visible') return;
       unlockAudio();
-      resumeMusic();
     };
     window.addEventListener('pointerdown', ac, opts);
     window.addEventListener('keydown', ac, opts);

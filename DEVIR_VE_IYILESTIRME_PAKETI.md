@@ -1795,6 +1795,50 @@ politikasının "hiçbir sunucumuz yok" iddiasını geçersiz kılar, çevrimdı
 kırar. Yasal koruma (Kullanım Şartları'ndaki "izinsiz kopyalanamaz" maddesi) zaten
 önceki turda yazılmıştı, ayrıca dokunulmadı.
 
+#### YENİ · Fon müziği özelliği tamamen kaldırıldı — ✅ YAPILDI
+`src/ui/music.ts` (silindi) · `src/ui/App.tsx` · `src/ui/shell/SettingsDialog.tsx` ·
+`src/domain/preferences.ts` · `src/state/settings.test.ts` · `src/i18n/en.ts` ·
+`public/assets/audio/music/` (silindi) · `tools/muzik-uret.py` (silindi)
+
+Kullanıcı bu turda iki adım geriye gitti: önce "müziği beğenmedim" → varsayılan
+kapatıldı (bir önceki tur), sonra açıkça *"müziği kaldıracaktın"* dedi — yalnız
+varsayılanı kapatmak yetmiyordu, özelliğin kendisi istenmiyordu. Bu kez tam kaldırma
+yapıldı, yarım bırakılmadı:
+
+- **Kod:** `src/ui/music.ts` modülü, `App.tsx`'teki `applyMusic`/`resumeMusic`
+  bağlantıları, `SettingsDialog.tsx`'teki "Müzik" anahtarı ve "Müzik düzeyi"
+  kaydırıcısı satırları tamamen silindi (yarım kalan yorum/açıklama bırakılmadı,
+  ilgili satırlar da temizlendi).
+- **Veri modeli:** `PlayerPreferences`'tan `musicEnabled`/`musicVolume` alanları
+  ve `DEFAULT_MUSIC_VOLUME` sabiti kaldırıldı. `normalizePreferences` artık bu
+  alanları hiç okumuyor — eski (bu değişiklikten önceki) bir kayıtta hâlâ
+  bulunabilirler, ama çıktıya girmezler; kayıt bozulmaz, yalnız anlamsız bir
+  alan bir sonraki kaydediste kendiliğinden düşer. Standart "eski kayıt asla
+  bozulmaz" kuralına bu şekilde uyuldu — alan SİLİNDİĞİNDE de kural geçerli,
+  çünkü hiçbir yerde çökme veya veri kaybı yok, yalnız artık var olmayan bir
+  tercihin sessizce yok sayılması var.
+- **Varlıklar:** `public/assets/audio/music/tezgah.wav` + `LISANS.md` ve onu
+  üreten `tools/muzik-uret.py` silindi. `ios/`/`android/`'in gömülü web
+  paketleri `npm run cap:sync` ile tazelendi — eski derlemeden kalma
+  `tezgah.wav` kopyaları da (gitignored ama diskte duruyordu) temizlendi.
+- **i18n:** 4 ölü anahtar (`Müzik`, `Müzik düzeyi`, `Müzik kapalıyken
+  ayarlanamaz`, `· fon müziği, sözsüz`) silindi. Denetleyici script'in bu kez
+  hepsini doğru yakaladığı doğrulandı (önceki bir turda `'Bağla'yı alt dize
+  eşleşmesi yüzünden kaçırmıştı — bu sefer öyle bir tuzak yoktu).
+- **Testler:** `src/ui/music.test.ts` silindi (7 test). `settings.test.ts`'teki
+  müzik-özel 5 test kaldırıldı, kalan testlerden `musicEnabled`/`musicVolume`
+  alanları çıkarıldı; eski-kayıt uyumluluğunu doğrulayan TEK yeni test eklendi
+  ("eski kayıttaki musicEnabled/musicVolume alanları sessizce düşer" — hem
+  alanların çıktıda hiç görünmediğini hem komşu `soundEnabled`in etkilenmediğini
+  sınıyor). Suite **977 → 966** (66 test dosyası → 55; müzik testleri düşünce
+  beklenen fark).
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 873/873 (0 kullanılmayan), taze
+`npm run build` (obfuscation dahil) + tarayıcıda gerçek kontrol — Ayarlar
+penceresinde "Müzik" hiçbir yerde geçmiyor (`innerText` ile ölçüldü), 0 konsol
+hatası. `dist/assets/audio/` artık yalnız efekt dosyaları (236 KB, önceden
+~1,5 MB) taşıyor.
+
 ---
 
 ### B. Tasarım ve oynanış önerileri
