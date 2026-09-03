@@ -1916,3 +1916,82 @@
   .settingsRow__switch,
   .settingsRow__knob { transition: none; }
   }
+
+/*
+ * DÜKKÂNI CANLANDIR — kalıcı yuvarlak kenar düğmesi.
+ *
+ * Çapa akışta SIFIR YÜKSEKLİKTE bir satırdır: kendisi hiç yer kaplamaz,
+ * yalnız düğmeye konum verir. Araç rayının hemen üstüne konduğu için düğme
+ * her aşamada rayın üst kenarına oturur; dock'un yüksekliği aşamadan
+ * aşamaya 82→194 px değişse de düğme yerinden kıpırdamaz.
+ *
+ * z-index 7: ray (arka planı var) ve masa üstünde çizilsin. Alt navigasyon
+ * 6'da; düğme onun hizasına hiç gelmiyor ama sıralama yine de tutarlı olsun.
+ */
+.rushFabAnchor {
+  position: relative;
+  height: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.rushFab {
+  position: absolute;
+  right: var(--sp-3);
+  /* Dairenin merkezi çapa çizgisinde: yarısı masada, yarısı rayda. */
+  top: -32px;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-pill);
+  pointer-events: auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  /*
+   * Kontrast: ilk ölçümde daire --ink-800 zemin + --brass-700 kenarlıktı ve
+   * arkasındaki koyu masaya karışıyordu (ekran görüntüsünde ikon zor
+   * seçiliyordu). Zemin bir kademe açıldı, kenarlık ve ikon bir kademe
+   * parlatıldı; dış halka daireyi arkadaki içerikten ayırır.
+   */
+  color: var(--brass-300);
+  background: linear-gradient(160deg, var(--ink-600), var(--ink-800));
+  border: 1px solid var(--brass-500);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.5),
+    0 0 0 4px rgba(11, 15, 20, 0.7);
+  transition:
+    transform var(--t-fast) var(--ease-standard),
+    background var(--t-fast) var(--ease-standard);
+}
+
+.rushFab:active {
+  transform: scale(0.94);
+}
+
+/* GDD 23.22 — 11 px mutlak alt sınır. Daha küçüğüne inilmez. */
+.rushFab__label {
+  font-size: var(--fs-micro);
+  line-height: 1;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+/* Akın sürerken düğme dolu pirinç olur ve etiket kalan süreyi söyler. */
+.rushFab--active {
+  color: var(--ink-800);
+  background: var(--surface-brass);
+  border-color: var(--brass-300);
+}
+
+/*
+ * Pazar günü: düğme yerinde kalır ama söner. Kaybolmaz — oyuncu onu
+ * aradığı yerde bulur; çalışmadığını rengi ve erişilebilir ismi söyler.
+ */
+.rushFab:disabled {
+  opacity: 0.38;
+  box-shadow: none;
+}

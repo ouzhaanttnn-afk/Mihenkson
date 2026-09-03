@@ -497,6 +497,79 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · "Dükkânı Canlandır" kalıcı yuvarlak kenar düğmesi oldu — ✅ YAPILDI
+`src/ui/shell/RushFab.tsx` (yeni) · `src/ui/screens/ShopScreen.tsx` ·
+`src/ui/shell/AppShell.css` · `src/ui/workbench/Workbench.css`
+
+Kullanıcı: *"Dükkanı canlandır butonu kalıcı olarak ekranda yuvarlak şekilde sağda veya
+solda harici durması lazım."*
+
+**ESKİ HÂLİ NEDEN SORUNDU.** Çağrı uyarı yığınının altında ince bir çubuktu ve
+`shopOpen && s.queue.length === 0` koşuluyla çiziliyordu. İki kusuru vardı: müşteri
+karşılanır karşılanmaz kayboluyordu — oyuncu düğmeyi "bazen çıkan" bir şey sanıyordu — ve
+uyarı sayısı üçe çıkınca aşağı itiliyor, yeri her gün değişiyordu. Kalıcı olması istenen
+şey tam olarak buydu: aranmadan bulunacak sabit bir yer.
+
+**KONUM ÖLÇÜMLE SEÇİLDİ, TERCİHLE DEĞİL.** Dükkân ekranı 390×844'te tepeden tırnağa dolu
+(durum 52 + piyasa 44 + müşteri 50 + aşama 32 + masa 337 + ray 56 + dock 128 + nav 64).
+Üç aşamada sağ kenar tarandı ve boş kalan tek bandın **İşlem Masası'nın dibi ile araç
+rayının üstü** olduğu görüldü: boşta arka plan fotoğrafı, stok aşamasında masanın boş dibi,
+pazarlıkta değer kartının altındaki koyu boşluk. Karar Dock'unun üstüne hiç binmiyor —
+"Teklifi Gönder" ve "Müşteriyi Gönder" örtülemez.
+
+**Dock'un yüksekliği aşamaya göre 82 → 128 → 194 px değişiyor**, dolayısıyla sabit bir
+`bottom` değeri tutmazdı. Bunun yerine akışa **sıfır yükseklikli bir çapa** kondu
+(`.rushFabAnchor`, rayın hemen üstünde): ray nereye giderse düğme oraya gidiyor, dock'un
+değişken yüksekliği düğmeyi hiç etkilemiyor. Ray yüksekliği sabit 56 px olduğu için düğme
+her aşamada yarısı rayda yarısı masada duruyor.
+
+**GDD 23.24 ÇİĞNENMEDİ** — "ikon tek başına anlam taşımaz". Daire ikonu tek başına
+göstermiyor; altında 11 px etiket var (GDD 23.22'nin mutlak alt sınırı, daha küçüğüne
+inilmedi). Etiket daireye sığsın diye kısa: `Canlandır` / `Liven`. Uzun açıklama erişilebilir
+isimde, orada yer sıkıntısı yok. Çap 64 px — 44 px dokunma hedefinin çok üstünde.
+
+**AKIN SÜRERKEN DÜĞME BİLGİ TAŞIYOR.** Dolu pirinç oluyor ve etiket kalan süreye dönüyor
+(`90 dk`). Böylece kalıcı düğme sadece durmuyor, bakılınca akının sürüp sürmediğini de
+söylüyor. Kalan süre **seçicide tam dakikaya yuvarlanıyor**: ham `clockMinutes` her tick'te
+değiştiği için doğrudan seçilseydi düğme saniyede onlarca kez yeniden çizilirdi.
+
+**PAZAR GÜNÜ GİZLENMİYOR, SÖNÜYOR.** Eski davranış düğmeyi tamamen kaldırmaktı; gerekçesi
+de doğruydu (çalışmayan bir çağrıyı ekranda tutmak güveni yer). Ama oyuncu "kalıcı" istedi.
+Kalıcılıkla dürüstlüğü birlikte tutmanın yolu düğmeyi yerinde bırakıp `disabled` ve soluk
+göstermek, nedenini de erişilebilir isme yazmak: *"Dükkân kapalı — bugün müşteri akışı yok."*
+
+**Ekonomiye dokunulmadı.** `triggerCustomerRush` aynı yordam, aynı etki: yalnız
+`customerRushUntilMinutes` yazıyor, müşteri kalitesine, bütçesine, rezervasyon fiyatına ve
+gizli gerçeğe elini sürmüyor. Zar tüketmiyor.
+
+**Ölü CSS temizlendi:** `.rewardedLine` ve ona bakan üç medya sorgusu kaldırıldı.
+
+**Tarayıcıda ölçüldü.** Her durumda düğmenin altında kalan **görünür metin düğümü sayısı 0**
+(metin düğümü bazında çakışma taraması) ve merkez noktasında hit-test düğmenin kendisini
+buluyor:
+
+| Durum | Düğme (x, y) | Ray üstü | Etiket | Çakışan metin | Örtülen ana CTA |
+|---|---|---|---|---|---|
+| Boşta (390×844) | 314, 610 | 642 | Canlandır | yok | yok |
+| Akın sürerken | 314, 610 | 642 | 90 dk | yok | yok |
+| Stok aşaması | 314, 564 | 596 | 89 dk | yok | yok |
+| Pazar (gün 7) | 314, 564 | — | Canlandır *(sönük, disabled)* | yok | yok |
+| 360×560 | 284, 390 | — | Canlandır | yok | yok |
+| 390×700 | 314, 474 | — | Canlandır | yok | yok |
+| 430×932 | 354, 698 | — | Canlandır | yok | yok |
+| İngilizce + $ | 314, 666 | — | Liven | yok | yok |
+
+Sağ kenar boşluğu her ölçümde 12 px; düğme hiçbir ekranda cihaz çerçevesinin dışına taşmıyor.
+Pencereler (gün raporu, ayarlar, yetenek ağacı) 40–75 z-index bandında, düğme 7'de: modal
+açıkken düğme altta kalıyor.
+
+**Sınır — bilerek bırakıldı:** düğme yalnız **Dükkan sekmesinde**. Rayın üstüne çapalandığı
+için başka sekmede karşılığı yok; ayrıca akının anlamı müşteri akışının yaşandığı ekranda.
+İstenirse cihaz seviyesine alınıp her sekmede gösterilebilir, ama o zaman konumu ölçümle
+yeniden seçilmeli.
+
+Suite 956 test, `tsc` temiz, `npm run i18n` 871/871, denetim 70 (değişmedi).
+
 #### YENİ · Market sırası, müşteri trafiği ve geri sayım — ✅ YAPILDI
 `src/ui/screens/MarketPlaceholderScreen.tsx` · `src/domain/customer-traffic.ts` (yeni) ·
 `src/state/gameStore.ts` · `src/ui/screens/ShopScreen.tsx` · `src/ui/screens/BusinessScreen.tsx`

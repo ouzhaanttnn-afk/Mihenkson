@@ -44,6 +44,7 @@ import { CoachBar } from '@ui/shell/CoachBar';
 import { StageStrip } from '@ui/shell/StageStrip';
 import { StatusStrip } from '@ui/shell/StatusStrip';
 import { ToolRail, type RailItem } from '@ui/shell/ToolRail';
+import { RushFab } from '@ui/shell/RushFab';
 
 import { AppraiseStage } from '@ui/workbench/AppraiseStage';
 import {
@@ -92,7 +93,6 @@ import {
   IconSpectrometer,
   IconStock,
   IconTouchstone,
-  IconVideo,
   IconWarning,
   IconWholesale,
   IconWorkshop,
@@ -439,6 +439,8 @@ export function ShopScreen() {
         />
       )}
 
+      <RushFab />
+
       <ContextualToolRail liquidity={liquidity} />
 
       <ShopDock offer={offer} setOffer={setOffer} bounds={offerBounds} liquidity={liquidity} />
@@ -718,18 +720,12 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
        * ikincil 'Dükkânı Canlandır' rewarded CTA'sı gösterilebilir."
        * Ayrı banner veya büyük reklam kartı kullanılmaz.
        *
-       * DÜKKÂN KAPALIYKEN GÖSTERİLMEZ. Pazar günü müşteri akışı zaten yok;
-       * "geliş aralığını kısaltan" bir düğme o gün hiçbir şey yapmaz. Karar
-       * Dock'u "Dükkân ve müşteri akışı kapalı" derken çalışmayan bir çağrıyı
-       * ekranda tutmak oyuncunun ekrana duyduğu güveni yer (tarayıcıda
-       * görüldü: pazar günü düğme yerinde duruyordu).
+       * Bu çağrı ARTIK BURADA DEĞİL. Uyarı yığınının altında dururken hem
+       * müşteri gelince kayboluyor hem de uyarı sayısına göre yer
+       * değiştiriyordu. Oyuncu isteği üzerine kenarda kalıcı yuvarlak bir
+       * düğmeye taşındı: `RushFab`, araç rayının üstünde (bkz. RushFab.tsx).
+       * Pazar günü gizlenmez, söner — gerekçesi orada yazılı.
        */}
-      {shopOpen && s.queue.length === 0 && (
-        <button type="button" className="rewardedLine" onClick={s.triggerCustomerRush}>
-          <IconVideo size={13} />
-          {t('Dükkânı Canlandır')}
-        </button>
-      )}
 
       {talentTreeOpen ? (
         <div className="talentTreeScrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setTalentTreeOpen(false); }}>

@@ -576,7 +576,18 @@ export const EN: Record<string, string> = {
   // ——— Kalan arayüz metinleri ———
   'Anladım': 'Got it',
   'Öğretimi kapat': 'Turn off tutorials',
-  'Dükkânı Canlandır': 'Liven Up the Shop',
+  /*
+    Kenardaki yuvarlak düğme. Daireye sığması gerektiği için etiket KISA:
+    Türkçesi 'Canlandır', İngilizcesi tek kelime 'Liven'. Uzun açıklama
+    erişilebilir isimde (title) duruyor, orada yer sıkıntısı yok.
+  */
+  'Canlandır': 'Liven',
+  '{dk} dk': '{dk} min',
+  'Dükkân kapalı — bugün müşteri akışı yok.': 'The shop is closed — no customers today.',
+  'Müşteri akını sürüyor — {dk} dakika kaldı. Süreyi uzatmak için dokun.':
+    'A customer rush is running — {dk} minutes left. Tap to extend it.',
+  'Dükkânı Canlandır — müşteri geliş aralığını 90 dakika boyunca kısaltır.':
+    'Liven Up the Shop — shortens the gap between customers for 90 minutes.',
   'Teslim Et': 'Deliver',
   'Öde': 'Pay',
   'En çok': 'At most',

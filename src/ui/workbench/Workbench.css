@@ -1008,16 +1008,14 @@
  */
 .idle--coaching.idle--hasQueue .shopOverview,
 .idle--coaching.idle--hasQueue > .alert,
-.idle--coaching.idle--hasQueue .alerts,
-.idle--coaching.idle--hasQueue .rewardedLine {
+.idle--coaching.idle--hasQueue .alerts {
   display: none;
 }
 
 @media (max-height: 720px) {
   .idle--coaching .idle__title,
   .idle--coaching .idle__sub,
-  .idle--coaching .alerts,
-  .idle--coaching .rewardedLine {
+  .idle--coaching .alerts {
     display: none;
   }
 }
@@ -1652,22 +1650,6 @@
   color: var(--text-dark-3);
 }
 
-/* Rewarded ikincil CTA — ana akışı bozmaz (GDD 23.10.1). */
-.rewardedLine {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  align-self: flex-start;
-  font-size: var(--fs-micro);
-  color: var(--brass-400);
-  border: 1px solid var(--brass-700);
-  border-radius: var(--r-pill);
-  /* GDD 23.22 — 44 px dokunma hedefi. Ölçüm 27 px'ti. */
-  min-height: var(--touch-min);
-  padding: 5px var(--sp-4);
-  background: transparent;
-}
-
 /*
  * PC düzeni: ana kimlik/sermaye solda, kuyruk ve günlük durum sağda.
  * Mobil DOM sırası değişmez; yalnız geniş ekranda boş alan işe koşulur.
@@ -1693,8 +1675,7 @@
     grid-row: 1;
   }
 
-  .idle > .alert,
-  .idle > .rewardedLine {
+  .idle > .alert {
     grid-column: 1;
   }
 
