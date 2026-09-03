@@ -952,11 +952,14 @@ export const EN: Record<string, string> = {
   'Dijital Spektrometre': 'Digital Spectrometer',
 
   // ——— Personel, defter ve yetenek ağacı ———
-  'Maaşlar kişi başına eklenir: {liste} / ay.': 'Salaries add up per person: {liste} / month.',
+  'Maaşlar kişi başına eklenir: {liste} / ay. Düğmedeki tutar o kadronun aylık toplamıdır.':
+    'Salaries add up per person: {liste} / month. The figure on each button is that headcount\u2019s monthly total.',
   'Yalnız bekleme kapasitesini artırır; müşteri geliş hızını veya atölyeyi değiştirmez.':
     'It only raises waiting capacity; it changes neither customer arrival rate nor the workshop.',
   '{n} personel': '{n} staff',
-  '{n} personel, seviye {sv} gerektirir': '{n} staff, requires level {sv}',
+  '{n} personel, aylık toplam {tutar}, seviye {sv} gerektirir':
+    '{n} staff, {tutar} per month in total, requires level {sv}',
+  'Personelsiz — maaş ödenmez': 'No staff \u2014 no wages to pay',
   '{n} personel · aylık toplam {tutar}.': '{n} staff · {tutar} per month.',
   'Günlük gider kapanışta tahsil edilir.': 'The daily cost is charged at close.',
   'Personeli Onayla': 'Confirm Staff',

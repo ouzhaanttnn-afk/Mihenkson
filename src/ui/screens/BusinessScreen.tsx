@@ -222,7 +222,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
               })}
             </p>
             <p>
-              {t('Maaşlar kişi başına eklenir: {liste} / ay.', {
+              {t('Maaşlar kişi başına eklenir: {liste} / ay. Düğmedeki tutar o kadronun aylık toplamıdır.', {
                 liste: PERSONNEL_SALARIES.map((salary) => tl(salary)).join(' + '),
               })}
             </p>
@@ -231,25 +231,45 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                 'Yalnız bekleme kapasitesini artırır; müşteri geliş hızını veya atölyeyi değiştirmez.',
               )}
             </p>
+            {/*
+              DÜĞMEDE YAZAN TUTAR O KADRONUN AYLIK TOPLAMIDIR, kişi başı maaş
+              değil. Kişi başı yazsaydı "3" düğmesi 60.000 ₺ gösterirdi ama
+              basınca 150.000 ₺ ödenirdi — düğmenin üstündeki sayı ile kasadan
+              çıkan para birbirini tutmazdı. Onay satırı da (aşağıda) aynı
+              `PERSONNEL_MONTHLY` değerini okuyor; iki yer tek kaynaktan
+              besleniyor.
+            */}
             <div className="personnelChoiceRow" role="group" aria-label={t('Personel sayısı')}>
-              {[0, 1, 2, 3].map(count => <button key={count} type="button" className="personnelChoice" aria-pressed={personnelCount(s.store) === count}
-                aria-label={
+              {[0, 1, 2, 3].map((count) => {
+                const aylik = PERSONNEL_MONTHLY[count]!;
+                const seviye = PERSONNEL_UNLOCK_LEVELS[count] ?? 0;
+                const isim =
                   count > 0
-                    ? t('{n} personel, seviye {sv} gerektirir', {
+                    ? t('{n} personel, aylık toplam {tutar}, seviye {sv} gerektirir', {
                         n: count,
-                        sv: PERSONNEL_UNLOCK_LEVELS[count] ?? 0,
+                        tutar: tl(aylik),
+                        sv: seviye,
                       })
-                    : t('{n} personel', { n: count })
-                }
-                disabled={!canSetPersonnel(s.store, count)}
-                onClick={() => setPendingPersonnel(count)}>
-                <strong>{count}</strong>
-                <small>
-                  {count > 0
-                    ? `${t('Sv')} ${PERSONNEL_UNLOCK_LEVELS[count]}`
-                    : t('Başlangıç')}
-                </small>
-              </button>)}
+                    : t('Personelsiz — maaş ödenmez');
+                return (
+                  <button
+                    key={count}
+                    type="button"
+                    className="personnelChoice"
+                    aria-pressed={personnelCount(s.store) === count}
+                    aria-label={isim}
+                    title={isim}
+                    disabled={!canSetPersonnel(s.store, count)}
+                    onClick={() => setPendingPersonnel(count)}
+                  >
+                    <strong>{count}</strong>
+                    <small className="personnelChoice__wage">{tl(aylik)}</small>
+                    <small className="personnelChoice__req">
+                      {count > 0 ? `${t('Sv')} ${seviye}` : t('Başlangıç')}
+                    </small>
+                  </button>
+                );
+              })}
             </div>
             {pendingPersonnel !== null && <div role="group" aria-label={t('Personel onayı')}>
               <p>

@@ -424,6 +424,21 @@
 
 .personnelChoice strong { font-size: var(--fs-label); line-height: 1; }
 .personnelChoice small { color: var(--text-dark-3); font-size: 9px; white-space: nowrap; }
+
+/*
+ * Maaş satırı 9 px'te kalamazdı: oyuncunun KARAR VERİRKEN okuyacağı sayı bu.
+ * GDD 23.22'nin mutlak alt sınırı 11 px; maaş oraya çıkarıldı ve rengi de
+ * bir kademe açıldı. Seviye şartı 9 px'te kaldı — o bir kilit rozeti, sayı
+ * değil; ayrıca dört sütun 390 px'te ~73 px genişliğinde ve en uzun tutar
+ * (150.000 ₺) 11 px'te ancak sığıyor.
+ */
+.personnelChoice__wage {
+  font-size: var(--fs-micro) !important;
+  color: var(--text-dark-2) !important;
+  line-height: 1.15;
+}
+
+.personnelChoice[aria-pressed='true'] .personnelChoice__wage { color: inherit !important; }
 .personnelChoice[aria-pressed='true'] { border-color: var(--brass-400); background: rgba(196, 141, 43, 0.15); color: var(--brass-300); }
 .personnelChoice:disabled { opacity: 0.42; }
 

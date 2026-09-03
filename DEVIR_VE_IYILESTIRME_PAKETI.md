@@ -497,6 +497,32 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · Personel düğmelerine maaş yazıldı — ✅ YAPILDI
+`src/ui/screens/BusinessScreen.tsx` · `src/ui/screens/Screens.css`
+
+Kullanıcı: *"Personel yazan yerlere aşağıdaki butonlara personelin maaşı oraya yazsın."*
+
+Düğmeler yalnız kadro sayısı ile kilit seviyesini gösteriyordu (`1` / `Sv 3`). Maaş bir
+üstteki cümlede yazıyordu ama oyuncunun onu okuyup kafasında toplaması gerekiyordu.
+Artık her düğme kendi tutarını taşıyor: `1 · 40.000 ₺ · Sv 3`.
+
+**TUTAR AYLIK TOPLAMDIR, kişi başı maaş değil.** Kişi başı yazsaydı "3" düğmesi 60.000 ₺
+gösterirdi ama basınca 150.000 ₺ ödenirdi — düğmenin üstündeki sayı ile kasadan çıkan para
+birbirini tutmazdı. Onay satırı da aynı `PERSONNEL_MONTHLY` dizisini okuyor, yani iki yer
+tek kaynaktan besleniyor ve ayrışamaz. Belirsizlik kalmasın diye üstteki cümleye tek bir
+ek yapıldı: *"Düğmedeki tutar o kadronun aylık toplamıdır."*
+
+**Punto GDD 23.22'ye çekildi.** Alt satırlar 9 px'ti; maaş oyuncunun KARAR VERİRKEN okuyacağı
+sayı olduğu için 11 px'e (mutlak alt sınır) çıkarıldı ve rengi bir kademe açıldı. Seviye
+şartı 9 px'te bırakıldı — o bir kilit rozeti, tutar değil.
+
+**Erişilebilir isim tam cümle:** *"2 personel, aylık toplam 90.000 ₺, seviye 6 gerektirir."*
+Personelsiz seçenek *"Personelsiz — maaş ödenmez"* diyor; eskiden yalnız "0 personel"di.
+
+**Tarayıcıda ölçüldü (390×844).** Düğmeler 77 px, en uzun tutar (150.000 ₺) 50 px — dördünde
+de taşma yok. Seviye 1'de 1/2/3 kilitli görünüyor, seviye 10'da dördü de açık.
+İngilizce + $ ile: `1 · $1,233 · Lv 3` · `3 · $4,622 · Lv 10`, yine taşma yok.
+
 #### YENİ · "×1,33 gerçekten işliyor mu?" — ✅ ÖLÇÜLDÜ (ve bir kusur çıktı)
 `src/state/customer-traffic-live.test.ts` (yeni) · `src/i18n/money.ts` ·
 `src/ui/screens/BusinessScreen.tsx`
