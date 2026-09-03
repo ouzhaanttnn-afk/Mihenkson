@@ -1687,6 +1687,50 @@ derlemesi, imzalama sertifikası/keystore üretimi, TestFlight/internal-testing 
 `store/README.md`'ye adım adım (paket adını kesinleştir → `npm run cap:sync` → Xcode/Android
 Studio aç → imzala) bir kılavuz eklendi.
 
+#### YENİ · Gizlilik/kullanım şartları barındırıldı, 6.5" ekran görüntüleri tamamlandı — ✅ YAPILDI
+`store/legal/*.md` · `store/*/metadata-taslak.md` · `store/*/checklist.md` ·
+`store/assets/generated/screenshots-6.5in/` (yeni) · `store/README.md`
+
+Kullanıcı: *"gerçek şirket/geliştirici adını sonra netleştiririz, şimdilik devam."* Bundle ID
+kararı ertelendiği için `store/README.md`'nin bir önceki turdaki adım-adım kılavuzunda 2.
+madde ("paket adını kesinleştir") olduğu gibi kaldı — buna dokunmadım. Bunun yerine, bundle
+ID'ye BAĞLI OLMAYAN iki kalemi ilerlettim: mağazaların ikisinin de zorunlu tuttuğu gizlilik
+politikası URL'si (önceki turda hâlâ boştu) ve App Store'un "bazı durumlarda isteyebileceği"
+6.5" ekran görüntüleri.
+
+**Gizlilik Politikası ve Kullanım Şartları — tasarlanıp yayınlandı.** `artifact-design`
+becerisi yüklendi, iki döküman `store/legal/*.md` içeriğinden (tek kelime uydurulmadan)
+tasarlanmış HTML sayfalara çevrildi — Fraunces (başlık) + IBM Plex Sans (gövde) + IBM Plex
+Mono (üst bilgi/etiket) eşleşmesi, oyunun kendi `--ink-900`/`--brass-500` paletiyle, açık VE
+koyu tema desteğiyle. `[DOLDURULACAK]` alanları SİLİNMEDİ — ayrı, dikkat çeken bir "taslak
+alanı" rozetiyle (`<span class="tbd">`) görünür kılındı; bu, boş bırakmaktan veya uydurmaktan
+daha dürüst bir orta yol. İki sayfa birbirine çapraz bağlantılı. Yayınlanmadan önce bir kez
+ekran görüntüsüyle (açık + koyu) gözden geçirildi, ikinci bir bakış yapılmadı (`artifact-design`
+sürecinin kendi kuralı).
+
+- Gizlilik Politikası: `https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51`
+- Kullanım Şartları: `https://claude.ai/code/artifact/adf82548-792c-47f9-af22-814424f9dc10`
+
+**Kritik uyarı — hâlâ ÖZEL.** Artifact'ler varsayılan olarak yalnız yayımlayan hesaba görünür.
+Bu, üç yerde (her iki `legal/*.md`, her iki checklist, `store/README.md`) tekrarlanan bir
+uyarı olarak yazıldı: mağazalara göndermeden önce sayfa paylaşım menüsünden **herkese açık**
+yapılmalı, aksi hâlde inceleyen kişi linke erişemez. Bunu ben yapamam — paylaşım menüsü
+sayfanın kendi sahibi (kullanıcı hesabı) tarafından açılıyor.
+
+Metadata taslaklarındaki (`ios/metadata-taslak.md`, `android/metadata-taslak.md`) "Gizlilik
+politikası URL'si" alanları artık gerçek linke işaret ediyor — `[DOLDURULACAK]` yalnız destek
+e-postası/URL'si gibi hâlâ gerçekten bilinmeyen alanlarda kaldı.
+
+**iPhone 6.5" ekran görüntüleri (1284×2778) — 4 adet.** Aynı yöntem (Playwright
+`viewport 428×926` + `deviceScaleFactor 3`, `store/README.md`'de belgelenen 6.7" akışının
+birebir aynısı — İlk Stoğunu Al → dört kalem satın al → toast'ların temizlenmesi için 3,5 sn
+bekle → Dükkan/Stok/İşletme/Atölye ekranları), tekrar denenmedi bu kez ilk seferde
+tutarlı çalıştı. Ölçüldü: tam olarak 1284×2778, RGB. Konsol hatası yok.
+
+**Testler:** kod tarafına dokunulmadı, `src/` değişmedi — bu tur tamamen `store/` dokümanları
+ve iki yayınlanmış Artifact. Suite/tsc/i18n zaten bir önceki commit'te doğrulanmıştı, bu tur
+onları tekrar bozacak bir değişiklik yapmadı.
+
 ---
 
 ### B. Tasarım ve oynanış önerileri

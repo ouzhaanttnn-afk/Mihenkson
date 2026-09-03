@@ -56,7 +56,11 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 - [ ] Bulut kayıt eklenince bu form **yeniden doldurulmalı**
 
 ## 7. Gizlilik politikası
-- [ ] Barındırılmış URL — taslak `../legal/gizlilik-politikasi.md`
+- [x] Barındırıldı — `../legal/gizlilik-politikasi.md` taslağının
+      tasarlanmış sürümü yayınlandı:
+      https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
+- [ ] **Sayfayı herkese açık yap** (Artifact paylaşım menüsü) — şu an özel.
+      Bu adım tamamlanmadan gönderme.
 
 ## 8. Fiyatlandırma ve dağıtım
 - [ ] Ücretsiz / ücretli — `[DOLDURULACAK]`

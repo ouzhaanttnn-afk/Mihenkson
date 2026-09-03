@@ -61,8 +61,10 @@ Birincil: Oyun > Simülasyon
 ```
 Destek URL'si:     [DOLDURULACAK]
 Pazarlama URL'si:  [DOLDURULACAK] (opsiyonel)
-Gizlilik politikası URL'si: [DOLDURULACAK — bkz. ../legal/gizlilik-politikasi.md]
+Gizlilik politikası URL'si: https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
 ```
+⚠️ Bu URL'yi göndermeden önce sayfayı Artifact paylaşım menüsünden **herkese
+açık** yap — özelken Apple incelemecisi erişemez (bkz. `../legal/gizlilik-politikasi.md`).
 
 ## Telif hakkı satırı
 ```

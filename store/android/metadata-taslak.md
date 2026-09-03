@@ -55,5 +55,7 @@ Oyun > Simülasyon
 ```
 E-posta: [DOLDURULACAK]
 Web sitesi: [DOLDURULACAK] (opsiyonel)
-Gizlilik politikası: [DOLDURULACAK — bkz. ../legal/gizlilik-politikasi.md]
+Gizlilik politikası: https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
 ```
+⚠️ Bu URL'yi göndermeden önce sayfayı Artifact paylaşım menüsünden **herkese
+açık** yap — özelken Play Console reddedebilir (bkz. `../legal/gizlilik-politikasi.md`).

@@ -3,6 +3,14 @@
 **Taslak.** Yayımlamadan önce `[DOLDURULACAK]` alanları doldur ve bir hukuk
 danışmanına göster.
 
+**Barındırılan sürüm (tasarlanmış, aynı içerik):**
+https://claude.ai/code/artifact/adf82548-792c-47f9-af22-814424f9dc10
+
+> ⚠️ **Bu sayfa şu an ÖZEL (private).** Artifact'ler varsayılan olarak
+> yalnız yayımlayan hesaba görünür. Mağazalara göndermeden önce sayfanın
+> paylaşım menüsünden **herkese açık** yapman gerekiyor. Bu dosya (`.md`)
+> hâlâ tek doğruluk kaynağı; yayınlanan sayfa onun tasarlanmış bir aynası.
+
 Son güncelleme: [DOLDURULACAK — tarih]
 Geliştirici: [DOLDURULACAK — ad/şirket]
 

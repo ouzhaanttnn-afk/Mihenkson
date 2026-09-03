@@ -21,10 +21,10 @@ Bu klasörün işi o adımlara gelene kadarki her şeyi hazır bulundurmak.
 | Android adaptive ikon (ön/arka plan katmanı) | ✅ Üretildi — `@capacitor/assets` ile, düz ikonu güvenli-alan mantığıyla katmanladı (gerçek bir alfa kesimi değil — bkz. `assets/eksikler.md`) |
 | iOS/Android uygulama ikonları (tüm yoğunluklar) + splash ekranı | ✅ Üretildi — `assets/icon.png`, `assets/splash.png` kaynağından, `ios/` ve `android/` içine yerleştirildi |
 | Play Store öne çıkan görsel (1024×500) | ✅ Üretildi — `assets/generated/feature-graphic-1024x500.png` |
-| Mağaza ekran görüntüleri | ✅ 4 adet, gerçek cihaz çözünürlüğünde (1290×2796) — `assets/generated/screenshots/` |
-| Bundle ID / paket adı | 🟡 GEÇİCİ yer tutucu — `com.mihenkaynak.app` (`capacitor.config.ts`) — yayından önce kesinleşmeli, bkz. aşağıda |
-| Gizlilik politikası | 🟡 Taslak hazır (`legal/gizlilik-politikasi.md`) — barındırılacak bir URL gerekiyor |
-| Kullanım şartları | 🟡 Taslak hazır (`legal/kullanim-sartlari.md`) |
+| Mağaza ekran görüntüleri | ✅ 4+4 adet, iPhone 6.7" (1290×2796) ve 6.5" (1284×2778) — `assets/generated/screenshots/`, `screenshots-6.5in/` |
+| Bundle ID / paket adı | 🟡 GEÇİCİ yer tutucu — `com.mihenkaynak.app` (`capacitor.config.ts`) — kullanıcı kararıyla ŞİMDİLİK ertelendi, yayından önce kesinleşmeli, bkz. aşağıda |
+| Gizlilik politikası | 🟡 Barındırıldı, tasarlandı — bkz. `legal/gizlilik-politikasi.md`. **Şu an ÖZEL, paylaşım menüsünden herkese açık yapılmalı** |
+| Kullanım şartları | 🟡 Barındırıldı, tasarlandı — bkz. `legal/kullanim-sartlari.md`. **Şu an ÖZEL, aynı adım gerekli** |
 | Apple Developer hesabı | ❓ Sende — bu oturumun bilgisi yok |
 | Google Play Console hesabı | ❓ Sende — bu oturumun bilgisi yok |
 | Mağaza metinleri (ad, açıklama, anahtar kelime) | 🟡 Taslak hazır, gözden geçirilmeli |
@@ -69,10 +69,10 @@ hazır göstermek olurdu. Sıradaki adım **senin makinende**:
 
 1. `git pull` ile depoyu çek, `npm install` çalıştır.
 2. **Paket adını (bundle ID) kesinleştir.** Şu an `capacitor.config.ts`'de
-   `com.mihenkaynak.app` yazıyor — **geçici bir yer tutucu**, gerçek şirket/geliştirici
-   kimliğin netleşince değiştirilmeli (`store/*/checklist.md`'deki `[DOLDURULACAK]`
-   ile aynı boşluk). Yayından ÖNCE değiştirmek bedava; yayından SONRA pratikte
-   imkânsız — o yüzden ilk gerçek derlemeden önce kesinleştirilmesi şart.
+   `com.mihenkaynak.app` yazıyor — **geçici bir yer tutucu**, kullanıcı kararıyla
+   şimdilik böyle bırakıldı ("gerçek şirket/geliştirici adını sonra netleştiririz").
+   Yayından ÖNCE değiştirmek bedava; yayından SONRA pratikte imkânsız — o yüzden ilk
+   gerçek derlemeden önce kesinleştirilmesi şart, ama scaffolding'i bloke etmedi.
 3. `npm run cap:sync` (derler + `ios/`/`android/`'i günceller).
 4. iOS: `npm run cap:open:ios` → Xcode açılır → imzalama takımını (Apple Developer
    hesabın) seç → cihazında veya TestFlight'ta dene.
@@ -88,6 +88,24 @@ ama riskli bir "arka planı otomatik sil" denemesi de değil: yalnız var olan k
 güvenli-alan içinde konumlandırıp maskeye bırakıyor. Sonuç (`android/app/src/main/res/
 mipmap-*/ic_launcher*.png`) gözle kontrol edildi, temiz görünüyor. Gerçek katmanlı bir
 kaynak (amblemin şeffaf PNG'si) sağlanırsa daha keskin bir adaptive ikon üretilebilir.
+
+## Gizlilik politikası ve kullanım şartları — barındırıldı
+
+Her iki mağaza da gizlilik politikası için gerçek, herkese erişilebilir bir URL
+istiyor — daha önce bu boştu. `legal/*.md` içeriği tasarlanmış birer sayfa olarak
+yayınlandı (Artifact — brass/parçamento/ink paleti, `--ink-900`/`--brass-500`
+marka renkleriyle, oyunun kendi görsel diliyle):
+
+- Gizlilik Politikası: https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
+- Kullanım Şartları: https://claude.ai/code/artifact/adf82548-792c-47f9-af22-814424f9dc10
+
+**Bu URL'ler şu an ÖZEL.** Artifact'ler varsayılan olarak yalnız yayımlayan hesaba
+görünür — mağazalara göndermeden önce her ikisinin de paylaşım menüsünden **herkese
+açık** yapılması gerekiyor, yoksa Apple/Google incelemecisi linke tıkladığında
+erişemez ve inceleme bu yüzden reddedilebilir. `legal/*.md` dosyaları hâlâ tek
+doğruluk kaynağı — içerik `[DOLDURULACAK]` alanları (tarih, şirket adı, e-posta)
+doldurulup güncellenince, aynı dosya yolu tekrar yayınlanarak (`url` parametresiyle)
+aynı linkte güncellenebilir; yeni bir link açmaya gerek yok.
 
 ## Apple/Google hesap bilgileri
 

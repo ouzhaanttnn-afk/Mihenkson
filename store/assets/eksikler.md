@@ -20,6 +20,7 @@
 | `feature-graphic-1024x500.png` | 1024×500, RGB | Sıfırdan tasarlandı: HTML+Playwright ile render edildi, önce küçük denemelerle (metin taşması vb.) gözle kontrol edildi. Marka paletinden (`--ink-900`, `--brass-400/500`) renkler, köşede mevcut ikon, "MİHENKAYNAK" başlığı + kısa slogan. |
 | `screenshots/01-dukkan.png` … `04-atolye.png` | 1290×2796, RGB (iPhone 6.7" fiziksel çözünürlüğü) | Playwright, `viewport 430×932` + `deviceScaleFactor 3` — uygulamanın kendi `max-width:430px` tasarım tavanıyla birebir örtüşüyor, hiç yatay boşluk/kırpma yok. Gerçek oynanıştan: Dükkan (bekleyen müşteri + alınan sarrafiye bildirimleri), Stok (4 kalem envanter), İşletme (finans özeti), Atölye. Konsol hatası yok, doğrulandı. |
 | `/assets/icon.png`, `/assets/icon-background.png`, `/assets/splash.png` (depo kökü) | 1024×1024 / 1024×1024 / 2732×2732 | `@capacitor/assets`'in kaynak dosyaları — `icon.png` = `icon-1024-appstore.png`'nin kopyası, `icon-background.png` = düz `--ink-900` dolgusu, `splash.png` = aynı ink zemin üzerinde ortalanmış amblem (PIL ile birleştirildi). `npx capacitor-assets generate` bunlardan iOS/Android'in TÜM ikon yoğunluklarını ve splash varyantlarını (açık/koyu, portre/yatay) üretti — `ios/App/App/Assets.xcassets/`, `android/app/src/main/res/mipmap-*/` ve `drawable*/` altına. |
+| `screenshots-6.5in/01-dukkan.png` … `04-atolye.png` | 1284×2778, RGB (iPhone 6.5" fiziksel çözünürlüğü) | Aynı yöntem, `viewport 428×926` + `deviceScaleFactor 3`. Aynı 4 ekran (Dükkan, Stok, İşletme, Atölye), gerçek oynanıştan. Konsol hatası yok. |
 
 **Denendi, vazgeçildi — pazarlık/inceleme ekranı.** Beşinci, daha "satış
 yapan" bir görüntü olarak müşteri inceleme/pazarlık ekranını da yakalamayı
@@ -29,11 +30,11 @@ rastgele geliyor ve tekrarlanabilir biçimde yakalamak beklenenden çok script
 denemesi gerektirdi; bir noktada zaman/fayda dengesizleşti ve dört sağlam
 karede bıraktım. İstersen ayrı bir turda yeniden denerim.
 
-## Eksik — App Store
+## App Store — görsel envanteri tamamlandı
 
-| Varlık | Gereken boyut | Not |
-|---|---|---|
-| iPhone 6.5" ekran görüntüleri | 1284×2778 | Apple bazı durumlarda ister — 6.7" setiyle aynı yöntemle (viewport 428×926, dsf 3) kolayca üretilebilir, istenirse |
+İkon, öne çıkan görsel derdi yok (App Store'un istemediği), 6.7" ve 6.5" ekran
+görüntülerinin tümü üretildi. Kalan tek şey mağaza tarafında: `../ios/checklist.md`
+1. ve 4-8. bölümlerindeki hesap/metin/yasal adımlar — görsel değil, kullanıcı kararı.
 
 ## Play Store — Adaptive icon çözüldü, ama gerçek kesim değil
 

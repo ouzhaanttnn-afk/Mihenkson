@@ -1,9 +1,18 @@
 # Gizlilik Politikası — MİHENKAYNAK
 
 **Taslak.** Yayımlamadan önce `[DOLDURULACAK]` alanları doldur, bir hukuk
-danışmanına göster ve barındırıp gerçek bir URL'ye koy (App Store ve Play
-Store ikisi de bu URL'yi ister). Bu metin uydurulmadı — depodaki kodun
-bugünkü hâli taranarak yazıldı (bkz. depo kökü `store/README.md`).
+danışmanına göster. Bu metin uydurulmadı — depodaki kodun bugünkü hâli
+taranarak yazıldı (bkz. depo kökü `store/README.md`).
+
+**Barındırılan sürüm (tasarlanmış, aynı içerik):**
+https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
+
+> ⚠️ **Bu sayfa şu an ÖZEL (private).** Artifact'ler varsayılan olarak
+> yalnız yayımlayan hesaba görünür. Mağazalara göndermeden önce sayfanın
+> paylaşım menüsünden **herkese açık** yapman gerekiyor — aksi hâlde Apple/
+> Google incelemecisi linke tıkladığında erişemez ve inceleme reddedilir.
+> Bu iki dosya (`.md`) hâlâ tek doğruluk kaynağı; yayınlanan sayfa onun
+> tasarlanmış bir aynası — içerik değişirse ikisi birden güncellenmeli.
 
 Son güncelleme: [DOLDURULACAK — tarih]
 Geliştirici: [DOLDURULACAK — ad/şirket]

@@ -28,8 +28,8 @@ senin yerine atamaz. Sırayla:
       `../assets/generated/icon-1024-appstore.png` (1024×1024, RGB, ölçüldü)
 - [x] iPhone 6.7" ekran görüntüleri (1290×2796) — en az 3, en çok 10 —
       4 adet üretildi: `../assets/generated/screenshots/`
-- [ ] iPhone 6.5" ekran görüntüleri (1284×2778) — gerekebilir, cihaz
-      matrisine göre değişir — henüz üretilmedi, istenirse aynı yöntemle eklenir
+- [x] iPhone 6.5" ekran görüntüleri (1284×2778) — 4 adet üretildi:
+      `../assets/generated/screenshots-6.5in/`
 - [ ] (opsiyonel) Önizleme videosu
 
 ## 4. Mağaza metni (bkz. `metadata-taslak.md`)
@@ -41,9 +41,11 @@ senin yerine atamaz. Sırayla:
 - [ ] Pazarlama URL'si (opsiyonel)
 
 ## 5. Gizlilik ve yaş derecelendirmesi
-- [ ] Gizlilik politikası URL'si — taslak `../legal/gizlilik-politikasi.md`,
-      **barındırılması ve gerçek bir URL'ye konması gerekiyor** (GitHub Pages,
-      kendi alan adın, vb.)
+- [x] Gizlilik politikası barındırıldı — `../legal/gizlilik-politikasi.md`
+      taslağının tasarlanmış sürümü yayınlandı:
+      https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
+- [ ] **Sayfayı herkese açık yap** (Artifact paylaşım menüsü) — şu an özel,
+      Apple incelemecisi göremiyor. Bu adım tamamlanmadan gönderme.
 - [ ] "App Privacy" anketi (App Store Connect içinde) — bugünkü koda göre
       doldurulacak alan: **"Veri Toplanmıyor"** (kodda hiç ağ isteği,
       analitik veya üçüncü taraf SDK yok — bkz. depo kökü `store/README.md`).
