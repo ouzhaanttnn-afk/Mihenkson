@@ -497,6 +497,51 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · İşlem sonucu balonu — "satış yapıldı / yapılmadı" — ✅ YAPILDI
+`src/state/gameStore.ts` · `src/state/deal-result-toast.test.ts` (yeni) · `src/i18n/en.ts`
+
+Kullanıcı: *"Bu satış yapıldı satış yapılmadı bildirim baloncuğu şeklinde çıksın."*
+
+Sonuç ekranı zaten uzun bir vaka özeti veriyordu ama oyuncu ona bakmadan "Devam Et"e basıp
+geçebiliyordu; işlemin olup olmadığı ancak nakit satırını takip edenin gözünden anlaşılıyordu.
+Artık pazarlık kapanır kapanmaz tek satırlık bir balon çıkıyor, kendiliğinden sönüyor ve
+akışı durdurmuyor.
+
+**YENİ BİR BALON SİSTEMİ KURULMADI.** `toastLayer` zaten vardı ve "Sarrafiye alındı ·
+8.549 ₺" gibi mesajları basıyordu; yeni mesajlar aynı kanaldan, aynı `tone` sözlüğüyle
+geçiyor. Görsel doğrulama da bu yüzden hazır: balon 390×844'te 166×34 px'lik bir hap olarak
+üst şeridin altında çiziliyor.
+
+**YÖN AYRI TUTULDU.** Sarrafın defterinde alım ile satış ayrı kalemlerdir:
+- müşteri ALIRKEN (`settlePurchase`) → *"Satış yapıldı · 45.000 ₺"* / *"Satış yapılmadı"*
+- müşteri SATARKEN (`settleLine`) → *"Alım yapıldı · 12.000 ₺"* / *"Alım yapılmadı"*
+
+Tek bir "işlem yapıldı" demek daha kolaydı ama oyuncunun kafasında yön karışırdı.
+
+**BALON MUTABAKATIN ARKASINDA DURUYOR.** İki yordamda da `pushToast`, `applyTransaction`
+başarılı olduktan SONRA çağrılıyor. Çift tap veya yeniden yükleme korumasının devreye
+girdiği durumda yordam zaten yukarıda `return` ediyor; yani "yapıldı" diyen bir balonun
+arkasında **her zaman** bir mutabakat kaydı vardır. Balon zaten var olan ses ipucuyla
+(`cue(... 'deal' : 'deny')`) aynı noktada duruyor — sesin görsel ikizi.
+
+**OLMAYAN SATIŞ 'negative' DEĞİL 'info'.** Kötü fiyata satmamak bu oyunda başarısızlık
+değil, çoğu zaman doğru karardır; kırmızı göstermek oyuncuyu kötü anlaşmaya iterdi.
+
+**Testler:** `src/state/deal-result-toast.test.ts` — 5 test; ikisi satış, ikisi alım
+(kabul + red), biri de asıl riski kapatıyor: **balon, arkasından gelen `set(...)` ile
+ezilmiyor.** İki yordam da balondan sonra ekonomiyi yazıyor ve `toasts` alanını taşımıyor;
+kısmi `set` birleştirmesi bozulursa balon sessizce kaybolur ve bunu tarayıcıda fark etmek
+zordur. Aynı test "yapıldı" balonunun arkasında gerçekten bir defter kaydı olduğunu da
+sabitliyor. Testlerde yön karışması da yasaklandı: alım akışında "Satış" geçen balon
+çıkarsa test düşer.
+
+**Ölçüm sırasında bir tuzak görüldü ve teste yazıldı:** değerleme adımı atlanırsa pazarlık
+ACCEPTED'a gidiyor ama `settleLine` bandsız kalemde hiç çalışmadan dönüyor — ne mutabakat
+ne balon oluyor. Test bu yüzden oyuncunun yaptığının aynısını yapıyor: incele → değerle →
+tez → pazarlık.
+
+Suite 961 → **966**.
+
 #### YENİ · Para işareti — önemli bağlamlar renkle ayrıldı — ✅ YAPILDI
 `src/ui/screens/BusinessScreen.tsx` · `src/ui/screens/Screens.css`
 

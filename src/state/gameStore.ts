@@ -2472,6 +2472,18 @@ function settleLine(
 
   economy = { ...economy, ledger: recordDeal(economy.ledger, record) };
 
+  /*
+    Aynı balon, ters yön. Bu akışta müşteri SATAN taraftır, oyuncu alır;
+    "satış yapıldı" demek yanlış olurdu — sarrafın defterinde alım ve satış
+    ayrı kalemlerdir ve balonun ikisini karıştırmaması gerekir.
+  */
+  pushToast(
+    set,
+    get,
+    accepted ? t('Alım yapıldı · {tutar}', { tutar: tl(price) }) : t('Alım yapılmadı'),
+    accepted ? 'positive' : 'info',
+  );
+
   const revalued = revalueInventory(economy.inventory, economy.items, thesisContext(get()));
   set({ ...economyToState({ ...economy, inventory: revalued }), lastReview: review });
 }
@@ -2655,6 +2667,30 @@ function settlePurchase(
   };
 
   economy = { ...economy, ledger: recordDeal(economy.ledger, record) };
+
+  /*
+    SONUÇ BALONU — "satış yapıldı / yapılmadı".
+
+    Sonuç ekranı zaten uzun bir vaka özeti veriyor ama oyuncu ona bakmadan
+    "Devam Et"e basıp geçebiliyordu; işlemin olup olmadığı ancak nakit
+    satırını takip edenin gözünden anlaşılıyordu. Balon o boşluğu kapatır:
+    tek satır, kendiliğinden söner, akışı durdurmaz.
+
+    BURAYA KONDU, ÜSTE DEĞİL: `applyTransaction` başarısızsa (çift tap /
+    yeniden yükleme koruması) yukarıda `return` edilmiş oluyor. Yani balon
+    yalnız defter GERÇEKTEN kımıldadığında çıkar; "yapıldı" diyen bir balonun
+    arkasında her zaman bir mutabakat kaydı vardır.
+
+    OLMAYAN SATIŞ 'negative' DEĞİL 'info'. Kötü fiyata satmamak bu oyunda
+    başarısızlık değil, çoğu zaman doğru karardır; kırmızı göstermek oyuncuyu
+    kötü anlaşmaya iterdi.
+  */
+  pushToast(
+    set,
+    get,
+    accepted ? t('Satış yapıldı · {tutar}', { tutar: tl(price) }) : t('Satış yapılmadı'),
+    accepted ? 'positive' : 'info',
+  );
 
   const revalued = revalueInventory(economy.inventory, economy.items, thesisContext(get()));
   set({

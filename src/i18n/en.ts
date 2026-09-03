@@ -1438,6 +1438,14 @@ export const EN: Record<string, string> = {
   'Teklif {teklif} · mevcut nakit {nakit} · eksik {eksik}':
     'Offer {teklif} · cash on hand {nakit} · short by {eksik}',
   'Satıldı · {tutar}': 'Sold · {tutar}',
+  /*
+    İşlem sonucu balonu. Yön ayrı tutulur: sarrafın defterinde alım ile satış
+    ayrı kalemlerdir, balon ikisini tek kelimeye indirmemeli.
+  */
+  'Satış yapıldı · {tutar}': 'Sale closed · {tutar}',
+  'Satış yapılmadı': 'No sale',
+  'Alım yapıldı · {tutar}': 'Purchase closed · {tutar}',
+  'Alım yapılmadı': 'No purchase',
   'Seçili {plan}': 'Chosen {plan}',
   '{plan} seçilmedi': 'No {plan} chosen',
   '{plan} yok': 'No {plan}',
