@@ -566,8 +566,8 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
   if (shopOpen && alerts.length < 3 && s.queue.length === 0) {
     alerts.push({
       key: 'schedule',
-      title: `Sonraki müşteri ~${nextIn} dk`,
-      detail: `Dükkan ${clock(DAY.closeMinutes)}'da kapanıyor.`,
+      title: t('Sonraki müşteri ~{dk} dk', { dk: nextIn }),
+      detail: t("Dükkan {saat}'da kapanıyor.", { saat: clock(DAY.closeMinutes) }),
       tone: 'positive',
       Icon: IconClock,
     });
@@ -1024,7 +1024,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         const ChannelIcon = CHANNEL_RAIL_ICON[option.channel];
         return {
           id: option.channel,
-          label: CHANNEL_RAIL_LABEL[option.channel],
+          label: t(CHANNEL_RAIL_LABEL[option.channel]),
           icon: <ChannelIcon size={19} />,
           onPress: () => s.selectThesis(option.channel),
           selected: line.selectedThesis === option.channel,
@@ -1172,7 +1172,7 @@ function ShopDock({
       <DecisionDock
         idle
         hideSummary
-        summaryLabel="Kuyruk"
+        summaryLabel={t('Kuyruk')}
         summaryValue={hasQueue ? `${s.queue.length} müşteri bekliyor` : t('Müşteri bekleniyor')}
         primary={{
           label: hasQueue ? `Müşteriyi Karşıla · ${s.queue.length}` : t('Müşteri bekleniyor'),
@@ -1226,7 +1226,7 @@ function ShopDock({
 
       return (
         <DecisionDock
-          summaryLabel={policy ? CLASS_LABEL[policy.transactionClass] : t('Doğrulanan alan')}
+          summaryLabel={policy ? t(CLASS_LABEL[policy.transactionClass]) : t('Doğrulanan alan')}
           summaryValue={
             <>
               {verified}/{line.knowledge.length} alan
@@ -1466,7 +1466,7 @@ function PurchaseDock({
       const count = purchase.units;
       return (
         <DecisionDock
-          summaryLabel="Pakette"
+          summaryLabel={t('Pakette')}
           summaryValue={
             count === 0
               ? t('Henüz ürün seçilmedi')
@@ -1690,7 +1690,7 @@ function ServiceDock({ deal }: { deal: NonNullable<GameStateDeal> }) {
 
       return (
         <DecisionDock
-          summaryLabel="Kabul"
+          summaryLabel={t('Kabul')}
           summaryValue={
             <>
               {promised}. gün teslim · {tl(quote.fee)} ücret
@@ -1767,7 +1767,7 @@ function AppraisalDock({
     case 'inspect':
       return (
         <DecisionDock
-          summaryLabel="Ekspertiz"
+          summaryLabel={t('Ekspertiz')}
           summaryValue={
             tests > 0 ? `${tests} test yapıldı` : t('Henüz ölçüm yok — raydan araç seçin')
           }
@@ -1784,7 +1784,7 @@ function AppraisalDock({
           summaryLabel={t("Ölçülen aralık")}
           summaryValue={
             band
-              ? `${tl(band.min)} – ${tl(band.max)} · ${CONFIDENCE_LABEL[band.confidence]}`
+              ? `${tl(band.min)} – ${tl(band.max)} · ${t(CONFIDENCE_LABEL[band.confidence])}`
               : t('Değerleme bandı yok')
           }
           primary={{

@@ -52,12 +52,12 @@ export function DiagnoseStage({ item, service }: { item: ItemInstance; service: 
         <div className="svc__heroBody">
           <h2 className="svc__title">{item.displayName}</h2>
           <p className="svc__meta">
-            Kondisyon: {CONDITION_LABEL[item.truth.condition]}
+            Kondisyon: {t(CONDITION_LABEL[item.truth.condition])}
             {diagnosis && diagnosis.targetCondition !== item.truth.condition && (
               <>
                 {' → '}
                 <strong className="svc__target">
-                  {CONDITION_LABEL[diagnosis.targetCondition]}
+                  {t(CONDITION_LABEL[diagnosis.targetCondition])}
                 </strong>
               </>
             )}
@@ -255,7 +255,7 @@ export function PromiseStage({
         </span>
       </div>
 
-      <div className="bufferRow" role="radiogroup" aria-label="Teslim tamponu">
+      <div className="bufferRow" role="radiogroup" aria-label={t('Teslim tamponu')}>
         {options.map((days) => {
           const selected = service.promiseBufferDays === days;
           return (
@@ -327,7 +327,7 @@ export function JobQueueStage({
           <QuoteRow label={t("Teslim sözü")} value={`${job.promisedDay}. gün`} />
           <QuoteRow label={t("Süre")} value={`${job.duration} gün`} />
           <QuoteRow
-            label="Mekân"
+            label={t('Mekân')}
             value={job.venue === 'inHouse' ? t('Kendi atölyem') : t('Dış usta')}
           />
           <QuoteRow label={t("Tahsil edilecek")} value={tl(job.fee)} tone="positive" />

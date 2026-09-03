@@ -93,13 +93,13 @@ export function ThesisStage({ options, selected, suggested, onSelect }: Props) {
               <span className="thesisCard__metrics">
                 <Metric label={t("Süre")} value={dayRange(option.daysToCash)} />
                 <Metric
-                  label="Risk"
-                  value={RISK_LABEL[option.demandRisk]}
+                  label={t('Risk')}
+                  value={t(RISK_LABEL[option.demandRisk])}
                   tone={option.demandRisk}
                 />
                 <Metric
                   label={t(TERM.liquidity)}
-                  value={LIQUIDITY_LABEL[option.liquidity]}
+                  value={t(LIQUIDITY_LABEL[option.liquidity])}
                   tone={option.liquidity === 'high' ? 'low' : option.liquidity === 'low' ? 'high' : 'medium'}
                 />
               </span>

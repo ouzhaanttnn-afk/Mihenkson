@@ -386,7 +386,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
           <span className="row__qty num"> · {position.quantityMg === undefined ? `${position.quantity} adet` : preciseGrams(fromMg(position.quantityMg))}</span>
         </div>
         <div className="row__meta">
-          {KARAT_LABEL[item.declared.claimedKarat]} · {position.poolId ? t('Ortak havuz') : grams(item.truth.grossWeight)} ·{' '}
+          {t(KARAT_LABEL[item.declared.claimedKarat])} · {position.poolId ? t('Ortak havuz') : grams(item.truth.grossWeight)} ·{' '}
           {position.age} gün{' '}
           {/* GDD 8.3 — "her kalemin neden tutulduğunu görünür kılan plan etiketi" */}
           <span className={`tag ${position.thesis ? '' : 'tag--neutral'}`}>

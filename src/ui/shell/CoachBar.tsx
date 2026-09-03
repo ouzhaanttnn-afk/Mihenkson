@@ -35,8 +35,8 @@ export function CoachBar({ lesson, showSkip, onDismiss, onSkipAll, queuePriority
   return (
     <aside className={`coach ${queuePriority ? 'coach--queuePriority' : ''}`} role="note" aria-label={t('Öğretim ipucu')}>
       <div className="coach__body">
-        <span className="coach__title">{lesson.title}</span>
-        <span className="coach__text">{lesson.body}</span>
+        <span className="coach__title">{t(lesson.title)}</span>
+        <span className="coach__text">{t(lesson.body)}</span>
 
         {showSkip && (
           <button type="button" className="coach__skip" onClick={onSkipAll}>

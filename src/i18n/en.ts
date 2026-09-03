@@ -597,4 +597,298 @@ export const EN: Record<string, string> = {
   'Ekspertiz işi alınmadı. Müşteri ürünüyle birlikte ayrıldı.':
     'The appraisal was not taken. The customer left with their item.',
   '{varlik} {fiyat} — piyasa ekranını aç': '{varlik} {fiyat} — open the market screen',
+
+  // ——— İşletme ekranı şablonları ———
+  'Altın %{altin} · Nakit %{nakit}': 'Gold {altin}% · Cash {nakit}%',
+  'Aylık {aylik} · Günlük {gunluk}': '{aylik} monthly · {gunluk} daily',
+  'Kaçırılan Misafir: {n}': 'Guests missed: {n}',
+  '{kademe} · {acik}/{toplam} koşul hazır': '{kademe} · {acik}/{toplam} conditions met',
+  '{n} esnaf altın alıyor · borç yok': '{n} traders buying gold · no debt',
+  '{n} esnaf altın alıyor · {tutar} açık borç': '{n} traders buying gold · {tutar} outstanding',
+  '{n} kayıt · vaka özetleri': '{n} entries · case summaries',
+  '{n} personel · Kapasite {kap} · Günlük {gunluk}':
+    '{n} staff · Capacity {kap} · {gunluk} daily',
+  '{rejim} · {n} varlık': '{rejim} · {n} assets',
+  '{tutar} kullanılabilir · {gun} gün vade': '{tutar} available · {gun}-day terms',
+  'İş Kuyruğu': 'Job Queue',
+  'Kabul ettiğin servis işleri burada görünür. Gelir yalnız tamamlanan gerçek işlerden doğar.':
+    'Service jobs you accept appear here. Income comes only from jobs actually completed.',
+
+  // ——— Alan katmanı etiket haritaları (t(X_LABEL[...])) ———
+  '8 Ayar': '8 Karat',
+  '14 Ayar': '14 Karat',
+  '18 Ayar': '18 Karat',
+  '22 Ayar': '22 Karat',
+  '24 Ayar': '24 Karat',
+  '800 Gümüş': '800 Silver',
+  '925 Gümüş': '925 Silver',
+  'Kusursuz': 'Pristine',
+  'İyi': 'Good',
+  'Yıpranmış': 'Worn',
+  'Hasarlı': 'Damaged',
+  'Kırık': 'Broken',
+  'Düşük': 'Low',
+  'Orta': 'Medium',
+  'Yüksek': 'High',
+  'Makul': 'Fair',
+  'Ölçülü': 'Measured',
+  'Cömert': 'Generous',
+  'Dikkat': 'Caution',
+  'Sağlıklı': 'Healthy',
+  'Çok likit': 'Very liquid',
+  'Kırmızı risk': 'Red risk',
+  'Tam istediği': 'Exactly what they want',
+  'İlgili ürün': 'Related item',
+  'Aradığı değil': 'Not what they seek',
+  'Hızlı işlem': 'Fast transaction',
+  'Kontrollü işlem': 'Controlled transaction',
+  'Vitrin': 'Showcase',
+  'Toptan': 'Wholesale',
+  'Erit': 'Melt',
+  'Servis': 'Service',
+  'Ekspertiz': 'Appraisal',
+  'AÇIK': 'OPEN',
+  'KABUL': 'ACCEPTED',
+  'RED': 'REFUSED',
+  'SERTLEŞTİ': 'HARDENED',
+  'SON TEKLİF': 'FINAL OFFER',
+  'Beklet': 'Hold',
+  'Gerekçe gösterdin': 'You gave a reason',
+  'Jest yaptın': 'You made a gesture',
+  'Karşı teklif istedin': 'You asked for a counter',
+  'Paket teklif ettin': 'You offered a bundle',
+  'pırlanta': 'diamond',
+  'safir': 'sapphire',
+  'yakut': 'ruby',
+  'zümrüt': 'emerald',
+  'zirkon': 'zircon',
+  'bilinmeyen': 'unknown',
+
+  // ——— Kalan şablonlar ve etiketler ———
+  '+{tutar}/gün': '+{tutar}/day',
+  'Bitti': 'Done',
+  "Dükkan {saat}'da kapanıyor.": 'The shop closes at {saat}.',
+  'Sonraki müşteri ~{dk} dk': 'Next customer ~{dk} min',
+  'Global sıra için sunucu doğrulaması gerekir': 'Server verification is required for the global rank',
+  'Her gün kapanışında ayrıca {tutar} bakım gideri işleyecek.':
+    'A further {tutar} upkeep is charged at every day close.',
+  'Kilitli': 'Locked',
+  'Koleksiyonda': 'In collection',
+  'Kullan': 'Equip',
+  'Yetersiz nakit': 'Not enough cash',
+  '{n} adet': '{n} pcs',
+  '{n} açık vade · {tutar} kullanılabilir limit': '{n} open terms · {tutar} available limit',
+  '{n} gün': '{n} days',
+  '{n} iş': '{n} jobs',
+  '{simdi} / {hedef} kg HAS': '{simdi} / {hedef} kg fine gold',
+  '{tutar} kullanılabilir limit': '{tutar} available limit',
+  '{tutar} ödenecek.': '{tutar} will be paid.',
+  'İlk {n} · sunucu doğrulamalı': 'First {n} · server verified',
+  'İşlemden sonra kasanda {kalan} kalacak.': 'You will have {kalan} left afterwards.',
+  'Ölü Stok': 'Dead Stock',
+  'Arka Stok': 'Back Stock',
+  'Serviste': 'In Service',
+
+  // ——— Market kategorileri (t(item.label) · t(item.description)) ———
+  'Çerçeveler': 'Frames',
+  'Dekorasyon': 'Decoration',
+  'Koleksiyon': 'Collection',
+  'Şahsi': 'Personal',
+  'Rozet ve oyuncu kimliği': 'Badges and player identity',
+  'Avatar çerçeveleri': 'Avatar frames',
+  'Dükkan temaları ve tabelalar': 'Shop themes and signage',
+  'Tezgâh ve ekipman görünümleri': 'Counter and equipment looks',
+  'Prestij koleksiyonları': 'Prestige collections',
+  'Saatten özel jete yaşam hedefleri': 'Life goals, from a watch to a private jet',
+
+  // ——— Market kademesi ———
+  'Standart': 'Standard',
+  'Premium': 'Premium',
+  'Elit': 'Elite',
+  'Efsanevi': 'Legendary',
+
+  // ——— Market ürünleri: adlar ———
+  'İlk 5 KG HAS Rozeti': 'First 5 kg Fine Gold Badge',
+  'Kurucu Rozeti': 'Founder Badge',
+  'Usta Sarraf Rozeti': 'Master Dealer Badge',
+  'Çırak Rozeti': 'Apprentice Badge',
+  'Mihenk Ustası': 'Touchstone Master',
+  'Çarşı Reisi': 'Chief of the Bazaar',
+  'Efsane Sarraf': 'Legendary Dealer',
+  'Pirinç Çerçeve': 'Brass Frame',
+  'Ametist Çerçeve': 'Amethyst Frame',
+  'Hanedan Çerçevesi': 'Dynasty Frame',
+  'Gümüş Telkari': 'Silver Filigree',
+  'Mine İşi Çerçeve': 'Enamelwork Frame',
+  'Sedef Kakma': 'Mother-of-Pearl Inlay',
+  'Pırlanta Çerçeve': 'Diamond Frame',
+  'Gece Ametisti': 'Night Amethyst',
+  'Fildişi Saray': 'Ivory Palace',
+  'Kapalıçarşı Klasiği': 'Grand Bazaar Classic',
+  'Art Deco Pirinç': 'Art Deco Brass',
+  'Mermer ve Cam': 'Marble and Glass',
+  'Altın Çağ': 'Golden Age',
+  'Usta Terazisi': "Master's Scale",
+  'Prestij Kasası': 'Prestige Safe',
+  'Çay Ocağı': 'Tea Stove',
+  'Kadife Tezgâh Örtüsü': 'Velvet Counter Cloth',
+  'Hereke Halısı': 'Hereke Carpet',
+  'Kristal Avize': 'Crystal Chandelier',
+  'Ceviz Vitrin Takımı': 'Walnut Display Set',
+  'Çelik Kasa Dairesi': 'Steel Vault Room',
+  'Osmanlı Sikke Seti': 'Ottoman Coin Set',
+  'Nadir Taş Arşivi': 'Rare Stone Archive',
+  'Kehribar Tesbih Koleksiyonu': 'Amber Prayer-Bead Collection',
+  'Antika Terazi Arşivi': 'Antique Scale Archive',
+  'Mühür Yüzük Kabinesi': 'Signet Ring Cabinet',
+  'Saray İşçiliği Arşivi': 'Palace Craftsmanship Archive',
+  'İsviçre Saati': 'Swiss Watch',
+  'Premium Sedan': 'Premium Sedan',
+  'Spor Otomobil': 'Sports Car',
+  'Şehir Rezidansı': 'City Residence',
+  'Boğaz Villası': 'Bosphorus Villa',
+  'Lüks Yat': 'Luxury Yacht',
+  'Özel Jet': 'Private Jet',
+  'Safkan At': 'Thoroughbred Horse',
+  'Motoryat': 'Motor Yacht',
+  'Sanat Koleksiyonu': 'Art Collection',
+  'Tarihî Yalı': 'Historic Waterside Mansion',
+  'Helikopter': 'Helicopter',
+  'Özel Ada': 'Private Island',
+
+  // ——— Market ürünleri: açıklamalar ———
+  '5 kg HAS biriktiren ilk 100 oyuncuya ayrılmış, global sınırlı prestij rozeti.':
+    'A globally limited prestige badge reserved for the first 100 players to accumulate 5 kg of fine gold.',
+  'Profilinde ilk dönem kuyumcu rozeti gösterir.':
+    'Shows an early-era jeweller badge on your profile.',
+  'Tecrübeyi simgeleyen mor-altın profil rozeti.':
+    'A purple-and-gold profile badge that stands for experience.',
+  'Tezgâh arkasında geçen ilk günlerin sade rozeti.':
+    'A plain badge for the first days behind the counter.',
+  'Ayarı taşla okuyan eli simgeleyen rozet.':
+    'A badge for the hand that reads karat off the stone.',
+  'Esnaf arasında sözü geçenin rozeti.':
+    'The badge of someone whose word carries among the traders.',
+  'Adı çarşıdan taşan sarrafın rozeti.':
+    'The badge of a dealer whose name outgrew the bazaar.',
+  'Avatar çevresine sıcak pirinç işçiliği uygular.':
+    'Wraps your avatar in warm brasswork.',
+  'Mor taş ve altın ışıklı premium avatar çerçevesi.':
+    'A premium avatar frame lit with purple stone and gold.',
+  'Üst düzey itibarı görünür kılan koleksiyon çerçevesi.':
+    'A collector frame that makes top-tier standing visible.',
+  'İnce gümüş tel işçiliğiyle örülmüş sade çerçeve.':
+    'A plain frame woven from fine silver wire.',
+  'Renkli mine ve altın kontur.': 'Coloured enamel with a gold outline.',
+  'Ceviz üstüne sedef kakma; usta işi bir çerçeve.':
+    'Mother-of-pearl inlaid into walnut; a master-made frame.',
+  'Işığı kıran taşlarla çevrili en üst çerçeve.':
+    'The top frame, ringed with light-breaking stones.',
+  'Ana dükkan fonunu koyu ametist vitrin temasına dönüştürür.':
+    'Turns the main shop backdrop into a deep amethyst display theme.',
+  'Açık taş, pirinç ve yumuşak vitrin ışığı teması.':
+    'A theme of pale stone, brass and soft display light.',
+  'Kemerli tavan, ahşap dolap ve sıcak sarı ışık.':
+    'Vaulted ceiling, wooden cabinets and warm yellow light.',
+  'Geometrik pirinç kaplama ve siyah cam.': 'Geometric brass cladding and black glass.',
+  'Damarlı mermer tezgâh, kenarsız cam vitrin.':
+    'A veined marble counter and a frameless glass case.',
+  'Kubbeli tavan ve baştan aşağı varak; çarşının en görkemli dükkânı.':
+    'A domed ceiling and gold leaf throughout; the grandest shop in the bazaar.',
+  'Tezgâhta sergilenen premium terazi görünümü.':
+    'A premium scale on display at the counter.',
+  'Dükkan kimliğine ağır çelik ve altın detaylı kasa ekler.':
+    'Adds a heavy steel safe with gold detailing to your shop identity.',
+  'Her müşteriye uzatılan ince belli bardak; çarşının asıl âdeti.':
+    'The tulip glass handed to every customer; the real custom of the bazaar.',
+  'Altını üstünde en iyi gösteren koyu kadife.':
+    'The dark velvet that shows gold at its best.',
+  'İpek dokuma; ayak sesini alır, dükkâna ağırlık verir.':
+    'Silk weave; it softens footsteps and gives the shop weight.',
+  'Vitrindeki taşı kırk yerden parlatan kristal.':
+    'Crystal that catches the display stones from forty angles.',
+  'Elde oyulmuş ceviz gövde, müzelik cam.':
+    'A hand-carved walnut body with museum-grade glass.',
+  'Dükkânın arkasına açılan zırhlı kapılı kasa dairesi.':
+    'A vault room behind the shop, with an armoured door.',
+  'Koleksiyon defterine tarihî sikke seti ekler.':
+    'Adds a historic coin set to your collection ledger.',
+  'Yakut, safir ve zümrüt prestij koleksiyonu.':
+    'A prestige collection of ruby, sapphire and emerald.',
+  'Sıkışta satılmayan, camekânda durup sohbet açan taneler.':
+    'Beads never sold in a pinch — they sit in the case and start conversations.',
+  'Kefeli el terazilerinden dijital hassas teraziye kadar.':
+    'From balance scales to digital precision scales.',
+  'Adı kazınmış taşlar; her biri bir imza.':
+    'Stones with names engraved; each one a signature.',
+  'Sarayın kuyumcubaşılarından kalma işçilik örnekleri.':
+    'Craftsmanship left by the palace master jewellers.',
+  'İlk şahsi prestij hedefi; bakım gideri yoktur.':
+    'The first personal prestige goal; it carries no upkeep.',
+  'Şehir içi prestij otomobili.': 'An in-town prestige car.',
+  'Yüksek servetin görünür ama ekonomik güç vermeyen simgesi.':
+    'A visible token of wealth that grants no economic power.',
+  'Merkezde prestijli bir şahsi yaşam alanı.':
+    'A prestigious personal home in the centre.',
+  'Oyunun ileri aşamasındaki servet için kalıcı prestij hedefi.':
+    'A lasting prestige goal for late-game wealth.',
+  'Çok yüksek serveti tüketen koleksiyon ve yaşam hedefi.':
+    'A collection and life goal that devours very large wealth.',
+  'En üst seviye şahsi prestij ve bakım sorumluluğu.':
+    'Top-tier personal prestige — and the upkeep that comes with it.',
+  'Şehrin dışında bir tay; bakımı seviyor, kâr getirmiyor.':
+    'A colt outside the city; it loves upkeep and returns no profit.',
+  'Boğazda hafta sonu; yatın küçük ama gerçek hâli.':
+    'A weekend on the Bosphorus; the small but real version of a yacht.',
+  'Duvara asılan servet; sigortası her gün işler.':
+    'Wealth hung on a wall; its insurance is charged daily.',
+  'Denize sıfır ahşap yalı; her kışı bir onarım ister.':
+    'A wooden mansion at the water\'s edge; every winter asks for a repair.',
+  'Trafiği aşan ama kasayı da aşan bir tercih.':
+    'A choice that beats the traffic — and beats your till too.',
+  'Servetin gidebileceği son yer; günlük gideri bir dükkânı döndürür.':
+    'The last place wealth can go; its daily cost would run a whole shop.',
+
+  // ——— Öğretici dersleri (t(lesson.title) · t(lesson.body)) ———
+  'Dükkân senin': 'The shop is yours',
+  'Kasandaki parayla mal alır, aldığından pahalıya satarsın. Her gün kira ve gider işler; günü kârla kapatmak senin işin.':
+    'You buy goods with the cash in your till and sell them for more than you paid. Rent and overhead are charged every day; closing the day in profit is your job.',
+  'Müşteri kapıda': 'A customer at the door',
+  'Karşıla ve ne istediğine bak. Satan da var, alan da, tamir isteyen de.':
+    'Greet them and see what they want. Some sell, some buy, some want a repair.',
+  'Sarrafiyede test şart değil': 'Bullion needs no testing',
+  'Standart sarrafiyenin gramajı ve ayarı bellidir. Şüpheli bir hâli yoksa doğrudan fiyata geçebilirsin.':
+    'Standard bullion has a known weight and karat. Unless something looks off, you can go straight to pricing.',
+  'Gördüğün beyandır': 'What you see is a claim',
+  'Müşterinin söylediği ağırlık ve ayar doğrulanmış değil. Raydaki araçlar bu belirsizliği para ve müşteri sabrı karşılığında azaltır.':
+    "The weight and karat the customer states are not verified. The tools on the rail reduce that uncertainty — at the cost of money and the customer's patience.",
+  'Aralık ne kadar dar, o kadar iyi': 'The narrower the range, the better',
+  'Test yaptıkça tahmini değer aralığı daralır. Dar aralık, daha yüksek fiyat verebilmen demektir — belirsizliğin bedelini sen ödersin.':
+    'Each test narrows the estimated value range. A narrow range means you can offer more — you are the one who pays for uncertainty.',
+  'Önce nereye satacağını seç': 'Choose where you will sell first',
+  'Çıkış planın alış tavanını belirler: tezgâhta beklemek pahalıya satar ama yavaştır, toptancı hemen öder ama ucuza alır.':
+    'Your exit plan sets your buy ceiling: waiting at the counter sells high but slowly, the wholesaler pays at once but buys cheap.',
+  'Tavanın üstü zarardır': 'Above the ceiling is a loss',
+  'Alış tavanı, bu plandan kâr edebileceğin en yüksek fiyat. Müşteri kabul etmezse karşı teklif verir; aynı rakamı tekrar göndermek yeni bir cevap getirmez.':
+    'The buy ceiling is the highest price at which this plan still profits. If the customer refuses they counter; sending the same number again brings no new answer.',
+  'Aldığın mal stoğa düşer': 'What you buy lands in stock',
+  'Stok ekranından ne tuttuğunu, maliyetini ve bugünkü değerini görürsün. Nakit ile altın arasındaki denge de orada.':
+    'The Stock screen shows what you hold, what it cost and what it is worth today. The balance between cash and gold lives there too.',
+  'sahip olunan': 'owned',
+
+  // ——— Tek kelimelik etiketler ve kalan şablonlar ———
+  'Kabul': 'Accept',
+  'Kondisyon': 'Condition',
+  'Mekân': 'Venue',
+  'Pakette': 'In bundle',
+  'Risk': 'Risk',
+  'Telemetri': 'Telemetry',
+  'Teslim tamponu': 'Delivery buffer',
+  'XP': 'XP',
+  'Seviye ilerlemesi yüzde {yuzde}': 'Level progress {yuzde} percent',
+  'Seviye {seviye} · uzmanlık ilerlemesi': 'Level {seviye} · specialisation progress',
+  'Seviye {seviye} · {xp}/{hedef} XP': 'Level {seviye} · {xp}/{hedef} XP',
+  '{dukkan} · Kademe {kademe} · Seviye {seviye}': '{dukkan} · Tier {kademe} · Level {seviye}',
+  '{n} kişi': '{n} people',
+  '−{oran} hata riski': '−{oran} error risk',
 };

@@ -59,7 +59,7 @@ export function WorkshopScreen() {
           </div>
           <div className="summaryRow__item">
             <span className="summaryRow__label">{t('Bugün Teslim')}</span>
-            <span className="summaryRow__value num">{dueToday} iş</span>
+            <span className="summaryRow__value num">{t('{n} iş', { n: dueToday })}</span>
           </div>
           <div className="summaryRow__item">
             <span className="summaryRow__label">Gecikme</span>
@@ -68,7 +68,7 @@ export function WorkshopScreen() {
                 overdue.length > 0 ? 'summaryRow__value--negative' : ''
               }`}
             >
-              {overdue.length > 0 ? `${overdue.length} iş` : 'Yok'}
+              {overdue.length > 0 ? t('{n} iş', { n: overdue.length }) : t('Yok')}
             </span>
           </div>
         </div>
@@ -121,7 +121,8 @@ export function WorkshopScreen() {
         {/* İş kuyruğu */}
         <div className="group">
           <h2 className="group__title">
-            İş Kuyruğu{active.length > 0 ? ` · ${active.length}` : ''}
+            {t('İş Kuyruğu')}
+            {active.length > 0 ? ` · ${active.length}` : ''}
           </h2>
 
           {active.length === 0 ? (
@@ -137,8 +138,9 @@ export function WorkshopScreen() {
               </div>
               <p className="empty__title">{t('Kuyruk boş')}</p>
               <p className="empty__text">
-                Kabul ettiğin servis işleri burada görünür. Gelir yalnız tamamlanan gerçek
-                işlerden doğar.
+                {t(
+                  'Kabul ettiğin servis işleri burada görünür. Gelir yalnız tamamlanan gerçek işlerden doğar.',
+                )}
               </p>
             </div>
           ) : (
@@ -179,7 +181,9 @@ export function WorkshopScreen() {
             </div>
             <div className="statLine">
               <span className="statLine__label">{t('Ek süre')}</span>
-              <span className="statLine__value num">+{SERVICE.outsource.extraDays} gün</span>
+              <span className="statLine__value num">
+                +{t('{n} gün', { n: SERVICE.outsource.extraDays })}
+              </span>
             </div>
             <div className="statLine">
               <span className="statLine__label">{t('Ücret payı')}</span>
@@ -205,13 +209,17 @@ export function WorkshopScreen() {
                   equipmentBonus > 0 ? 'statLine__value--positive' : ''
                 }`}
               >
-                {equipmentBonus > 0 ? `−${pct(equipmentBonus)} hata riski` : 'Yok'}
+                {equipmentBonus > 0
+                  ? t('−{oran} hata riski', { oran: pct(equipmentBonus) })
+                  : t('Yok')}
               </span>
             </div>
             <div className="statLine">
               <span className="statLine__label">Personel</span>
               <span className="statLine__value num">
-                {s.store.staff.length === 0 ? 'Yok' : `${s.store.staff.length} kişi`}
+                {s.store.staff.length === 0
+                  ? t('Yok')
+                  : t('{n} kişi', { n: s.store.staff.length })}
               </span>
             </div>
             <div className="statLine">
@@ -282,7 +290,7 @@ function JobRow({
           <span className="figure">
             <span className="figure__label">{t('Kalan süre')}</span>
             <span className="figure__value num">
-              {job.result === 'pending' ? `${job.remainingDays} gün` : 'Bitti'}
+              {job.result === 'pending' ? t('{n} gün', { n: job.remainingDays }) : t('Bitti')}
             </span>
           </span>
           <span className="figure">

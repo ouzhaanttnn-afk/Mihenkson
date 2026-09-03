@@ -152,7 +152,11 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
         />
         <h1 className="pageHead__title">{t('İşletme')}</h1>
         <p className="pageHead__sub">
-          {shopDisplayName(s.profile.jewelerName)} · Kademe {s.store.storeTier} · Seviye {s.store.level}
+          {t('{dukkan} · Kademe {kademe} · Seviye {seviye}', {
+            dukkan: shopDisplayName(s.profile.jewelerName),
+            kademe: s.store.storeTier,
+            seviye: s.store.level,
+          })}
         </p>
       </header>
 
@@ -161,10 +165,10 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
         <div className="group">
           <h2 className="group__title">Finans</h2>
           <div className="group__body">
-            <StatLine label="Nakit" value={tl(wealth.cash)} icon={<IconCash size={15} />} />
+            <StatLine label={t('Nakit')} value={tl(wealth.cash)} icon={<IconCash size={15} />} />
             <StatLine
               label={t(TERM.liquidity)}
-              value={`${pct(ratio)} · ${LIQUIDITY_BAND_LABEL[band]}`}
+              value={`${pct(ratio)} · ${t(LIQUIDITY_BAND_LABEL[band])}`}
               icon={<IconLiquidity size={15} />}
               tone={band === 'red' ? 'negative' : band === 'caution' ? 'warning' : undefined}
             />
@@ -198,13 +202,24 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             <span className="personnelDisclosure__icon"><IconBusiness size={18} /></span>
             <span className="personnelDisclosure__copy">
               <strong>Personel</strong>
-              <small>{personnelCount(s.store)} personel · Kapasite {queueCapacity(s.store)} · Günlük {tl(personnelDaily(s.store))}</small>
+              <small>
+                {t('{n} personel · Kapasite {kap} · Günlük {gunluk}', {
+                  n: personnelCount(s.store),
+                  kap: queueCapacity(s.store),
+                  gunluk: tl(personnelDaily(s.store)),
+                })}
+              </small>
             </span>
             <span className={`personnelDisclosure__chevron ${personnelOpen ? 'personnelDisclosure__chevron--open' : ''}`} aria-hidden="true">⌄</span>
           </button>
           {personnelOpen && <div className="group__body v5Controls personnelControls" id="personnel-controls">
             <p>Personel {personnelCount(s.store)} · Bekleme kapasitesi {queueCapacity(s.store)}</p>
-            <p>Aylık {tl(PERSONNEL_MONTHLY[personnelCount(s.store)]!)} · Günlük {tl(personnelDaily(s.store))}</p>
+            <p>
+              {t('Aylık {aylik} · Günlük {gunluk}', {
+                aylik: tl(PERSONNEL_MONTHLY[personnelCount(s.store)]!),
+                gunluk: tl(personnelDaily(s.store)),
+              })}
+            </p>
             <p>Maaşlar kişi başına eklenir: {PERSONNEL_SALARIES.map(salary => tl(salary)).join(' + ')} / ay.</p>
             <p>Yalnız bekleme kapasitesini artırır; müşteri geliş hızını veya atölyeyi değiştirmez.</p>
             <div className="personnelChoiceRow" role="group" aria-label={t('Personel sayısı')}>
@@ -225,7 +240,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
         <div className="group">
           <h2 className="group__title">{t('Günlük Akış')}</h2>
           <div className="group__body v5Controls">
-            <p>Kaçırılan Misafir: {s.missedGuestCountToday}</p>
+            <p>{t('Kaçırılan Misafir: {n}', { n: s.missedGuestCountToday })}</p>
             {s.lastDayReport && <p>Gün {s.lastDayReport.day}: {s.lastDayReport.missedGuestCountToday ?? 0} misafir kaçırıldı · Gider {tl(s.lastDayReport.overhead)} (personel dahil).</p>}
           </div>
         </div>
@@ -265,7 +280,10 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             />
             <StatLine
               label={t("Tedarik limiti")}
-              value={`${tl(Math.max(0, creditLimit(s.store) - usedLimit(s.store.supplier)))} kullanılabilir · ${creditTermDays(s.store)} gün vade`}
+              value={t('{tutar} kullanılabilir · {gun} gün vade', {
+                tutar: tl(Math.max(0, creditLimit(s.store) - usedLimit(s.store.supplier))),
+                gun: creditTermDays(s.store),
+              })}
             />
           </div>
         </div>
@@ -276,13 +294,16 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
           <div className="group__body">
             <MenuLine
               title="Piyasa"
-              sub={`${MARKET_REGIME[s.market.regime].label} · ${s.market.assets.length} varlık`}
+              sub={t('{rejim} · {n} varlık', {
+                rejim: t(MARKET_REGIME[s.market.regime].label),
+                n: s.market.assets.length,
+              })}
               icon={<IconLiquidity size={17} />}
               onPress={() => onOpen('market')}
             />
             <MenuLine
               title={t('İşlem Defteri')}
-              sub={`${s.ledger.deals.length} kayıt · vaka özetleri`}
+              sub={t('{n} kayıt · vaka özetleri', { n: s.ledger.deals.length })}
               icon={<IconReason size={17} />}
               onPress={() => onOpen('journal')}
             />
@@ -312,7 +333,11 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             />
             <MenuLine
               title={t("Kariyer / Yetenekler")}
-              sub={`Seviye ${s.store.level} · ${s.store.xp}/${s.store.xpToNext} XP`}
+              sub={t('Seviye {seviye} · {xp}/{hedef} XP', {
+                seviye: s.store.level,
+                xp: s.store.xp,
+                hedef: s.store.xpToNext,
+              })}
               icon={<IconBusiness size={17} />}
               onPress={() => onOpen('career')}
             />
@@ -333,14 +358,19 @@ function CareerRoute({ onBack }: { onBack: () => void }) {
           {t('← İşletme')}
         </button>
         <h1 className="pageHead__title">Kariyer / Yetenekler</h1>
-        <p className="pageHead__sub">Seviye {s.store.level} · uzmanlık ilerlemesi</p>
+        <p className="pageHead__sub">
+          {t('Seviye {seviye} · uzmanlık ilerlemesi', { seviye: s.store.level })}
+        </p>
       </header>
       <div className="page__scroll">
         <div className="group">
           <h2 className="group__title">{t('Seviye ilerlemesi')}</h2>
           <div className="group__body">
-            <StatLine label="XP" value={`${s.store.xp} / ${s.store.xpToNext}`} />
-            <div className="careerProgress" aria-label={`Seviye ilerlemesi yüzde ${progress}`}>
+            <StatLine label={t('XP')} value={`${s.store.xp} / ${s.store.xpToNext}`} />
+            <div
+              className="careerProgress"
+              aria-label={t('Seviye ilerlemesi yüzde {yuzde}', { yuzde: progress })}
+            >
               <span style={{ width: `${progress}%` }} />
             </div>
           </div>
@@ -397,7 +427,7 @@ function SaveRoute({ onBack }: { onBack: () => void }) {
           <h2 className="group__title">{t('Mevcut oyun')}</h2>
           <div className="group__body">
             <StatLine label={t("Gün / Saat")} value={`${s.market.day}. gün · ${clock(s.market.clockMinutes)}`} />
-            <StatLine label="Nakit" value={tl(s.store.cash)} />
+            <StatLine label={t('Nakit')} value={tl(s.store.cash)} />
             <button type="button" className="cta" onClick={save}>{t('Şimdi Kaydet')}</button>
           </div>
         </div>
@@ -443,8 +473,11 @@ function supplierSub(s: ReturnType<typeof useGame.getState>): string {
   const open = s.store.supplier.openInvoices.length;
   const available = creditLimit(s.store) - usedLimit(s.store.supplier);
   return open > 0
-    ? `${open} açık vade · ${tl(Math.max(0, available))} kullanılabilir limit`
-    : `${tl(Math.max(0, available))} kullanılabilir limit`;
+    ? t('{n} açık vade · {tutar} kullanılabilir limit', {
+        n: open,
+        tutar: tl(Math.max(0, available)),
+      })
+    : t('{tutar} kullanılabilir limit', { tutar: tl(Math.max(0, available)) });
 }
 
 /**
@@ -654,8 +687,8 @@ function networkSub(s: ReturnType<typeof useGame.getState>): string {
   const buyers = s.network.filter(buysBullion).length;
   const debt = networkDebt(s.network);
   return debt > 0
-    ? `${buyers} esnaf altın alıyor · ${tl(debt)} açık borç`
-    : `${buyers} esnaf altın alıyor · borç yok`;
+    ? t('{n} esnaf altın alıyor · {tutar} açık borç', { n: buyers, tutar: tl(debt) })
+    : t('{n} esnaf altın alıyor · borç yok', { n: buyers });
 }
 
 /**
@@ -922,7 +955,7 @@ function OvernightPanel() {
       <div className="group__body">
         <StatLine
           label={t("Dağılım")}
-          value={`Altın %${share} · Nakit %${100 - share}`}
+          value={t('Altın %{altin} · Nakit %{nakit}', { altin: share, nakit: 100 - share })}
           icon={<IconLiquidity size={15} />}
         />
         <StatLine label={t("Metale bağlı değer")} value={tl(position.metalValue)} />
@@ -962,7 +995,11 @@ function storeSub(s: ReturnType<typeof useGame.getState>): string {
   );
   if (!evaluation.next) return `${evaluation.current.name} · son kademe`;
   const acik = evaluation.gates.filter((g) => g.met).length;
-  return `${evaluation.current.name} · ${acik}/${evaluation.gates.length} koşul hazır`;
+  return t('{kademe} · {acik}/{toplam} koşul hazır', {
+    kademe: t(evaluation.current.name),
+    acik,
+    toplam: evaluation.gates.length,
+  });
 }
 
 /**
@@ -1172,7 +1209,7 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
             ))}
             {/* §11 "Dinamik havuz sapması: TELEMETRİ ALARMI ... devreye girer." */}
             {alarm.warning && (
-              <StatLine label="Telemetri" value={alarm.warning} tone="warning" />
+              <StatLine label={t('Telemetri')} value={alarm.warning} tone="warning" />
             )}
             <p className="emptyNote">
               Sinyaller karar desteğidir; ertesi günün yönünü ya da büyüklüğünü

@@ -1,4 +1,4 @@
-import { t } from '@i18n/index';
+import { getLanguage, t } from '@i18n/index';
 import { useState } from 'react';
 import {
   MARKET_CATALOG,
@@ -84,7 +84,10 @@ export function MarketPlaceholderScreen() {
       </header>
 
       <div className="marketSummary" aria-label={t('Market özeti')}>
-        <span><IconCollection size={17} /><b>{s.playerMarket.owned.length}</b> sahip olunan</span>
+        <span>
+          <IconCollection size={17} />
+          <b>{s.playerMarket.owned.length}</b> {t('sahip olunan')}
+        </span>
         <span><IconCash size={17} /><b>{tl(upkeep)}</b> {t('günlük şahsi bakım')}</span>
       </div>
 
@@ -122,7 +125,7 @@ export function MarketPlaceholderScreen() {
                 return (
                   <li key={id}>
                     <span className="marketOwned__mark" aria-hidden="true">{productMark(product)}</span>
-                    <span className="marketOwned__name">{product.name}</span>
+                    <span className="marketOwned__name">{t(product.name)}</span>
                     {slotta && <span className="marketOwned__badge">{t('Kullanılıyor')}</span>}
                     {product.dailyUpkeep ? (
                       <span className="marketOwned__upkeep num">{tl(product.dailyUpkeep)}/gün</span>
@@ -139,14 +142,17 @@ export function MarketPlaceholderScreen() {
         {MARKET_CATEGORIES.map((item) => (
           <button key={item.id} type="button" className={`marketCategory ${category === item.id ? 'marketCategory--active' : ''}`}
             onClick={() => setCategory(item.id)} aria-pressed={category === item.id}>
-            <span>{PRODUCT_MARK[item.id]}</span>{item.label}
+            <span>{PRODUCT_MARK[item.id]}</span>{t(item.label)}
           </button>
         ))}
       </nav>
 
       <main className="marketCatalog">
         <div className="marketCatalog__intro">
-          <div><strong>{MARKET_CATEGORIES.find((item) => item.id === category)?.label}</strong><p>{MARKET_CATEGORIES.find((item) => item.id === category)?.description}</p></div>
+          <div>
+            <strong>{t(MARKET_CATEGORIES.find((item) => item.id === category)?.label ?? '')}</strong>
+            <p>{t(MARKET_CATEGORIES.find((item) => item.id === category)?.description ?? '')}</p>
+          </div>
           {category === 'lifestyle' && <span>{t('Prestij verir · ticaret gücü vermez')}</span>}
         </div>
 
@@ -175,14 +181,23 @@ export function MarketPlaceholderScreen() {
                 */}
                 <div className="marketProduct__visual" aria-hidden="true"><span>{productMark(product)}</span></div>
                 <div className="marketProduct__body">
-                  <div className="marketProduct__topline"><span>{tierLabel(product)}</span>{product.dailyUpkeep ? <em>+{tl(product.dailyUpkeep)}/gün</em> : null}</div>
-                  <h2>{product.name}</h2><p>{product.description}</p>
+                  <div className="marketProduct__topline"><span>{t(tierLabel(product))}</span>{product.dailyUpkeep ? <em>{t('+{tutar}/gün', { tutar: tl(product.dailyUpkeep) })}</em> : null}</div>
+                  <h2>{t(product.name)}</h2>
+                  <p>{t(product.description)}</p>
                   {(!unlocked || requiresServerClaim) && <div className="marketProduct__requirement"><IconLock size={13} />{requirementLabel(product, s.store.hasBalanceMg ?? 0)}</div>}
                   <div className="marketProduct__actionRow">
-                    <strong className="num">{requiresServerClaim ? `${product.serverClaim?.globalQuota} adet` : tl(product.price)}</strong>
-                    {owned ? (product.equipSlot ? <button type="button" disabled={equipped} onClick={() => s.equipMarketProduct(product.id)}>{equipped ? 'Kullanılıyor' : 'Kullan'}</button> : <span className="marketProduct__owned">Koleksiyonda</span>) : (
-                      <button type="button" disabled={!unlocked || !affordable || requiresServerClaim} onClick={() => requestPurchase(product)} title={requiresServerClaim ? 'Global sıra için sunucu doğrulaması gerekir' : !affordable ? 'Yetersiz nakit' : undefined}>
-                        {requiresServerClaim ? (unlocked ? t('Doğrulama bekliyor') : t('Hedef kilitli')) : !affordable && unlocked ? t('Nakit yetersiz') : unlocked ? t('Satın Al') : 'Kilitli'}
+                    <strong className="num">{requiresServerClaim
+                        ? t('{n} adet', { n: product.serverClaim?.globalQuota ?? 0 })
+                        : tl(product.price)}</strong>
+                    {owned ? (product.equipSlot ? <button type="button" disabled={equipped} onClick={() => s.equipMarketProduct(product.id)}>{equipped ? t('Kullanılıyor') : t('Kullan')}</button> : <span className="marketProduct__owned">{t('Koleksiyonda')}</span>) : (
+                      <button type="button" disabled={!unlocked || !affordable || requiresServerClaim} onClick={() => requestPurchase(product)} title={
+                          requiresServerClaim
+                            ? t('Global sıra için sunucu doğrulaması gerekir')
+                            : !affordable
+                              ? t('Yetersiz nakit')
+                              : undefined
+                        }>
+                        {requiresServerClaim ? (unlocked ? t('Doğrulama bekliyor') : t('Hedef kilitli')) : !affordable && unlocked ? t('Nakit yetersiz') : unlocked ? t('Satın Al') : t('Kilitli')}
                       </button>
                     )}
                   </div>
@@ -196,9 +211,20 @@ export function MarketPlaceholderScreen() {
       {pending && (
         <div className="marketConfirmScrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPending(null); }}>
           <section className="marketConfirm" role="dialog" aria-modal="true" aria-labelledby="market-confirm-title">
-            <span className="marketConfirm__eyebrow">{t('Pahalı satın alma')}</span><h2 id="market-confirm-title">{pending.name}</h2>
-            <p>{tl(pending.price)} ödenecek. İşlemden sonra kasanda <strong>{tl(Math.max(0, s.store.cash - pending.price))}</strong> kalacak.</p>
-            {(pending.dailyUpkeep ?? 0) > 0 && <p className="marketConfirm__upkeep">Her gün kapanışında ayrıca {tl(pending.dailyUpkeep ?? 0)} bakım gideri işleyecek.</p>}
+            <span className="marketConfirm__eyebrow">{t('Pahalı satın alma')}</span><h2 id="market-confirm-title">{t(pending.name)}</h2>
+            <p>
+              {t('{tutar} ödenecek.', { tutar: tl(pending.price) })}{' '}
+              {t('İşlemden sonra kasanda {kalan} kalacak.', {
+                kalan: tl(Math.max(0, s.store.cash - pending.price)),
+              })}
+            </p>
+            {(pending.dailyUpkeep ?? 0) > 0 && (
+              <p className="marketConfirm__upkeep">
+                {t('Her gün kapanışında ayrıca {tutar} bakım gideri işleyecek.', {
+                  tutar: tl(pending.dailyUpkeep ?? 0),
+                })}
+              </p>
+            )}
             <div className="marketConfirm__actions"><button type="button" className="secondary" onClick={() => setPending(null)} autoFocus>{t('Vazgeç')}</button><button type="button" className="cta" onClick={confirmPurchase}>{t('Satın Al')}</button></div>
           </section>
         </div>
@@ -209,17 +235,42 @@ export function MarketPlaceholderScreen() {
 
 function requirementLabel(product: MarketProduct, hasBalanceMg: number): string {
   const parts: string[] = [];
-  if (product.unlockRequirement.level) parts.push(`Sv ${product.unlockRequirement.level}`);
-  if (product.unlockRequirement.reputation) parts.push(`İtibar ${product.unlockRequirement.reputation}`);
+  if (product.unlockRequirement.level)
+    parts.push(`${t('Sv')} ${product.unlockRequirement.level}`);
+  if (product.unlockRequirement.reputation)
+    parts.push(`${t('İtibar')} ${product.unlockRequirement.reputation}`);
   if (product.unlockRequirement.hasGrams) {
     const targetKg = product.unlockRequirement.hasGrams / 1_000;
     const currentKg = Math.min(targetKg, hasBalanceMg / 1_000_000);
-    parts.push(`${currentKg.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} / ${targetKg.toLocaleString('tr-TR')} kg HAS`);
+    parts.push(
+      t('{simdi} / {hedef} kg HAS', {
+        simdi: numberFmt(currentKg, 2),
+        hedef: numberFmt(targetKg, 0),
+      }),
+    );
   }
-  if (product.serverClaim) parts.push(`İlk ${product.serverClaim.globalQuota} · sunucu doğrulamalı`);
+  if (product.serverClaim)
+    parts.push(t('İlk {n} · sunucu doğrulamalı', { n: product.serverClaim.globalQuota }));
   return parts.join(' · ');
 }
 
 function tierLabel(product: MarketProduct): string {
-  return product.tier === 'legendary' ? 'Efsanevi' : product.tier === 'elite' ? 'Elit' : product.tier === 'premium' ? 'Premium' : 'Standart';
+  return product.tier === 'legendary'
+    ? 'Efsanevi'
+    : product.tier === 'elite'
+      ? 'Elit'
+      : product.tier === 'premium'
+        ? 'Premium'
+        : 'Standart';
+}
+
+/**
+ * Sayıyı DİLİN yereliyle yazar. Burada `toLocaleString('tr-TR')` sabitti;
+ * İngilizce oynayan biri "1.5 kg" yerine "1,5 kg" görürdü — ve bu, virgülü
+ * binlik ayracı sanan biri için yanlış bir sayıdır.
+ */
+function numberFmt(value: number, digits: number): string {
+  return new Intl.NumberFormat(getLanguage() === 'en' ? 'en-US' : 'tr-TR', {
+    maximumFractionDigits: digits,
+  }).format(value);
 }

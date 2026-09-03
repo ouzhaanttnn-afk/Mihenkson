@@ -73,8 +73,7 @@ export const LESSONS: Lesson[] = [
     id: 'welcome',
     title: 'Dükkân senin',
     body:
-      'Kasandaki parayla mal alır, aldığından pahalıya satarsın. Her gün kira ve gider işler; ' +
-      'günü kârla kapatmak senin işin.',
+      'Kasandaki parayla mal alır, aldığından pahalıya satarsın. Her gün kira ve gider işler; günü kârla kapatmak senin işin.',
     when: (c) => c.day === 1 && !c.hasCustomer,
   },
   {
@@ -87,16 +86,14 @@ export const LESSONS: Lesson[] = [
     id: 'fastFlow',
     title: 'Sarrafiyede test şart değil',
     body:
-      'Standart sarrafiyenin gramajı ve ayarı bellidir. Şüpheli bir hâli yoksa doğrudan ' +
-      'fiyata geçebilirsin.',
+      'Standart sarrafiyenin gramajı ve ayarı bellidir. Şüpheli bir hâli yoksa doğrudan fiyata geçebilirsin.',
     when: (c) => c.stage === 'inspect' && c.transactionClass === 'fast',
   },
   {
     id: 'inspect',
     title: 'Gördüğün beyandır',
     body:
-      'Müşterinin söylediği ağırlık ve ayar doğrulanmış değil. Raydaki araçlar bu belirsizliği ' +
-      'para ve müşteri sabrı karşılığında azaltır.',
+      'Müşterinin söylediği ağırlık ve ayar doğrulanmış değil. Raydaki araçlar bu belirsizliği para ve müşteri sabrı karşılığında azaltır.',
     when: (c) =>
       c.stage === 'inspect' &&
       c.flow === 'trade' &&
@@ -107,32 +104,28 @@ export const LESSONS: Lesson[] = [
     id: 'appraise',
     title: 'Aralık ne kadar dar, o kadar iyi',
     body:
-      'Test yaptıkça tahmini değer aralığı daralır. Dar aralık, daha yüksek fiyat verebilmen ' +
-      'demektir — belirsizliğin bedelini sen ödersin.',
+      'Test yaptıkça tahmini değer aralığı daralır. Dar aralık, daha yüksek fiyat verebilmen demektir — belirsizliğin bedelini sen ödersin.',
     when: (c) => c.stage === 'appraise' && c.hasBand,
   },
   {
     id: 'thesis',
     title: 'Önce nereye satacağını seç',
     body:
-      'Çıkış planın alış tavanını belirler: tezgâhta beklemek pahalıya satar ama yavaştır, ' +
-      'toptancı hemen öder ama ucuza alır.',
+      'Çıkış planın alış tavanını belirler: tezgâhta beklemek pahalıya satar ama yavaştır, toptancı hemen öder ama ucuza alır.',
     when: (c) => c.stage === 'thesis',
   },
   {
     id: 'negotiate',
     title: 'Tavanın üstü zarardır',
     body:
-      'Alış tavanı, bu plandan kâr edebileceğin en yüksek fiyat. Müşteri kabul etmezse karşı ' +
-      'teklif verir; aynı rakamı tekrar göndermek yeni bir cevap getirmez.',
+      'Alış tavanı, bu plandan kâr edebileceğin en yüksek fiyat. Müşteri kabul etmezse karşı teklif verir; aynı rakamı tekrar göndermek yeni bir cevap getirmez.',
     when: (c) => c.stage === 'negotiate',
   },
   {
     id: 'stock',
     title: 'Aldığın mal stoğa düşer',
     body:
-      'Stok ekranından ne tuttuğunu, maliyetini ve bugünkü değerini görürsün. Nakit ile altın ' +
-      'arasındaki denge de orada.',
+      'Stok ekranından ne tuttuğunu, maliyetini ve bugünkü değerini görürsün. Nakit ile altın arasındaki denge de orada.',
     when: (c) => c.stockUnits > 0 && !c.hasCustomer,
   },
 ];

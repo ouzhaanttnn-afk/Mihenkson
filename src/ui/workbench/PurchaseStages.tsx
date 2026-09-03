@@ -131,7 +131,7 @@ export function StockPickStage({
                     <span className="pickRow__body">
                       <span className="pickRow__name">{item.displayName}</span>
                       <span className={`pickRow__match pickRow__match--${match}`}>
-                        {MATCH_LABEL[match]}
+                        {t(MATCH_LABEL[match])}
                         {stackable && ` · stokta ${amountLabel(demand, position.quantity)}`}
                         {position.location === 'backStock' && t(' · arka stok')}
                       </span>

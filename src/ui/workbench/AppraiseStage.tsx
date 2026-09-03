@@ -55,7 +55,7 @@ export function AppraiseStage({ band }: Props) {
             ))}
           </span>
           <span className={`confidence__value confidence__value--${band.confidence}`}>
-            {CONFIDENCE_LABEL[band.confidence]}
+            {t(CONFIDENCE_LABEL[band.confidence])}
           </span>
         </div>
       </div>

@@ -285,7 +285,7 @@ export function NegotiateStage({
                 {t('Senin Analizin')}
                 <span className={`refPanel__conf confidence__value--${band.confidence}`}>
                   {' '}
-                  · {CONFIDENCE_LABEL[band.confidence]} ({verifiedFields}/{totalFields})
+                  · {t(CONFIDENCE_LABEL[band.confidence])} ({verifiedFields}/{totalFields})
                 </span>
               </span>
               <span className="refPanel__val num">
@@ -405,7 +405,7 @@ export function NegotiateStage({
                 className="art--onDark"
                 fallback={TacticIcon ? <TacticIcon size={26} /> : null}
               />
-              <span className="moveStrip__label">{MOVE_LABEL[lastTactic.kind]}</span>
+              <span className="moveStrip__label">{t(MOVE_LABEL[lastTactic.kind] ?? '')}</span>
             </span>
           )}
 
@@ -413,7 +413,7 @@ export function NegotiateStage({
             <span className="moveStrip__cell moveStrip__cell--tier">
               <Art art={OFFER_TIER_ART[tier]} size={56} decorative fallback={null} />
               <span className="moveStrip__label">
-                Teklifin: <strong>{OFFER_TIER_LABEL[tier]}</strong>
+                Teklifin: <strong>{t(OFFER_TIER_LABEL[tier])}</strong>
               </span>
             </span>
           )}
@@ -434,7 +434,7 @@ function StateBadge({ state }: { state: NegotiationSession['state'] }) {
     <div className="stateBadge">
       <span className="stateBadge__label">{t('Pazarlık')}</span>
       <span className={`stateBadge__value stateBadge__value--${state}`}>
-        {STATE_LABEL[state]}
+        {t(STATE_LABEL[state])}
       </span>
       <span className={`stateBadge__dots stateBadge__value--${state}`}>
         {STATE_ORDER.map((_, i) => (

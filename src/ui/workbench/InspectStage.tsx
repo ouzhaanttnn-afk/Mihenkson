@@ -123,7 +123,7 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
           {fields.includes('purity') && (
             <Field
               label={purityVerified ? 'Ayar' : t('Beyan ayarı')}
-              value={KARAT_LABEL[shownKarat]}
+              value={t(KARAT_LABEL[shownKarat])}
               status={purityStatus}
               statusLabel={isBullion(item.templateId) && purityStatus === 'partial' ? 'beyan' : undefined}
             />
@@ -137,13 +137,13 @@ export function InspectStage({ item, knowledge, testResults, market }: Props) {
           )}
           {fields.includes('condition') && (
             <Field
-              label="Kondisyon"
+              label={t('Kondisyon')}
               value={
-                CONDITION_LABEL[
+                t(CONDITION_LABEL[
                   conditionStatus === 'verified'
                     ? item.truth.condition
                     : item.declared.visibleCondition
-                ]
+                ])
               }
               status={conditionStatus}
             />
@@ -222,7 +222,7 @@ function statusOf(knowledge: FieldKnowledge[], field: InfoField): FieldKnowledge
 function stoneText(item: ItemInstance, knowledge: FieldKnowledge[]): string {
   const status = statusOf(knowledge, 'stone');
   const { count, genuine, kind } = item.truth.stoneData;
-  const kindLabel = STONE_LABEL[kind] ?? t('Taş');
+  const kindLabel = STONE_LABEL[kind] ? t(STONE_LABEL[kind]) : t("Taş");
   if (status !== 'verified') return `${count} adet · tür belirsiz`;
   return `${count} adet ${kindLabel}${genuine ? '' : ' (taklit)'}`;
 }
