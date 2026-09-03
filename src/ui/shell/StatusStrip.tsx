@@ -7,7 +7,7 @@
 
 import { SPEED_STEPS, type SpeedStep } from '@domain/balance';
 import { weekdayLabel, weekdayShort } from '@domain/calendar';
-import { IconLock, IconPencil, BrandMark } from '@ui/icons';
+import { IconLock, IconPencil, IconSettings, BrandMark } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { avatarArt } from '@ui/assets';
 import { clock, tlBare } from '@ui/format';
@@ -21,6 +21,7 @@ interface Props {
   speed4xUnlocked: boolean;
   onSpeed: (s: SpeedStep) => void;
   onUnlock4x: () => void;
+  onOpenSettings: () => void;
   /** Kuyumcunun adı ve portresi — yalnız görünüm. */
   profile: PlayerProfile;
   profileFrame?: string;
@@ -34,6 +35,7 @@ export function StatusStrip({
   speed4xUnlocked,
   onSpeed,
   onUnlock4x,
+  onOpenSettings,
   profile,
   profileFrame,
   onEditProfile,
@@ -111,7 +113,9 @@ export function StatusStrip({
         unlocked={speed4xUnlocked}
         onSpeed={onSpeed}
         onUnlock={onUnlock4x}
+        onOpenSettings={onOpenSettings}
       />
+
     </header>
   );
 }
@@ -126,11 +130,13 @@ function SpeedControl({
   unlocked,
   onSpeed,
   onUnlock,
+  onOpenSettings,
 }: {
   speed: SpeedStep;
   unlocked: boolean;
   onSpeed: (s: SpeedStep) => void;
   onUnlock: () => void;
+  onOpenSettings: () => void;
 }) {
   return (
     <div className="speed" role="group" aria-label="Oyun hızı">
@@ -159,6 +165,33 @@ function SpeedControl({
           </button>
         );
       })}
+
+      {/*
+        AYARLAR — HIZ GRUBUNUN İÇİNDE, 4x'in hemen yanında.
+
+        Önce Dükkan ekranında yüzen bir baloncuktu; yeri yanlıştı. Ayar her
+        yerden erişilebilmeli ve üst şerit dört sekmede de duran tek kalıcı
+        yüzey.
+
+        AYRI BİR SÜTUN OLARAK DENENDİ VE OLMADI: 390 px'de sütunların doğal
+        toplamı 359 px'e çıkıyor, kullanılabilir alan 326 px; fark profil
+        adını eziyordu ("Kuyumcu" 55 px isterken 13 px alıyordu). Grubun
+        içine alınca kendi kenarlığını, boşluğunu ve dolgusunu hız grubuyla
+        PAYLAŞIYOR — yer açılıyor.
+
+        Anlamı da doğru: ikisi de "oyunu nasıl oynuyorum" ayarı, ikisi de
+        oyunun içeriğine değil çerçevesine ait. Tek küme gibi okunuyorlar.
+      */}
+      <span className="speed__divider" aria-hidden="true" />
+      <button
+        type="button"
+        className="speed__settings"
+        onClick={onOpenSettings}
+        aria-label="Ayarlar"
+        title="Ayarlar"
+      >
+        <IconSettings size={16} />
+      </button>
     </div>
   );
 }

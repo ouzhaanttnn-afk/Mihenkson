@@ -445,8 +445,15 @@ export const IconSettings = ({ size = 22, className, style }: IconProps) => (
     style={style}
     aria-hidden="true"
   >
+    {/*
+      DİŞLİ — eskisi GÜNEŞ İKONUYDU.
+
+      Önceki çizim bir çember ve sekiz ışındı; ekranda "ayarlar" değil
+      "parlaklık" diye okunuyordu. Dişli, ayarın evrensel işareti: dış hat
+      sekiz dişli bir çark, ortada delik.
+    */}
+    <path d="M10.3 2.6h3.4l.35 2.32a7.4 7.4 0 0 1 1.86.78l1.9-1.36 2.4 2.4-1.36 1.9c.34.58.6 1.2.78 1.86l2.32.35v3.4l-2.32.35a7.4 7.4 0 0 1-.78 1.86l1.36 1.9-2.4 2.4-1.9-1.36a7.4 7.4 0 0 1-1.86.78l-.35 2.32h-3.4l-.35-2.32a7.4 7.4 0 0 1-1.86-.78l-1.9 1.36-2.4-2.4 1.36-1.9a7.4 7.4 0 0 1-.78-1.86L2.6 13.7v-3.4l2.32-.35c.18-.66.44-1.28.78-1.86L4.34 6.19l2.4-2.4 1.9 1.36c.58-.34 1.2-.6 1.86-.78z" />
     <circle cx="12" cy="12" r="3.1" />
-    <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4 17 7M7 17l-1.6 1.6M18.6 18.6 17 17M7 7 5.4 5.4" />
   </svg>
 );
 

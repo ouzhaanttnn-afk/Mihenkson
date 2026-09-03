@@ -60,7 +60,7 @@ Referans depolar:
 | A9 · Stok marjı hangi kanala göre, yazmıyor | ✅ yapıldı |
 | C1 · Vitrin tezi seçilince mal vitrine girmiyordu | ✅ yapıldı |
 | C5 · Karşılanan satıcıdan vazgeçilemiyordu | ✅ yapıldı |
-| YENİ · Ayarlar baloncuğu (Dükkan ekranı) | ✅ yapıldı |
+| YENİ · Ayarlar düğmesi — üst şeride, hız kontrolünün içine taşındı | ✅ yapıldı |
 | A8 · Karşı Teklif sınırsız basılıyordu | ✅ yapıldı |
 | A3-2 · HAS tezgâhı katlanır oldu | ✅ yapıldı |
 | C3 · "Alımı Bitir" hiçbir şey almıyordu | ✅ yapıldı |
@@ -496,6 +496,42 @@ Kanal adı zaten değişken uzunlukta ("Toptancı" ↔ "Servis + satış"), etik
 kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttaki cümleye taşındı.
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
+
+#### YENİ · Ayarlar düğmesinin yeri ve ikonu — ✅ YAPILDI
+`src/ui/shell/StatusStrip.tsx` · `src/ui/icons.tsx` · `AppShell.css`
+
+Kullanıcı: *"ayarlar düğmesini oradan alıp yukarıda isim sv. satırına koy, en mantıklı yer
+4x'in yanı. Ayrıca yanlış duruyor, ayarlar olduğunu belli edecek bir ikonla değiştir."*
+
+**İkon gerçekten yanlıştı.** Eski `IconSettings` bir çember ve sekiz ışındı — yani
+GÜNEŞ/parlaklık ikonu. Ekranda "ayarlar" diye okunmuyordu. Sekiz dişli bir çarkla
+değiştirildi.
+
+**Yer:** Dükkan ekranındaki yüzen baloncuk kaldırıldı; düğme üst şeride, HIZ GRUBUNUN
+İÇİNE, 4x'in hemen yanına alındı. Anlamı da doğru: ikisi de "oyunu nasıl oynuyorum"
+ayarı, oyunun içeriğine değil çerçevesine ait.
+
+**AYRI SÜTUN OLARAK DENENDİ VE OLMADI.** Önce şeride beşinci bir sütun olarak eklendi;
+ölçüm sütunların doğal toplamını **359 px**, kullanılabilir alanı **326 px** gösterdi ve
+fark profil adını eziyordu (`Kuyumcu` 55 px isterken **13 px** alıyordu). Grubun içine
+alınınca kendi kenarlığını, boşluğunu ve dolgusunu hız grubuyla paylaşıyor.
+
+**EKRAN GÖRÜNTÜSÜNÜN YAKALADIĞI ASIL KIRILMA.** Sayılar yalnız "ad kırpılıyor" diyordu;
+görüntüde ise **"Sv" ile "1" alt alta düşmüştü** — seviye satırı kendi içinde sarıyordu.
+`white-space: nowrap` ile düzeltildi: daralınca metin artık sarmaz, kırpılır. Bu, şeridin
+beş sütuna çıkmasından bağımsız olarak da doğru davranış.
+
+Boşluklar sıkıştırıldı (şerit 8→6 px, kenar 16→12 px, çip içi 6→4 px) ve ad yeniden
+sığdı.
+
+**Kalan sınır, dürüstçe:** 390 px'de beş bilgi (avatar+ad+seviye, gün/saat, nakit, hız,
+ayar) yan yana durunca ad için pay dardır. `Kuyumcu` sığıyor ama daha uzun bir ad
+(`Abdurrahman` gibi) üç nokta ile kısalır. Bu bir kırılma değil, `text-overflow: ellipsis`
+ile tasarlanmış kademeli davranış. Tam adın her zaman görünmesi isteniyorsa XP sayısı
+(`0/580`) şeritten çıkarılabilir — altındaki çubuk aynı bilgiyi zaten gösteriyor.
+
+**Doğrulandı:** 895 test geçiyor; beş ekranda yatay taşma ve konsol hatası yok; düğme
+tıklanınca ayarlar açılıyor, Escape kapatıyor.
 
 #### YENİ · Ayarlarda ses, titreşim ve dil — ✅ YAPILDI (davranış sonra bağlanacak)
 `src/domain/preferences.ts` (yeni) · `src/state/save.ts` · `src/state/gameStore.ts` ·

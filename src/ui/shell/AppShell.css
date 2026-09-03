@@ -106,8 +106,10 @@
   height: var(--h-status-strip);
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: 0 var(--gutter);
+  /* Beşinci sütun (ayarlar) eklenince boşluk ve kenar payı daraltıldı;
+     390 px'de profil adının ezilmemesi için gereken 33 px buradan çıktı. */
+  gap: 6px;
+  padding: 0 12px;
   background: var(--ink-800);
   color: var(--text-dark-1);
   border-bottom: 1px solid var(--line-dark);
@@ -138,7 +140,9 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  /* Şerit beş sütuna çıkınca ad sütunu daralıyordu; bu boşluk doğrudan
+     metne gidiyor. */
+  gap: 4px;
   min-width: 0;
   /* Dokunma hedefi şeridin tamamı kadar yüksek (GDD 23.22 · 44 px). */
   height: 64px;
@@ -224,10 +228,27 @@
   line-height: 1.1;
 }
 
+/*
+  SATIR SARMAZ. Şerit daraldığında "Sv 1" kendi içinde bölünüyor ve "Sv"
+  ile "1" alt alta düşüyordu — ölçümde görünmeyen, ekran görüntüsünde
+  yakalanan bir kırılma. Daralınca metin sarmaz, kırpılır.
+*/
 .statusStrip__levelRow {
   display: flex;
   align-items: baseline;
   gap: var(--sp-1);
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.statusStrip__levelNum,
+.statusStrip__xp { white-space: nowrap; }
+
+.statusStrip__xp {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .statusStrip__levelNum {
@@ -329,6 +350,35 @@
 }
 
 /* Kompakt 1x / 2x / 4x hız kontrolü — ayrı kart açmaz (GDD 23.9.2). */
+
+
+/*
+  Ayarlar düğmesi hız grubunun İÇİNDE (bkz. StatusStrip · SpeedControl):
+  kendi kenarlığı ve boşluğu yok, grubun dolgusunu paylaşıyor. Ayrı sütun
+  olsaydı 390 px'de profil adı eziliyordu.
+*/
+.speed__divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 2px;
+  background: var(--line-dark);
+}
+
+.speed__settings {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  align-self: stretch;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--text-dark-2);
+  cursor: pointer;
+}
+
+.speed__settings:hover,
+.speed__settings:focus-visible { color: var(--brass-300); }
+
 .speed {
   flex: 0 0 auto;
   display: flex;
@@ -1600,38 +1650,6 @@
 /* AYARLAR — baloncuk düğme + pencere                                  */
 /* ------------------------------------------------------------------ */
 
-/*
-  Baloncuk piyasa şeridinin hemen altına, sağ kenara oturur. `absolute`
-  değil `fixed` DEĞİL: cihaz çerçevesinin içinde kalması gerekiyor, yoksa
-  geniş ekranda çerçevenin dışına kaçar. Konumlandırma bağlamı `.device`.
-*/
-.settingsBubble {
-  position: absolute;
-  right: 10px;
-  top: calc(
-    var(--h-status-strip) + var(--h-market-strip) + var(--safe-top) + 8px
-  );
-  z-index: 30;
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--line-dark);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--ink-800) 82%, transparent);
-  color: var(--brass-300);
-  cursor: pointer;
-  backdrop-filter: blur(3px);
-  box-shadow: 0 2px 10px #0006;
-}
-.settingsBubble:hover,
-.settingsBubble:focus-visible {
-  background: var(--ink-800);
-  color: var(--brass-200, var(--brass-300));
-}
-.settingsBubble:active { transform: scale(0.94); }
-
 .settingsScrim {
   position: absolute;
   inset: 0;
@@ -1861,5 +1879,4 @@
 @media (prefers-reduced-motion: reduce) {
   .settingsRow__switch,
   .settingsRow__knob { transition: none; }
-  .settingsBubble:active { transform: none; }
-}
+  }
