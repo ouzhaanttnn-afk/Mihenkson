@@ -9,11 +9,22 @@ export const roundMoney = (tl: number): number => Math.round(tl);
 export const PERSONNEL_SALARIES = [40_000, 50_000, 60_000] as const;
 export const PERSONNEL_MONTHLY = [0, PERSONNEL_SALARIES[0], PERSONNEL_SALARIES[0] + PERSONNEL_SALARIES[1], PERSONNEL_SALARIES[0] + PERSONNEL_SALARIES[1] + PERSONNEL_SALARIES[2]] as const;
 export const PERSONNEL_UNLOCK_LEVELS = [1, 3, 6, 10] as const;
+export const personnelAdUnlockLevel = (store: StoreState): number =>
+  Math.min(3, Math.max(0, Math.trunc(store.personnelAdUnlockLevel ?? 0)));
 export const canSetPersonnel = (store: StoreState, count: number): boolean => Number.isInteger(count) && count >= 0 && count <= 3 &&
-  (count <= personnelCount(store) || store.level >= PERSONNEL_UNLOCK_LEVELS[count]!);
+  (count <= personnelCount(store) || store.level >= PERSONNEL_UNLOCK_LEVELS[count]! || count <= personnelAdUnlockLevel(store));
 export const personnelCount = (store: StoreState): number => Math.min(3, Math.max(0, Math.trunc(store.personnelCount ?? 0)));
 export const queueCapacity = (store: StoreState): number => Math.min(10, 4 + personnelCount(store) * 2);
 export const personnelDaily = (store: StoreState): number => PERSONNEL_MONTHLY[personnelCount(store)]! / 30;
+/**
+ * Bir personel kademesini seviye şartı olmadan, tek seferlik ödeyerek açmanın
+ * bedeli — kademenin AYLIK toplamıyla AYNI rakam (`PERSONNEL_MONTHLY`).
+ * Kullanıcı isteği: "40k verip açtığın personeli reklam izleyip
+ * kiralayabileceksin" — açılış bedeli ile o kademenin günlük tekrar dolum
+ * bedeli (bkz. `personnelDaily`, reklamla ücretsiz olabilir) BİLEREK AYNI
+ * kaynaktan (`PERSONNEL_MONTHLY`) geliyor, iki ayrı sayı icat edilmedi.
+ */
+export const personnelAdUnlockCost = (count: number): number => PERSONNEL_MONTHLY[count]!;
 export const dailyOperatingCost = (store: StoreState): number => roundMoney(store.dailyOverhead + personnelDaily(store));
 export const SCALE_MAINTENANCE_INTERVAL_DAYS = 30;
 export const scaleMaintenanceCost = (store: StoreState, day: number): number =>

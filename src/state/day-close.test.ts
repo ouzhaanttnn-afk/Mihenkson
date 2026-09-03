@@ -3,7 +3,16 @@ import { useGame } from './gameStore';
 import { deserialize, readSave, serialize } from './save';
 import { applyTransaction, closeDay, createLedger } from '@domain/settlement';
 import { createMarketForDay } from '@domain/market';
-import { canSetPersonnel, dailyOperatingCost, PERSONNEL_MONTHLY, personnelDaily, scaleMaintenanceCost, weekdayName } from '@domain/v5-rules';
+import {
+  canSetPersonnel,
+  dailyOperatingCost,
+  PERSONNEL_MONTHLY,
+  personnelAdUnlockCost,
+  personnelAdUnlockLevel,
+  personnelDaily,
+  scaleMaintenanceCost,
+  weekdayName,
+} from '@domain/v5-rules';
 
 const initial = useGame.getState();
 beforeEach(() => {
@@ -46,6 +55,85 @@ describe('personnel additive salaries and level gates', () => {
   });
   it.each([-1, 4, 1.5, NaN, Infinity])('rejects invalid personnel count %s', count => {
     expect(canSetPersonnel({ ...initial.store, level: 99 }, count)).toBe(false);
+  });
+});
+
+describe('personnel ad-unlock + daily waiver (kullanıcı: "40k verip açtığın personel...")', () => {
+  it('unlock cost equals the tier\'s cumulative monthly total, not a new number', () => {
+    expect(personnelAdUnlockCost(1)).toBe(PERSONNEL_MONTHLY[1]);
+    expect(personnelAdUnlockCost(2)).toBe(PERSONNEL_MONTHLY[2]);
+    expect(personnelAdUnlockCost(3)).toBe(PERSONNEL_MONTHLY[3]);
+    expect([personnelAdUnlockCost(1), personnelAdUnlockCost(2), personnelAdUnlockCost(3)]).toEqual([40000, 90000, 150000]);
+  });
+
+  it('canSetPersonnel bypasses the level gate up to the ad-unlocked tier, no further', () => {
+    const store = { ...initial.store, level: 1, personnelAdUnlockLevel: 2 };
+    expect(canSetPersonnel(store, 2)).toBe(true); // seviye 6 gerekirdi, ad-unlock ile geçildi
+    expect(canSetPersonnel(store, 3)).toBe(false); // 3. kademe hâlâ kilitli — ne seviye ne ad-unlock yeterli
+  });
+
+  it('unlockPersonnelTier charges cash once, sets both unlock level and headcount, never twice for the same tier', () => {
+    useGame.setState({ store: { ...useGame.getState().store, cash: 200_000, level: 1, personnelCount: 0, personnelAdUnlockLevel: 0 } });
+    const ok = useGame.getState().unlockPersonnelTier(2);
+    expect(ok).toBe(true);
+    expect(useGame.getState().store.cash).toBe(200_000 - PERSONNEL_MONTHLY[2]!);
+    expect(personnelAdUnlockLevel(useGame.getState().store)).toBe(2);
+    expect(useGame.getState().store.personnelCount).toBe(2);
+    expect(canSetPersonnel(useGame.getState().store, 2)).toBe(true);
+
+    // İkinci çağrı aynı kademeyi tekrar tekrar açmaz — çift ödeme yok.
+    const cashAfterFirst = useGame.getState().store.cash;
+    const again = useGame.getState().unlockPersonnelTier(2);
+    expect(again).toBe(false);
+    expect(useGame.getState().store.cash).toBe(cashAfterFirst);
+  });
+
+  it('unlockPersonnelTier fails without charging when cash is insufficient', () => {
+    useGame.setState({ store: { ...useGame.getState().store, cash: 10_000, level: 1, personnelAdUnlockLevel: 0 } });
+    const ok = useGame.getState().unlockPersonnelTier(1);
+    expect(ok).toBe(false);
+    expect(useGame.getState().store.cash).toBe(10_000);
+    expect(personnelAdUnlockLevel(useGame.getState().store)).toBe(0);
+  });
+
+  it.each([0, 4, 1.5, NaN])('rejects an invalid tier %s', count => {
+    useGame.setState({ store: { ...useGame.getState().store, cash: 1_000_000 } });
+    expect(useGame.getState().unlockPersonnelTier(count)).toBe(false);
+  });
+
+  it('closeDay waives the personnel expense for the day when personnelCostWaived is true, without touching headcount', () => {
+    const store = { ...initial.store, dailyOverhead: 1200, personnelCount: 3, cash: 1_000_000 };
+    const state = { ...initial, store, market: createMarketForDay(initial.seed, 1) } as any;
+
+    const normal = closeDay(state, 1, 0, 0, false);
+    expect(normal.report.personnelExpense).toBe(personnelDaily(store));
+    expect(normal.report.overhead).toBe(Math.round(1200 + personnelDaily(store)));
+
+    const waived = closeDay(state, 1, 0, 0, true);
+    expect(waived.report.personnelExpense).toBe(0);
+    expect(waived.report.overhead).toBe(1200);
+    expect(waived.state.store.personnelCount).toBe(3); // yalnız gider 0, kadro DEĞİŞMEZ
+  });
+
+  it('closeDay defaults to charging the personnel expense when the waiver flag is omitted (old call sites unaffected)', () => {
+    const store = { ...initial.store, dailyOverhead: 0, personnelCount: 1, cash: 1_000_000 };
+    const state = { ...initial, store, market: createMarketForDay(initial.seed, 1) } as any;
+    const result = closeDay(state, 1, 0, 0);
+    expect(result.report.personnelExpense).toBe(personnelDaily(store));
+  });
+
+  it('requestPersonnelAdWaiver is a no-op when there is no personnel to waive', async () => {
+    useGame.setState({ store: { ...useGame.getState().store, personnelCount: 0 }, personnelCostWaivedToday: false });
+    await useGame.getState().requestPersonnelAdWaiver();
+    expect(useGame.getState().personnelCostWaivedToday).toBe(false);
+    expect(useGame.getState().rewardedAdPending).toBeNull();
+  });
+
+  it('requestPersonnelAdWaiver never grants the waiver outside a native build (no free ride in web/dev)', async () => {
+    useGame.setState({ store: { ...useGame.getState().store, personnelCount: 2 }, personnelCostWaivedToday: false });
+    await useGame.getState().requestPersonnelAdWaiver();
+    expect(useGame.getState().personnelCostWaivedToday).toBe(false);
+    expect(useGame.getState().rewardedAdPending).toBeNull();
   });
 });
 

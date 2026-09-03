@@ -23,7 +23,7 @@ import { LIQUIDITY_BANDS, XP } from './balance';
 import { hasPoolSupplySpace, poolSupplyQuote, validPoolSupplyItem, validPoolSupplyQuantity } from './pool-supply';
 import { isBullion } from '@data/bullion';
 import { consolidatePools, poolForItem, validQuantity, poolUnitGrams } from './stock-pools';
-import { toMg, fromMg, roundMoney, personnelDaily, isHasTradingDay, dailyOperatingCost, scaleMaintenanceCost, dueScaleMaintenanceDebt } from './v5-rules';
+import { toMg, fromMg, roundMoney, personnelDaily, isHasTradingDay, scaleMaintenanceCost, dueScaleMaintenanceDebt } from './v5-rules';
 import type {
   DealRecord,
   GameDay,
@@ -580,16 +580,22 @@ export interface DayReport {
 /**
  * Gün kapanışı. GDD 22.1: "Gün sonu servis/vade/gelir işlemleri idempotent
  * olmalıdır." Aynı gün için ikinci kez çağrılırsa kasa tekrar eksilmez.
+ *
+ * `personnelCostWaived` — oyuncu bugün personel reklam kirasını izlediyse
+ * `true`; personel gideri bu günlük yalnızca 0 sayılır, `store.personnelCount`
+ * ve kapasitesi DEĞİŞMEZ. Varsayılan `false`: eski çağıranlar (testler dahil)
+ * hiçbir değişiklik görmeden çalışmaya devam eder.
  */
 export function closeDay(
   state: EconomyState,
   day: GameDay,
   missedGuestCountToday = 0,
   lifestyleExpense: Money = 0,
+  personnelCostWaived = false,
 ): DayCloseResult {
   const txId = `dayclose_${day}`;
-  const personnelExpense = personnelDaily(state.store);
-  const regularExpense = roundMoney(dailyOperatingCost(state.store) + Math.max(0, lifestyleExpense));
+  const personnelExpense = personnelCostWaived ? 0 : personnelDaily(state.store);
+  const regularExpense = roundMoney(state.store.dailyOverhead + personnelExpense + Math.max(0, lifestyleExpense));
   const maintenanceDue = scaleMaintenanceCost(state.store, day);
   const maintenanceDebtDue = dueScaleMaintenanceDebt(state.store, day);
   // Aylık bakım oyunu kilitlemez: düzenli gider karşılanabiliyorsa bakımın

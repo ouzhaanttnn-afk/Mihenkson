@@ -2018,6 +2018,68 @@ Doğrulama: `tsc` temiz, 966/966 test yeşil, taze build+cap:sync.
 
 ---
 
+#### YENİ · Personeli reklamla/tek seferlik ödeyerek seviye şartı olmadan aç — ✅ YAPILDI
+`src/domain/types.ts` (`StoreState.personnelAdUnlockLevel`) · `src/domain/v5-rules.ts`
+(`personnelAdUnlockLevel`, `personnelAdUnlockCost`, `canSetPersonnel`) ·
+`src/domain/settlement.ts` (`closeDay` 5. parametre) · `src/state/save.ts` ·
+`src/state/gameStore.ts` (`unlockPersonnelTier`, `requestPersonnelAdWaiver`) ·
+`src/ui/screens/BusinessScreen.tsx` · `src/ui/screens/Screens.css` ·
+`src/i18n/en.ts` · `src/state/day-close.test.ts` (+16 test)
+
+Kullanıcı isteği (üç turda netleşti): "1 personel yazan yere 1 günlüğüne
+personel kirala olacak — 40k verip açtığın personeli reklam izleyip
+kiralayabileceksin, aynı şekilde 90k'yı, 150k'yı..." → doğrulama sorusuna
+("40k ödeyip bir personel slotunu KALICI açıyorsun; sonrasında o slotu HER
+GÜN doldurmak için ya 40k daha ödersin ya da reklam izlersin") "Evet tam
+olarak bu" onayı geldi.
+
+**Keşif — 40k/90k/150k rastgele değil, `PERSONNEL_MONTHLY`'nin ta kendisi.**
+Mevcut personel sisteminde 1/2/3 personelin AYLIK toplam maaşı zaten tam
+40.000 / 90.000 / 150.000 ₺ (`PERSONNEL_SALARIES = [40k, 50k, 60k]`
+kümülatif). Kullanıcı ekrandaki personel seçim düğmelerinde yazan bu
+rakamları görüp tarif etmiş. Bu, işi YENİ bir paralel ekonomi icat etmekten
+kurtardı — mevcut kademelere ALTERNATİF bir açılış yolu eklemek yeterliydi.
+
+**Mimari — iki ayrı, net sınırlı mekanik:**
+1. **Tek seferlik, GERÇEK PARAYLA açılış** (`unlockPersonnelTier`): normalde
+   `PERSONNEL_UNLOCK_LEVELS = [1,3,6,10]` seviye şartı var; bu, `store.level`
+   yetmese de kademenin AYLIK toplamını (aynı `PERSONNEL_MONTHLY`) tek
+   seferlik ödeyip seviye şartını BAYPAS eder ve o kademeye hemen işe alır.
+   REKLAM DEĞİL — `upgradeStore()` ile birebir aynı disiplin: `SettlementTransaction`
+   + `applyTransaction`, GDD 22.1 tek kasa yolu. txId kademe başına sabit
+   (`personnel_ad_unlock_tier_N`) — idempotent, aynı kademe iki kez ödenmez.
+   `personnelAdUnlockLevel` kalıcı, `speed4xUnlocked` gibi asla düşmez.
+2. **Günlük, REKLAMLA dolum** (`requestPersonnelAdWaiver`): personel varsa,
+   `closeDay()`'in her gün otomatik kestiği `personnelDaily()` giderini o gün
+   için ücretsizleştirir. `closeDay` artık 5. parametre alıyor
+   (`personnelCostWaived`, varsayılan `false` — eski çağıranlar/testler
+   HİÇBİR değişiklik görmeden çalışmaya devam eder). `personnelCostWaivedToday`
+   bayrağı `advanceDay()`'de her gün sıfırlanır, kadronun kendisine
+   dokunmaz — yalnız o günkü gideri 0 sayar.
+
+**Etiket düzeltmesi:** İlk yazımda tek seferlik ödeme işlem etiketine
+yanlışlıkla "...reklamla aç" yazılmıştı — düzeltildi ("...seviye şartı
+olmadan aç"), çünkü o adım gerçek nakit, reklam değil; İşlem Defteri'nde
+oyuncuyu yanıltmasın diye.
+
+**UI (`BusinessScreen.tsx`):** Personel seçim ızgarasındaki her kilitli
+(seviye yetmeyen) sütunun altına "{tutar} öde, hemen aç" düğmesi eklendi.
+Personel sayısı >0 ise, altına günün durumuna göre ya "gider ücretsizleşti"
+notu ya da video ikonlu "Reklam izle, bugün ücretsiz olsun" düğmesi çıkar.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 887/887 (0 kullanılmayan),
+978/978 test yeşil (16 yeni: unlock maliyeti = `PERSONNEL_MONTHLY`, seviye
+baypası, çift ödeme yok, yetersiz nakitte ücretsiz-çıkış, geçersiz kademe
+reddi, `closeDay` waiver ile/waiversiz, `requestPersonnelAdWaiver`'ın
+personel yokken ve web/dev'de asla bedava vermediği). Taze build + tarayıcı
+ucuca doğrulama: 3 kilitli kademe de doğru buton metniyle göründü, "1 personel"
+tıklanınca gerçek 1.000.000 ₺'den 40.000 ₺ düştü + "1 personel kademesi
+açıldı" toast'ı çıktı + ücretsizleştirme bloğu belirdi ("Bugünkü personel
+gideri: 1.333 ₺" — `40000/30` doğru), reklam düğmesine basınca web'de
+"ücretsizleşmedi" toast'ı çıktı (bedava değil). 0 konsol hatası.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

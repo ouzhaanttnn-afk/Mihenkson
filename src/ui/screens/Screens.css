@@ -442,6 +442,33 @@
 .personnelChoice[aria-pressed='true'] { border-color: var(--brass-400); background: rgba(196, 141, 43, 0.15); color: var(--brass-300); }
 .personnelChoice:disabled { opacity: 0.42; }
 
+.personnelChoice__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.personnelChoice__cell .personnelChoice { width: 100%; }
+
+/* Seviye şartını tek seferlik ödemeyle atlayan düğme — kilitli sütunun altında. */
+.personnelChoice__unlock {
+  font-size: var(--fs-micro);
+  padding: 3px 2px;
+  min-height: 0;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+}
+
+.personnelWaiver {
+  margin-top: var(--sp-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.personnelWaiver .chip { display: inline-flex; align-items: center; gap: 4px; }
+
 .statLine {
   display: flex;
   align-items: center;

@@ -752,6 +752,12 @@ export interface AppraisalOutcome {
 export interface StoreState {
   /** Queue personnel are distinct from workshop staff/masters. */
   personnelCount?: number;
+  /**
+   * Reklamla açılan personel kademesi (0–3) — `PERSONNEL_UNLOCK_LEVELS`
+   * seviye şartını bu kademeye kadar BAYPAS eder (bkz. `canSetPersonnel`).
+   * Kalıcı, asla düşmez; `speed4xUnlocked` ile aynı disiplin.
+   */
+  personnelAdUnlockLevel?: number;
   hasBalanceMg?: number;
   hasCostBasis?: number;
   name: string;

@@ -59,6 +59,8 @@ export interface SaveFile {
   nextCustomerAtMinutes?: number;
   intentTelemetry?: GameState['intentTelemetry'];
   missedGuestCountToday?: number;
+  /** Bugün personel reklam kirası izlendi mi — bkz. `closeDay` 5. parametresi. */
+  personnelCostWaivedToday?: boolean;
   lastDayReport?: GameState['lastDayReport'];
   customerMessage?: string;
   version: number;
@@ -152,6 +154,7 @@ export function serialize(state: GameState): SaveFile {
     nextCustomerAtMinutes: state.nextCustomerAtMinutes,
     intentTelemetry: state.intentTelemetry,
     missedGuestCountToday: state.missedGuestCountToday,
+    personnelCostWaivedToday: state.personnelCostWaivedToday,
     lastDayReport: state.lastDayReport,
     dayReportOpen: state.dayReportOpen,
     customerMessage: state.customerMessage,
@@ -208,6 +211,7 @@ export type LoadedState = Pick<
   | 'lastOvernight'
   | 'nextCustomerAtMinutes'
   | 'missedGuestCountToday'
+  | 'personnelCostWaivedToday'
   | 'lastDayReport'
   | 'dayReportOpen'
   | 'customerMessage'
@@ -271,6 +275,7 @@ export function deserialize(file: SaveFile): LoadedState {
     activeDeal: save.activeDeal ?? null,
     nextCustomerAtMinutes: save.nextCustomerAtMinutes ?? save.clockMinutes + 3,
     missedGuestCountToday: save.missedGuestCountToday ?? 0,
+    personnelCostWaivedToday: save.personnelCostWaivedToday ?? false,
     lastDayReport: save.lastDayReport ?? null,
     dayReportOpen: !!save.dayReportOpen && !!save.lastDayReport,
     customerMessage: save.customerMessage ?? '',
@@ -319,7 +324,7 @@ export function migrate(file: SaveFile): SaveFile {
     activeDeal.purchase.units = activeDeal.purchase.lines.reduce((sum, line) => sum + line.quantity, 0);
   }
   return { ...file, version: SAVE_VERSION, inventory: pooled.inventory, items: pooled.items,
-    store: { ...file.store, personnelCount: file.store.personnelCount ?? 0, hasBalanceMg: file.store.hasBalanceMg ?? 0, hasCostBasis: file.store.hasCostBasis ?? 0 },
+    store: { ...file.store, personnelCount: file.store.personnelCount ?? 0, personnelAdUnlockLevel: file.store.personnelAdUnlockLevel ?? 0, hasBalanceMg: file.store.hasBalanceMg ?? 0, hasCostBasis: file.store.hasCostBasis ?? 0 },
     activeDeal, activeCustomer: file.activeCustomer ? { ...file.activeCustomer, demand: normalizeDemand(file.activeCustomer.demand) } : null,
     queue: file.queue?.map(entry => ({ ...entry, customer: { ...entry.customer, demand: normalizeDemand(entry.customer.demand) } })) };
 }

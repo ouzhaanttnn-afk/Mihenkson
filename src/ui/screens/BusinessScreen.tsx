@@ -14,7 +14,17 @@ import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { useEffect, useState } from 'react';
 import { customerDensity } from '@domain/customer-traffic';
-import { PERSONNEL_MONTHLY, PERSONNEL_SALARIES, PERSONNEL_UNLOCK_LEVELS, canSetPersonnel, personnelCount, personnelDaily, queueCapacity } from '@domain/v5-rules';
+import {
+  PERSONNEL_MONTHLY,
+  PERSONNEL_SALARIES,
+  PERSONNEL_UNLOCK_LEVELS,
+  canSetPersonnel,
+  personnelAdUnlockCost,
+  personnelAdUnlockLevel,
+  personnelCount,
+  personnelDaily,
+  queueCapacity,
+} from '@domain/v5-rules';
 
 import { MARKET_REGIME, WHOLESALE } from '@domain/balance';
 import { DEFAULT_JEWELER_NAME, SHOP_SUFFIX, shopDisplayName } from '@domain/profile';
@@ -59,6 +69,7 @@ import {
   IconLiquidity,
   IconReason,
   IconTrust,
+  IconVideo,
   IconWholesale,
 } from '@ui/icons';
 import { Art } from '@ui/Art';
@@ -251,23 +262,45 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                         sv: seviye,
                       })
                     : t('Personelsiz — maaş ödenmez');
+                const seviyeYetmez = count > 0 && !canSetPersonnel(s.store, count) && personnelAdUnlockLevel(s.store) < count;
                 return (
-                  <button
-                    key={count}
-                    type="button"
-                    className={`personnelChoice ${aylik > 0 ? 'personnelChoice--paid' : ''}`}
-                    aria-pressed={personnelCount(s.store) === count}
-                    aria-label={isim}
-                    title={isim}
-                    disabled={!canSetPersonnel(s.store, count)}
-                    onClick={() => setPendingPersonnel(count)}
-                  >
-                    <strong>{count}</strong>
-                    <small className="personnelChoice__wage">{tl(aylik)}</small>
-                    <small className="personnelChoice__req">
-                      {count > 0 ? `${t('Sv')} ${seviye}` : t('Başlangıç')}
-                    </small>
-                  </button>
+                  <div key={count} className="personnelChoice__cell">
+                    <button
+                      type="button"
+                      className={`personnelChoice ${aylik > 0 ? 'personnelChoice--paid' : ''}`}
+                      aria-pressed={personnelCount(s.store) === count}
+                      aria-label={isim}
+                      title={isim}
+                      disabled={!canSetPersonnel(s.store, count)}
+                      onClick={() => setPendingPersonnel(count)}
+                    >
+                      <strong>{count}</strong>
+                      <small className="personnelChoice__wage">{tl(aylik)}</small>
+                      <small className="personnelChoice__req">
+                        {count > 0 ? `${t('Sv')} ${seviye}` : t('Başlangıç')}
+                      </small>
+                    </button>
+                    {/*
+                      SEVİYE YETMEZSE tek seferlik ödemeyle atlanabilir —
+                      kullanıcı isteği: "40k verip açtığın personel...".
+                      Bedel kademenin AYLIK toplamıyla AYNI (bkz.
+                      `personnelAdUnlockCost`), gerçek nakit — reklam
+                      DEĞİL. Reklam yalnız GÜNLÜK dolum için (aşağıda).
+                    */}
+                    {seviyeYetmez && (
+                      <button
+                        type="button"
+                        className="chip personnelChoice__unlock"
+                        onClick={() => s.unlockPersonnelTier(count)}
+                        title={t('Seviye {sv} beklemeden {tutar} ödeyip kalıcı aç', {
+                          sv: seviye,
+                          tutar: tl(personnelAdUnlockCost(count)),
+                        })}
+                      >
+                        {t('{tutar} öde, hemen aç', { tutar: tl(personnelAdUnlockCost(count)) })}
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -282,6 +315,35 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
               <button type="button" className="chip" onClick={() => { s.setPersonnelCount(pendingPersonnel); setPendingPersonnel(null); }}>{t('Personeli Onayla')}</button>
               <button type="button" className="chip" onClick={() => setPendingPersonnel(null)}>{t('Vazgeç')}</button>
             </div>}
+            {/*
+              GÜNLÜK REKLAM DOLUMU — personel varsa, bugünün gideri henüz
+              ücretsizleşmediyse gösterilir. Ertesi gün `advanceDay()`
+              `personnelCostWaivedToday`'i sıfırlar, düğme yeniden görünür.
+            */}
+            {personnelCount(s.store) > 0 && (
+              <p className="personnelWaiver">
+                {s.personnelCostWaivedToday ? (
+                  t('Bugünkü personel gideri ({tutar}) reklamla ücretsizleşti.', {
+                    tutar: tl(personnelDaily(s.store)),
+                  })
+                ) : (
+                  <>
+                    {t('Bugünkü personel gideri: {tutar}.', { tutar: tl(personnelDaily(s.store)) })}{' '}
+                    <button
+                      type="button"
+                      className="chip"
+                      disabled={s.rewardedAdPending === 'personnelWaiver'}
+                      onClick={() => s.requestPersonnelAdWaiver()}
+                    >
+                      <IconVideo size={14} />{' '}
+                      {s.rewardedAdPending === 'personnelWaiver'
+                        ? t('Reklam yükleniyor…')
+                        : t('Reklam izle, bugün ücretsiz olsun')}
+                    </button>
+                  </>
+                )}
+              </p>
+            )}
           </div>}
         </div>
         <div className="group">

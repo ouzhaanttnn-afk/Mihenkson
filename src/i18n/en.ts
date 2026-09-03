@@ -1258,6 +1258,18 @@ export const EN: Record<string, string> = {
   'Müşteri akını başladı — geliş aralığı kısaldı.':
     'A rush has started — customers arrive more often.',
   'Reklam tamamlanmadı — akın başlamadı.': 'The ad did not finish — the rush did not start.',
+  '{n} personel kademesi açıldı.': '{n}-personnel tier unlocked.',
+  '{n} personel kademesini seviye şartı olmadan aç': 'Unlock {n}-personnel tier without the level requirement',
+  'Yeterli nakit yok.': 'Not enough cash.',
+  'Bugünkü personel gideri ücretsizleşti.': "Today's personnel expense is now free.",
+  'Reklam tamamlanmadı — personel gideri ücretsizleşmedi.':
+    "The ad did not finish — today's personnel expense was not waived.",
+  'Seviye {sv} beklemeden {tutar} ödeyip kalıcı aç': 'Pay {tutar} to unlock permanently, skipping level {sv}',
+  '{tutar} öde, hemen aç': 'Pay {tutar}, unlock now',
+  'Bugünkü personel gideri ({tutar}) reklamla ücretsizleşti.':
+    "Today's personnel expense ({tutar}) is free thanks to the ad.",
+  'Bugünkü personel gideri: {tutar}.': "Today's personnel expense: {tutar}.",
+  'Reklam izle, bugün ücretsiz olsun': 'Watch an ad to make today free',
   'Kozmetik görünüm uygulandı.': 'The cosmetic look has been applied.',
   'Market ürünü koleksiyonuna eklendi.': 'The market item was added to your collection.',
   'Market satın alımı yapılamadı.': 'The market purchase could not be completed.',

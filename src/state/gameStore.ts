@@ -11,7 +11,14 @@
 
 import { create } from 'zustand';
 import { poolSupplyQuote, poolSupplyItem } from '@domain/pool-supply';
-import { queueCapacity, toMg, canSetPersonnel } from '@domain/v5-rules';
+import {
+  queueCapacity,
+  toMg,
+  canSetPersonnel,
+  personnelAdUnlockLevel,
+  personnelAdUnlockCost,
+  personnelCount,
+} from '@domain/v5-rules';
 import { customerDelayFactor } from '@domain/customer-traffic';
 import { tradeHas, meltToHas } from '@domain/has-account';
 import { customerPriceBand, isCrafted } from '@domain/customer-pricing';
@@ -300,6 +307,8 @@ export interface GameState {
   /** Kapıda bekleyen müşteriler. */
   queue: { customer: Customer; items: ItemInstance[] }[];
   missedGuestCountToday: number;
+  /** Bugün personel reklam kirası izlendi mi — gün kapanışında personel gideri 0 sayılır. */
+  personnelCostWaivedToday: boolean;
   lastDayReport: import('@domain/settlement').DayReport | null;
   dayCloseConfirmOpen: boolean;
   dayReportOpen: boolean;
@@ -310,6 +319,14 @@ export interface GameState {
   openStockCatalog: () => void;
   setStockCatalogOpen: (open: boolean) => void;
   setPersonnelCount: (count: number) => void;
+  /**
+   * Bir personel kademesini seviye şartı olmadan, tek seferlik ödeyerek
+   * kalıcı açar (ve o kademeye hemen işe alır). Kullanıcı isteği: "40k
+   * verip açtığın personel..." — bkz. `personnelAdUnlockCost`.
+   */
+  unlockPersonnelTier: (count: number) => boolean;
+  /** Bugünkü personel giderini ödüllü reklamla ücretsizleştirir. */
+  requestPersonnelAdWaiver: () => Promise<void>;
   tradeHas: (side: 'buy' | 'sell', grams: number, txId: string) => void;
   meltStock: (itemId: string) => void;
   displayStock: (itemId: string) => void;
@@ -597,6 +614,7 @@ export const useGame = create<GameState>((set, get) => {
 
     queue: [],
     missedGuestCountToday: 0,
+    personnelCostWaivedToday: false,
     lastDayReport: null,
     dayCloseConfirmOpen: false,
     dayReportOpen: false,
@@ -636,6 +654,60 @@ export const useGame = create<GameState>((set, get) => {
       if (!canSetPersonnel(s.store, count)) return;
       set({ store: { ...s.store, personnelCount: count } });
       writeSave(get());
+    },
+
+    // GDD 22.1 — kasa hareketi TEK yoldan geçer; bu da bir işlemdir, tıpkı
+    // upgradeStore() gibi. Kademe zaten açıksa (veya count geçersizse) hiç
+    // işlem üretmeden çıkar — idempotent, çift ödeme yok.
+    unlockPersonnelTier: (count) => {
+      const s = get();
+      if (!Number.isInteger(count) || count < 1 || count > 3) return false;
+      if (personnelAdUnlockLevel(s.store) >= count) return false;
+
+      const cost = personnelAdUnlockCost(count);
+      const tx: SettlementTransaction = {
+        txId: `personnel_ad_unlock_tier_${count}`,
+        dealId: `personnel_ad_unlock_tier_${count}`,
+        day: s.market.day,
+        cashDelta: -cost,
+        itemsIn: [],
+        itemsOut: [],
+        trustDelta: 0,
+        reputationDelta: 0,
+        xpDelta: 0,
+        label: t('{n} personel kademesini seviye şartı olmadan aç', { n: count }),
+      };
+      const outcome = applyTransaction(economyOf(s), tx);
+      if (!outcome.applied) {
+        pushToast(set, get, t('Yeterli nakit yok.'), 'negative');
+        return false;
+      }
+
+      const nextStore = {
+        ...outcome.state.store,
+        personnelAdUnlockLevel: Math.max(personnelAdUnlockLevel(outcome.state.store), count),
+        personnelCount: Math.max(personnelCount(outcome.state.store), count),
+      };
+      set(economyToState({ ...outcome.state, store: nextStore }));
+      pushToast(set, get, t('{n} personel kademesi açıldı.', { n: count }), 'positive');
+      writeSave(get());
+      return true;
+    },
+
+    requestPersonnelAdWaiver: async () => {
+      const s = get();
+      if (s.personnelCostWaivedToday || s.rewardedAdPending) return;
+      if (personnelCount(s.store) === 0) return;
+      set({ rewardedAdPending: 'personnelWaiver' });
+      const granted = await showRewardedAd('personnelWaiver');
+      set({ rewardedAdPending: null });
+      if (granted) {
+        set({ personnelCostWaivedToday: true });
+        pushToast(set, get, t('Bugünkü personel gideri ücretsizleşti.'), 'positive');
+        writeSave(get());
+      } else {
+        pushToast(set, get, t('Reklam tamamlanmadı — personel gideri ücretsizleşmedi.'), 'negative');
+      }
     },
     tradeHas: (side, grams, txId) => {
       const s = get();
@@ -2137,6 +2209,7 @@ export const useGame = create<GameState>((set, get) => {
         s.market.day,
         s.missedGuestCountToday,
         lifestyleDailyExpense(s.playerMarket),
+        s.personnelCostWaivedToday,
       );
       if (!applied) { pushToast(set, get, t('Günlük gider karşılanamadı; gün kapatılmadı.'), 'negative'); return; }
       const nextDay = s.market.day + 1;
@@ -2185,6 +2258,7 @@ export const useGame = create<GameState>((set, get) => {
         lastOvernight: overnightOutcome,
         queue: [],
         missedGuestCountToday: 0,
+        personnelCostWaivedToday: false,
         lastDayReport: { ...report, overnightSummary: overnightOutcome.summary },
         dayCloseConfirmOpen: false,
         dayReportOpen: true,

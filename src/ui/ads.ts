@@ -46,7 +46,7 @@ import {
 } from '@capacitor-community/admob';
 
 /** Bir ödülün ne için verildiği — hangi oyun içi etkinin tetikleneceğini seçer. */
-export type RewardKind = 'speed4x' | 'customerRush';
+export type RewardKind = 'speed4x' | 'customerRush' | 'personnelWaiver';
 
 const REWARD_AD_UNIT: Record<'android' | 'ios', string> = {
   android: 'ca-app-pub-4229088811556918/3366498503',
