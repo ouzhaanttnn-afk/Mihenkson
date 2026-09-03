@@ -668,7 +668,6 @@ export const EN: Record<string, string> = {
   '+{tutar}/gün': '+{tutar}/day',
   'Bitti': 'Done',
   "Dükkan {saat}'da kapanıyor.": 'The shop closes at {saat}.',
-  'Sonraki müşteri ~{dk} dk': 'Next customer ~{dk} min',
   'Global sıra için sunucu doğrulaması gerekir': 'Server verification is required for the global rank',
   'Her gün kapanışında ayrıca {tutar} bakım gideri işleyecek.':
     'A further {tutar} upkeep is charged at every day close.',
@@ -1745,4 +1744,6 @@ export const EN: Record<string, string> = {
     'The save could not be written; check your storage space.',
   '{kanal} · {gerekce}': '{kanal} · {gerekce}',
   '{kanal} · {gerekce} · Hacim indirimi {oran}': '{kanal} · {gerekce} · Volume discount {oran}',
+  'Dükkân açık': 'The shop is open',
+  'Müşteri trafiği': 'Customer traffic',
 };

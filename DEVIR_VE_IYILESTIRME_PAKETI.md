@@ -497,6 +497,67 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · Market sırası, müşteri trafiği ve geri sayım — ✅ YAPILDI
+`src/ui/screens/MarketPlaceholderScreen.tsx` · `src/domain/customer-traffic.ts` (yeni) ·
+`src/state/gameStore.ts` · `src/ui/screens/ShopScreen.tsx` · `src/ui/screens/BusinessScreen.tsx`
+
+Kullanıcı üç şey istedi: *"Marketteki her ürünü fiyata göre listelemen lazım küçükten
+büyüğe. Ardından oyun ilerledikçe ve itibar ilerledikçe gelen müşteri yoğunluğu artması
+gerekiyordu. Son olarak da müşteri gelecek diye hâlâ geri sayım yapıyor, onu
+istemiyordum."*
+
+**1 · MARKET UCUZDAN PAHALIYA.** Katalog tanım sırasında geliyordu; o sıra ürünler
+eklendikçe oluşmuştu ve okuyana hiçbir şey söylemiyordu. `slice()` şart oldu:
+`MARKET_CATALOG` modül düzeyinde paylaşılan bir dizi ve `sort` yerinde sıralıyor —
+kopyalamadan sıralamak katalogun kendisini kalıcı olarak yeniden dizerdi. Eşit fiyatta ad
+sırası devrede, aksi halde iki ürün her çizimde yer değiştirebilirdi.
+
+**2 · İTİBAR ARTIK TRAFİĞİ DE BELİRLİYOR — eksik gerçekten vardı.** GDD 10.1 *"Semt/Marka
+İtibarı → müşteri trafiği, premium segment"* diyor. Cümlenin İKİNCİ yarısı kuruluydu: itibar
+yükseldikçe havuzdaki arketipler değişiyor, VIP ve koleksiyoncu açılıyordu. BİRİNCİ yarısı —
+trafiğin kendisi — hiçbir yerde yoktu; geliş aralığı yalnız tohuma, günün karakterine ve
+"Canlandır" düğmesine bakıyordu. Yani tanınan sarrafla ilk günkü sarraf aynı sayıda müşteri
+görüyordu.
+
+**Başlangıç noktası tam olarak 1,0'dır.** Çarpan `START.reputation` (42) ve 1. kademeye göre
+çıpalandı: yeni oyun açan için hiçbir şey değişmez, bugünkü denge aynen korunur. Formül
+yalnız ilerlemeyi ödüllendirir ve gerilemeyi hissettirir.
+
+| İtibar / kademe | Çarpan | Gün başına müşteri |
+|---|---|---|
+| 0 · 1 | ×0,62 | 21 |
+| 42 · 1 (başlangıç) | **×1,00** | **33** |
+| 70 · 2 | ×1,35 | 43 |
+| 90 · 4 | ×1,73 | 55 |
+| 100 · 5 | ×1,90 | 60 |
+
+Üst sınır kuyruk kapasitesinin büyüme oranıyla uyumlu (4 → 10 kişi). Alt sınır oyunu
+kilitlememek için var: itibarı dibe vurmuş oyuncuya "hiç müşteri gelmiyor" cezası vermek,
+toparlanma yolunu da kapatırdı.
+
+**DETERMİNİZM BOZULMADI.** Çarpan zar atmaz; `nextCustomerDelay` yine tam bir `next()`
+çekilişi tüketir ve çarpan onun SONUCUNU ölçekler. Testle korunuyor.
+
+**Mekanik EKRANA BAĞLANDI.** İşletme · İlişkiler altında `Müşteri trafiği ×1,00` satırı var.
+Bu olmadan mekanik çalışır ama oyuncu çalıştığını göremezdi — "itibarım arttı, ne oldu?"
+sorusunun cevabı hiçbir ekranda yazmazdı. Aynı hata bu projede daha önce iki kez yapıldı
+(B1/B5) ve ikisinde de ekrana bağlanarak çözüldü. Sayı bir ÇARPANDIR, müşteri adedi değil:
+gerçek adet güne ve zara da bağlı, tek bir rakam vaat etmek yanıltıcı olurdu.
+
+**3 · GERİ SAYIM KALDIRILDI.** "Sonraki müşteri ~7 dk" yazıyordu. Sayı doğruydu ama yaptığı
+iş yanlıştı: oyuncuyu tezgâhta saat saymaya, yani BEKLEMEYE davet ediyordu. Sarrafın işi
+müşteri saymak değil; boş vakitte stok kurmak, atölyeye bakmak, pozisyonunu tartmaktır.
+Satırın kendisi kaldı çünkü ikinci yarısı hâlâ bilgi taşıyor: *"Dükkân açık · Dükkan
+19:00'da kapanıyor."* Kapanış saati günü planlamaya yarar, geri sayım yalnız bekletir.
+
+**Testler:** `src/domain/customer-traffic.test.ts` — 8 test. Bekçi olanlar: *başlangıç
+dükkânında çarpan tam 1*, *itibar düşünce trafik de düşer*, *en kötü durumda bile müşteri
+gelmeye devam eder* ve *çarpan zar tüketmez*. Suite 948 → **956**.
+
+**Tarayıcıda ölçüldü (390×844):** altı market kategorisinin altısı da artan fiyat sıralı
+(46 ürün); Dükkan ekranında "Sonraki müşteri ~" ibaresi yok; İşletme'de trafik satırı
+itibar 42/kademe 1'de ×1,00, itibar 88/kademe 3'te ×1,61, itibar 12'de ×0,73 gösteriyor.
+
 #### YENİ · Dil ve para birimi — ✅ YAPILDI
 `src/i18n/` (yeni) · `src/domain/preferences.ts` · `src/ui/format.ts` ·
 `src/ui/shell/SettingsDialog.tsx` · `tools/i18n-keys.mjs` (yeni)

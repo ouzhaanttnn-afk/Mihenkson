@@ -565,11 +565,22 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
     });
   }
 
-  const nextIn = Math.max(0, Math.round(s.nextCustomerAtMinutes - s.market.clockMinutes));
+  /*
+    GERİ SAYIM KALDIRILDI — kullanıcı isteği.
+
+    Burada "Sonraki müşteri ~7 dk" yazıyordu. Sayının kendisi doğruydu ama
+    yaptığı iş yanlıştı: oyuncuyu tezgâhta saat saymaya, yani BEKLEMEYE
+    davet ediyordu. Sarrafın işi müşteri saymak değil; boş vakitte stok
+    kurmak, atölyeye bakmak, pozisyonunu tartmaktır.
+
+    Satırın kendisi kaldı çünkü ikinci yarısı hâlâ bilgi taşıyor: dükkânın
+    ne zaman kapandığı. Kapanış saati oyuncunun günü planlamasına yarar,
+    geri sayım ise yalnız bekletir.
+  */
   if (shopOpen && alerts.length < 3 && s.queue.length === 0) {
     alerts.push({
       key: 'schedule',
-      title: t('Sonraki müşteri ~{dk} dk', { dk: nextIn }),
+      title: t('Dükkân açık'),
       detail: t("Dükkan {saat}'da kapanıyor.", { saat: clock(DAY.closeMinutes) }),
       tone: 'positive',
       Icon: IconClock,

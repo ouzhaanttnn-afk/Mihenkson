@@ -13,6 +13,7 @@
 import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { useEffect, useState } from 'react';
+import { customerDensity } from '@domain/customer-traffic';
 import { PERSONNEL_MONTHLY, PERSONNEL_SALARIES, PERSONNEL_UNLOCK_LEVELS, canSetPersonnel, personnelCount, personnelDaily, queueCapacity } from '@domain/v5-rules';
 
 import { MARKET_REGIME, WHOLESALE } from '@domain/balance';
@@ -276,9 +277,27 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
           <h2 className="group__title">{t('İlişkiler')}</h2>
           <div className="group__body">
             <StatLine
-              label={t("Semt itibarı")}
+              label={t('Semt itibarı')}
               value={`${Math.round(s.store.reputation)}/100`}
               icon={<IconTrust size={15} />}
+            />
+            {/*
+              MÜŞTERİ TRAFİĞİ GÖRÜNÜR OLMALI (GDD 10.1).
+
+              İtibar ve mağaza kademesi artık geliş sıklığını da belirliyor
+              (`domain/customer-traffic`). Bu satır olmadan mekanik çalışır
+              ama oyuncu çalıştığını göremezdi: "itibarım arttı, ne oldu?"
+              sorusunun cevabı hiçbir ekranda yazmazdı. Aynı hata bu projede
+              daha önce iki kez yapıldı (B1/B5) ve ikisinde de ekrana
+              bağlanarak çözüldü.
+
+              Sayı bir ÇARPANDIR, müşteri adedi değil: gerçek adet güne ve
+              zara da bağlı, tek bir rakam vaat etmek yanıltıcı olurdu.
+            */}
+            <StatLine
+              label={t('Müşteri trafiği')}
+              value={`×${customerDensity(s.store).toFixed(2)}`}
+              tone={customerDensity(s.store) >= 1 ? 'positive' : 'warning'}
             />
             {/*
               GDD 10.1 — üç ayrı ilişki metriği. Semt itibarı ve toptancı

@@ -58,7 +58,24 @@ export function MarketPlaceholderScreen() {
   const [category, setCategory] = useState<MarketCategory>('profile');
   const [pending, setPending] = useState<MarketProduct | null>(null);
   const [collectionOpen, setCollectionOpen] = useState(false);
-  const products = MARKET_CATALOG.filter((product) => product.category === category);
+  /*
+    UCUZDAN PAHALIYA — kullanıcı isteği.
+
+    Katalog daha önce TANIM SIRASINDA geliyordu; o sıra ürünler eklendikçe
+    oluşmuştu ve okuyana hiçbir şey söylemiyordu. Fiyat sırası ise vitrinin
+    kendi mantığı: oyuncu önce alabileceğini görür, listenin sonuna doğru
+    hedefleri sıralanır.
+
+    `slice()` şart: `MARKET_CATALOG` modül düzeyinde paylaşılan bir dizidir
+    ve `sort` yerinde sıralar — kopyalamadan sıralamak katalogun kendisini
+    kalıcı olarak yeniden dizerdi.
+
+    Eşit fiyatta ad sırası devreye girer; aksi halde iki ürün her çizimde
+    yer değiştirebilirdi.
+  */
+  const products = MARKET_CATALOG.filter((product) => product.category === category)
+    .slice()
+    .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, 'tr'));
   const upkeep = lifestyleDailyExpense(s.playerMarket);
 
   const requestPurchase = (product: MarketProduct) => {

@@ -12,6 +12,7 @@
 import { create } from 'zustand';
 import { poolSupplyQuote, poolSupplyItem } from '@domain/pool-supply';
 import { queueCapacity, toMg, canSetPersonnel } from '@domain/v5-rules';
+import { customerDelayFactor } from '@domain/customer-traffic';
 import { tradeHas, meltToHas } from '@domain/has-account';
 import { customerPriceBand, isCrafted } from '@domain/customer-pricing';
 import { packagePriceBand, showcaseStock } from '@domain/purchase';
@@ -813,11 +814,19 @@ export const useGame = create<GameState>((set, get) => {
 
         const rushActive =
           s.customerRushUntilMinutes !== null && clock < s.customerRushUntilMinutes;
-        // §3: dinamik havuz "gün içi yoğunluk" karakterini belirler.
+        /*
+          Üç çarpan üst üste biner ve üçü ayrı şeyi anlatır:
+            · `tempo`      — GÜNÜN karakteri (durgun / hareketli gün),
+            · `delayFactor`— DÜKKÂNIN durumu (itibar + kademe), GDD 10.1,
+            · rush         — oyuncunun tek seferlik "Canlandır" kararı.
+          Hiçbiri zar atmaz; üçü de `nextCustomerDelay`in sonucunu ölçekler,
+          dolayısıyla determinizm korunur.
+        */
         nextCustomerAtMinutes =
           clock +
           nextCustomerDelay(s.seed, spawnCounter, DAY.customerIntervalMinutes, rushActive) *
-            s.dayCharacter.tempo;
+            s.dayCharacter.tempo *
+            customerDelayFactor(s.store);
       }
 
       // GDD 14.3 / 15.1 — stok değeri bugünkü piyasaya göre canlı kalır.
