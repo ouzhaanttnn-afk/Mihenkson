@@ -1,3 +1,4 @@
+import { t } from '@i18n/index';
 import { useEffect, useRef } from 'react';
 import { DAY } from '@domain/balance';
 import { dailyOperatingCost, dueScaleMaintenanceDebt, scaleMaintenanceCost, weekdayName } from '@domain/v5-rules';
@@ -29,54 +30,111 @@ export function DayCloseDialog() {
   return <dialog ref={dialogRef} className="dayCloseDialog" aria-labelledby="day-close-title"
     onCancel={event => { event.preventDefault(); if (!report) s.cancelDayClose(); }}>
     {report ? <>
-      <h2 id="day-close-title">Gün {report.day} · {weekdayName(report.day)} kapandı</h2>
+      <h2 id="day-close-title">
+        {t('Gün {gun} · {haftaGunu} kapandı', {
+          gun: report.day,
+          haftaGunu: t(weekdayName(report.day)),
+        })}
+      </h2>
       <dl className="dayCloseDialog__stats">
-        <Row label="Gerçekleşmiş kâr" value={tlSigned(report.realizedTradeProfit)} tone={report.realizedTradeProfit >= 0 ? 'positive' : 'negative'} />
-        <Row label="Günlük gider" value={tlSigned(-report.overhead)} tone="negative" />
-        <Row label="Personel payı (gidere dahil)" value={tl(report.personnelExpense ?? 0)} />
-        {(report.lifestyleExpense ?? 0) > 0 && <Row label="Şahsi bakım (gidere dahil)" value={tl(report.lifestyleExpense ?? 0)} />}
-        {(report.scaleMaintenanceExpense ?? 0) > 0 && <Row label="Terazi bakım gideri" value={tl(report.scaleMaintenanceExpense ?? 0)} />}
-        {(report.scaleMaintenanceDeferred ?? 0) > 0 && <Row label="Bakım borcuna aktarıldı" value={tl(report.scaleMaintenanceDeferred ?? 0)} tone="negative" />}
-        {(report.scaleMaintenanceDebtPaid ?? 0) > 0 && <Row label="Eski bakım borcu ödendi" value={tl(report.scaleMaintenanceDebtPaid ?? 0)} />}
+        <Row label={t('Gerçekleşmiş kâr')} value={tlSigned(report.realizedTradeProfit)} tone={report.realizedTradeProfit >= 0 ? 'positive' : 'negative'} />
+        <Row label={t('Günlük gider')} value={tlSigned(-report.overhead)} tone="negative" />
+        <Row label={t('Personel payı (gidere dahil)')} value={tl(report.personnelExpense ?? 0)} />
+        {(report.lifestyleExpense ?? 0) > 0 && <Row label={t('Şahsi bakım (gidere dahil)')} value={tl(report.lifestyleExpense ?? 0)} />}
+        {(report.scaleMaintenanceExpense ?? 0) > 0 && <Row label={t('Terazi bakım gideri')} value={tl(report.scaleMaintenanceExpense ?? 0)} />}
+        {(report.scaleMaintenanceDeferred ?? 0) > 0 && <Row label={t('Bakım borcuna aktarıldı')} value={tl(report.scaleMaintenanceDeferred ?? 0)} tone="negative" />}
+        {(report.scaleMaintenanceDebtPaid ?? 0) > 0 && <Row label={t('Eski bakım borcu ödendi')} value={tl(report.scaleMaintenanceDebtPaid ?? 0)} />}
         {/*
           C6 — "Kasa değişimi −77.336 ₺" 1. günde felaket gibi okunuyordu; oysa
           o paranın 76.136 ₺'si stoğa dönmüştü. Kasadan çıkan para ile
           KAYBEDİLEN para ayrı şeylerdir; alt satır bunu söylüyor.
         */}
         <Row
-          label="Kasa değişimi"
+          label={t('Kasa değişimi')}
           value={tlSigned(report.netCashChange)}
           tone={report.netCashChange >= 0 ? 'positive' : 'negative'}
           note={
             (report.stockPurchaseSpend ?? 0) > 0
-              ? `Bunun ${tl(report.stockPurchaseSpend ?? 0)} kadarı stoğa girdi — harcanmadı, mala döndü.`
+              ? t('Bunun {tutar} kadarı stoğa girdi — harcanmadı, mala döndü.', {
+                  tutar: tl(report.stockPurchaseSpend ?? 0),
+                })
               : undefined
           }
         />
-        <Row label="Kapanış nakdi" value={tl(report.closingCash ?? s.store.cash)} />
-        <Row label="Stok net çıkış farkı" value={tlSigned(report.stockPotential)} tone={report.stockPotential >= 0 ? 'positive' : 'negative'} />
-        <Row label="Nakit Durumu" value={pct(report.liquidity)} />
-        <Row label="Kaçırılan Misafir" value={String(report.missedGuestCountToday ?? 0)} />
+        <Row label={t('Kapanış nakdi')} value={tl(report.closingCash ?? s.store.cash)} />
+        <Row label={t('Stok net çıkış farkı')} value={tlSigned(report.stockPotential)} tone={report.stockPotential >= 0 ? 'positive' : 'negative'} />
+        <Row label={t('Nakit Durumu')} value={pct(report.liquidity)} />
+        <Row label={t('Kaçırılan Misafir')} value={String(report.missedGuestCountToday ?? 0)} />
       </dl>
       {report.overnightSummary && <p>{report.overnightSummary}</p>}
-      <button type="button" className="dayCloseDialog__primary" onClick={s.startNewDay}>Yeni güne başla</button>
+      <button type="button" className="dayCloseDialog__primary" onClick={s.startNewDay}>{t('Yeni güne başla')}</button>
     </> : <>
-      <h2 id="day-close-title">Günü şimdi kapat?</h2>
-      <p>Saat {clock(s.market.clockMinutes)}. {s.market.clockMinutes < DAY.closeMinutes ? 'Gün daha bitmedi; kapatırsan bugün başka müşteri gelmez.' : 'Bugünün işlemleri kapanacak.'} Günlük gider {tl(dailyOperatingCost(s.store) + lifestyleExpense + scaleMaintenance + scaleMaintenanceDebt)} her hâlükârda işler.</p>
-      {lifestyleExpense > 0 && <p>Bu tutarın {tl(lifestyleExpense)} kadarı sahip olduğun şahsi prestij varlıklarının günlük bakımıdır.</p>}
-      {scaleMaintenance > 0 && <p>Bugün 30 günlük terazi bakım günü: {tl(scaleMaintenance)}. Nakit yetmezse bakım üç gün vadeli borca aktarılır.</p>}
-      {scaleMaintenanceDebt > 0 && <p>Vadesi gelen terazi bakım borcu: {tl(scaleMaintenanceDebt)}.</p>}
+      <h2 id="day-close-title">{t('Günü şimdi kapat?')}</h2>
       <p>
-        Yarın {weekdayLabel(tomorrow)} · dükkân {isShopOpen(tomorrow) ? 'açık' : 'kapalı'} · piyasa {isMarketOpen(tomorrow) ? 'açık' : `kapalı; sonraki açılış ${weekdayLabel(nextMarketOpenDay(tomorrow))}`}.
+        {t('Saat {saat}.', { saat: clock(s.market.clockMinutes) })}{' '}
+        {s.market.clockMinutes < DAY.closeMinutes
+          ? t('Gün daha bitmedi; kapatırsan bugün başka müşteri gelmez.')
+          : t('Bugünün işlemleri kapanacak.')}{' '}
+        {t('Günlük gider {tutar} her hâlükârda işler.', {
+          tutar: tl(
+            dailyOperatingCost(s.store) +
+              lifestyleExpense +
+              scaleMaintenance +
+              scaleMaintenanceDebt,
+          ),
+        })}
+      </p>
+      {lifestyleExpense > 0 && (
+        <p>
+          {t(
+            'Bu tutarın {tutar} kadarı sahip olduğun şahsi prestij varlıklarının günlük bakımıdır.',
+            { tutar: tl(lifestyleExpense) },
+          )}
+        </p>
+      )}
+      {scaleMaintenance > 0 && (
+        <p>
+          {t('Bugün 30 günlük terazi bakım günü: {tutar}.', {
+            tutar: tl(scaleMaintenance),
+          })}{' '}
+          {t('Nakit yetmezse bakım üç gün vadeli borca aktarılır.')}
+        </p>
+      )}
+      {scaleMaintenanceDebt > 0 && (
+        <p>{t('Vadesi gelen terazi bakım borcu: {tutar}.', { tutar: tl(scaleMaintenanceDebt) })}</p>
+      )}
+      <p>
+        {t('Yarın {haftaGunu} · dükkân {dukkan} · piyasa {piyasa}.', {
+          haftaGunu: t(weekdayLabel(tomorrow)),
+          dukkan: isShopOpen(tomorrow) ? t('açık') : t('kapalı'),
+          piyasa: isMarketOpen(tomorrow)
+            ? t('açık')
+            : t('kapalı; sonraki açılış {gun}', {
+                gun: t(weekdayLabel(nextMarketOpenDay(tomorrow))),
+              }),
+        })}
       </p>
       {risk ? <p>{risk.note}</p> : null}
       {!isMarketOpen(tomorrow) && (
-        <p>Cuma kapanışından pazartesi açılışına kadar piyasa fiyatı donar; hafta sonu haberleri pazartesi açılışında tek seferde fiyatlanır.</p>
+        <p>
+          {t(
+            'Cuma kapanışından pazartesi açılışına kadar piyasa fiyatı donar; hafta sonu haberleri pazartesi açılışında tek seferde fiyatlanır.',
+          )}
+        </p>
       )}
-      {s.queue.length > 0 && <p>{s.queue.length} bekleyen müşteri ayrılacak. Bu kişiler kapasite nedeniyle kaçırılan misafir sayısına eklenmez.</p>}
+      {s.queue.length > 0 && (
+        <p>
+          {t('{n} bekleyen müşteri ayrılacak.', { n: s.queue.length })}{' '}
+          {t('Bu kişiler kapasite nedeniyle kaçırılan misafir sayısına eklenmez.')}
+        </p>
+      )}
       <div className="dayCloseDialog__actions">
-        <button type="button" className="dayCloseDialog__cancel" onClick={s.cancelDayClose} autoFocus>Vazgeç</button>
-        <button type="button" className="dayCloseDialog__primary" onClick={s.advanceDay}>Günü Bitir</button>
+        <button type="button" className="dayCloseDialog__cancel" onClick={s.cancelDayClose} autoFocus>
+          {t('Vazgeç')}
+        </button>
+        <button type="button" className="dayCloseDialog__primary" onClick={s.advanceDay}>
+          {t('Günü Bitir')}
+        </button>
       </div>
     </>}
   </dialog>;

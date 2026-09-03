@@ -18,6 +18,7 @@
  * AYRI SÜTUNDA veriliyor — ıskalanan dokunuş öbürüne düşemez.
  */
 
+import { t } from '@i18n/index';
 import type { Lesson } from '@domain/onboarding';
 
 interface Props {
@@ -32,7 +33,7 @@ interface Props {
 
 export function CoachBar({ lesson, showSkip, onDismiss, onSkipAll, queuePriority = false }: Props) {
   return (
-    <aside className={`coach ${queuePriority ? 'coach--queuePriority' : ''}`} role="note" aria-label="Öğretim ipucu">
+    <aside className={`coach ${queuePriority ? 'coach--queuePriority' : ''}`} role="note" aria-label={t('Öğretim ipucu')}>
       <div className="coach__body">
         <span className="coach__title">{lesson.title}</span>
         <span className="coach__text">{lesson.body}</span>

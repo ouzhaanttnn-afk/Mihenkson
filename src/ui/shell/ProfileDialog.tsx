@@ -32,6 +32,7 @@ import { AVATAR_IDS, NAME_MAX, SHOP_SUFFIX, checkJewelerName, type PlayerProfile
 import { avatarArt } from '@ui/assets';
 import { Art } from '@ui/Art';
 import { IconTrust } from '@ui/icons';
+import { t } from '@i18n/index';
 
 interface Props {
   profile: PlayerProfile;
@@ -118,7 +119,7 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
     }
     // Ad ve avatar BİRLİKTE yazılır — yarısı kaydedilmiş bir profil olmaz.
     if (!onSave({ jewelerName: check.value, avatarId })) {
-      setError('Profil kaydedilemedi.');
+      setError(t('Profil kaydedilemedi.'));
     }
   };
 
@@ -139,17 +140,18 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
         ref={panelRef}
       >
         <h2 className="profileDialog__title" id={titleId}>
-          {welcome ? 'Hoş geldin, sarraf' : 'Profili Düzenle'}
+          {welcome ? t('Hoş geldin, sarraf') : t('Profili Düzenle')}
         </h2>
         {welcome && (
           <p className="profileDialog__welcome">
-            Tezgâhın arkasına geçmeden önce: dükkânın adı ne olsun, sen kimsin?
-            İkisini de sonradan Ayarlar'dan değiştirebilirsin.
+            {t(
+              "Tezgâhın arkasına geçmeden önce: dükkânın adı ne olsun, sen kimsin? İkisini de sonradan Ayarlar'dan değiştirebilirsin.",
+            )}
           </p>
         )}
 
         <label className="profileDialog__label" htmlFor={nameId}>
-          Dükkan Adı
+          {t('Dükkan Adı')}
         </label>
         <input
           id={nameId}
@@ -167,7 +169,7 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
             altındaki ipucu ekin kendiliğinden geldiğini söylüyor, örnek
             ekli olsaydı iki satır birbirini yalanlardı.
           */
-          placeholder={welcome ? 'örn. Alvera' : 'İsim koyunuz — örn. Alvera Kuyumculuk'}
+          placeholder={welcome ? t('örn. Alvera') : t('İsim koyunuz — örn. Alvera Kuyumculuk')}
           autoComplete="off"
           spellCheck={false}
           aria-invalid={error ? true : undefined}
@@ -185,8 +187,10 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
         />
         <p className="profileDialog__hint">
           {welcome
-            ? `Dükkânın adını yaz — sonuna "${SHOP_SUFFIX}" kendiliğinden eklenir.`
-            : 'İsim koyunuz — örn. Alvera Kuyumculuk'}
+            ? t('Dükkânın adını yaz — sonuna "{ek}" kendiliğinden eklenir.', {
+                ek: SHOP_SUFFIX,
+              })
+            : t('İsim koyunuz — örn. Alvera Kuyumculuk')}
         </p>
         {error && (
           <p className="profileDialog__error" id={errorId} role="alert">
@@ -194,11 +198,11 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
           </p>
         )}
 
-        <span className="profileDialog__label">Karakter</span>
+        <span className="profileDialog__label">{t('Karakter')}</span>
         <div
           className="avatarGrid"
           role="radiogroup"
-          aria-label="Kuyumcu portresi"
+          aria-label={t('Kuyumcu portresi')}
           ref={gridRef}
           onKeyDown={(e) => {
             const step =
@@ -239,7 +243,7 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
                   hâlâ erişilebilir.
                 */
                 tabIndex={selected ? 0 : -1}
-                aria-label={`Karakter ${id.replace('male-', '')}`}
+                aria-label={t('Karakter {no}', { no: id.replace('male-', '') })}
                 className={`avatarCard ${selected ? 'avatarCard--selected' : ''}`}
                 onClick={() => setAvatarId(id)}
               >
@@ -263,7 +267,7 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
         <div className="profileDialog__actions">
           {!welcome && (
             <button type="button" className="profileDialog__cancel" onClick={onCancel}>
-              İptal
+              {t('İptal')}
             </button>
           )}
           <button
@@ -272,7 +276,7 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
             onClick={submit}
             disabled={!nameCheck.ok}
           >
-            {welcome ? 'Dükkânı Aç' : 'Değişiklikleri Kaydet'}
+            {welcome ? t('Dükkânı Aç') : t('Değişiklikleri Kaydet')}
           </button>
         </div>
       </div>

@@ -15,6 +15,7 @@ import { IconBusiness, IconMarket, IconShop, IconStock, IconWorkshop } from '@ui
 import { Art } from '@ui/Art';
 import { NAV_ART, type Art as ArtAsset } from '@ui/assets';
 import type { RootTab } from '@state/gameStore';
+import { t } from '@i18n/index';
 
 const ROOTS: { id: RootTab; label: string; Icon: typeof IconShop; art: ArtAsset }[] = [
   { id: 'shop', label: 'Dükkan', Icon: IconShop, art: NAV_ART.shop },
@@ -33,12 +34,12 @@ interface Props {
 
 export function BottomNav({ active, onSelect, shopBadge = 0, workshopBadge = 0 }: Props) {
   return (
-    <nav className="bottomNav" aria-label="Ana navigasyon">
+    <nav className="bottomNav" aria-label={t('Ana navigasyon')}>
       {ROOTS.map(({ id, label, Icon, art }) => {
         const badge = id === 'shop' ? shopBadge : id === 'workshop' ? workshopBadge : 0;
         const badgeLabel = id === 'shop'
-          ? `${badge} bekleyen müşteri`
-          : `${badge} teslim bekleyen iş`;
+          ? t('{n} bekleyen müşteri', { n: badge })
+          : t('{n} teslim bekleyen iş', { n: badge });
         return (
         <button
           key={id}
@@ -59,7 +60,12 @@ export function BottomNav({ active, onSelect, shopBadge = 0, workshopBadge = 0 }
               {Math.min(9, badge)}
             </span>
           )}
-          <span className="bottomNav__label">{label}</span>
+          {/*
+            Etiket TANIMDA değil ÇİZİMDE çevriliyor. Beş kökün adı yukarıdaki
+            dizide duruyor; oraya `t()` koymak modül yüklenirken tek sefer
+            çalışır ve dil sonradan değişince eski dilde donardı.
+          */}
+          <span className="bottomNav__label">{t(label)}</span>
         </button>
         );
       })}

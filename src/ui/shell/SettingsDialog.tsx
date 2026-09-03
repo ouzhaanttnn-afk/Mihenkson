@@ -119,7 +119,7 @@ export function SettingsDialog() {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="settingsBox__title" id="settings-title">
-          Ayarlar
+          {t('Ayarlar')}
         </h2>
 
         <button
@@ -132,10 +132,10 @@ export function SettingsDialog() {
           }}
         >
           <span className="settingsRow__copy">
-            <strong>Profil</strong>
-            <small>{jewelerName} · ad ve portre</small>
+            <strong>{t('Profil')}</strong>
+            <small>{t('{ad} · ad ve portre', { ad: jewelerName })}</small>
           </span>
-          <span className="settingsRow__action">Düzenle</span>
+          <span className="settingsRow__action">{t('Düzenle')}</span>
         </button>
 
         <button
@@ -145,21 +145,14 @@ export function SettingsDialog() {
           onClick={() => (coachOn ? skipOnboarding() : restoreOnboarding())}
         >
           <span className="settingsRow__copy">
-            <strong>Öğretici ipuçları</strong>
-            <small>{coachOn ? 'Açık — yeni durumlarda ipucu çıkar' : 'Kapalı'}</small>
+            <strong>{t('Öğretici ipuçları')}</strong>
+            <small>{coachOn ? t('Açık — yeni durumlarda ipucu çıkar') : t('Kapalı')}</small>
           </span>
           <span className={`settingsRow__switch ${coachOn ? 'settingsRow__switch--on' : ''}`}>
             <span className="settingsRow__knob" />
           </span>
         </button>
 
-        {/*
-          HENÜZ BAĞLI OLMAYAN TERCİHLER.
-
-          Ortak bir başlık altındalar ki oyuncu üçünü tek seferde doğru
-          okusun; her satıra ayrı ayrı "çalışmıyor" yazmak hem gürültü olur
-          hem de gözden kaçardı.
-        */}
         <button
           type="button"
           className="settingsRow"
@@ -167,8 +160,10 @@ export function SettingsDialog() {
           onClick={() => setPreference('soundEnabled', !preferences.soundEnabled)}
         >
           <span className="settingsRow__copy">
-            <strong>Ses</strong>
-            <small>{preferences.soundEnabled ? 'Açık' : 'Kapalı'} · işlem ve gün sesleri</small>
+            <strong>{t('Ses')}</strong>
+            <small>
+              {preferences.soundEnabled ? t('Açık') : t('Kapalı')} {t('· işlem ve gün sesleri')}
+            </small>
           </span>
           <span
             className={`settingsRow__switch ${preferences.soundEnabled ? 'settingsRow__switch--on' : ''}`}
@@ -194,11 +189,13 @@ export function SettingsDialog() {
           onClick={() => setPreference('vibrationEnabled', !preferences.vibrationEnabled)}
         >
           <span className="settingsRow__copy">
-            <strong>Titreşim</strong>
+            <strong>{t('Titreşim')}</strong>
             <small>
               {!titresimVar
-                ? 'Bu cihaz titreşimi desteklemiyor'
-                : `${preferences.vibrationEnabled ? 'Açık' : 'Kapalı'} · işlem ve gün olayları`}
+                ? t('Bu cihaz titreşimi desteklemiyor')
+                : `${preferences.vibrationEnabled ? t('Açık') : t('Kapalı')} ${t(
+                    '· işlem ve gün olayları',
+                  )}`}
             </small>
           </span>
           <span
@@ -222,11 +219,11 @@ export function SettingsDialog() {
         */}
         <div className="settingsRow settingsRow--static settingsRow--stack">
           <span className="settingsRow__copy">
-            <strong>Ses düzeyi</strong>
+            <strong>{t('Ses düzeyi')}</strong>
             <small>
               {preferences.soundEnabled
                 ? `%${preferences.soundVolume}`
-                : 'Ses kapalıyken ayarlanamaz'}
+                : t('Ses kapalıyken ayarlanamaz')}
             </small>
           </span>
           <input
@@ -237,7 +234,7 @@ export function SettingsDialog() {
             step={VOLUME_STEP}
             value={preferences.soundVolume}
             disabled={!preferences.soundEnabled}
-            aria-label="Ses düzeyi"
+            aria-label={t('Ses düzeyi')}
             onChange={(e) => setPreference('soundVolume', Number(e.target.value))}
           />
         </div>
@@ -313,8 +310,9 @@ export function SettingsDialog() {
         {confirmReset ? (
           <div className="settingsDanger">
             <p className="settingsDanger__text">
-              Kayıt silinecek. Ekrandaki oyun kapanana kadar durur; yeni oyun bir sonraki
-              açılışta başlar. Geri alınamaz.
+              {t(
+                'Kayıt silinecek. Ekrandaki oyun kapanana kadar durur; yeni oyun bir sonraki açılışta başlar. Geri alınamaz.',
+              )}
             </p>
             <div className="settingsDanger__actions">
               <button
@@ -322,7 +320,7 @@ export function SettingsDialog() {
                 className="settingsDanger__cancel"
                 onClick={() => setConfirmReset(false)}
               >
-                Vazgeç
+                {t('Vazgeç')}
               </button>
               <button
                 type="button"
@@ -333,7 +331,7 @@ export function SettingsDialog() {
                   close();
                 }}
               >
-                Kaydı sil
+                {t('Kaydı sil')}
               </button>
             </div>
           </div>
@@ -344,15 +342,15 @@ export function SettingsDialog() {
             onClick={() => setConfirmReset(true)}
           >
             <span className="settingsRow__copy">
-              <strong>Yeni oyun</strong>
-              <small>Kaydı siler · geri alınamaz</small>
+              <strong>{t('Yeni oyun')}</strong>
+              <small>{t('Kaydı siler · geri alınamaz')}</small>
             </span>
-            <span className="settingsRow__action">Sil</span>
+            <span className="settingsRow__action">{t('Sil')}</span>
           </button>
         )}
 
         <button type="button" className="settingsBox__close" onClick={close}>
-          Kapat
+          {t('Kapat')}
         </button>
       </div>
     </div>

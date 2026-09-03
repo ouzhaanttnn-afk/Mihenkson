@@ -11,6 +11,7 @@ import { IconLock, IconPencil, IconSettings, BrandMark } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { avatarArt } from '@ui/assets';
 import { clock, tl } from '@ui/format';
+import { t } from '@i18n/index';
 import type { PlayerProfile } from '@domain/profile';
 import type { MarketState, StoreState } from '@domain/types';
 
@@ -65,7 +66,7 @@ export function StatusStrip({
         type="button"
         className="profileChip"
         onClick={onEditProfile}
-        aria-label={`Profili düzenle — ${profile.jewelerName}`}
+        aria-label={t('Profili düzenle — {ad}', { ad: profile.jewelerName })}
       >
         <span className={`profileChip__avatar ${profileFrame ? `profileChip__avatar--${profileFrame}` : ''}`}>
           <Art
@@ -83,7 +84,7 @@ export function StatusStrip({
         <span className="profileChip__text">
           <span className="profileChip__name">{profile.jewelerName}</span>
           <span className="statusStrip__levelRow">
-            <span className="statusStrip__levelNum">Sv {store.level}</span>
+            <span className="statusStrip__levelNum">{t('Sv')} {store.level}</span>
             <span className="statusStrip__xp num">
               {store.xp}/{store.xpToNext}
             </span>
@@ -96,15 +97,19 @@ export function StatusStrip({
 
       <div
         className="statusStrip__clock"
-        aria-label={`Gün ${market.day}, ${weekdayLabel(market.day)}, saat ${clock(market.clockMinutes)}`}
+        aria-label={t('Gün {gun}, {haftaGunu}, saat {saat}', {
+          gun: market.day,
+          haftaGunu: weekdayLabel(market.day),
+          saat: clock(market.clockMinutes),
+        })}
       >
-        <div className="statusStrip__day">Gün {market.day}</div>
-        <div className="statusStrip__weekday">{weekdayShort(market.day)}</div>
+        <div className="statusStrip__day">{t('Gün')} {market.day}</div>
+        <div className="statusStrip__weekday">{t(weekdayShort(market.day))}</div>
         <div className="statusStrip__time num">{clock(market.clockMinutes)}</div>
       </div>
 
       <div className="statusStrip__cash">
-        <div className="statusStrip__cashLabel">Nakit</div>
+        <div className="statusStrip__cashLabel">{t('Nakit')}</div>
         <div className="statusStrip__cashValue num">{tl(store.cash)}</div>
       </div>
 
@@ -139,7 +144,7 @@ function SpeedControl({
   onOpenSettings: () => void;
 }) {
   return (
-    <div className="speed" role="group" aria-label="Oyun hızı">
+    <div className="speed" role="group" aria-label={t('Oyun hızı')}>
       {SPEED_STEPS.map((step) => {
         const isLocked = step === 4 && !unlocked;
         const isActive = speed === step;
@@ -157,8 +162,10 @@ function SpeedControl({
               .join(' ')}
             onClick={() => (isLocked ? onUnlock() : onSpeed(step))}
             aria-pressed={isActive}
-            aria-label={isLocked ? `${step}x hızı aç` : `${step}x hız`}
-            title={isLocked ? `${step}x Hızı Aç` : `${step}x hız`}
+            aria-label={
+              isLocked ? t('{n}x hızı aç', { n: step }) : t('{n}x hız', { n: step })
+            }
+            title={isLocked ? t('{n}x hızı aç', { n: step }) : t('{n}x hız', { n: step })}
           >
             {step}x
             {isLocked && <IconLock size={9} />}
@@ -187,8 +194,8 @@ function SpeedControl({
         type="button"
         className="speed__settings"
         onClick={onOpenSettings}
-        aria-label="Ayarlar"
-        title="Ayarlar"
+        aria-label={t('Ayarlar')}
+        title={t('Ayarlar')}
       >
         <IconSettings size={16} />
       </button>

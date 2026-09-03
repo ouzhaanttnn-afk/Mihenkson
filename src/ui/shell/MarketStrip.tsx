@@ -8,6 +8,7 @@
  * kalır ve tipografik ağırlığı Karar Dock'unun altındadır.
  */
 
+import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { MARKET_REGIME } from '@domain/balance';
 import { weekdayShort } from '@domain/calendar';
@@ -32,7 +33,7 @@ export function MarketStrip({ market, onOpenMarket }: Props) {
   const visibleAssets = [
     {
       id: 'hasGold',
-      label: 'HAS Altın',
+      label: t('HAS Altın'),
       price: market.goldSpot,
       changePct: gramAsset?.changePct ?? 0,
     },
@@ -55,19 +56,19 @@ export function MarketStrip({ market, onOpenMarket }: Props) {
     <div
       className={`marketStrip ${closed ? 'marketStrip--closed' : ''}`}
       role="group"
-      aria-label="Piyasa şeridi — kaydırarak tüm varlıkları görün"
+      aria-label={t('Piyasa şeridi — kaydırarak tüm varlıkları görün')}
     >
       <button
         type="button"
         className="marketStrip__regime"
         onClick={onOpenMarket}
-        aria-label="Piyasa ekranını aç"
+        aria-label={t('Piyasa ekranını aç')}
       >
         <span className="marketStrip__regimeLabel">
           {closed ? `${weekdayShort(market.day)} · Piyasa` : TERM.regime}
         </span>
         <span className="marketStrip__regimeValue">
-          {closed ? 'Kapalı' : regime.label}
+          {closed ? t('Kapalı') : t(regime.label)}
           {!closed && market.activeEvent ? ' •' : ''}
         </span>
       </button>

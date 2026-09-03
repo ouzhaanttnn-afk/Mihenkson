@@ -15,6 +15,7 @@
  * aynı Workbench state değiştirir." Bu bileşen yalnız state değiştirir.
  */
 
+import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import type { DealFlow, WorkbenchStage } from '@domain/types';
 
@@ -110,7 +111,7 @@ export function StageStrip({ flow, current, canEnter, onSelect, skipStages = [] 
   const currentIndex = ORDER.indexOf(current);
 
   return (
-    <nav className="stageStrip" aria-label="İşlem aşaması">
+    <nav className="stageStrip" aria-label={t('İşlem aşaması')}>
       {STEPS.map((step, i) => {
         const index = ORDER.indexOf(step.stage);
         const isActive = step.stage === current;
@@ -129,7 +130,7 @@ export function StageStrip({ flow, current, canEnter, onSelect, skipStages = [] 
             aria-current={isActive ? 'step' : undefined}
           >
             <span className="stageStrip__num">{i + 1}</span>
-            {step.label}
+            {t(step.label)}
           </button>
         );
       })}

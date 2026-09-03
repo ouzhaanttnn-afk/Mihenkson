@@ -16,6 +16,7 @@
  *   Pazarlık → Maksimum 3 görünür; "Reddet" rayda değil Dock'ta kalır.
  */
 
+import { t } from '@i18n/index';
 import type { ReactNode } from 'react';
 
 export interface RailItem {
@@ -47,15 +48,20 @@ interface Props {
   idle?: boolean;
 }
 
-export function ToolRail({ items, disabled = false, emptyLabel = 'Bu aşamada araç yok', idle = false }: Props) {
+/*
+  Varsayılan boş metin ARTIK PARAMETRE VARSAYILANINDA DEĞİL. Orada
+  `t()` çağırmak modül yüklenirken bir kez çalışırdı ve dil sonradan
+  değişse bile ilk dilde donardı; çizim anında seçiliyor.
+*/
+export function ToolRail({ items, disabled = false, emptyLabel, idle = false }: Props) {
   return (
     <div
       className={`toolRail ${disabled ? 'toolRail--disabled' : ''} ${idle ? 'toolRail--idle' : ''}`}
       role="toolbar"
-      aria-label="Bağlamsal araç rayı"
+      aria-label={t('Bağlamsal araç rayı')}
     >
       {items.length === 0 ? (
-        <span className="toolRail__empty">{emptyLabel}</span>
+        <span className="toolRail__empty">{emptyLabel ?? t('Bu aşamada araç yok')}</span>
       ) : (
         items.map((item) => (
           <button
