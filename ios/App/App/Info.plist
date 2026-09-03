@@ -67,15 +67,11 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 
-	<!--
-	  AdMob (bkz. src/ui/ads.ts). GADApplicationIdentifier ŞU AN Google'ın
-	  herkese açık TEST App ID'si — yayından önce gerçek AdMob hesabından
-	  alınan iOS App ID ile değiştirilmeli.
-	-->
+	<!-- Gerçek AdMob iOS App ID (bkz. src/ui/ads.ts) -->
 	<key>GADIsAdManagerApp</key>
 	<true/>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-4229088811556918~3768104554</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>

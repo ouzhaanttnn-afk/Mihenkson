@@ -1925,6 +1925,46 @@ kesen reklam retention'a zarar verir — kullanıcıyla konuşulup onaylandı).
 
 ---
 
+#### YENİ · Test kimlikleri gerçek AdMob kimlikleriyle değiştirildi — ✅ YAPILDI
+`src/ui/ads.ts` · `android/app/src/main/res/values/strings.xml` ·
+`ios/App/App/Info.plist` · `store/legal/gizlilik-politikasi.md` (+ barındırılan
+sürüm) · `store/*/checklist.md`
+
+Kullanıcı kendi AdMob hesabını açtı (`nostoscomp@gmail.com`), Android ve iOS
+için ayrı uygulama kaydı oluşturdu, her ikisine birer ödüllü reklam birimi
+ekledi ve 4 kimliği (2 App ID + 2 Ad Unit ID) buraya iletti — ben yalnız
+Google'ın AdMob arayüzünde yapman gereken adımları anlattım, hesabı ben
+açamıyorum.
+
+- `src/ui/ads.ts`: `PLATFORM_AD_UNIT` artık gerçek Ad Unit ID'leri taşıyor
+  (Android: `…/3366498503`, iOS: `…/9671167921`, yayıncı kimliği
+  `ca-app-pub-4229088811556918`). Tek reklam birimi hem "4x hız" hem
+  "Dükkânı Canlandır" için kullanılıyor — hangi ödülün verileceği reklam
+  biriminde değil, `showRewardedAd(kind)`in çağrıldığı yerde belirleniyor,
+  bu yüzden ikinci bir birim ZORUNLU değildi. `prepareRewardVideoAd`'daki
+  `isTesting: true` ve `initialize`'daki `initializeForTesting: true`
+  kaldırıldı — artık gerçek reklam isteniyor, test creative'i değil.
+- Native: `strings.xml`'deki `admob_app_id` ve `Info.plist`'teki
+  `GADApplicationIdentifier` gerçek App ID'lerle değiştirildi, "GEÇİCİ test
+  kimliği" uyarı yorumları kaldırıldı. `npm run cap:sync` ile işlendi.
+- Gizlilik politikası + barındırılan sürüm: "Şu an test reklamı" uyarı
+  kutusu kaldırıldı (artık doğru değil), yerine reklam biriminin
+  yayınlanmasının Google tarafında birkaç saat sürebileceği notu eklendi.
+- İki store checklist'indeki "TEST App ID, yayına çıkma" uyarısı işaretlendi
+  (`[x]`) — bu adım artık tamam.
+
+**Barındırılan sayfa pin sorunu HÂLÂ ÇÖZÜLMEDİ** (bkz. bir önceki madde) —
+sayfa gerçek kimliklerle yeniden yayınlandı ama paylaşım linki hâlâ eski bir
+sürüme pinli; kullanıcının paylaşım menüsünden pini taşıması gerekiyor.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 877/877, 966/966 test yeşil, taze
+`build` + `cap:sync` (her iki platformda `@capacitor-community/admob@8.1.0`
+plugin listesinde). Gerçek reklamın native cihazda gerçekten göründüğü bu
+ortamda doğrulanamaz — Xcode/Android Studio yok; kullanıcının kendi
+cihazında ilk TestFlight/internal testing derlemesinde denemesi gerekiyor.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

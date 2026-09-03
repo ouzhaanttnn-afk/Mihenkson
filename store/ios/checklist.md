@@ -20,9 +20,9 @@ senin yerine atamaz. Sırayla:
 - [x] Google AdMob (ödüllü reklam) eklendi — `@capacitor-community/admob`,
       `Info.plist`'e `GADApplicationIdentifier`/`SKAdNetworkItems`/
       `NSUserTrackingUsageDescription` işlendi (bkz. `src/ui/ads.ts`)
-- [ ] `GADApplicationIdentifier` hâlâ Google'ın **TEST** App ID'si
-      (`ca-app-pub-3940256099942544~1458002511`) — gerçek AdMob hesabından
-      alınan iOS App ID ile değiştirilmeden yayına çıkma
+- [x] `GADApplicationIdentifier` gerçek AdMob iOS App ID'si
+      (`ca-app-pub-4229088811556918~3768104554`) — kullanıcının AdMob
+      hesabından alındı, `isTesting` kaldırıldı (bkz. `src/ui/ads.ts`)
 - [ ] Bundle ID kesinleşince `npm run cap:sync` ile yeniden senkronize et
 - [ ] İmzalama sertifikası + provisioning profile Xcode'da tanımlı — **bu
       ortamda Xcode yok, senin makinende yapılmalı**

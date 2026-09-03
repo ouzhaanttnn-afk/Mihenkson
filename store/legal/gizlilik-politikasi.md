@@ -68,10 +68,9 @@ https://policies.google.com/technologies/ads
 - **AB/İngiltere — GDPR onayı:** Google'ın Kullanıcı Mesajlaşma Platformu
   (UMP) üzerinden, gerekiyorsa bir onay formu gösterilir; onayınızı
   Ayarlar'dan istediğiniz zaman değiştirebilirsiniz.
-- **Test reklamları:** Bu sürüm hâlâ Google'ın herkese açık TEST reklam
-  kimlikleriyle çalışıyor (bkz. `src/ui/ads.ts`) — gerçek AdMob hesabı
-  bağlanana kadar gösterilen video her zaman bir test reklamıdır, hiçbir
-  gerçek reklamveri harcanmaz.
+- Uygulama gerçek bir AdMob hesabına bağlı (bkz. `src/ui/ads.ts`); yeni bir
+  reklam biriminin gerçek reklam getirmeye başlaması Google tarafında
+  birkaç saati bulabilir.
 
 ## Yerel depolama
 

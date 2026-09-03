@@ -26,28 +26,28 @@
  * simülatörde SDK yok, ağ hatası) ödül de verilmez — sahte "izledin"
  * simülasyonu yapmayız, ne oyuncuya ne de mağaza incelemesine.
  *
- * TEST AD UNIT ID'LERİ — Google'ın resmi örnek kimlikleri, PLACEHOLDER.
- * `capacitor.config.ts`'teki appId gibi: yayından ÖNCE gerçek AdMob
- * hesabından alınan App ID + iki gerçek Ad Unit ID ile değiştirilmeli.
- * Gerçek kimlikle giderken `isTesting: true` de kaldırılmalı.
+ * AD UNIT ID'LERİ — gerçek AdMob hesabından alındı (uygulama: MİHENKAYNAK,
+ * yayıncı kimliği ca-app-pub-4229088811556918). Tek ödüllü reklam birimi
+ * hem "4x hız" hem "Dükkânı Canlandır" için kullanılıyor — hangi ödülün
+ * verileceğine reklam biriminin kendisi değil, `showRewardedAd(kind)`in
+ * çağrıldığı yer karar veriyor; bu yüzden ikisine ayrı birim ZORUNLU değildi.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 import { Capacitor } from '@capacitor/core';
 import { AdMob, AdmobConsentStatus, RewardAdPluginEvents, type AdMobRewardItem } from '@capacitor-community/admob';
 
-/** Bir ödülün ne için verildiği — iki ayrı reklam birimi, ayrı envanter. */
+/** Bir ödülün ne için verildiği — hangi oyun içi etkinin tetikleneceğini seçer. */
 export type RewardKind = 'speed4x' | 'customerRush';
 
 const PLATFORM_AD_UNIT: Record<'android' | 'ios', Record<RewardKind, string>> = {
-  // Google'ın herkese açık test reklam birimleri — DAİMA test reklamı döner.
   android: {
-    speed4x: 'ca-app-pub-3940256099942544/5224354917',
-    customerRush: 'ca-app-pub-3940256099942544/5224354917',
+    speed4x: 'ca-app-pub-4229088811556918/3366498503',
+    customerRush: 'ca-app-pub-4229088811556918/3366498503',
   },
   ios: {
-    speed4x: 'ca-app-pub-3940256099942544/1712485313',
-    customerRush: 'ca-app-pub-3940256099942544/1712485313',
+    speed4x: 'ca-app-pub-4229088811556918/9671167921',
+    customerRush: 'ca-app-pub-4229088811556918/9671167921',
   },
 };
 
@@ -67,7 +67,7 @@ let initPromise: Promise<void> | null = null;
 function ensureInitialized(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
-      await AdMob.initialize({ initializeForTesting: true });
+      await AdMob.initialize();
 
       const tracking = await AdMob.trackingAuthorizationStatus();
       if (tracking.status === 'notDetermined') {
@@ -101,7 +101,7 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
 
   try {
     await ensureInitialized();
-    await AdMob.prepareRewardVideoAd({ adId: unitId, isTesting: true });
+    await AdMob.prepareRewardVideoAd({ adId: unitId });
   } catch (err) {
     console.warn('[ads] Reklam yüklenemedi:', err);
     return false;

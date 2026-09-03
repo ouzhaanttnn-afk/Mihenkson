@@ -4,10 +4,6 @@
     <string name="title_activity_main">MİHENKAYNAK</string>
     <string name="package_name">com.mihenkaynak.app</string>
     <string name="custom_url_scheme">com.mihenkaynak.app</string>
-    <!--
-      GEÇİCİ — Google'ın herkese açık test App ID'si (bkz. src/ui/ads.ts).
-      Yayından ÖNCE gerçek AdMob hesabından alınan Android App ID ile
-      değiştir; aksi hâlde reklam sunucusu her zaman test reklamı döner.
-    -->
-    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <!-- Gerçek AdMob Android App ID (bkz. src/ui/ads.ts) -->
+    <string name="admob_app_id">ca-app-pub-4229088811556918~6302768552</string>
 </resources>

@@ -18,9 +18,9 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
       (`@capacitor/assets`)
 - [x] Google AdMob (ödüllü reklam) eklendi — `@capacitor-community/admob`,
       `AndroidManifest.xml`'e App ID meta-data'sı işlendi (bkz. `src/ui/ads.ts`)
-- [ ] `strings.xml`'deki `admob_app_id` hâlâ Google'ın **TEST** App ID'si
-      (`ca-app-pub-3940256099942544~3347511713`) — gerçek AdMob hesabından
-      alınan Android App ID ile değiştirilmeden yayına çıkma
+- [x] `strings.xml`'deki `admob_app_id` gerçek AdMob Android App ID'si
+      (`ca-app-pub-4229088811556918~6302768552`) — kullanıcının AdMob
+      hesabından alındı, `isTesting` kaldırıldı (bkz. `src/ui/ads.ts`)
 - [ ] Paket adı kesinleşince `npm run cap:sync` ile yeniden senkronize et
 - [ ] İmzalama anahtarı (keystore) üretildi ve **güvenli bir yere yedeklendi**
       (kaybedilirse uygulama bir daha güncellenemez) — **bu ortamda Android
