@@ -130,11 +130,12 @@ describe('kayıt uyumu', () => {
  * unutmuyorsa oyuncu yalan söylenmiş olmaz.
  */
 describe('sunum tercihleri', () => {
-  it('varsayılanlar: ses ve titreşim açık, düzey %70, dil Türkçe', () => {
+  it('varsayılanlar: ses, müzik ve titreşim açık, düzey %70, dil Türkçe', () => {
     const p = defaultPreferences();
 
     expect(p).toEqual({
       soundEnabled: true,
+      musicEnabled: true,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
       language: 'tr',
@@ -142,9 +143,16 @@ describe('sunum tercihleri', () => {
     });
   });
 
-  it('ses TEK anahtar — müzik/efekt diye ayrı bir alan yok', () => {
-    expect(Object.keys(defaultPreferences()).filter((k) => /sound|music|effect/i.test(k)))
-      .toEqual(['soundEnabled', 'soundVolume']);
+  /*
+    Bu test bir zamanlar tam tersini sabitliyordu: "ses TEK anahtar, müzik
+    diye ayrı bir alan yok". O doğruydu — oyunda hiç ses dosyası yoktu.
+    Artık bir fon müziği var (bkz. RushFab'ın komşusu `src/ui/music.ts`) ve
+    ayrım gerçek: efektler olaya bağlı ve kısa, müzik süreklidir. Test şimdi
+    TERSİNİ sabitliyor — ikisinin GERÇEKTEN AYRI anahtarlar olduğunu.
+  */
+  it('ses ve müzik AYRI anahtarlar — biri diğerini susturmaz', () => {
+    expect(Object.keys(defaultPreferences()).filter((k) => /sound|music|effect/i.test(k)).sort())
+      .toEqual(['musicEnabled', 'soundEnabled', 'soundVolume']);
   });
 
   it('değiştirilen tercih durumda ve kayıtta durur', () => {
@@ -155,6 +163,7 @@ describe('sunum tercihleri', () => {
     expect(useGame.getState().preferences.language).toBe('en');
     expect(readSave()?.preferences).toEqual({
       soundEnabled: false,
+      musicEnabled: true,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
       language: 'en',
@@ -175,6 +184,7 @@ describe('sunum tercihleri', () => {
 
     expect(geri.preferences).toEqual({
       soundEnabled: true,
+      musicEnabled: true,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: false,
       language: 'tr',
@@ -217,6 +227,30 @@ describe('sunum tercihleri', () => {
 
     expect(p.soundEnabled).toBe(false);
     expect(p.language).toBe('tr');
+  });
+
+  /*
+    MÜZİK OYUNA SONRADAN GİRDİ. `musicEnabled` alanı olmayan (yani bu
+    özellikten önce yazılmış) bir kayıt AÇIK'a düşmeli — kapalıya değil.
+    Sessizce kapalı başlatmak, eklenen şeyi oyuncuya hiç göstermemek olurdu;
+    tam olarak `profile`/`profileSetupDone` ile aynı gerekçe.
+  */
+  it("ESKİ KAYITTA `musicEnabled` yok — AÇIK'a düşer, kapalıya değil", () => {
+    const p = normalizePreferences({ soundEnabled: true, language: 'tr' });
+
+    expect(p.musicEnabled).toBe(true);
+  });
+
+  it('müzik tercihi de bağımsız saklanır ve normalize edilir', () => {
+    useGame.getState().setPreference('musicEnabled', false);
+
+    expect(useGame.getState().preferences.musicEnabled).toBe(false);
+    // Komşu tercih (efekt) etkilenmez.
+    expect(useGame.getState().preferences.soundEnabled).toBe(true);
+    expect(readSave()?.preferences?.musicEnabled).toBe(false);
+
+    const p = normalizePreferences({ musicEnabled: 'evet' });
+    expect(typeof p.musicEnabled).toBe('boolean');
   });
 
   it('arayüzden gelen bozuk dil kimliği kayda sızmaz', () => {

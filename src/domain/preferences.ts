@@ -43,10 +43,17 @@ export const VOLUME_STEP = 5;
 
 export interface PlayerPreferences {
   /**
-   * Ses — TEK anahtar. Müzik ve efekt AYRI AYRILMADI: bu tabanda hiç ses
-   * dosyası yok, ikiye bölmek oyuncuya var olmayan bir ayrım sunmak olurdu.
+   * EFEKT sesleri — işlem, gün ve müşteri olayları.
+   *
+   * Bir zamanlar bu tek anahtardı ve yorumu "müzik ile efekti ayırmak
+   * oyuncuya var olmayan bir ayrım sunmak olurdu" diyordu. Artık bir fon
+   * müziği var (`assets/audio/music`), yani ayrım gerçek: efektler kısa ve
+   * olaya bağlıdır, müzik süreklidir ve insanların ilkini isteyip ikincisini
+   * istememesi (ya da tersi) çok yaygındır.
    */
   soundEnabled: boolean;
+  /** Sürekli çalan fon müziği — efektlerden AYRI açılıp kapanır. */
+  musicEnabled: boolean;
   /**
    * Ses düzeyi, 0–100 tam sayı.
    *
@@ -74,6 +81,7 @@ export interface PlayerPreferences {
 export function defaultPreferences(): PlayerPreferences {
   return {
     soundEnabled: true,
+    musicEnabled: true,
     soundVolume: DEFAULT_VOLUME,
     vibrationEnabled: true,
     language: DEFAULT_LANGUAGE,
@@ -120,6 +128,13 @@ export function normalizePreferences(raw: unknown): PlayerPreferences {
   return {
     soundEnabled:
       typeof source.soundEnabled === 'boolean' ? source.soundEnabled : fallback.soundEnabled,
+    /*
+      ESKİ KAYITTA BU ALAN YOK ve varsayılana düşer (açık). Bilerek: müzik
+      oyuna sonradan girdi, eski oyuncunun onu "kapatmış" olması mümkün değil;
+      sessizce kapalı başlatmak, eklenen şeyi hiç göstermemek olurdu.
+    */
+    musicEnabled:
+      typeof source.musicEnabled === 'boolean' ? source.musicEnabled : fallback.musicEnabled,
     soundVolume: normalizeVolume(source.soundVolume),
     vibrationEnabled:
       typeof source.vibrationEnabled === 'boolean'

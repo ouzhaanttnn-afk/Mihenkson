@@ -497,6 +497,80 @@ kırılgandı. Etiketler **Maliyet · Bugün · Marj**'a indi, kanal adı alttak
 
 **Tarayıcıda ölçüldü:** üç etiket de 48 px yuvada 48 px — kırpılma yok, kap taşmıyor.
 
+#### YENİ · Fon müziği eklendi — sözsüz, telifsiz, sıfırdan üretildi — ✅ YAPILDI
+`src/ui/music.ts` (yeni) · `tools/muzik-uret.py` (yeni) ·
+`public/assets/audio/music/tezgah.wav` (yeni) · `src/domain/preferences.ts` ·
+`src/ui/App.tsx` · `src/ui/shell/SettingsDialog.tsx`
+
+Kullanıcı: *"Ses çalışıyor. Fon müziği olarak Tame Impala'nın telifsiz herhangi bir müziğini
+ekler misin, ama fon müziği tarzında ve sözsüz olacak."*
+
+**"TELİFSİZ TAME IMPALA" DİYE BİR ŞEY YOK — bu doğrudan söylendi, aranmadı.** Tame Impala'nın
+bütün kataloğu teliflidir; hiçbir parçası bir oyuna konulamaz. İnternetten "telifsiz" diye
+inen dosyaların lisansını da güvenilir şekilde doğrulamanın yolu yok. Tarz isteğini
+karşılarken telif sorusunu tamamen ortadan kaldıran tek yol, parçayı **sıfırdan üretmekti.**
+
+**PARÇA SENTEZLE YAZILDI, HİÇBİR KAYITTAN ÖRNEK ALINMADI.** `tools/muzik-uret.py` — NumPy/SciPy
+ile 40 saniyelik, sözsüz, hazy psych-pop dokusunda bir enstrümantal döngü üretiyor: dört akorluk
+detuned pad (Am9 · Fmaj7 · Cmaj7 · G6), phaser salınımı, yumuşak bas, gecikmeli elektro-piyano
+figürü, kısık davul, teyp dalgalanması (wow/flutter) ve dört taraklı yankı. Sabit tohumla
+(`20260903`) **deterministik**: betik tekrar çalıştırılırsa bit bit aynı dosyayı üretir —
+kökenin kanıtı üretici kodun kendisi, `public/assets/audio/music/LISANS.md`'de yazılı.
+
+**DÖNGÜ DİKİŞSİZ OLMAK ZORUNDAYDI, ilk denemede değildi.** Ölçüldü: filtreler tek geçişte
+sıfır durumdan başladığı için döngü başı ile sonu farklı bir noktadan çıkıyordu (dikiş farkı
+0,0083, kulakta duyulur bir tık). Düzeltme: her IIR süzgeç sinyalin **iki kopyası** üzerinden
+geçiriliyor (`_dairesel_filtre`), tüm gecikme/yankı hatları `np.roll` ile dairesel yazıldı, ve
+her LFO'nun periyodu 40 saniyeyi tam bölüyor (phaser 20 s, teyp 0,30 Hz/2,70 Hz). Sonuç
+ölçüldü: dikiş sıçraması **0,00005** — parçanın kendi tipik örnekten örneğe adımının
+**yarısından küçük.**
+
+**KARIŞIM İLK SEFERDE KÖTÜYDÜ VE ÖLÇÜLEREK DÜZELTİLDİ.** Pad katmanı ~120 osilatörün toplamı
+olduğu için diğer her şeyi eziyordu: enerjinin %90'ı 120–400 Hz bandındaydı, 1,2 kHz üstünde
+neredeyse hiçbir şey yoktu — kulağa uğultu gibi gelirdi. Her katman kendi RMS hedefine
+normalize edildi (`dengele`), tuşlara üst harmonikler ve davula daha belirgin hi-hat eklendi.
+Son ölçüm: 20–120 Hz %28, 120–400 Hz %50, 400–1200 Hz %21, 1200 Hz üstü %1,5 — hâlâ koyu ve
+fon niteliğinde ama artık boğuk değil. Tepe 0,72 / RMS −16,9 dBFS: bilerek tavana yaslanmıyor,
+efektlerin altında kalıyor.
+
+**ÖRNEKLEME HIZI 16 kHz'E ÇEKİLDİ.** Ölçüm parçanın enerjisinin neredeyse tamamının 4 kHz
+altında olduğunu gösterdi (tarzın gereği); 22,05 kHz'de dosya 1,76 MB, 16 kHz'de 1,28 MB ve
+kaybedilen bant zaten boştu.
+
+**EFEKT VE MÜZİK ARTIK AYRI ANAHTAR (`musicEnabled`).** Eskiden `preferences.soundEnabled` tek
+anahtardı ve yorumu haklı olarak "ikiye bölmek var olmayan bir ayrım sunmak olurdu" diyordu —
+o an oyunda hiç ses dosyası yoktu. Artık gerçek bir ayrım var: efektler olaya bağlı ve kısa,
+müzik süreklidir; biri isteyip diğerini istemeyen oyuncu yaygındır. **Eski kayıtta bu alan
+yok** ve `normalizePreferences` onu **AÇIK** varsayana düşürüyor — müzik oyuna sonradan girdi,
+eski oyuncunun onu "kapatmış" olması mümkün değil; sessizce kapalı başlatmak, eklenen şeyi hiç
+göstermemek olurdu (`profileSetupDone` ile aynı desen).
+
+**SES DÜZEYİ KAYDIRICISI İKİ KATMANI BİRDEN BESLİYOR** ve bu bir kusur adayıydı: kaydırıcı
+eskiden yalnız `soundEnabled` kapalıyken devre dışı kalıyordu. Efekt kapalı, müzik açıkken bu
+davranış kaydırıcıyı "çalışmıyor" gösterirdi ama aslında müziği hâlâ değiştiriyordu — düzeltildi,
+artık **ikisi de** kapalıyken devre dışı kalıyor.
+
+**MÜZİK, SES EFEKTLERİYLE AYNI iOS TUZAĞINA DÜŞMESİN DİYE AYNI ÇÖZÜMÜ PAYLAŞIYOR.** Bir önceki
+maddede ses kilidinin `once: true` dinleyiciye bağlı olduğu ve arka plandan dönüşte kalıcı
+sustuğu bulunmuştu; müzik `resumeMusic()` ile aynı kalıcı dinleyicilere (dokunuş +
+`visibilitychange`) bağlandı. `<audio loop>` bilerek Web Audio tamponu değil: 40 saniyelik
+sürekli bir parçayı belleğe açmak yerine akıtıyor, döngüyü tarayıcı örnek düzeyinde kapatıyor.
+
+**Tarayıcıda ölçüldü.** İlk dokunuştan sonra müzik öğesi kuruluyor, `loop: true`,
+`paused: false`, düzey `%70 × 0,42 = 0,294` (hesap tam tutuyor). Yalnız müzik açıkken ses
+düzeyi kaydırıcısı **etkin**; ikisi de kapatılınca **devre dışı** ve öğe duraklatılıyor; tekrar
+açılınca aynı düzeyde devam ediyor. Ayarlar penceresi 360×640 ve 390×700'de taşmıyor — kendi
+kaydırma alanı zaten bu amaçla tasarlanmıştı.
+
+**Testler:** `src/ui/music.test.ts` (yeni, 7 test) — `audio.test.ts` ile aynı sözleşme: node
+ortamında `document`/`Audio` yokken çökmez, desteklenmeyen ortamda durum dürüst kalır
+(`requested: true` ama `playing: false`), sınır dışı düzeyler sessiz kalır.
+`settings.test.ts`'e beş test eklendi/güncellendi; en önemlisi eskiden **tam tersini**
+sabitleyen testti — "ses TEK anahtar, müzik diye ayrı alan yok" — artık doğru olan şeyi
+sabitliyor: ikisi **gerçekten ayrı.**
+
+Suite 966 → **975**.
+
 #### YENİ · "Telefonda ses ve titreşim yok" — ✅ ARAŞTIRILDI ve İKİ KUSUR DÜZELTİLDİ
 `src/ui/audio.ts` · `src/ui/App.tsx` · `src/ui/shell/SettingsDialog.tsx`
 

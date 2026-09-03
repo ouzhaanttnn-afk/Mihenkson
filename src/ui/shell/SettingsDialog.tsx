@@ -178,13 +178,43 @@ export function SettingsDialog() {
           onClick={() => setPreference('soundEnabled', !preferences.soundEnabled)}
         >
           <span className="settingsRow__copy">
-            <strong>{t('Ses')}</strong>
+            <strong>{t('Ses efektleri')}</strong>
             <small>
               {preferences.soundEnabled ? t('Açık') : t('Kapalı')} {t('· işlem ve gün sesleri')}
             </small>
           </span>
           <span
             className={`settingsRow__switch ${preferences.soundEnabled ? 'settingsRow__switch--on' : ''}`}
+          >
+            <span className="settingsRow__knob" />
+          </span>
+        </button>
+
+        {/*
+          MÜZİK — EFEKTLERDEN AYRI ANAHTAR.
+
+          İkisini tek anahtarda tutmak artık yanlış olurdu: efektler kısa ve
+          olaya bağlı, müzik süreklidir. Biri isteyip diğerini istemeyen
+          oyuncu yaygındır (toplu taşımada müziksiz efekt, ya da tersi).
+
+          ESKİ KAYITTA `musicEnabled` YOK ve `normalizePreferences` onu AÇIK
+          varsayana düşürür (bkz. preferences.ts): müzik oyuna sonradan
+          girdi, eski oyuncunun onu "kapatmış" olması mümkün değil.
+        */}
+        <button
+          type="button"
+          className="settingsRow"
+          aria-pressed={preferences.musicEnabled}
+          onClick={() => setPreference('musicEnabled', !preferences.musicEnabled)}
+        >
+          <span className="settingsRow__copy">
+            <strong>{t('Müzik')}</strong>
+            <small>
+              {preferences.musicEnabled ? t('Açık') : t('Kapalı')} {t('· fon müziği, sözsüz')}
+            </small>
+          </span>
+          <span
+            className={`settingsRow__switch ${preferences.musicEnabled ? 'settingsRow__switch--on' : ''}`}
           >
             <span className="settingsRow__knob" />
           </span>
@@ -241,15 +271,19 @@ export function SettingsDialog() {
           çeyrek), yazmak doğruydu. Ses düzeyi sürekli ve yaklaşık bir
           tercihtir; kimse "%65 istiyorum" diye düşünmez, kulağıyla ayarlar.
 
-          SES KAPALIYKEN DEVRE DIŞI: kapalı sesin düzeyini ayarlatmak, tam da
-          bu pencerede kaçındığımız şey olurdu — hiçbir şey yapmayan bir
-          denetim. Alt metin nedenini de söyler.
+          TEK DÜZEY, İKİ KATMAN BESLER: `soundVolume` hem efektleri hem
+          müziği ölçekler (müzik ayrıca kendi sabit oranıyla altta kalır,
+          bkz. music.ts · MUZIK_ORANI). Bu yüzden kaydırıcı YALNIZ EFEKT
+          kapalıyken devre dışı bırakılamaz — efekt kapalı, müzik açıkken bu
+          düzey hâlâ müziği değiştirir; kapalı görünen bir denetim aslında
+          çalışıyor gibi yanlış bir izlenim bırakırdı. Devre dışı bırakma
+          koşulu bu yüzden İKİSİ DE kapalıyken geçerli.
         */}
         <div className="settingsRow settingsRow--static settingsRow--stack">
           <span className="settingsRow__copy">
             <strong>{t('Ses düzeyi')}</strong>
             <small>
-              {preferences.soundEnabled
+              {preferences.soundEnabled || preferences.musicEnabled
                 ? /*
                      YÜZDE İMİ ELLE YAZILMIYOR. Bir kez daha ekran görüntüsü
                      yakaladı: `pct` dile bağlanmıştı ama burada im hâlâ
@@ -257,7 +291,7 @@ export function SettingsDialog() {
                      yazıyordu.
                    */
                   pct(preferences.soundVolume / 100)
-                : t('Ses kapalıyken ayarlanamaz')}
+                : t('Ses ve müzik kapalıyken ayarlanamaz')}
             </small>
           </span>
           <input
@@ -267,7 +301,7 @@ export function SettingsDialog() {
             max={VOLUME_MAX}
             step={VOLUME_STEP}
             value={preferences.soundVolume}
-            disabled={!preferences.soundEnabled}
+            disabled={!preferences.soundEnabled && !preferences.musicEnabled}
             aria-label={t('Ses düzeyi')}
             onChange={(e) => setPreference('soundVolume', Number(e.target.value))}
           />
