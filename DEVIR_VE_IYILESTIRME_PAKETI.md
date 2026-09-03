@@ -73,7 +73,7 @@ Referans depolar:
 | B2 · İşçilikli ürün ekonomik olarak baskılanmış | ❌ **ölçümle çürütüldü** |
 | B3 · Ayar bantları ayrışmıyor | ✅ **yapıldı** — sebebi milyem orantısıymış |
 | B4 · Vitrin yaşlanması | ✅ yapıldı |
-| C4 · Market | ✅ yapıldı — sekme kalıyor (kullanıcı kararı), koleksiyon eklendi |
+| C4 · Market | ✅ yapıldı — sekme kalıyor, koleksiyon + katalog 19→47 ürün |
 | C7 · Clone'dan alınacaklar | ✅ bu tabanda zaten mevcut — alınacak bir şey yok |
 | YENİ · Ayarlar: ses, ses düzeyi, titreşim | ✅ tercih saklanıyor **ve çalışıyor** |
 | YENİ · Ayarlar: dil | ✅ tercih saklanıyor · çeviri katmanı bekliyor |
@@ -1040,6 +1040,44 @@ ekrana çıplak bir `◆` karakteri çiziliyor. Dekorasyon, koleksiyon ve tüm �
 hedefleri — 11 ürün — yalnız bir sayacı artırıyor. 25.000.000 ₺'lik villanın karşılığı
 "sahip olunan: 1" ve günde 8.000 ₺ gider. İkonların altında `WATCH · SEDAN · SPORTSCAR ·
 FOUNDER` gibi İngilizce kod adları duruyor. Sekmeyi ilk açan 18 üründen 17'sini kilitli görüyor.
+
+**KATALOG GENİŞLETİLDİ — 19 → 47 ürün.** Kullanıcı "daha fazla içerik, daha fazla lüks"
+istedi. Önce boşluk ölçüldü, sonra yazıldı:
+
+| sorun (ölçüldü) | sonra |
+|---|---|
+| 12. seviyeden sonra **on seviyelik ölü bölge** (11, 13–15, 17–21, 23–25 boş) | en uzun ardışık boşluk **1 seviye** |
+| Dekorasyon 6., tema 7. seviyede bitiyordu — **oyunun konusu olan dükkân gelişmeyi bırakıyordu** | ikisi de 14+ seviyeye uzanıyor |
+| İlk çerçeve 60.000, ilk tema 320.000 — giriş ucu pahalı | 8.000 ₺ Çırak Rozeti, 22.000 ₺ Gümüş Telkari |
+| Şahsi basamak 8M → 25M → 80M → 250M zıplıyordu | 13 basamak, en büyük sıçrama ~3× |
+
+İçerik Türk sarraflığına dayandırıldı: **Çay Ocağı** (her müşteriye uzatılan bardak),
+Hereke Halısı, Kapalıçarşı Klasiği teması, Kehribar Tesbih Koleksiyonu, Mühür Yüzük
+Kabinesi, Saray İşçiliği Arşivi; lüks tarafında Safkan At, Motoryat, Tarihî Yalı,
+Helikopter ve tepe olarak **Özel Ada** (750.000.000 ₺ · günde 150.000 ₺ bakım).
+
+**Kural değişmedi:** hiçbiri oyun gücü vermez. Bakım gideri YALNIZ şahsi üründe —
+arayüz o toplamı "şahsi bakım" diye etiketliyor, dekorasyona gider yazmak etiketi yalan
+yapardı. Bu bir testle çivilendi.
+
+**Testler:** `src/domain/market-catalog.test.ts` — 11 test, tek tek ürünleri değil
+kataloğun BÜTÜN olarak sağlığını sınıyor: ölü bölge olmaması, her kategorinin en az dört
+ürün taşıması, dükkân görünümünün geç oyunda da gelişmesi, seviye arttıkça fiyatın
+gerilememesi, kademelerin fiyat sırasını koruması, bakımın yalnız şahside olması ve
+**hiçbir ürünün mekanik alan taşımaması** (kozmetik kuralının bekçisi).
+
+*Test yazarken kendi hatamı yakaladı:* Kadife Örtü'yü sv4/90.000 koymuşum ama sv3'te
+zaten 125.000'lik Usta Terazisi vardı — oyuncu seviye atlayınca daha ucuz bir şey
+görecekti. Eğri düzeltildi.
+
+**ÜRÜNE ÖZEL İŞARET.** 47 üründe kategori işareti yetmiyordu: 13 şahsi ürünün hepsi aynı
+`✦` ile çiziliyordu. Her ürüne kendi simgesi verildi; tabloda olmayan ürün kategori
+işaretine düşer, yani yeni ürün boş çizilmez. Simgeler tarayıcıda **piksel düzeyinde**
+doğrulandı (canvas'a çizilip mürekkep ölçüldü: 141–1310 piksel; çizilemeyen karakter 0
+bırakır). İlk ölçüm yöntemim genişlik karşılaştırmasıydı ve `◆` gibi zaten çalışan
+simgeleri yanlışlıkla "çizilemiyor" diye işaretledi — yöntem değiştirildi.
+
+Tarayıcıda: 47 kartın **47'si farklı işaret** taşıyor, işaretsiz kart yok, yatay taşma yok.
 
 **Ekran tarafı — ✅ YAPILDI.** İngilizce kod adlarının kaynağı bulundu: kart görselinde
 `product.assetReference.split(':')[1]` **doğrudan ekrana basılıyordu** ve CSS'te

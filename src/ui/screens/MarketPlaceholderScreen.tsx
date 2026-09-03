@@ -17,6 +17,41 @@ const PRODUCT_MARK: Record<MarketCategory, string> = {
   profile: '◆', frames: '◈', shop: '▣', decoration: '◇', collection: '♛', lifestyle: '✦',
 };
 
+/**
+ * ÜRÜNE ÖZEL İŞARET.
+ *
+ * Katalog 19'dan 47 ürüne çıkınca kategori işareti yetmez oldu: 13 şahsi
+ * ürünün hepsi aynı `✦` ile çiziliyordu, kartlar birbirinden ayrışmıyordu.
+ * Gerçek görseller gelene kadar her ürüne kendi simgesi veriliyor.
+ *
+ * Tabloda olmayan ürün KATEGORİ işaretine düşer — yeni ürün eklendiğinde
+ * kart boş çizilmez, yalnız daha az ayırt edici olur.
+ *
+ * Simgelerin hepsi tarayıcıda ölçüldü: canvas'a çizilip mürekkep bırakıp
+ * bırakmadıklarına bakıldı (141–1310 piksel; çizilemeyen karakter 0 bırakır).
+ */
+const ITEM_MARK: Record<string, string> = {
+  badge_apprentice: '✧', badge_founder: '✜', badge_master: '❖', badge_touchstone: '⬖',
+  badge_guild: '⚜', badge_legend: '★',
+  frame_telkari: '❋', frame_brass: '◍', frame_enamel: '❀', frame_nacre: '✿',
+  frame_crown: '♔', frame_diamond: '❂',
+  theme_bazaar: '⌂', theme_nocturne: '☾', theme_ivory: '▤', theme_deco: '▧',
+  theme_marble: '▦', theme_goldenage: '☀',
+  decor_tea: '☕', decor_velvet: '▬', decor_scale: '⚖', decor_safe: '▣',
+  decor_carpet: '▩', decor_chandelier: '✵', decor_walnut: '▢', decor_vault: '⛨',
+  collection_tesbih: '⛓', collection_coins: '◎', collection_scales: '⚗',
+  collection_gems: '♦', collection_seals: '⊛', collection_imperial: '♛',
+  life_watch: '⏱', life_sedan: '⛃', life_horse: '♞', life_sportscar: '⚡',
+  life_apartment: '⌸', life_boat: '⛵', life_villa: '⌘', life_art: '❦',
+  life_mansion: '⛩', life_yacht: '⚓', life_helicopter: '✈', life_jet: '➤',
+  life_island: '⌬',
+};
+
+/** Ürünün işareti; yoksa kategori işaretine düşer. */
+function productMark(product: MarketProduct): string {
+  return ITEM_MARK[product.id] ?? PRODUCT_MARK[product.category];
+}
+
 export function MarketPlaceholderScreen() {
   const s = useGame();
   const [category, setCategory] = useState<MarketCategory>('profile');
@@ -85,7 +120,7 @@ export function MarketPlaceholderScreen() {
                   : false;
                 return (
                   <li key={id}>
-                    <span className="marketOwned__mark" aria-hidden="true">{PRODUCT_MARK[product.category]}</span>
+                    <span className="marketOwned__mark" aria-hidden="true">{productMark(product)}</span>
                     <span className="marketOwned__name">{product.name}</span>
                     {slotta && <span className="marketOwned__badge">Kullanılıyor</span>}
                     {product.dailyUpkeep ? (
@@ -137,7 +172,7 @@ export function MarketPlaceholderScreen() {
 
                   Satır bilgi taşımıyor, yalnız iç kimliği sızdırıyordu.
                 */}
-                <div className="marketProduct__visual" aria-hidden="true"><span>{PRODUCT_MARK[product.category]}</span></div>
+                <div className="marketProduct__visual" aria-hidden="true"><span>{productMark(product)}</span></div>
                 <div className="marketProduct__body">
                   <div className="marketProduct__topline"><span>{tierLabel(product)}</span>{product.dailyUpkeep ? <em>+{tl(product.dailyUpkeep)}/gün</em> : null}</div>
                   <h2>{product.name}</h2><p>{product.description}</p>
