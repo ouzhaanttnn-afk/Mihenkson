@@ -27,10 +27,11 @@
  * simülasyonu yapmayız, ne oyuncuya ne de mağaza incelemesine.
  *
  * AD UNIT ID'LERİ — gerçek AdMob hesabından alındı (uygulama: MİHENKAYNAK,
- * yayıncı kimliği ca-app-pub-4229088811556918). Tek ödüllü reklam birimi
- * hem "4x hız" hem "Dükkânı Canlandır" için kullanılıyor — hangi ödülün
- * verileceğine reklam biriminin kendisi değil, `showRewardedAd(kind)`in
- * çağrıldığı yer karar veriyor; bu yüzden ikisine ayrı birim ZORUNLU değildi.
+ * yayıncı kimliği ca-app-pub-4229088811556918). "4x hız" ve "Dükkânı
+ * Canlandır" AYRI reklam birimleri kullanır — hangi ödülün verileceği
+ * yine de reklam biriminin kendisinden değil, `showRewardedAd(kind)`in
+ * çağrıldığı yerden gelir; ayrım yalnız AdMob konsolunda iki akışı ayrı
+ * raporlayabilmek için.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -43,11 +44,11 @@ export type RewardKind = 'speed4x' | 'customerRush';
 const PLATFORM_AD_UNIT: Record<'android' | 'ios', Record<RewardKind, string>> = {
   android: {
     speed4x: 'ca-app-pub-4229088811556918/3366498503',
-    customerRush: 'ca-app-pub-4229088811556918/3366498503',
+    customerRush: 'ca-app-pub-4229088811556918/7681148035',
   },
   ios: {
     speed4x: 'ca-app-pub-4229088811556918/9671167921',
-    customerRush: 'ca-app-pub-4229088811556918/9671167921',
+    customerRush: 'ca-app-pub-4229088811556918/7939178650',
   },
 };
 
