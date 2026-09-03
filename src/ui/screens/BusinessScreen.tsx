@@ -468,41 +468,27 @@ function CareerRoute({ onBack }: { onBack: () => void }) {
   );
 }
 
+/**
+ * KAYIT rotası — elle kaydet/yükle düğmeleri kaldırıldı.
+ *
+ * Kullanıcı kararı: kayıt bulut tabanlı bir hesaba taşınacak. "Şimdi
+ * Kaydet" ve "Son Kaydı Geri Yükle" bu yüzden gitti — ikisi de yerel bir
+ * dosyayı elle yönetme eylemiydi ve bir hesap sistemi ikisini de gereksiz
+ * kılıyor. Ekran bilgi amaçlı kaldı: oyuncu hâlâ "mevcut durumum ne, son
+ * otomatik kayıt ne zamandı" diye bakabilir — yalnız artık DÜĞMESİZ, salt
+ * okunur. Hesap bağlama Ayarlar'a taşındı (bkz. SettingsDialog · "Hesap");
+ * iki yerde aynı yer tutucu düğmeyi bakımlamamak için burada tekrarlanmadı.
+ */
 function SaveRoute({ onBack }: { onBack: () => void }) {
   const s = useGame();
-  const [confirmLoad, setConfirmLoad] = useState(false);
-  const [lastAction, setLastAction] = useState<string | null>(null);
-  const [saved, setSaved] = useState(() => readSaveSummary());
-
-  const save = () => {
-    const ok = s.saveGame();
-    if (ok) setSaved(readSaveSummary());
-    setLastAction(
-      ok
-        ? t('Kaydedildi · Gün {gun}, {saat}', {
-            gun: s.market.day,
-            saat: clock(s.market.clockMinutes),
-          })
-        : t('Kayıt oluşturulamadı.'),
-    );
-  };
-
-  const load = () => {
-    const ok = s.loadGame();
-    setConfirmLoad(false);
-    setLastAction(
-      ok
-        ? t('Son kayıt yüklendi · Gün {gun}', { gun: useGame.getState().market.day })
-        : t('Yüklenecek kayıt bulunamadı.'),
-    );
-  };
+  const [saved] = useState(() => readSaveSummary());
 
   return (
     <div className="page">
       <header className="pageHead">
         <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>{t('← İşletme')}</button>
         <h1 className="pageHead__title">{t('Kayıt')}</h1>
-        <p className="pageHead__sub">{t('Gün sonunda otomatik, istediğin anda elle kayıt')}</p>
+        <p className="pageHead__sub">{t('Gün sonunda otomatik kayıt · hesap bağlama Ayarlar’da')}</p>
       </header>
       <div className="page__scroll">
         <div className="group">
@@ -516,7 +502,6 @@ function SaveRoute({ onBack }: { onBack: () => void }) {
               })}
             />
             <StatLine label={t('Nakit')} value={tl(s.store.cash)} />
-            <button type="button" className="cta" onClick={save}>{t('Şimdi Kaydet')}</button>
           </div>
         </div>
         <div className="group">
@@ -546,23 +531,6 @@ function SaveRoute({ onBack }: { onBack: () => void }) {
             ) : <p className="emptyNote">{t('Henüz kayıt yok.')}</p>}
           </div>
         </div>
-        <div className="group">
-          <h2 className="group__title">{t('Geri yükleme')}</h2>
-          <div className="group__body">
-            {!confirmLoad ? (
-              <button type="button" className="secondary" onClick={() => setConfirmLoad(true)}>{t('Son Kaydı Geri Yükle')}</button>
-            ) : (
-              <div className="confirmPanel">
-                <p>{t('Kaydedilmemiş mevcut ilerleme kaybolacak. Son kaydı yüklemek istiyor musun?')}</p>
-                <div className="confirmPanel__actions">
-                  <button type="button" className="secondary" onClick={() => setConfirmLoad(false)}>{t('Vazgeç')}</button>
-                  <button type="button" className="secondary secondary--danger" onClick={load}>{t('Evet, Geri Yükle')}</button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-        {lastAction && <p className="routeFeedback" role="status">{lastAction}</p>}
       </div>
     </div>
   );

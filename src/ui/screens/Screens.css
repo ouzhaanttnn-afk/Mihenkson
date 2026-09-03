@@ -1931,8 +1931,9 @@
      · dolu pirinç      → ana karar (Teklifi Gönder, Satın Al) — dokunulmadı
      · pirinç kenarlık  → taahhüt eden kontrol (lotRow__buy, miniBtn)
      · 3 px sol kenar   → arkasında para kararı olan rota  ← burada yayıldı
-   Kayıp ve yıkım pirinç DEĞİL kırmızıdır (settingsDanger); pirinç fırsat
-   ve para demek, tehlike demek değil.
+   Kayıp ve yıkım pirinç DEĞİL kırmızıdır (secondary--danger — "İlgilenmiyorum",
+   "Müşteriyi Gönder", "İşi Reddet"); pirinç fırsat ve para demek, tehlike
+   demek değil.
 
    SEÇİCİ OLMAK İŞARETİN KENDİSİ KADAR ÖNEMLİ. Her şey işaretlenirse işaret
    hiçbir şey anlatmaz; İşletme'de sekiz rotadan yalnız üçü pirinçtir.

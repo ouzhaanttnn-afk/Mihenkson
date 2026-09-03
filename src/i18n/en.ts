@@ -128,11 +128,8 @@ export const EN: Record<string, string> = {
   'Para birimi': 'Currency',
   'Yalnız gösterim · 1 $ = {rate} ₺': 'Display only · $1 = {rate} ₺',
   'Yeni oyun': 'New game',
-  'Kaydı siler · geri alınamaz': 'Deletes the save · cannot be undone',
   'Sil': 'Delete',
   'Kaydı sil': 'Delete save',
-  'Kayıt silinecek. Ekrandaki oyun kapanana kadar durur; yeni oyun bir sonraki açılışta başlar. Geri alınamaz.':
-    'The save will be deleted. The game on screen keeps running until you close it; a new game starts at the next launch. This cannot be undone.',
   'Vazgeç': 'Cancel',
   'Kapat': 'Close',
   'İptal': 'Cancel',
@@ -526,24 +523,29 @@ export const EN: Record<string, string> = {
 
   // ——— Kayıt ———
   'Kayıt': 'Save',
-  'Şimdi Kaydet': 'Save Now',
+  /*
+    "Hesap" bölümü — App Store/Play Store bağlama yer tutucuları. Gerçek bir
+    kimlik doğrulama arka ucu yok; "Bağla" iddiasında bulunmuyor, basınca
+    "yakında" diyor (bkz. SettingsDialog).
+  */
+  'Hesap': 'Account',
+  'App Store Hesabını Bağla': 'Connect App Store Account',
+  'Google Play Hesabını Bağla': 'Connect Google Play Account',
+  'Bulut kayıt için — yakında': 'For cloud save — coming soon',
+  'Bağla': 'Connect',
+  'App Store hesabı bağlama yakında geliyor.': 'Connecting your App Store account is coming soon.',
+  'Google Play hesabı bağlama yakında geliyor.': 'Connecting your Google Play account is coming soon.',
+  'Gün sonunda otomatik kayıt · hesap bağlama Ayarlar’da':
+    'Saved automatically at day’s end · account linking is in Settings',
   'Son Kaydı Geri Yükle': 'Restore the Last Save',
   'Son kayıt': 'Last save',
   'Kayıt zamanı': 'Saved at',
   'Eski kayıt': 'Older save',
   'Mevcut oyun': 'Current game',
-  'Geri yükleme': 'Restore',
-  'Evet, Geri Yükle': 'Yes, Restore',
   'Henüz kayıt yok': 'No save yet',
   'Henüz kayıt yok.': 'No save yet.',
-  'Kayıt oluşturulamadı.': 'Could not create a save.',
-  'Yüklenecek kayıt bulunamadı.': 'No save found to load.',
-  'Kaydedilmemiş mevcut ilerleme kaybolacak. Son kaydı yüklemek istiyor musun?':
-    'Unsaved progress will be lost. Load the last save?',
   'Gün sonunda otomatik · elle kaydet veya geri yükle':
     'Automatic at day end · save or restore by hand',
-  'Gün sonunda otomatik, istediğin anda elle kayıt':
-    'Automatic at day end, manual whenever you like',
 
   // ——— Kariyer / yetenekler ———
   'Kariyer / Yetenekler': 'Career / Talents',
@@ -1548,9 +1550,7 @@ export const EN: Record<string, string> = {
     'Day {gun} closed · Realised profit {kar} · Overhead {gider}',
   'Gün {gun} kira + sabit gider + personel + şahsi bakım + terazi bakımı':
     'Day {gun} rent + fixed costs + staff + personal upkeep + scale servicing',
-  'Kaydedildi · Gün {gun}, {saat}': 'Saved · Day {gun}, {saat}',
   'Kayıt yüklendi · Gün {gun}': 'Save loaded · Day {gun}',
-  'Son kayıt yüklendi · Gün {gun}': 'Last save loaded · Day {gun}',
   '{nakit} · {n} adet': '{nakit} · {n} pieces',
   '{g} g HAS alımı': 'Purchase of {g} g fine gold',
   '{g} g HAS satışı': 'Sale of {g} g fine gold',

@@ -9,7 +9,14 @@
  *   Titreşim          → GERÇEKTEN ÇALIŞIR (destekleyen cihazda; iOS'ta API yok)
  *   Dil               → GERÇEKTEN ÇALIŞIR (tr / en)
  *   Para birimi       → GERÇEKTEN ÇALIŞIR (₺ / $) — yalnız GÖSTERİM
- *   Yeni oyun         → kaydı siler (onaylı)
+ *   Hesap             → App Store / Play Store bağlama — YER TUTUCU, arka
+ *                        uç yok; basınca "yakında" bildirir (bkz. aşağıda)
+ *
+ * "YENİ OYUN / KAYDI SİL" KALDIRILDI (bir zamanlar buradaydı). Kayıt bulut
+ * tabanlı bir hesaba taşınınca yerel "kaydı sil" düğmesinin anlamı kalmadı;
+ * sıfırlama artık hesap tarafında olacak. `resetGame` mağaza eylemi hâlâ
+ * duruyor (testler ve ileride hesap çıkışı onu kullanabilir) — kaldırılan
+ * yalnız bu penceredeki DÜĞMEYDİ.
  *
  * ARTIK HİÇBİR SATIRDA "HAZIRLANIYOR" YOK. Bu dosya uzun süre o ibareyi
  * taşıdı, çünkü anahtarlar konulmuş ama davranışları bağlanmamıştı ve
@@ -52,12 +59,11 @@ export function SettingsDialog() {
   const seenLessons = useGame((s) => s.seenLessons);
   const skipOnboarding = useGame((s) => s.skipOnboarding);
   const restoreOnboarding = useGame((s) => s.restoreOnboarding);
-  const resetGame = useGame((s) => s.resetGame);
+  const notify = useGame((s) => s.notify);
   const preferences = useGame((s) => s.preferences);
   const language = preferences.language;
   const setPreference = useGame((s) => s.setPreference);
 
-  const [confirmReset, setConfirmReset] = useState(false);
   // Cihaz desteği render sırasında sabittir; her çizimde sormaya gerek yok.
   const [titresimVar] = useState(hapticsSupported);
   /*
@@ -77,12 +83,6 @@ export function SettingsDialog() {
   );
   const boxRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLButtonElement>(null);
-
-  // Pencere her açılışta temiz gelir: bir önceki oturumun yarım kalmış
-  // "emin misin?" hâli, ikinci açılışta yanlışlıkla onaylanabilirdi.
-  useEffect(() => {
-    if (open) setConfirmReset(false);
-  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -449,51 +449,39 @@ export function SettingsDialog() {
         </div>
 
         {/*
-          Yıkıcı eylem: tek dokunuşla kayıt silinmez. Onay metni ne olacağını
-          da söyler — kayıt silinir ama açık oyun ekranda kalır, yeni oyun
-          bir sonraki açılışta başlar (gameStore · resetGame).
+          HESAP — bulut kayda hazırlık.
+
+          Kullanıcı kararı: kayıt bulut tabanlı bir hesaba taşınacak; yerel
+          "kaydı sil / yeni oyun başlat" düğmesi bu yüzden kaldırıldı (o
+          işlev artık hesap tarafında olacak). Bu iki düğme onun yerini
+          TUTUYOR — henüz gerçek bir kimlik doğrulama arka ucu yok, o yüzden
+          "bağla" iddiasında bulunmuyorlar; basınca dürüstçe "yakında" diyor.
+          Ayarlar penceresinin geri kalanındaki disiplin burada da geçerli:
+          çalışmayan bir düğmeyi çalışıyormuş gibi göstermemek.
         */}
-        {confirmReset ? (
-          <div className="settingsDanger">
-            <p className="settingsDanger__text">
-              {t(
-                t('Kayıt silinecek. Ekrandaki oyun kapanana kadar durur; yeni oyun bir sonraki açılışta başlar. Geri alınamaz.'),
-              )}
-            </p>
-            <div className="settingsDanger__actions">
-              <button
-                type="button"
-                className="settingsDanger__cancel"
-                onClick={() => setConfirmReset(false)}
-              >
-                {t('Vazgeç')}
-              </button>
-              <button
-                type="button"
-                className="settingsDanger__confirm"
-                onClick={() => {
-                  resetGame();
-                  setConfirmReset(false);
-                  close();
-                }}
-              >
-                {t('Kaydı sil')}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="settingsRow settingsRow--danger"
-            onClick={() => setConfirmReset(true)}
-          >
-            <span className="settingsRow__copy">
-              <strong>{t('Yeni oyun')}</strong>
-              <small>{t('Kaydı siler · geri alınamaz')}</small>
-            </span>
-            <span className="settingsRow__action">{t('Sil')}</span>
-          </button>
-        )}
+        <div className="group__title" style={{ marginTop: 4 }}>{t('Hesap')}</div>
+        <button
+          type="button"
+          className="settingsRow"
+          onClick={() => notify(t('App Store hesabı bağlama yakında geliyor.'), 'info')}
+        >
+          <span className="settingsRow__copy">
+            <strong>{t('App Store Hesabını Bağla')}</strong>
+            <small>{t('Bulut kayıt için — yakında')}</small>
+          </span>
+          <span className="settingsRow__action">{t('Bağla')}</span>
+        </button>
+        <button
+          type="button"
+          className="settingsRow"
+          onClick={() => notify(t('Google Play hesabı bağlama yakında geliyor.'), 'info')}
+        >
+          <span className="settingsRow__copy">
+            <strong>{t('Google Play Hesabını Bağla')}</strong>
+            <small>{t('Bulut kayıt için — yakında')}</small>
+          </span>
+          <span className="settingsRow__action">{t('Bağla')}</span>
+        </button>
 
         <button type="button" className="settingsBox__close" onClick={close}>
           {t('Kapat')}

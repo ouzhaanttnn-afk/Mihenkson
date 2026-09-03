@@ -1788,7 +1788,6 @@
 }
 .settingsRow__switch--on .settingsRow__knob { transform: translateX(18px); }
 
-.settingsRow--danger .settingsRow__action { color: var(--negative, #a2312b); }
 
 /*
   Henüz bağlanmamış tercihleri tanıtan tek satır. Satır başına ayrı bir
@@ -1867,37 +1866,6 @@
 .settingsSegment__option:focus-visible {
   outline: 3px solid var(--brass-500);
   outline-offset: 2px;
-}
-
-.settingsDanger {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--negative, #a2312b);
-  border-radius: 14px;
-  background: #fdf3f2;
-}
-.settingsDanger__text { margin: 0; font-size: var(--fs-caption); line-height: 1.5; }
-.settingsDanger__actions { display: flex; gap: 8px; }
-.settingsDanger__cancel,
-.settingsDanger__confirm {
-  flex: 1;
-  min-height: 44px;
-  border-radius: 12px;
-  font: inherit;
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-}
-.settingsDanger__cancel {
-  border: 1px solid var(--line-light);
-  background: #fff;
-  color: var(--text-light-1);
-}
-.settingsDanger__confirm {
-  border: 0;
-  background: var(--negative, #a2312b);
-  color: #fff;
 }
 
 .settingsBox__close {

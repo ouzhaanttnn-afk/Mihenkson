@@ -1405,6 +1405,58 @@ Efekt açık" diyor.
 **Yapılacak:** ya dosyalar eklensin, ya ayar varsayılanı kapalı gelsin ve "Ses paketi
 yüklenmedi" yazsın. Oyuncuya çalışmayan bir açık/kapalı düğmesi gösterilmesin.
 
+#### YENİ · Elle kayıt/silme düğmeleri kaldırıldı, yerine "Hesap bağla" yer tutucusu — ✅ YAPILDI
+`src/ui/shell/SettingsDialog.tsx` · `src/ui/screens/BusinessScreen.tsx` (`SaveRoute`) ·
+`src/ui/shell/AppShell.css` · `src/ui/screens/Screens.css` · `src/i18n/en.ts`
+
+Kullanıcı: *"Profilde kayıt tuşu zaten bulut tabanlı kayıt olacak o onu kaldıralım. Ayarlarda
+kayıt sil yenimoyun başla tuşu da silinsin zaten bulut tabanlı olacak deniştim. Oraya
+bağlanacak hesaplar appstore veya playstore hesabını bağla diye tikleyebilirsin."* Oyun bulut
+tabanlı hesap kaydına geçecek; elle "kaydet" ve "eski kaydı geri yükle" düğmeleri o modelde
+anlamsız, "Yeni oyun / Kaydı sil" tehlike-bölgesi düğmesi de aynı şekilde gereksiz hale geliyor.
+
+Hangi "kayıt tuşu"nun kastedildiği belirsizdi (Profil penceresi mi, İşletme → Kayıt rotası mı) —
+`AskUserQuestion` ile soruldu, cevap **İşletme → Kayıt rotasındaki düğmeler**. Ayarlar'daki
+tehlike-bölgesi düğmesi için de "tamamen kaldır mı, gizli bir geliştirici yolu mu kalsın"
+soruldu — cevap **tamamen kaldır**, gizli yol yok.
+
+**Yapıldı:**
+- `SaveRoute` (İşletme → Kayıt) — "Şimdi Kaydet" ve "Son Kaydı Geri Yükle" düğmeleri (ve
+  geri yüklemenin onay paneli) kaldırıldı. Ekranda yalnız salt-okunur bilgi kaldı: mevcut
+  oyunun gün/saat/nakit durumu ve son otomatik kaydın özeti. Alt başlık artık *"Gün sonunda
+  otomatik kayıt · hesap bağlama Ayarlar'da"* diyor.
+- `SettingsDialog` — "Yeni oyun" tehlike-bölgesi düğmesi (onay akışıyla birlikte) tamamen
+  kaldırıldı. Yerine yeni bir **Hesap** grubu geldi: "App Store Hesabını Bağla" ve
+  "Google Play Hesabını Bağla" satırları. İkisi de gerçek bir bağlanma yapmıyor — arkada
+  hesap/bulut altyapısı yok — basılınca `notify()` ile *"...hesabı bağlama yakında
+  geliyor."* toast'ı gösteriyorlar. Bu, oyuncuya çalışmayan bir düğme göstermemek ile
+  gelecekte nereye bağlanacağını göstermek arasında bir denge: buton görünür ve tıklanabilir,
+  ama sahte bir "bağlandı" durumu üretmiyor.
+- `resetGame` store eyleminin kendisi **silinmedi** — testler ve ileride gerekebilecek bir
+  geliştirici yolu için store katmanında duruyor; kaldırılan yalnız ona giden UI tetikleyicisi.
+- Ölü CSS temizlendi: `.settingsDanger*`, `.settingsRow--danger .settingsRow__action`.
+- i18n: 10 ölü anahtar silindi (`Şimdi Kaydet`, `Geri yükleme`, `Evet, Geri Yükle`, vb.),
+  8 yeni anahtar eklendi (`Hesap`, `App Store Hesabını Bağla`, `Google Play Hesabını Bağla`,
+  `Bulut kayıt için — yakında`, `Bağla`, iki toast metni, yeni alt başlık). `npm run i18n` →
+  **879/879**, 0 eksik, 0 kullanılmayan.
+
+**Testler:** ek test yazılmadı — kaldırılan düğmeler doğrudan test edilmiyordu, testler
+`resetGame`/`saveGame`/`loadGame`'i store seviyesinde çağırıyor ve onlar değişmedi. Suite
+977, **aynı** (regresyon yok).
+
+**Tarayıcıda doğrulandı (390×844):** İşletme → Kayıt artık "Şimdi Kaydet" veya "Son Kaydı
+Geri Yükle" içermiyor, yalnız "Mevcut oyun" ve "Son kayıt" bilgisi var. Ayarlar'da **HESAP**
+başlığı altında iki satır görünüyor; "App Store Hesabını Bağla"ya basınca *"App Store hesabı
+bağlama yakında geliyor."* toast'ı çıkıyor; eski "Kaydı sil"/"Yeni oyun" satırı hiçbir yerde
+yok. Konsolda hata yok.
+
+**Ayrıca:** depo köküne `store/` klasörü eklendi (App Store / Play Store yayın hazırlığı —
+kontrol listeleri, taslak metadata, gizlilik politikası/kullanım şartları taslağı, eksik görsel
+envanteri). Kullanıcının kendi bilgisayarına erişimim yok; bu yüzden yayın-hazırlığı dosyaları
+depoya konup GitHub'a push edildi (`fc2c7d9`). Gizlilik politikası taslağı, bugünkü kodda
+`localStorage` dışında hiçbir ağ isteği/analitik/SDK olmadığı `grep -rn` ile doğrulanarak
+yazıldı; bulut hesabı eklendiğinde yeniden yazılması gerektiği metnin içinde açıkça not edildi.
+
 ---
 
 ### B. Tasarım ve oynanış önerileri
