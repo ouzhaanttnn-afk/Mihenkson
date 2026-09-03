@@ -458,6 +458,45 @@ export const IconSettings = ({ size = 22, className, style }: IconProps) => (
 );
 
 /**
+ * App Store / Play Store rozet ikonları — Ayarlar'ın Hesap satırı için.
+ *
+ * Diğer ikonlar gibi `assets/realistic/icons/micro/` altında karşılığı YOK
+ * (bu iki mağazanın resmî rozet görseli asset paketinde hiç yok) — dişli
+ * ikonuyla aynı sebepten SVG olarak çizildi. Resmî marka rozetlerinin birebir
+ * kopyası DEĞİL: tek renkli, basitleştirilmiş bir piktogram — tıpkı diğer
+ * ikonlar gibi GDD 23.24 gereği her zaman bir metin etiketiyle eşleşir, tek
+ * başına "resmî" bir bağlantı iddiası taşımaz.
+ */
+export const IconAppStore = ({ size = 22, className, style }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    style={style}
+    aria-hidden="true"
+  >
+    <path d="M16.5 3.2c.15 1.15-.28 2.28-.98 3.1-.72.84-1.9 1.5-3.05 1.4-.16-1.1.32-2.26 1.02-3.02.75-.83 2-1.45 3.01-1.48Z" />
+    <path d="M20.9 17.35c-.42.98-.62 1.42-1.16 2.28-.75 1.2-1.8 2.7-3.12 2.72-1.17.02-1.47-.76-3.06-.75-1.58 0-1.92.73-3.1.72-1.31-.02-2.31-1.37-3.06-2.56-2.1-3.35-2.32-7.28-1.02-9.38.92-1.5 2.38-2.38 3.75-2.38 1.4 0 2.28.77 3.44.77 1.12 0 1.8-.78 3.44-.78 1.22 0 2.52.67 3.44 1.82-3.03 1.66-2.54 5.99.45 7.54Z" />
+  </svg>
+);
+
+export const IconPlayStore = ({ size = 22, className, style }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    style={style}
+    aria-hidden="true"
+  >
+    <path d="M9 6v12l7-6Z" />
+  </svg>
+);
+
+/**
  * Ürün hero silüeti. Pirinç kontur + mürekkep zemin: asset paketindeki
  * "ürün görsel kahramandır" ilkesini (GDD 23.4) kodla karşılar.
  */

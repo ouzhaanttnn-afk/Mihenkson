@@ -49,6 +49,7 @@ import { pct } from '@ui/format';
 import { t } from '@i18n/index';
 import { hapticsSupported, playHaptic } from '@ui/haptics';
 import { audioStatus, playSound, unlockAudio } from '@ui/audio';
+import { IconAppStore, IconPlayStore } from '@ui/icons';
 import { useGame } from '@state/gameStore';
 
 export function SettingsDialog() {
@@ -453,35 +454,43 @@ export function SettingsDialog() {
 
           Kullanıcı kararı: kayıt bulut tabanlı bir hesaba taşınacak; yerel
           "kaydı sil / yeni oyun başlat" düğmesi bu yüzden kaldırıldı (o
-          işlev artık hesap tarafında olacak). Bu iki düğme onun yerini
+          işlev artık hesap tarafında olacak). Bu iki ikon-düğme onun yerini
           TUTUYOR — henüz gerçek bir kimlik doğrulama arka ucu yok, o yüzden
           "bağla" iddiasında bulunmuyorlar; basınca dürüstçe "yakında" diyor.
           Ayarlar penceresinin geri kalanındaki disiplin burada da geçerli:
           çalışmayan bir düğmeyi çalışıyormuş gibi göstermemek.
+
+          TEK SATIRDA İKİ İKON-DÜĞME — Dil/Para birimi satırlarıyla aynı
+          kalıp (metin solda, denetim sağda). Önceki sürümde bu iki mağaza
+          kendi başlığı ve iki ayrı tam satırıyla dört satır tutuyordu; kayıt
+          bulut hesabına taşınınca amaç "bağlan" demek değil "buraya
+          bakılacak" demek olduğundan, uzun metin yerine tanınır bir rozet
+          yeterli — pencere bu kadarını kısalttı.
         */}
-        <div className="group__title" style={{ marginTop: 4 }}>{t('Hesap')}</div>
-        <button
-          type="button"
-          className="settingsRow"
-          onClick={() => notify(t('App Store hesabı bağlama yakında geliyor.'), 'info')}
-        >
+        <div className="settingsRow settingsRow--static">
           <span className="settingsRow__copy">
-            <strong>{t('App Store Hesabını Bağla')}</strong>
+            <strong>{t('Hesap')}</strong>
             <small>{t('Bulut kayıt için — yakında')}</small>
           </span>
-          <span className="settingsRow__action">{t('Bağla')}</span>
-        </button>
-        <button
-          type="button"
-          className="settingsRow"
-          onClick={() => notify(t('Google Play hesabı bağlama yakında geliyor.'), 'info')}
-        >
-          <span className="settingsRow__copy">
-            <strong>{t('Google Play Hesabını Bağla')}</strong>
-            <small>{t('Bulut kayıt için — yakında')}</small>
+          <span className="settingsRow__iconGroup">
+            <button
+              type="button"
+              className="settingsIconBtn"
+              aria-label={t('App Store Hesabını Bağla')}
+              onClick={() => notify(t('App Store hesabı bağlama yakında geliyor.'), 'info')}
+            >
+              <IconAppStore size={20} />
+            </button>
+            <button
+              type="button"
+              className="settingsIconBtn"
+              aria-label={t('Google Play Hesabını Bağla')}
+              onClick={() => notify(t('Google Play hesabı bağlama yakında geliyor.'), 'info')}
+            >
+              <IconPlayStore size={20} />
+            </button>
           </span>
-          <span className="settingsRow__action">{t('Bağla')}</span>
-        </button>
+        </div>
 
         <button type="button" className="settingsBox__close" onClick={close}>
           {t('Kapat')}

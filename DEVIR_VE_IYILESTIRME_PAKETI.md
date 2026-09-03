@@ -1457,6 +1457,63 @@ depoya konup GitHub'a push edildi (`fc2c7d9`). Gizlilik politikası taslağı, b
 `localStorage` dışında hiçbir ağ isteği/analitik/SDK olmadığı `grep -rn` ile doğrulanarak
 yazıldı; bulut hesabı eklendiğinde yeniden yazılması gerektiği metnin içinde açıkça not edildi.
 
+#### YENİ · Ayarlar kompaktlaştırıldı, Hesap satırına gerçek ikon geldi — ✅ YAPILDI
+`src/ui/icons.tsx` · `src/ui/shell/SettingsDialog.tsx` · `src/ui/shell/AppShell.css` ·
+`src/ui/screens/BusinessScreen.tsx`
+
+Kullanıcı: *"Şimdi ayarları biraz daha kompakt istiyorum senden. Düzenler misin hesap bağlama
+yerine asset atayıp görsel koymanı rica ediyorum."*
+
+**Kompakt geçiş** — `.settingsBox` dış dolgusu 20 → 16 px, satır arası boşluk 10 → 8 px;
+`.settingsRow` iç dolgusu 10×14 → 8×12 px, taban yüksekliği 58 → 50 px; kaydırıcı satırlarının
+(`--stack`) iç boşluğu 6 → 4 px. Hepsi GDD 23.22'nin 44 px dokunma tabanının üstünde kaldı —
+ölçüldü, aşağıda. Tek başına bu değişiklik pencereyi 390×844'te **1200 → ~1090 px** kaydırma
+yüksekliğine indirdi (~%9); Hesap satırının kendisinin dört satırdan bire inmesi (aşağıda) geri
+kalan farkı getirdi: **1200 → 1017 px toplam (~%15 daha kısa)**.
+
+**Hesap satırına asset** — önceki sürümde App Store ve Play Store için ayrı birer tam satır,
+her biri kendi "Bağla" metin bağlantısıyla vardı (dört satır: başlık + iki satır + gizli
+subtitle tekrarı). Artık **tek satır**: solda "Hesap" başlığı, sağda iki 44×44 ikon-düğme —
+Dil ve Para birimi satırlarıyla birebir aynı kalıp (metin solda, denetim sağda).
+
+**İkonlar gerçek SVG asset, uydurma değil.** `assets/realistic/icons/micro/` altında bu iki
+mağazanın resmî rozeti hiç yok (mevcut asset paketi kuyumculuk/atölye/karakter varlıklarından
+oluşuyor, mağaza rozeti hiç içermiyor) — dişli ikonuyla (`IconSettings`) aynı gerekçeyle kodla
+çizildi: var olmayan bir dosyaya işaret etmek yerine, mikro-ikon setiyle aynı ölçekte okunan iki
+yeni bileşen eklendi (`IconAppStore`, `IconPlayStore`). Resmî marka rozetlerinin birebir kopyası
+DEĞİL — tek renkli, basitleştirilmiş bir piktogram (elma silüeti / oynat üçgeni); Google'ın dört
+renkli üçgen logosu bilerek kullanılmadı, hem bu uygulamanın tüm ikon dilinin tek renkli olması
+hem de resmî rozetin birebir taklidinden kaçınmak için. Üç aday (elma dolgulu, elma çift-daire
+anahat, oynat üçgeni dolgulu/anahat) küçük bir HTML önizlemesiyle yan yana render edilip
+karşılaştırıldı, en okunaklı ikisi seçildi.
+
+**GDD 23.24 hâlâ geçerli** ("ikon tek başına anlam taşımamalı") — düğmelerin `aria-label`'ı zaten
+tam metni taşıyor (`"App Store Hesabını Bağla"` / `"Google Play Hesabını Bağla"`), satırın kendi
+`strong`/`small` metni de "Hesap · Bulut kayıt için — yakında" diyor; ikon tek başına bir iddia
+taşımıyor.
+
+**Ayrıca düzeltildi:** İşletme ana ekranındaki "Kayıt" menü satırının alt metni hâlâ eski
+davranışı anlatıyordu — *"Gün sonunda otomatik · elle kaydet veya geri yükle"* — önceki
+düzenlemede yalnız `SaveRoute` ekranının kendi metni güncellenmiş, bu üst menüdeki kopyası
+unutulmuştu. Artık `SaveRoute`'un başlığıyla aynı, tek bir i18n anahtarını paylaşıyor: *"Gün
+sonunda otomatik kayıt · hesap bağlama Ayarlar'da."*
+
+**i18n:** kullanılmayan `'Bağla'` anahtarı (artık hiçbir yerde `t('Bağla')` olarak çağrılmıyor)
+ve eski Kayıt alt metni silindi. `npm run i18n` denetleyicisi `'Bağla'`yı **kaçırdı** — çünkü
+`'Bağlamsal araç rayı'` (ToolRail) dizesi alt dize olarak "Bağla"yı içeriyor ve denetleyici tam
+anahtar eşleşmesi değil, alt dize taraması yapıyor; elle `grep -rn "t('Bağla')"` ile doğrulanıp
+silindi. Son durum **877/877**, 0 çevrilmemiş, 0 kullanılmayan.
+
+**Testler:** ek test yazılmadı — değişiklik tamamen sunum katmanında (ikon bileşeni + CSS
+boyutları), davranışsal bir dal eklemedi. Suite 977, **aynı**.
+
+**Tarayıcıda ölçüldü (390×844 ve 360×640, tr ve en):** Hesap satırındaki düğmeler `44×44`
+(GDD 23.22 tabanı tam karşılanıyor, ölçüldü), tıklanınca "yakında" toast'ı hâlâ çıkıyor, hiçbir
+genişlik veya dilde satır taşmıyor, konsolda hata yok. **Tuzak:** ilk tarayıcı turunda `vite
+preview` önceki (kod değişikliğinden ÖNCEKİ) `dist/` çıktısını sunmaya devam ediyordu — ekranda
+hâlâ eski dört satırlı "Bağla" metni görünüyordu. `npm run build` çalıştırılmadan `vite preview`
+başlatılırsa bu her zaman olur; bu depoda ders zaten biliniyordu, burada bir kez daha doğrulandı.
+
 ---
 
 ### B. Tasarım ve oynanış önerileri

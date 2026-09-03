@@ -387,7 +387,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             />
             <MenuLine
               title={t('Kayıt')}
-              sub={t("Gün sonunda otomatik · elle kaydet veya geri yükle")}
+              sub={t('Gün sonunda otomatik kayıt · hesap bağlama Ayarlar’da')}
               icon={<IconReason size={17} />}
               onPress={() => onOpen('save')}
             />

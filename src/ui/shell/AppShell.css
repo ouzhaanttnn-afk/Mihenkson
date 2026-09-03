@@ -1703,8 +1703,13 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 20px;
+  /* KOMPAKT GEÇİŞ: 10px → 8px, dış dolgu 20px → 16px. Satır sayısı arttıkça
+     pencere daha çok kaydırmaya zorluyordu; kullanıcı isteği: "biraz daha
+     kompakt". Satırların kendi iç dolgusu da aşağıda küçüldü (bkz.
+     `.settingsRow`) — ikisi birlikte pencereyi belirgin şekilde kısaltıyor,
+     44 px dokunma tabanı (GDD 23.22) hiçbir satırda bozulmadan. */
+  gap: 8px;
+  padding: 16px;
   border: 1px solid var(--brass-500);
   border-radius: 22px;
   background: var(--stone-50);
@@ -1739,8 +1744,10 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  min-height: 58px;
-  padding: 10px 14px;
+  /* 58 px → 50 px, dolgu 10/14 → 8/12: GDD 23.22'nin 44 px tabanının hâlâ
+     üstünde, ama satır başına ~10 px daha az yükseklik istiyor. */
+  min-height: 50px;
+  padding: 8px 12px;
   border: 1px solid var(--line-light);
   border-radius: 14px;
   background: #fff;
@@ -1811,7 +1818,34 @@
 .settingsRow--stack {
   flex-direction: column;
   align-items: stretch;
+  gap: 4px;
+}
+
+/* Hesap satırındaki App Store / Play Store ikon-düğmeleri. */
+.settingsRow__iconGroup {
+  flex: 0 0 auto;
+  display: flex;
   gap: 6px;
+}
+
+.settingsIconBtn {
+  /* GDD 23.22 — 44 px dokunma hedefi; ikon kendisi 20 px, düğme onu sarar. */
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-light);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink-800);
+  cursor: pointer;
+}
+.settingsIconBtn:hover,
+.settingsIconBtn:focus-visible { border-color: var(--brass-500); }
+.settingsIconBtn:focus-visible {
+  outline: 3px solid var(--brass-500);
+  outline-offset: 2px;
 }
 
 .settingsSlider {

@@ -532,7 +532,6 @@ export const EN: Record<string, string> = {
   'App Store Hesabını Bağla': 'Connect App Store Account',
   'Google Play Hesabını Bağla': 'Connect Google Play Account',
   'Bulut kayıt için — yakında': 'For cloud save — coming soon',
-  'Bağla': 'Connect',
   'App Store hesabı bağlama yakında geliyor.': 'Connecting your App Store account is coming soon.',
   'Google Play hesabı bağlama yakında geliyor.': 'Connecting your Google Play account is coming soon.',
   'Gün sonunda otomatik kayıt · hesap bağlama Ayarlar’da':
@@ -544,8 +543,6 @@ export const EN: Record<string, string> = {
   'Mevcut oyun': 'Current game',
   'Henüz kayıt yok': 'No save yet',
   'Henüz kayıt yok.': 'No save yet.',
-  'Gün sonunda otomatik · elle kaydet veya geri yükle':
-    'Automatic at day end · save or restore by hand',
 
   // ——— Kariyer / yetenekler ———
   'Kariyer / Yetenekler': 'Career / Talents',
