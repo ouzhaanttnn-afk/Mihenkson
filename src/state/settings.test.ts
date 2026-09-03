@@ -138,6 +138,7 @@ describe('sunum tercihleri', () => {
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
       language: 'tr',
+      currency: 'try',
     });
   });
 
@@ -157,6 +158,7 @@ describe('sunum tercihleri', () => {
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
       language: 'en',
+      currency: 'try',
     });
   });
 
@@ -176,6 +178,7 @@ describe('sunum tercihleri', () => {
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: false,
       language: 'tr',
+      currency: 'try',
     });
   });
 

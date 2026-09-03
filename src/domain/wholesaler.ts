@@ -27,6 +27,7 @@
  * biçimde hesaplanır; GİZLİ veya GERİYE DÖNÜK ücret yaratılmaz."
  */
 
+import { tl } from '@i18n/money';
 import { WHOLESALE } from './balance';
 import { roundMoney } from './v5-rules';
 import { bullionMeta, isBullion } from '@data/bullion';
@@ -276,7 +277,7 @@ export function financeTerms(store: StoreState, amount: Money, today: GameDay): 
   if (amount <= 0) {
     blockedReason = 'Tutar yok.';
   } else if (financed > availableLimit) {
-    blockedReason = `Limit yetmiyor: kullanılabilir ${availableLimit} ₺.`;
+    blockedReason = `Limit yetmiyor: kullanılabilir ${tl(availableLimit)}.`;
   } else if (store.supplier.openInvoices.some((i) => i.dueDay < today)) {
     // §7 "Gecikme; maliyet, limit, güven veya ERİŞİM üzerinde sonuç doğurur."
     blockedReason = 'Gecikmiş vadeniz var; yeni vade açılmıyor.';

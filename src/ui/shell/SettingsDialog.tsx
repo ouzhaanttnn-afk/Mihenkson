@@ -7,20 +7,18 @@
  *   Öğretici ipuçları → açık / kapalı, iki yöne de çalışır
  *   Ses               → tek anahtar + düzey kaydırıcısı · GERÇEKTEN ÇALIŞIR
  *   Titreşim          → GERÇEKTEN ÇALIŞIR (destekleyen cihazda; iOS'ta API yok)
- *   Dil               → tercih SAKLANIR, çeviri katmanı sonra bağlanacak
+ *   Dil               → GERÇEKTEN ÇALIŞIR (tr / en)
+ *   Para birimi       → GERÇEKTEN ÇALIŞIR (₺ / $) — yalnız GÖSTERİM
  *   Yeni oyun         → kaydı siler (onaylı)
  *
- * SES / TİTREŞİM / DİL BİLEREK "HAZIRLANIYOR" DİYE İŞARETLİ. Bu dosya
- * eskiden bu anahtarların KOYULMADIĞINI yazıyordu; gerekçesi, çalışmayan bir
- * anahtarın oyuncuya kapattığını sandığı şeyi kapattırmasıydı. Anahtarlar
- * artık isteniyor ama altyapı hâlâ yok (`public/assets/audio` klasörü bile
- * yok, arayüz tek dilli), dolayısıyla o gerekçe çöpe atılmadı — KARŞILANDI:
- * tercih gerçekten saklanır ve kayıttan geri gelir, ama her satır henüz
- * etkisinin olmadığını AÇIKÇA söyler. Sessizce hiçbir şey yapmayan bir
- * anahtar ile "bunu şimdilik not aldım" diyen bir anahtar aynı şey değildir.
+ * ARTIK HİÇBİR SATIRDA "HAZIRLANIYOR" YOK. Bu dosya uzun süre o ibareyi
+ * taşıdı, çünkü anahtarlar konulmuş ama davranışları bağlanmamıştı ve
+ * çalışmayan bir anahtarı çalışıyormuş gibi göstermek, ayarlar ekranının
+ * güvenilirliğini tam da orada kırardı. Dördü de bağlandı; ibare kalktı.
  *
- * Davranış bağlandığında yapılacak tek şey, o "hazırlanıyor" ibarelerini
- * kaldırmaktır; tercih zaten yerinde olacak.
+ * PARA BİRİMİ SATIRI OYUNCUYA NE OLDUĞUNU SÖYLER: dolar seçmek oyunun
+ * parasını çevirmez, yazısını çevirir. Sabit kur ekranda yazılıdır ki
+ * oyuncu "kasam mı eridi?" diye düşünmesin.
  *
  * ZAMAN DURUR: pencere açıkken `tick` erken döner (gameStore · §4). Oyuncu
  * ayara bakarken saatin işlemesi ve kuyruğun ilerlemesi cezaya dönerdi.
@@ -32,7 +30,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { LANGUAGES, VOLUME_MAX, VOLUME_MIN, VOLUME_STEP } from '@domain/preferences';
+import {
+  CURRENCIES,
+  LANGUAGES,
+  VOLUME_MAX,
+  VOLUME_MIN,
+  VOLUME_STEP,
+} from '@domain/preferences';
+import { USD_RATE } from '@i18n/currency';
+import { t } from '@i18n/index';
 import { hapticsSupported } from '@ui/haptics';
 import { useGame } from '@state/gameStore';
 
@@ -241,29 +247,59 @@ export function SettingsDialog() {
           segment. `radiogroup` kullanılıyor ki ekran okuyucu "iki seçenekten
           biri" desin; anahtar taklidi yapmak yanlış olurdu.
         */}
-        <p className="settingsNote" id="settings-pending">
-          Dil tercihi kaydedilir, ama çeviri katmanı henüz bağlanmadı.
-        </p>
-
         <div className="settingsRow settingsRow--static">
           <span className="settingsRow__copy">
-            <strong>Dil</strong>
-            <small>Şimdilik yalnız Türkçe içerik var</small>
+            <strong>{t('Dil')}</strong>
+            <small>{t('Arayüz metinleri')}</small>
           </span>
-          <span className="settingsSegment" role="radiogroup" aria-label="Dil">
+          <span className="settingsSegment" role="radiogroup" aria-label={t('Dil')}>
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.id}
                 type="button"
                 role="radio"
                 aria-checked={preferences.language === lang.id}
-                aria-describedby="settings-pending"
                 className={`settingsSegment__option ${
                   preferences.language === lang.id ? 'settingsSegment__option--on' : ''
                 }`}
                 onClick={() => setPreference('language', lang.id)}
               >
                 {lang.label}
+              </button>
+            ))}
+          </span>
+        </div>
+
+        {/*
+          PARA BİRİMİ — dille aynı biçimde, ama açıklaması şart.
+
+          Oyuncunun aklına gelecek ilk soru "param mı değişti?" olur. Alt
+          satır kuru yazarak cevaplıyor: değişen yalnız yazı, kasadaki tutar
+          değil. Kur sabittir ve bilerek öyledir (bkz. i18n/currency).
+        */}
+        <div className="settingsRow settingsRow--static">
+          <span className="settingsRow__copy">
+            <strong>{t('Para birimi')}</strong>
+            <small>
+              {t('Yalnız gösterim · 1 $ = {rate} ₺', {
+                rate: USD_RATE.toFixed(2).replace('.', ','),
+              })}
+            </small>
+          </span>
+          <span className="settingsSegment" role="radiogroup" aria-label={t('Para birimi')}>
+            {CURRENCIES.map((cur) => (
+              <button
+                key={cur.id}
+                type="button"
+                role="radio"
+                aria-checked={preferences.currency === cur.id}
+                aria-label={`${cur.label} (${cur.symbol})`}
+                className={`settingsSegment__option ${
+                  preferences.currency === cur.id ? 'settingsSegment__option--on' : ''
+                }`}
+                onClick={() => setPreference('currency', cur.id)}
+              >
+                {cur.symbol}
               </button>
             ))}
           </span>

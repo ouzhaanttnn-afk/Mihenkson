@@ -19,7 +19,7 @@ import { CONFIDENCE_LABEL } from '@domain/valuation';
 import { Art } from '@ui/Art';
 import { MOVE_ART, OFFER_TIER_ART, OFFER_TIER_LABEL, customerArt, offerTier } from '@ui/assets';
 import { IconCounter, IconGesture, IconPackage, IconReason } from '@ui/icons';
-import { tl, tlBare, tlSigned, tonWord } from '@ui/format';
+import { tl, tlBare, tlRange, tlSigned, tonWord } from '@ui/format';
 import type {
   ExitChannel,
   Money,
@@ -150,7 +150,7 @@ export function NegotiateStage({
     const tone = favourable === null ? 'neutral' : favourable ? 'positive' : 'negative';
 
     return {
-      text: `${diff >= 0 ? '+' : '−'}${tlBare(Math.abs(Math.round(diff)))} ₺ · ${where}`,
+      text: `${diff >= 0 ? '+' : '−'}${tl(Math.abs(Math.round(diff)))} · ${where}`,
       tone,
     };
   })();
@@ -288,7 +288,7 @@ export function NegotiateStage({
                 </span>
               </span>
               <span className="refPanel__val num">
-                {tlBare(band.min)} – {tlBare(band.max)} ₺
+                {tlRange(band.min, band.max)}
               </span>
             </div>
           )}
@@ -313,7 +313,7 @@ export function NegotiateStage({
             <span className="refPanel__val num">
               {reference
                 ? `${tlBare(reference.unitOffer)} ${reference.unit}`
-                : `${tlBare(offer)} ₺`}
+                : tl(offer)}
             </span>
           </div>
 
@@ -357,7 +357,7 @@ export function NegotiateStage({
           {reference?.showTotal && (
             <div className="refPanel__row refPanel__row--total">
               <span className="refPanel__key">{reference.totalLabel}</span>
-              <span className="refPanel__val num">{tlBare(reference.totalOffer)} ₺</span>
+              <span className="refPanel__val num">{tl(reference.totalOffer)}</span>
             </div>
           )}
         </div>

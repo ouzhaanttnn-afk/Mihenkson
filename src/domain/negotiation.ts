@@ -17,6 +17,7 @@
  * bir sonuç veremez — çünkü atılacak bir zar yoktur.
  */
 
+import { tl } from '@i18n/money';
 import { NEGOTIATION, TRUST } from './balance';
 import { getArchetype } from '@data/archetypes';
 import type {
@@ -843,9 +844,8 @@ function reasonReplyFor(archetypeId: string, claim: string): string {
   return `${claim} diyorsunuz. Anlıyorum.`;
 }
 
-function formatTl(n: Money): string {
-  return `${n.toLocaleString('tr-TR')} ₺`;
-}
+/* Para birimi ve sayı yereli tek yerden — bkz. `@i18n/money`. */
+const formatTl = tl;
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));

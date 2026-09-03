@@ -19,6 +19,7 @@
  * uydurma gelir yaratırdı.
  */
 
+import { tl } from '@i18n/money';
 import { isBullion } from '@data/bullion';
 import { MARKET_DAILY_CAP } from './balance';
 import { closedDaysBefore, isLastTradingDay, nextMarketOpenDay, weekdayLabel } from './calendar';
@@ -141,11 +142,11 @@ function describeOutcome(
   if (spotChange > 0) {
     return position.metalShare >= 0.5
       ? `${period} fiyat yükseldi; ağırlığı altında taşımak işe yaradı.`
-      : `${period} fiyat yükseldi; nakitte kalan kısım ${Math.abs(opportunityCost)} ₺'lik fırsatı kaçırdı.`;
+      : `${period} fiyat yükseldi; nakitte kalan kısım ${tl(Math.abs(opportunityCost))} tutarında fırsatı kaçırdı.`;
   }
 
   return position.metalShare >= 0.5
-    ? `${period} fiyat düştü; altında kalan pozisyon ${Math.abs(metalDelta)} ₺ geriledi.`
+    ? `${period} fiyat düştü; altında kalan pozisyon ${tl(Math.abs(metalDelta))} geriledi.`
     : `${period} fiyat düştü; nakit ağırlığı zararı sınırladı.`;
 }
 
@@ -168,7 +169,7 @@ export function weekendRisk(day: GameDay, position: OvernightPosition): WeekendR
     closedDays,
     nextOpenDay,
     maxEstimatedExposure,
-    note: `Piyasa ${closedDays} gün kapalı kalacak; ${weekdayLabel(nextOpenDay)} açılışına kadar fiyat donuk görünür. Altın pozisyonunun tahmini açılış riski ±${maxEstimatedExposure} ₺ bandındadır.`,
+    note: `Piyasa ${closedDays} gün kapalı kalacak; ${weekdayLabel(nextOpenDay)} açılışına kadar fiyat donuk görünür. Altın pozisyonunun tahmini açılış riski ±${tl(maxEstimatedExposure)} bandındadır.`,
   };
 }
 

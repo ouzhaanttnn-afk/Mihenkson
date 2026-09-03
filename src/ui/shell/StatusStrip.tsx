@@ -10,7 +10,7 @@ import { weekdayLabel, weekdayShort } from '@domain/calendar';
 import { IconLock, IconPencil, IconSettings, BrandMark } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { avatarArt } from '@ui/assets';
-import { clock, tlBare } from '@ui/format';
+import { clock, tl } from '@ui/format';
 import type { PlayerProfile } from '@domain/profile';
 import type { MarketState, StoreState } from '@domain/types';
 
@@ -105,7 +105,7 @@ export function StatusStrip({
 
       <div className="statusStrip__cash">
         <div className="statusStrip__cashLabel">Nakit</div>
-        <div className="statusStrip__cashValue num">{tlBare(store.cash)} ₺</div>
+        <div className="statusStrip__cashValue num">{tl(store.cash)}</div>
       </div>
 
       <SpeedControl

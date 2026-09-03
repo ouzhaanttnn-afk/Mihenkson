@@ -24,6 +24,8 @@
  *      profillerinden türer ve `wholesalerEdgePerGram()` ile ÖLÇÜLÜR.
  */
 
+import { moneyUnit } from '@i18n/money';
+import { t } from '@i18n/index';
 import { CHANNEL, MARKET_REGIME } from './balance';
 import { bullionMeta, CRAFTED_DEFAULT, type BullionMeta, type LiquidityClass } from '@data/bullion';
 import { spotFor } from './market';
@@ -444,7 +446,7 @@ export function gramsFor(item: ItemInstance, quantity: number): number {
 export interface UnitPriceView {
   /** Birim başına fiyat — gram bazlıda gram başına, adet bazlıda adet başına. */
   unitPrice: Money;
-  /** '₺/g' veya '₺/adet'. */
+  /** Etkin para biriminde '₺/g' · '$/g' · '₺/adet' · '$/pc'. */
   unit: string;
   /** Gram bazlı ürün mü. */
   perGram: boolean;
@@ -470,7 +472,11 @@ export function unitPriceView(item: ItemInstance, pieceTotal: Money): UnitPriceV
   return {
     unitPrice:
       perGram && gramsPerPiece > 0 ? Math.round(pieceTotal / gramsPerPiece) : Math.round(pieceTotal),
-    unit: perGram ? '₺/g' : '₺/adet',
+    /*
+      Birim etiketi para birimine göre üretilir; sabit '₺/g' yazmak dolar
+      seçildiğinde sayıyı dolara, etiketi TL'ye bırakırdı.
+    */
+    unit: perGram ? moneyUnit('g') : moneyUnit(t('adet')),
     perGram,
     gramsPerPiece,
   };

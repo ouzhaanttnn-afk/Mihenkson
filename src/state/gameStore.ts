@@ -129,6 +129,9 @@ import {
   normalizePreferences,
   type PlayerPreferences,
 } from '@domain/preferences';
+import { setLanguage } from '@i18n/index';
+import { tl } from '@i18n/money';
+import { setCurrency } from '@i18n/currency';
 import { getTemplate } from '@data/item-templates';
 import { rulesFor } from '@data/product-classes';
 import {
@@ -452,6 +455,21 @@ export interface GameState {
 // Başlangıç durumu
 // ---------------------------------------------------------------------------
 
+/**
+ * Dil ve para birimi tercihini SUNUM katmanına duyurur.
+ *
+ * `src/i18n` etkin dili ve birimi modül düzeyinde tutuyor; mağaza da onun
+ * TEK yazarı. Üç yerden çağrılır — açılış, tercih değişimi ve kayıt yükleme —
+ * çünkü üçü de tercihin değişebildiği yerlerdir. Biri unutulursa oyuncu
+ * ayarı değiştirir ama ekran eski dilde kalır.
+ *
+ * EKONOMİYE DOKUNMAZ: burada yapılan tek şey iki dizenin yazılmasıdır.
+ */
+function applyDisplayPreferences(prefs: PlayerPreferences): void {
+  setLanguage(prefs.language);
+  setCurrency(prefs.currency);
+}
+
 function createInitialStore(): StoreState {
   return {
     name: 'MIHENKAYNAK Kuyumculuk',
@@ -492,6 +510,14 @@ export const useGame = create<GameState>((set, get) => {
   // GDD 28.1 — açılışta kayıt varsa oradan devam edilir. Kayıt bozuksa
   // readSave() null döner ve yeni oyun başlar; çökme yok (§11).
   const restored = readSave();
+  /*
+    Kayıttaki dil ve para birimi, MAĞAZA KURULMADAN ÖNCE uygulanır.
+    Aşağıdaki başlangıç durumu metin üreten fonksiyonlar çağırıyor (gün
+    karakteri, ilk müşteri satırı); onlar kurulurken etkin dil hâlâ Türkçe
+    olsaydı, İngilizce oynayan biri açılışta tek seferlik Türkçe metinler
+    görürdü.
+  */
+  if (restored) applyDisplayPreferences(restored.preferences);
   const seed = restored?.seed ?? freshSeed();
   const market = restored?.market ?? createMarketForDay(seed, 1);
 
@@ -661,7 +687,9 @@ export const useGame = create<GameState>((set, get) => {
       kimliği kayda sızmasın.
     */
     setPreference: (key, value) => {
-      set({ preferences: normalizePreferences({ ...get().preferences, [key]: value }) });
+      const preferences = normalizePreferences({ ...get().preferences, [key]: value });
+      set({ preferences });
+      applyDisplayPreferences(preferences);
       persistPreferences(get());
     },
     restoreOnboarding: () => set({ seenLessons: [] }),
@@ -2173,6 +2201,8 @@ export const useGame = create<GameState>((set, get) => {
       // Oyuncu devam etmeyi seçti: "Kaydı sil"den kalan yazma kilidi kalkar.
       resumeSaves();
       set(loaded);
+      // Kayıttaki dil ve para birimi ekrana da uygulanmalı.
+      applyDisplayPreferences(loaded.preferences);
       pushToast(set, get, `Kayıt yüklendi · Gün ${loaded.market.day}`, 'info');
       return true;
     },
@@ -2873,9 +2903,8 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));
 }
 
-function fmt(n: Money): string {
-  return `${Math.round(n).toLocaleString('tr-TR')} ₺`;
-}
+/* Para birimi ve sayı yereli tek yerden — bkz. `@i18n/money`. */
+const fmt = tl;
 
 // UI'nin ihtiyaç duyduğu türetilmiş seçiciler.
 export const selectors = {

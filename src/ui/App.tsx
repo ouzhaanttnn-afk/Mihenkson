@@ -43,6 +43,9 @@ export function App() {
   const profileSetupDone = useGame((s) => s.profileSetupDone);
   const completeProfileSetup = useGame((s) => s.completeProfileSetup);
   const closeProfile = useGame((s) => s.closeProfile);
+  // Yalnız `key` için okunur — bkz. aşağıdaki gerekçe.
+  const language = useGame((s) => s.preferences.language);
+  const currency = useGame((s) => s.preferences.currency);
   const updateProfile = useGame((s) => s.updateProfile);
   const workshopAttention = useGame((s) => {
     const ids = new Set([
@@ -178,7 +181,22 @@ export function App() {
 
   return (
     <div className="deviceFrame">
-      <div className="device">
+      {/*
+        DİL VE PARA BİRİMİ DEĞİŞİNCE TÜM AĞAÇ YENİDEN KURULUR.
+
+        `t()` etkin dili modül düzeyinde okuyor; React bunu bir bağımlılık
+        olarak GÖREMEZ. Dolayısıyla dil değiştiğinde, o dili okuyan yüzlerce
+        bileşenden yalnız tercihe abone olanlar yeniden çizilirdi — ekranın
+        yarısı yeni dilde, yarısı eskisinde kalırdı.
+
+        Her bileşene ayrı bir `useT()` aboneliği eklemek de mümkündü ama
+        yüzlerce dokunuş demekti ve biri unutulunca hata sessiz olurdu.
+        `key` ile yeniden kurmak tek satırda kesin sonuç verir. Bedeli, o an
+        açık olan yerel arayüz durumunun (açık çekmece gibi) sıfırlanması;
+        oyunun kendi durumu mağazada olduğu için para, stok ve pazarlık
+        etkilenmez. Dil değiştirmek nadir bir eylem, sıfırlama kabul edilir.
+      */}
+      <div className="device" key={`${language}-${currency}`}>
         <div className={`screen ${tab === 'shop' ? 'screen--noScroll' : ''}`}>
           {tab === 'shop' && <ShopScreen />}
           {tab === 'stock' && <StockScreen />}

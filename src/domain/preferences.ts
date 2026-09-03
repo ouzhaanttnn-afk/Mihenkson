@@ -1,5 +1,5 @@
 /**
- * Oyuncu tercihleri — ses, titreşim ve dil.
+ * Oyuncu tercihleri — ses, titreşim, dil ve para birimi.
  *
  * ═══════════════════════════════════════════════════════════════════════════
  * KAPSAM SINIRI — profil modülüyle aynı disiplin.
@@ -9,20 +9,19 @@
  * veya değerleme modülünü import ETMEZ. Böyle bir import belirirse tercih
  * sessizce bir mekaniğe dönüşmüş demektir.
  *
- * DAVRANIŞ HENÜZ BAĞLI DEĞİL — BİLEREK. Bu tabanda ses altyapısı yok
- * (`public/assets/audio` klasörü bile yok) ve arayüz tek dilli. Anahtarlar
- * tercihi SAKLAR; sesi çalan, titreten ve metni çeviren katman sonra
- * bağlanacak. Ayarlar penceresi bunu oyuncuya açıkça söyler: çalışmayan bir
- * anahtarı çalışıyormuş gibi göstermek, ayarlar ekranının güvenilirliğini
- * tam da orada kırardı.
+ * HEPSİ BAĞLI. Ses ve titreşim çalışıyor; dil `src/i18n` sözlüğünü,
+ * para birimi de `src/i18n/currency` gösterim çarpanını sürüyor. Hiçbiri
+ * oyun gücü vermez: dil ve para birimi yalnız EKRANI değiştirir, kasadaki
+ * parayı ve ekonomiyi değil (bkz. `src/i18n/invariance.test.ts`).
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-/**
- * Desteklenen diller. Şimdilik yalnız Türkçe içerik var; İngilizce seçeneği
- * tercihin saklandığını göstermek için burada duruyor, çeviri katmanı
- * bağlanınca anlam kazanacak.
- */
+import { CURRENCIES, DEFAULT_CURRENCY, type CurrencyId } from '@i18n/currency';
+
+export { CURRENCIES, DEFAULT_CURRENCY };
+export type { CurrencyId };
+
+/** Desteklenen diller. İkisi de canlı: sözlük `src/i18n/en.ts`. */
 export const LANGUAGES = [
   { id: 'tr', label: 'Türkçe' },
   { id: 'en', label: 'English' },
@@ -60,6 +59,11 @@ export interface PlayerPreferences {
   /** Dokunsal geri bildirim (haptik). */
   vibrationEnabled: boolean;
   language: LanguageId;
+  /**
+   * GÖSTERİM para birimi. Oyunun iç birimi her koşulda TL'dir; bu alan
+   * yalnız ekrana basılırken uygulanan çarpanı seçer (bkz. i18n/currency).
+   */
+  currency: CurrencyId;
 }
 
 /**
@@ -73,6 +77,7 @@ export function defaultPreferences(): PlayerPreferences {
     soundVolume: DEFAULT_VOLUME,
     vibrationEnabled: true,
     language: DEFAULT_LANGUAGE,
+    currency: DEFAULT_CURRENCY,
   };
 }
 
@@ -91,6 +96,11 @@ export function normalizeVolume(raw: unknown): number {
 /** Bilinmeyen dil kimliğini varsayılana çeker — bozuk kayıt çökertmez. */
 export function normalizeLanguage(id: unknown): LanguageId {
   return LANGUAGES.some((l) => l.id === id) ? (id as LanguageId) : DEFAULT_LANGUAGE;
+}
+
+/** Bilinmeyen para birimi kimliğini varsayılana çeker. */
+export function normalizeCurrency(id: unknown): CurrencyId {
+  return CURRENCIES.some((c) => c.id === id) ? (id as CurrencyId) : DEFAULT_CURRENCY;
 }
 
 /**
@@ -116,5 +126,6 @@ export function normalizePreferences(raw: unknown): PlayerPreferences {
         ? source.vibrationEnabled
         : fallback.vibrationEnabled,
     language: normalizeLanguage(source.language),
+    currency: normalizeCurrency(source.currency),
   };
 }

@@ -107,7 +107,8 @@ import { showcaseStock } from '@domain/purchase';
 import { poolForItem, poolForTemplate } from '@domain/stock-pools';
 import { customerPriceBand } from '@domain/customer-pricing';
 import { BullionCatalog } from '@ui/screens/StockScreen';
-import { clock, pct, tl, tlSigned, tonWord, preciseGrams } from '@ui/format';
+import { clock, grams, moneyUnit, pct, tl, tlBare, tlSigned, tonWord, preciseGrams } from '@ui/format';
+import { t } from '@i18n/index';
 import { offerUnitLabel } from '@ui/offer-view';
 import type {
   DealLine,
@@ -986,7 +987,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           // açıklanır." Dokunmatikte tooltip yoktur; nedeni toast ile söyle.
           onLockedPress: () => s.notify(`${tool.name}: ${lockReason}`, 'info'),
           disabled: used || tool.cost > s.store.cash,
-          badge: tool.cost > 0 ? `${tool.cost}₺` : undefined,
+          badge: tool.cost > 0 ? tl(tool.cost) : undefined,
           };
         });
       return <ToolRail items={items} />;
@@ -1868,7 +1869,7 @@ function buildReference(item: ItemInstance | undefined, market: MarketState, off
     unit: view.unit,
     showTotal,
     totalLabel: showTotal
-      ? `${view.gramsPerPiece.toLocaleString('tr-TR')} g × ${offerView.unitPrice.toLocaleString('tr-TR')} ₺/g`
+      ? `${grams(view.gramsPerPiece)} × ${tlBare(offerView.unitPrice)} ${moneyUnit('g')}`
       : '',
     totalReference: pieceReference,
     totalOffer: offer,
@@ -1932,7 +1933,7 @@ function buildPackageReference(
       unitOffer: offerView.unitPrice,
       unit: refView.unit,
       showTotal,
-      totalLabel: `${amountLabel} · piyasa ${Math.round(totalReference).toLocaleString('tr-TR')} ₺`,
+      totalLabel: `${amountLabel} · ${t('piyasa')} ${tl(Math.round(totalReference))}`,
       totalReference: Math.round(totalReference),
       totalOffer: offer,
     };
@@ -1943,7 +1944,7 @@ function buildPackageReference(
     direction: 'shopSells' as const,
     unitReference: Math.round(totalReference),
     unitOffer: offer,
-    unit: '₺',
+    unit: moneyUnit(),
     showTotal: false,
     totalLabel: '',
     totalReference: Math.round(totalReference),

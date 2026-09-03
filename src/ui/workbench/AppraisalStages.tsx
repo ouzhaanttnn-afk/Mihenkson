@@ -18,7 +18,7 @@
 import { STANCES, feeBounds, reportedRange, suggestedFee } from '@domain/appraisal';
 import { getTemplate } from '@data/item-templates';
 import { IconLoupe, IconWarning, ProductSilhouette } from '@ui/icons';
-import { tl, tlBare } from '@ui/format';
+import { tl, tlRange } from '@ui/format';
 import type {
   AppraisalSession,
   AppraisalStance,
@@ -100,7 +100,7 @@ export function ReportStage({
                 <span className="stance__fee num">{tl(suggestedFee(band, profile.id))}</span>
               </span>
               <span className="stance__range num">
-                {tlBare(range.min)} – {tlBare(range.max)} ₺
+                {tlRange(range.min, range.max)}
               </span>
               <span className="stance__desc">{profile.description}</span>
             </button>
@@ -238,7 +238,7 @@ export function AppraisalResultStage({ appraisal }: { appraisal: AppraisalSessio
         <div className="apr__compareCol">
           <span className="apr__compareLabel">Raporun</span>
           <span className="apr__compareValue num">
-            {tlBare(v.reported.min)} – {tlBare(v.reported.max)} ₺
+            {tlRange(v.reported.min, v.reported.max)}
           </span>
         </div>
         <div className="apr__compareCol">

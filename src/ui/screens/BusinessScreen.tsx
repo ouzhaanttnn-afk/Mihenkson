@@ -61,11 +61,37 @@ import {
 } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { NAV_ART, merchantArt } from '@ui/assets';
-import { clock, pct, pctChange, price, tl, tlSigned } from '@ui/format';
+import { clock, moneyUnit, pct, pctChange, price, priceRawTl, tl, tlSigned } from '@ui/format';
 import { TalentTreePanel } from './TalentTreePanel';
 import { WholesalerLiquidationList } from './WholesalerLiquidation';
 
 type Route = 'root' | 'market' | 'journal' | 'wholesaler' | 'network' | 'store' | 'career' | 'save';
+
+/**
+ * Varlık satırının birim etiketi — KAYITTAN DEĞİL, o an hesaplanır.
+ *
+ * `MarketAsset.unit` piyasa kurulurken yazılıp kayda giriyor; para birimini
+ * sonradan değiştiren oyuncuda o dize eski hâliyle kalırdı (sayı dolar,
+ * etiket TL). Etiket burada, çizim anında türetiliyor.
+ *
+ * DÖVİZ SATIRLARI HER ZAMAN ₺ KALIR. Bir kur panosu yabancı parayı YEREL
+ * parayla kote eder; dolar seçiliyken "Dolar · 1,00 $" yazmak teknik olarak
+ * doğru ama bilgi olarak boştur. Sarrafın panosunda dolar TL ile yazar.
+ */
+function assetUnitLabel(asset: { id: string }): string {
+  if (isFxRow(asset.id)) return '₺';
+  return asset.id === 'goldGram' || asset.id === 'silverGram' ? moneyUnit('g') : moneyUnit();
+}
+
+/** Kur satırı mı — değeri de etiketi de TL kalır (bkz. `assetUnitLabel`). */
+function isFxRow(id: string): boolean {
+  return id === 'usd' || id === 'eur';
+}
+
+/** Kur satırında ham TL, diğerlerinde etkin para birimi. */
+function assetPrice(asset: { id: string }, value: number): string {
+  return isFxRow(asset.id) ? priceRawTl(value) : price(value);
+}
 
 export function BusinessScreen() {
   const [route, setRoute] = useState<Route>('root');
@@ -1173,10 +1199,11 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
               <div key={asset.id} className="assetRow">
                 <div>
                   <div className="assetRow__name">{asset.label}</div>
-                  <div className="assetRow__unit">{asset.unit}</div>
+                  <div className="assetRow__unit">{assetUnitLabel(asset)}</div>
                   {asset.history.length > 1 && (
                     <div className="assetRow__range num">
-                      Band {price(Math.min(...asset.history))}–{price(Math.max(...asset.history))}
+                      Band {assetPrice(asset, Math.min(...asset.history))}–
+                      {assetPrice(asset, Math.max(...asset.history))}
                     </div>
                   )}
                   {asset.id === 'goldGram' && averageGoldCost !== null && (
@@ -1187,7 +1214,7 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
                 <Sparkline points={asset.history} />
 
                 <div className="assetRow__right">
-                  <div className="assetRow__price num">{price(asset.price)}</div>
+                  <div className="assetRow__price num">{assetPrice(asset, asset.price)}</div>
                   <div className={`assetRow__change num ${changeClass(asset.changePct)}`}>
                     {pctChange(asset.changePct)}
                   </div>

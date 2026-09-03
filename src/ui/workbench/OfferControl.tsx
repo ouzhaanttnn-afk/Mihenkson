@@ -15,6 +15,7 @@
 
 import { TERM } from '@ui/terms';
 import { tlBare, pct } from '@ui/format';
+import { currencySymbol } from '@i18n/currency';
 import type { Money } from '@domain/types';
 
 export interface OfferImpact {
@@ -84,7 +85,7 @@ export function OfferControl({
 
         <span className="offer__amount num">
           {tlBare(normalizedValue)}
-          <span className="offer__currency">₺</span>
+          <span className="offer__currency">{currencySymbol()}</span>
         </span>
 
         <button

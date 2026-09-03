@@ -9,7 +9,8 @@
 
 import { isBullion } from '@data/bullion';
 import { unitPriceView } from '@domain/channels';
-import { tlBare } from '@ui/format';
+import { t } from '@i18n/index';
+import { moneyUnit, tlBare } from '@ui/format';
 import type { ItemInstance, Money } from '@domain/types';
 
 /**
@@ -42,7 +43,9 @@ export function offerUnitLabel(
 
   if (!isBullion(first.templateId)) {
     // İşçilikli üründe adet 1'dir ve "birim fiyat" toplamın kendisidir.
-    return units > 1 ? `${units} adet · ${tlBare(Math.round(total / units))} ₺/adet` : null;
+    return units > 1
+      ? `${units} ${t('adet')} · ${tlBare(Math.round(total / units))} ${moneyUnit(t('adet'))}`
+      : null;
   }
 
   const view = unitPriceView(first, Math.round(total / units));

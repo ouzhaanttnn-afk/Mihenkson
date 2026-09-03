@@ -10,6 +10,7 @@ export default defineConfig({
       '@data': fileURLToPath(new URL('./src/data', import.meta.url)),
       '@state': fileURLToPath(new URL('./src/state', import.meta.url)),
       '@ui': fileURLToPath(new URL('./src/ui', import.meta.url)),
+      '@i18n': fileURLToPath(new URL('./src/i18n', import.meta.url)),
     },
   },
   // Capacitor/WebView paketlemesi için göreli asset yolları.

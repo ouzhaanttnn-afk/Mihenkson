@@ -23,7 +23,8 @@
       "@domain/*": ["src/domain/*"],
       "@data/*": ["src/data/*"],
       "@state/*": ["src/state/*"],
-      "@ui/*": ["src/ui/*"]
+      "@ui/*": ["src/ui/*"],
+      "@i18n/*": ["src/i18n/*"]
     }
   },
   "include": ["src", "spec"]

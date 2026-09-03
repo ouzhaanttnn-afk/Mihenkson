@@ -12,7 +12,7 @@
 
 import { TERM } from '@ui/terms';
 import { CONFIDENCE_LABEL } from '@domain/valuation';
-import { tl, tlBare, pct, pctSigned } from '@ui/format';
+import { moneyUnit, pct, pctSigned, tl, tlBare } from '@ui/format';
 import type { ValuationBand } from '@domain/types';
 
 const SEGMENTS = 5;
@@ -38,7 +38,7 @@ export function AppraiseStage({ band }: Props) {
         <div className="bandCard__range num">
           {tlBare(band.min)}
           <span className="bandCard__sep"> – </span>
-          {tlBare(band.max)} ₺
+          {tlBare(band.max)} {moneyUnit()}
         </div>
 
         <div className="confidence">

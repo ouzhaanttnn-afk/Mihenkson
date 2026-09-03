@@ -25,6 +25,7 @@
  * kapasite, ilişki, borç ve vade muhasebesidir.
  */
 
+import { tl } from '@i18n/money';
 import { NETWORK } from './balance';
 import { bullionMeta, isBullion } from '@data/bullion';
 import { bullionUnitValue, channelCapacity, gramsFor, priceForChannel } from './channels';
@@ -309,9 +310,9 @@ export function networkLoanOffer(
     // §8 "Gecikme veya kötüye kullanım ... ERİŞİMİ olumsuz etkiler."
     blockedReason = 'Ağda gecikmiş borcunuz var; yeni borç açılmıyor.';
   } else if (requested > memberCeiling) {
-    blockedReason = `Bu esnaf en çok ${memberCeiling} ₺ verebilir.`;
+    blockedReason = `Bu esnaf en çok ${tl(memberCeiling)} verebilir.`;
   } else if (requested > networkRoom) {
-    blockedReason = `Ağ kapasitesi doldu; kalan ${networkRoom} ₺.`;
+    blockedReason = `Ağ kapasitesi doldu; kalan ${tl(networkRoom)}.`;
   }
 
   return {

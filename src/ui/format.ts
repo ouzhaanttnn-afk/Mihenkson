@@ -6,57 +6,22 @@
  * ikon/etiket birlikte kullanılır." → tonWord() bu kuralın uygulama noktasıdır.
  */
 
-const TL = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 });
-const TL_SIGNED = new Intl.NumberFormat('tr-TR', {
-  maximumFractionDigits: 0,
-  signDisplay: 'always',
-});
-const DEC1 = new Intl.NumberFormat('tr-TR', {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
-const DEC2 = new Intl.NumberFormat('tr-TR', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
 /**
- * 145.000 ₺ · −685 ₺
- *
- * Eksi imi `tlSigned` ve `pctSigned` ile AYNI karakterdir (U+2212), tire
- * değil. Ekspertiz kırılımında aynı satırda "−%7" ile "-685 ₺" yan yana
- * düşüyordu: iki farklı eksi, farklı genişlikte ve farklı yükseklikte.
+ * Para ve sayı biçimlendirmeleri `@i18n/money`de yaşıyor (gerekçesi orada:
+ * alan katmanı da para yazıyor ve `@ui`'yi import edemez). Burada yeniden
+ * dışa aktarılıyorlar ki arayüzdeki yüzlerce çağrı yeri değişmesin.
  */
-export function tl(n: number): string {
-  return `${TL.format(Math.round(n)).replace('-', '−')} ₺`;
-}
-
-/** 145.000 — sembolsüz, büyük rakam gösterimleri için. */
-export function tlBare(n: number): string {
-  return TL.format(Math.round(n));
-}
-
-/** +8.200 ₺ / −1.350 ₺ */
-export function tlSigned(n: number): string {
-  const rounded = Math.round(n);
-  if (rounded === 0) return '0 ₺';
-  return `${TL_SIGNED.format(rounded).replace('-', '−')} ₺`;
-}
-
-/** Piyasa fiyatı — kuruşlu. */
-export function price(n: number): string {
-  return DEC2.format(n);
-}
-
-/** 18,4 g */
-export function grams(n: number): string {
-  return `${DEC1.format(n)} g`;
-}
-
-/** Pool / HAS balances retain milligram visibility. */
-export function preciseGrams(n: number): string {
-  return `${new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 3 }).format(n)} g`;
-}
+export {
+  tl,
+  tlBare,
+  tlSigned,
+  price,
+  priceRawTl,
+  grams,
+  preciseGrams,
+  moneyUnit,
+  tlRange,
+} from '@i18n/money';
 
 /** %19 */
 export function pct(ratio: number, digits = 0): string {

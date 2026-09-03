@@ -10,6 +10,7 @@
  */
 
 
+import { tl } from '@i18n/money';
 import { trueValue } from './valuation';
 import type {
   DealRecord,
@@ -182,6 +183,9 @@ export function toReviewData(review: CaseReview): DealRecord['reviewData'] {
   };
 }
 
-function fmt(n: Money): string {
-  return `${Math.round(n).toLocaleString('tr-TR')} ₺`;
-}
+/*
+  Para birimi ve sayı yereli TEK yerden gelir (`@i18n/money`). Buradaki
+  eski hâli `tr-TR` ve `₺` sabitlemişti; dolar seçen oyuncu, işlem
+  değerlendirmesinde bir tek burada TL görürdü.
+*/
+const fmt = tl;
