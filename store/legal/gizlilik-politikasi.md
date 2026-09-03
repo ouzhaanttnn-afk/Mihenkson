@@ -7,12 +7,12 @@ taranarak yazıldı (bkz. depo kökü `store/README.md`).
 **Barındırılan sürüm (tasarlanmış, aynı içerik):**
 https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
 
-> ⚠️ **Bu sayfa şu an ÖZEL (private).** Artifact'ler varsayılan olarak
-> yalnız yayımlayan hesaba görünür. Mağazalara göndermeden önce sayfanın
-> paylaşım menüsünden **herkese açık** yapman gerekiyor — aksi hâlde Apple/
-> Google incelemecisi linke tıkladığında erişemez ve inceleme reddedilir.
-> Bu iki dosya (`.md`) hâlâ tek doğruluk kaynağı; yayınlanan sayfa onun
-> tasarlanmış bir aynası — içerik değişirse ikisi birden güncellenmeli.
+> ✅ **Herkese açık.** Kullanıcı paylaşım menüsünden herkese açık yaptı,
+> doğrulandı (`action: read` → "shared with anyone with the link"). Apple/
+> Google incelemecisi linke erişebilir. Bu iki dosya (`.md`) hâlâ tek
+> doğruluk kaynağı; yayınlanan sayfa onun tasarlanmış bir aynası — içerik
+> değişirse (ör. `[DOLDURULACAK]` alanları dolunca) ikisi birden
+> güncellenmeli, sayfa aynı URL'de yeniden yayınlanabilir.
 
 Son güncelleme: [DOLDURULACAK — tarih]
 Geliştirici: [DOLDURULACAK — ad/şirket]

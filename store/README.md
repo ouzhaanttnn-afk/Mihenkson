@@ -23,8 +23,8 @@ Bu klasörün işi o adımlara gelene kadarki her şeyi hazır bulundurmak.
 | Play Store öne çıkan görsel (1024×500) | ✅ Üretildi — `assets/generated/feature-graphic-1024x500.png` |
 | Mağaza ekran görüntüleri | ✅ 4+4 adet, iPhone 6.7" (1290×2796) ve 6.5" (1284×2778) — `assets/generated/screenshots/`, `screenshots-6.5in/` |
 | Bundle ID / paket adı | 🟡 GEÇİCİ yer tutucu — `com.mihenkaynak.app` (`capacitor.config.ts`) — kullanıcı kararıyla ŞİMDİLİK ertelendi, yayından önce kesinleşmeli, bkz. aşağıda |
-| Gizlilik politikası | 🟡 Barındırıldı, tasarlandı — bkz. `legal/gizlilik-politikasi.md`. **Şu an ÖZEL, paylaşım menüsünden herkese açık yapılmalı** |
-| Kullanım şartları | 🟡 Barındırıldı, tasarlandı — bkz. `legal/kullanim-sartlari.md`. **Şu an ÖZEL, aynı adım gerekli** |
+| Gizlilik politikası | ✅ Barındırıldı, tasarlandı, herkese açık — bkz. `legal/gizlilik-politikasi.md` |
+| Kullanım şartları | ✅ Barındırıldı, tasarlandı, herkese açık — bkz. `legal/kullanim-sartlari.md` |
 | Apple Developer hesabı | ❓ Sende — bu oturumun bilgisi yok |
 | Google Play Console hesabı | ❓ Sende — bu oturumun bilgisi yok |
 | Mağaza metinleri (ad, açıklama, anahtar kelime) | 🟡 Taslak hazır, gözden geçirilmeli |
@@ -99,13 +99,12 @@ marka renkleriyle, oyunun kendi görsel diliyle):
 - Gizlilik Politikası: https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
 - Kullanım Şartları: https://claude.ai/code/artifact/adf82548-792c-47f9-af22-814424f9dc10
 
-**Bu URL'ler şu an ÖZEL.** Artifact'ler varsayılan olarak yalnız yayımlayan hesaba
-görünür — mağazalara göndermeden önce her ikisinin de paylaşım menüsünden **herkese
-açık** yapılması gerekiyor, yoksa Apple/Google incelemecisi linke tıkladığında
-erişemez ve inceleme bu yüzden reddedilebilir. `legal/*.md` dosyaları hâlâ tek
-doğruluk kaynağı — içerik `[DOLDURULACAK]` alanları (tarih, şirket adı, e-posta)
-doldurulup güncellenince, aynı dosya yolu tekrar yayınlanarak (`url` parametresiyle)
-aynı linkte güncellenebilir; yeni bir link açmaya gerek yok.
+**Her ikisi de herkese açık.** Kullanıcı paylaşım menüsünden bu adımı tamamladı,
+`action: read` ile doğrulandı ("shared with anyone with the link") — Apple/Google
+incelemecisi linke erişebilir. `legal/*.md` dosyaları hâlâ tek doğruluk kaynağı —
+içerik `[DOLDURULACAK]` alanları (tarih, şirket adı, e-posta) doldurulup
+güncellenince, aynı dosya yolu tekrar yayınlanarak (`url` parametresiyle) aynı
+linkte güncellenebilir; yeni bir link açmaya gerek yok.
 
 ## Apple/Google hesap bilgileri
 

@@ -59,8 +59,8 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 - [x] Barındırıldı — `../legal/gizlilik-politikasi.md` taslağının
       tasarlanmış sürümü yayınlandı:
       https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
-- [ ] **Sayfayı herkese açık yap** (Artifact paylaşım menüsü) — şu an özel.
-      Bu adım tamamlanmadan gönderme.
+- [x] Sayfa herkese açık — kullanıcı paylaşım menüsünden yaptı, doğrulandı
+      ("shared with anyone with the link"). Play incelemecisi erişebilir.
 
 ## 8. Fiyatlandırma ve dağıtım
 - [ ] Ücretsiz / ücretli — `[DOLDURULACAK]`

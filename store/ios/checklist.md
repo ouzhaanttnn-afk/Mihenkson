@@ -44,8 +44,8 @@ senin yerine atamaz. Sırayla:
 - [x] Gizlilik politikası barındırıldı — `../legal/gizlilik-politikasi.md`
       taslağının tasarlanmış sürümü yayınlandı:
       https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
-- [ ] **Sayfayı herkese açık yap** (Artifact paylaşım menüsü) — şu an özel,
-      Apple incelemecisi göremiyor. Bu adım tamamlanmadan gönderme.
+- [x] Sayfa herkese açık — kullanıcı paylaşım menüsünden yaptı, doğrulandı
+      ("shared with anyone with the link"). Apple incelemecisi erişebilir.
 - [ ] "App Privacy" anketi (App Store Connect içinde) — bugünkü koda göre
       doldurulacak alan: **"Veri Toplanmıyor"** (kodda hiç ağ isteği,
       analitik veya üçüncü taraf SDK yok — bkz. depo kökü `store/README.md`).
