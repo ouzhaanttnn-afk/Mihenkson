@@ -28,34 +28,49 @@
  *
  * AD UNIT ID'LERİ — gerçek AdMob hesabından alındı (uygulama: MİHENKAYNAK,
  * yayıncı kimliği ca-app-pub-4229088811556918). "4x hız" ve "Dükkânı
- * Canlandır" AYRI reklam birimleri kullanır — hangi ödülün verileceği
- * yine de reklam biriminin kendisinden değil, `showRewardedAd(kind)`in
- * çağrıldığı yerden gelir; ayrım yalnız AdMob konsolunda iki akışı ayrı
- * raporlayabilmek için.
+ * Canlandır" AYNI ödüllü reklam birimini paylaşır — hangi ödülün verileceği
+ * reklam biriminin kendisinden değil, `showRewardedAd(kind)`in çağrıldığı
+ * yerden gelir. Pazartesi açılış geçiş reklamı (`showInterstitialAd`) AYRI
+ * ve FARKLI TÜRDE bir reklam birimi kullanır (bkz. aşağıdaki INTERSTITIAL
+ * bölümü) — rewarded birimle karıştırılmamalı.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 import { Capacitor } from '@capacitor/core';
-import { AdMob, AdmobConsentStatus, RewardAdPluginEvents, type AdMobRewardItem } from '@capacitor-community/admob';
+import {
+  AdMob,
+  AdmobConsentStatus,
+  InterstitialAdPluginEvents,
+  RewardAdPluginEvents,
+  type AdMobRewardItem,
+} from '@capacitor-community/admob';
 
 /** Bir ödülün ne için verildiği — hangi oyun içi etkinin tetikleneceğini seçer. */
 export type RewardKind = 'speed4x' | 'customerRush';
 
-const PLATFORM_AD_UNIT: Record<'android' | 'ios', Record<RewardKind, string>> = {
-  android: {
-    speed4x: 'ca-app-pub-4229088811556918/3366498503',
-    customerRush: 'ca-app-pub-4229088811556918/7681148035',
-  },
-  ios: {
-    speed4x: 'ca-app-pub-4229088811556918/9671167921',
-    customerRush: 'ca-app-pub-4229088811556918/7939178650',
-  },
+const REWARD_AD_UNIT: Record<'android' | 'ios', string> = {
+  android: 'ca-app-pub-4229088811556918/3366498503',
+  ios: 'ca-app-pub-4229088811556918/9671167921',
 };
 
-function adUnitId(kind: RewardKind): string | null {
+/**
+ * Pazartesi açılış geçiş reklamı — GDD dışı, kullanıcı isteği: "pazardan
+ * pazartesiye geçtiğimizde reklam verecez zorunlu reklam gibi". OYUNCU
+ * BAŞLATMIYOR; hafta açılışında OTOMATİK gösterilir. Bu yüzden rewarded
+ * DEĞİL, interstitial (geçiş reklamı) formatı kullanılıyor — AdMob'un
+ * rewarded kuralları "oyuncu kendi başlatır, vazgeçebilir" der; otomatik/
+ * zorunlu göstermek o formatı ihlal eder ve hesap askıya alınma riski
+ * taşır. Interstitial'da bu kısıtlama yok: Google'ın kendi kapatma (X)
+ * kontrolü reklamın üstünde durur, biz ayrıca bir "atla" UI'ı eklemiyoruz.
+ */
+const DAY_OPEN_AD_UNIT: Record<'android' | 'ios', string> = {
+  android: 'ca-app-pub-4229088811556918/7681148035',
+  ios: 'ca-app-pub-4229088811556918/7939178650',
+};
+
+function platformOf(): 'android' | 'ios' | null {
   const platform = Capacitor.getPlatform();
-  if (platform !== 'android' && platform !== 'ios') return null;
-  return PLATFORM_AD_UNIT[platform][kind];
+  return platform === 'android' || platform === 'ios' ? platform : null;
 }
 
 let initPromise: Promise<void> | null = null;
@@ -93,11 +108,12 @@ function ensureInitialized(): Promise<void> {
  */
 export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) {
-    console.info('[ads] Ödüllü reklam yalnız native (iOS/Android) derlemede çalışır; web/dev ortamında atlanıyor.');
+    console.info(`[ads] Ödüllü reklam (${kind}) yalnız native (iOS/Android) derlemede çalışır; web/dev ortamında atlanıyor.`);
     return false;
   }
 
-  const unitId = adUnitId(kind);
+  const platform = platformOf();
+  const unitId = platform ? REWARD_AD_UNIT[platform] : null;
   if (!unitId) return false;
 
   try {
@@ -130,5 +146,50 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
     );
 
     AdMob.showRewardVideoAd().catch(() => finish(false));
+  });
+}
+
+/**
+ * Pazartesi açılış geçiş reklamını gösterir. ÖDÜL DÖNDÜRMEZ — bu bir
+ * rewarded değil, interstitial: oyuncu başlatmıyor, kapanışını Google'ın
+ * kendi reklam çerçevesi yönetiyor.
+ *
+ * ÇAĞIRAN TARAFI ASLA BEKLETMEZ/KİLİTLEMEZ: reklam yüklenemezse veya native
+ * değilse günün açılışı normal akışında devam eder — reklam bir ekonomi
+ * veya ilerleme koşulu DEĞİLDİR, yalnız bir yan etkidir. Bu yüzden
+ * `gameStore.ts` bu fonksiyonu `await` ETMEDEN çağırır (fire-and-forget).
+ */
+export async function showInterstitialAd(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+
+  const platform = platformOf();
+  const unitId = platform ? DAY_OPEN_AD_UNIT[platform] : null;
+  if (!unitId) return;
+
+  try {
+    await ensureInitialized();
+    await AdMob.prepareInterstitial({ adId: unitId });
+  } catch (err) {
+    console.warn('[ads] Geçiş reklamı yüklenemedi:', err);
+    return;
+  }
+
+  return new Promise<void>((resolve) => {
+    let settled = false;
+    const handles: Promise<{ remove: () => void }>[] = [];
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+      for (const h of handles) h.then((handle) => handle.remove());
+    };
+
+    handles.push(
+      AdMob.addListener(InterstitialAdPluginEvents.Dismissed, finish),
+      AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, finish),
+    );
+
+    AdMob.showInterstitial().catch(finish);
   });
 }

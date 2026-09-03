@@ -1982,6 +1982,42 @@ Doğrulama: `tsc` temiz, 966/966 test yeşil, taze build+cap:sync.
 
 ---
 
+#### YENİ · Pazartesi açılış geçiş (interstitial) reklamı — ✅ YAPILDI
+`src/ui/ads.ts` · `src/state/gameStore.ts` (`advanceDay`) ·
+`store/legal/gizlilik-politikasi.md` (+ barındırılan sürüm)
+
+Kullanıcı isteği: "pazardan pazartesiye geçtiğimizde reklam verecez
+zorunlu reklam gibi." Bunu ilk mesajda "1-2-3-4 satırı" ve yeni Ad Unit
+ID'lerle karışık, kesik bir cümle olarak yazmıştı; ID'leri önce yanlışlıkla
+"Dükkânı Canlandır"ın ikinci reklam birimi sandım (bir önceki commit), user
+düzeltince gerçek niyeti netleşti — geri alındı.
+
+**ÖNEMLİ AYRIM — rewarded DEĞİL, interstitial:** "Zorunlu reklam" isteği
+AdMob'un rewarded kurallarıyla ÇELİŞİR: rewarded format oyuncunun kendi
+başlatmasını ve vazgeçebilmesini şart koşar; otomatik/zorunlu göstermek
+hesabın askıya alınmasına yol açabilir. Bunun yerine kullanıcının verdiği
+2 ID (iOS `…/7939178650`, Android `…/7681148035`) **interstitial** (geçiş
+reklamı) formatına bağlandı — bu format otomatik gösterime uygun, kapatma
+kontrolü Google'ın kendi reklam çerçevesinde.
+
+- `src/ui/ads.ts`: yeni `showInterstitialAd()` — `prepareInterstitial` +
+  `showInterstitial`, `Dismissed`/`FailedToShow` olaylarını bekler, ÖDÜL
+  DÖNDÜRMEZ (`Promise<void>`). Web/dev'de sessizce no-op.
+- `gameStore.ts` `advanceDay()`: `weekdayOf(s.market.day) === 6` (kapanan
+  gün Pazar) olduğunda `void showInterstitialAd()` — FIRE-AND-FORGET,
+  `await` edilmiyor. Gün kapanışı state'i, kaydı, toast'ları reklamdan
+  BAĞIMSIZ tamamlanır; reklam yüklenemese bile gün asla kilitlenmez —
+  ekonominin/ilerlemenin bir reklam sağlayıcısına bağımlı olmaması GDD'nin
+  "asla bozulmaz" ilkesiyle aynı disiplin.
+- Gizlilik politikası "Reklamlar" bölümü iki reklam türünü ayrı ayrı
+  anlatacak şekilde güncellendi (rewarded + interstitial); barındırılan
+  sayfa da eşleşecek şekilde yeniden yayınlandı (pin sorunu hâlâ geçerli,
+  bkz. yukarı).
+
+Doğrulama: `tsc` temiz, 966/966 test yeşil, taze build+cap:sync.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

@@ -47,12 +47,16 @@ Oyunun kendisi şunları YAPMAZ:
 
 ## Reklamlar — Google AdMob
 
-Uygulamada **yalnız ödüllü (rewarded) video reklam** var; banner ya da
-tam ekranı kaplayıp kendiliğinden çıkan (interstitial) reklam YOK. Reklam
-YALNIZ siz "4x hızı reklamla aç" veya "Dükkânı Canlandır" düğmesine
-dokunduğunuzda, tarafınızdan başlatılmış olarak gösterilir; bir video izlemeyi
-tamamlarsanız oyun içi ödülü (geçici hız artışı veya müşteri akını) alırsınız,
-tamamlamazsanız hiçbir şey değişmez.
+Uygulamada iki tür reklam var; banner (ekranda sabit duran şerit) YOK.
+
+- **Ödüllü (rewarded) video** — YALNIZ siz "4x hızı reklamla aç" veya
+  "Dükkânı Canlandır" düğmesine dokunduğunuzda, tarafınızdan başlatılmış
+  olarak gösterilir; bir video izlemeyi tamamlarsanız oyun içi ödülü
+  (geçici hız artışı veya müşteri akını) alırsınız, tamamlamazsanız
+  hiçbir şey değişmez.
+- **Geçiş (interstitial) reklamı** — haftanın Pazartesi açılışında,
+  dükkânınızı yeniden açtığınızda otomatik gösterilir; oyun içi bir ödül
+  vermez, Google'ın kendi kapatma kontrolüyle geçilir.
 
 Bu reklamları sağlayan **Google AdMob**, reklamı seçip göstermek için
 şunları işleyebilir: reklam kimliği (Android Advertising ID / iOS IDFA),

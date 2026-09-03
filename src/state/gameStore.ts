@@ -29,7 +29,7 @@ import {
 } from '@domain/balance';
 import { spawnItem } from '@domain/item-spawn';
 import { createMarketForDay, stepMarketIntraday } from '@domain/market';
-import { isShopOpen } from '@domain/calendar';
+import { isShopOpen, weekdayOf } from '@domain/calendar';
 import { nextCustomerDelay, spawnCustomer } from '@domain/customer-spawn';
 import {
   dayCharacter,
@@ -165,7 +165,7 @@ import {
   writeSave,
 } from './save';
 import type { SoundId } from '@ui/audio';
-import { showRewardedAd, type RewardKind } from '@ui/ads';
+import { showInterstitialAd, showRewardedAd, type RewardKind } from '@ui/ads';
 import type {
   ActiveDeal,
   AppraisalSession,
@@ -2248,6 +2248,18 @@ export const useGame = create<GameState>((set, get) => {
       const ready = jobs.filter((j) => j.result === 'success' || j.result === 'failed').length;
       if (ready > 0) {
         pushToast(set, get, t(READY_JOBS_TOAST, { n: ready }), 'info');
+      }
+
+      /*
+        Pazartesi açılış geçiş reklamı — kullanıcı isteği: "pazardan
+        pazartesiye geçtiğimizde reklam verecez". `s.market.day` burada hâlâ
+        KAPANAN gündür; Pazar (weekdayOf === 6) kapanıp yeni gün açıldığında
+        tetiklenir. FIRE-AND-FORGET: reklam hiçbir state/ekonomi kararını
+        beklemez, bloklamaz — yüklenmezse veya web/dev ortamındaysa sessizce
+        hiçbir şey olmaz (bkz. `showInterstitialAd`).
+      */
+      if (weekdayOf(s.market.day) === 6) {
+        void showInterstitialAd();
       }
     },
 
