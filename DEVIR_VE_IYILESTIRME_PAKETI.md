@@ -2487,6 +2487,53 @@ sayfada göründü.
 
 ---
 
+#### YENİ · Ortam değişkenleri (.env) güvenli yapıya taşındı — ✅ YAPILDI
+`src/ui/ads.ts`, `src/vite-env.d.ts` (yeni), `.env` (yeni, Git'e girmiyor),
+`.env.example` (yeni), `.gitignore`
+
+Kullanıcı: **"Bu projeyi güvenli environment variable yapısına geçir."**
+Önce tüm proje (kök yapılandırma dosyaları + `src/` + `tools/`) API key,
+token, secret, parola ve hardcode URL için tarandı — tek bulgu
+`src/ui/ads.ts` içindeki 4 AdMob reklam birimi kimliğiydi
+(`REWARD_AD_UNIT`, `DAY_OPEN_AD_UNIT`).
+
+**Neden bunlar "secret" değil.** Google'ın AdMob App/Ad Unit ID'leri zaten
+native derlemenin (APK/IPA) içine gömülü olarak dağıtılır, tersine
+mühendislikle her zaman okunabilir ve tek başlarına hesaba/faturaya erişim
+yetkisi TAŞIMAZ — bu yüzden görev maddesi 7'deki (secret'ı backend/
+serverless'e taşıma) senaryo burada geçerli değil, gerçek bir güvenlik
+açığı YOK. Buna rağmen ortam-özgü (hesap değişebilir, test/prod ayrımı
+gerekebilir) değerler oldukları için `.env`'e taşınmaları kod hijyeni
+açısından doğruydu.
+
+**Ne değişti.** 4 değer `.env`'e taşındı (`VITE_ADMOB_REWARD_UNIT_ANDROID`,
+`VITE_ADMOB_REWARD_UNIT_IOS`, `VITE_ADMOB_DAY_OPEN_UNIT_ANDROID`,
+`VITE_ADMOB_DAY_OPEN_UNIT_IOS`); `src/ui/ads.ts`'teki iki `Record` artık
+`import.meta.env.VITE_*` okuyor (tip `string | undefined` oldu — var olan
+`if (!unitId) return false/void` deseni zaten bu durumu native tarafta
+zarifçe karşılıyordu, başka mantık değişmedi). `src/vite-env.d.ts` bu 4
+değişkeni `ImportMetaEnv`'e ekleyerek tip güvenliği sağlıyor.
+`.env.example` yalnız değişken İSİMLERİNİ içeriyor, gerçek değer yok.
+`.gitignore`'a `.env`, `.env.local`, `.env.*.local`, `build/`, `*.log`
+eklendi (`node_modules/`, `dist/`, `coverage/` zaten vardı). `.env` daha
+önce hiç Git tarafından track edilmemişti (`git ls-files` ile doğrulandı)
+— untrack gereken bir dosya yoktu.
+
+**Native manifestler bilinçli olarak dokunulmadı.** `android/app/src/main/
+res/values/strings.xml` ve `ios/App/App/Info.plist` aynı AdMob App ID'sini
+(non-secret) AdMob SDK'sının native gereksinimi olarak zaten içeriyor —
+Vite ortam değişkenleri bu dosyalara ulaşamaz, standart ve beklenen
+Capacitor/AdMob native yapılandırmasıdır, migrasyonun kapsamı dışında.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 882/882 (0 çevrilmemiş, 0
+kullanılmayan — hiç i18n anahtarı eklenmedi/değişmedi), 976/976 test
+yeşil, `npm run build` ve `npm run cap:sync` temiz. `git status`/
+`git check-ignore -v` ile `.env` ve `.env.example` doğru şekilde ayrıştığı
+(`.env` ignore edildi, `.env.example` Git'e eklenebilir durumda) teyit
+edildi.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

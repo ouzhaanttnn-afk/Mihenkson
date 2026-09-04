@@ -26,13 +26,15 @@
  * simülatörde SDK yok, ağ hatası) ödül de verilmez — sahte "izledin"
  * simülasyonu yapmayız, ne oyuncuya ne de mağaza incelemesine.
  *
- * AD UNIT ID'LERİ — gerçek AdMob hesabından alındı (uygulama: MİHENKAYNAK,
- * yayıncı kimliği ca-app-pub-4229088811556918). "4x hız" ve "Dükkânı
- * Canlandır" AYNI ödüllü reklam birimini paylaşır — hangi ödülün verileceği
- * reklam biriminin kendisinden değil, `showRewardedAd(kind)`in çağrıldığı
- * yerden gelir. Pazartesi açılış geçiş reklamı (`showInterstitialAd`) AYRI
- * ve FARKLI TÜRDE bir reklam birimi kullanır (bkz. aşağıdaki INTERSTITIAL
- * bölümü) — rewarded birimle karıştırılmamalı.
+ * AD UNIT ID'LERİ — gerçek AdMob hesabından alınır, `.env`'den okunur (bkz.
+ * `.env.example`, `src/vite-env.d.ts`). Bu ID'ler GİZLİ değildir (native
+ * derlemede zaten APK/IPA içine gömülür, hesaba erişim yetkisi taşımaz);
+ * `.env`'e taşınma sebebi ortam-özgü yapılandırma olmalarıdır. "4x hız" ve
+ * "Dükkânı Canlandır" AYNI ödüllü reklam birimini paylaşır — hangi ödülün
+ * verileceği reklam biriminin kendisinden değil, `showRewardedAd(kind)`in
+ * çağrıldığı yerden gelir. Pazartesi açılış geçiş reklamı
+ * (`showInterstitialAd`) AYRI ve FARKLI TÜRDE bir reklam birimi kullanır
+ * (bkz. aşağıdaki INTERSTITIAL bölümü) — rewarded birimle karıştırılmamalı.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -48,9 +50,9 @@ import {
 /** Bir ödülün ne için verildiği — hangi oyun içi etkinin tetikleneceğini seçer. */
 export type RewardKind = 'speed4x' | 'customerRush' | 'personnelWaiver' | 'personnelTempUnlock';
 
-const REWARD_AD_UNIT: Record<'android' | 'ios', string> = {
-  android: 'ca-app-pub-4229088811556918/3366498503',
-  ios: 'ca-app-pub-4229088811556918/9671167921',
+const REWARD_AD_UNIT: Record<'android' | 'ios', string | undefined> = {
+  android: import.meta.env.VITE_ADMOB_REWARD_UNIT_ANDROID,
+  ios: import.meta.env.VITE_ADMOB_REWARD_UNIT_IOS,
 };
 
 /**
@@ -63,9 +65,9 @@ const REWARD_AD_UNIT: Record<'android' | 'ios', string> = {
  * taşır. Interstitial'da bu kısıtlama yok: Google'ın kendi kapatma (X)
  * kontrolü reklamın üstünde durur, biz ayrıca bir "atla" UI'ı eklemiyoruz.
  */
-const DAY_OPEN_AD_UNIT: Record<'android' | 'ios', string> = {
-  android: 'ca-app-pub-4229088811556918/7681148035',
-  ios: 'ca-app-pub-4229088811556918/7939178650',
+const DAY_OPEN_AD_UNIT: Record<'android' | 'ios', string | undefined> = {
+  android: import.meta.env.VITE_ADMOB_DAY_OPEN_UNIT_ANDROID,
+  ios: import.meta.env.VITE_ADMOB_DAY_OPEN_UNIT_IOS,
 };
 
 function platformOf(): 'android' | 'ios' | null {
