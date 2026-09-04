@@ -144,9 +144,9 @@ describe('mobil kabuk sözleşmesi', () => {
     const shop = projectFile('src/ui/screens/ShopScreen.tsx');
 
     expect(shellCss).toContain('@media (max-width: 430px)');
-    expect(shellCss).toContain('grid-template-columns: minmax(0, 1fr)');
+    expect(shellCss).toContain('.statusStrip__meta');
     expect(shellCss).toMatch(
-      /@media \(max-width: 430px\)[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) auto;[\s\S]*?\.statusStrip__clock\s*\{[\s\S]*?grid-column:\s*1;[\s\S]*?grid-row:\s*2;[\s\S]*?display:\s*flex;/,
+      /@media \(max-width: 430px\)[\s\S]*?\.statusStrip__meta\s*\{[\s\S]*?flex-direction:\s*column;[\s\S]*?align-items:\s*flex-end;[\s\S]*?\.statusStrip__clock\s*\{[\s\S]*?display:\s*flex;/,
     );
     expect(shellCss).toMatch(
       /\.statusStrip__clockSep\s*\{[\s\S]*?display:\s*none;[\s\S]*?@media \(max-width: 430px\)[\s\S]*?\.statusStrip__clockSep\s*\{[\s\S]*?display:\s*inline;/,

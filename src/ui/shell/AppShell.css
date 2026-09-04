@@ -117,6 +117,11 @@
   border-bottom: 1px solid var(--line-dark);
 }
 
+/* Geniş görünümde sarmalayıcı kutu üretmez; mevcut dört parçalı sıra korunur. */
+.statusStrip__meta {
+  display: contents;
+}
+
 .dock__disabledReason {
   margin: 4px var(--gutter) 0;
   /* Açık dock zemini üstünde --negative-soft 3.64:1 kalıyordu. */
@@ -1685,58 +1690,58 @@
 }
 
 /*
- * Mobil başlık iki gerçek banttır:
- *   üst: profil + nakit
- *   alt: tek satırlık gün/saat rozeti + hız/ayarlar
- *
- * Gün bilgisini nakitle aynı dar üst hücreye üç satır yığmak, iPhone 15 Pro'da
- * saati hız grubuna kadar indiriyordu. Alt bant profil genişliğinden bağımsız
- * olduğu için zaman rozeti nefes alır; üst bantta da nakit tek başına kalır.
+ * Mobil başlık iki dengeli kimlik kümesidir: solda oyuncu, sağda zaman/nakit/
+ * hız. Zaman tek satırdır; nakit aynı sağ eksene, hız da hemen altına bağlanır.
+ * Ayrı yüzen rozetler yerine tek bir okunma yönü oluşur.
  */
 @media (max-width: 430px) {
   .statusStrip {
-    display: grid;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: minmax(40px, 1fr) 28px;
-    gap: 0 8px;
+    gap: 8px;
     padding-inline: 8px;
     /* Uzun isim/nakit değeri üst şeridi yatay bir yüzeye dönüştürmesin. */
     overflow-x: clip;
   }
 
   .profileChip {
-    grid-column: 1;
-    grid-row: 1;
-    width: 100%;
-    height: 40px;
+    flex: 1 1 auto;
+    width: auto;
+    height: 64px;
     overflow: hidden;
   }
 
   .profileChip__avatar {
-    width: 38px;
-    height: 38px;
+    width: 48px;
+    height: 48px;
   }
 
   .profileChip__name {
     max-width: none;
   }
 
-  .statusStrip__clock {
-    grid-column: 1;
-    grid-row: 2;
+  .statusStrip__meta {
+    flex: 0 0 auto;
     min-width: 0;
-    justify-self: start;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .statusStrip__clock {
+    flex: 0 0 auto;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 4px;
-    min-height: 24px;
-    padding: 2px 8px;
-    border: 1px solid var(--line-dark);
-    border-radius: var(--r-pill);
-    background: color-mix(in srgb, var(--ink-600) 72%, transparent);
+    min-height: 12px;
     white-space: nowrap;
   }
 
@@ -1753,43 +1758,42 @@
   .statusStrip__clockSep {
     display: inline;
     color: var(--text-dark-3);
-    font-size: var(--fs-micro);
+    font-size: 9px;
   }
 
   .statusStrip__cash {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: center;
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 5px;
   }
 
   .statusStrip__cashValue {
-    max-width: 92px;
+    max-width: 112px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .speed {
-    grid-column: 2;
-    grid-row: 2;
-    justify-self: end;
+    min-height: 26px;
+    background: color-mix(in srgb, var(--ink-600) 62%, transparent);
   }
 }
 
 @media (max-width: 340px) {
   .profileChip__avatar {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
   }
 
   .statusStrip {
-    gap: 0 6px;
+    gap: 6px;
     padding-inline: 6px;
   }
 
   .statusStrip__clock {
     gap: 3px;
-    padding-inline: 6px;
   }
 
   .speed__step {

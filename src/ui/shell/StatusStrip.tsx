@@ -104,37 +104,39 @@ export function StatusStrip({
         </span>
       </button>
 
-      <div
-        className="statusStrip__clock"
-        role="timer"
-        aria-live="off"
-        aria-atomic="true"
-        aria-label={t('Gün {gun}, {haftaGunu}, saat {saat}', {
-          gun: market.day,
-          haftaGunu: t(weekdayLabel(market.day)),
-          saat: clock(market.clockMinutes),
-        })}
-      >
-        <div className="statusStrip__day">{t('Gün')} {market.day}</div>
-        <span className="statusStrip__clockSep" aria-hidden="true">·</span>
-        <div className="statusStrip__weekday">{t(weekdayShort(market.day))}</div>
-        <span className="statusStrip__clockSep" aria-hidden="true">·</span>
-        <div className="statusStrip__time num">{clock(market.clockMinutes)}</div>
-      </div>
+      <div className="statusStrip__meta">
+        <div
+          className="statusStrip__clock"
+          role="timer"
+          aria-live="off"
+          aria-atomic="true"
+          aria-label={t('Gün {gun}, {haftaGunu}, saat {saat}', {
+            gun: market.day,
+            haftaGunu: t(weekdayLabel(market.day)),
+            saat: clock(market.clockMinutes),
+          })}
+        >
+          <div className="statusStrip__day">{t('Gün')} {market.day}</div>
+          <span className="statusStrip__clockSep" aria-hidden="true">·</span>
+          <div className="statusStrip__weekday">{t(weekdayShort(market.day))}</div>
+          <span className="statusStrip__clockSep" aria-hidden="true">·</span>
+          <div className="statusStrip__time num">{clock(market.clockMinutes)}</div>
+        </div>
 
-      <div className="statusStrip__cash">
-        <div className="statusStrip__cashLabel">{t('Nakit')}</div>
-        <div className="statusStrip__cashValue num">{tl(store.cash)}</div>
-      </div>
+        <div className="statusStrip__cash">
+          <div className="statusStrip__cashLabel">{t('Nakit')}</div>
+          <div className="statusStrip__cashValue num">{tl(store.cash)}</div>
+        </div>
 
-      <SpeedControl
-        speed={speed}
-        unlocked={speed4xUnlocked}
-        adPending={speed4xAdPending}
-        onSpeed={onSpeed}
-        onUnlock={onUnlock4x}
-        onOpenSettings={onOpenSettings}
-      />
+        <SpeedControl
+          speed={speed}
+          unlocked={speed4xUnlocked}
+          adPending={speed4xAdPending}
+          onSpeed={onSpeed}
+          onUnlock={onUnlock4x}
+          onOpenSettings={onOpenSettings}
+        />
+      </div>
 
     </header>
   );
