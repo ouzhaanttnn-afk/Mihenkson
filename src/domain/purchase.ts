@@ -290,7 +290,7 @@ export function quotePackage(
   const first = lines.length > 0 ? items[lines[0]!.itemId] : undefined;
 
   if (units === 0 || fair <= 0 || !first) {
-    return { fair: 0, suggested: 0, channel, rationale: t('Pakette ürün yok.') };
+    return { fair: 0, suggested: 0, channel, rationale: t('Seçimde ürün yok.') };
   }
 
   // Kanal motoru BİRİM fiyatlar. Paketin birim adil değeri üzerinden
@@ -445,7 +445,7 @@ export function createPurchaseSession(demand: CustomerDemand): PurchaseSession {
     packageCost: 0,
     units: 0,
     fulfilment: 'none',
-    rationale: t('Paket henüz boş.'),
+    rationale: t('Seçim henüz boş.'),
   };
 }
 

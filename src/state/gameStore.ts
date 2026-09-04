@@ -2791,7 +2791,7 @@ function settlePurchase(
       keyDecisionPoint:
         purchase.fulfilment === 'partial'
           ? t('Talep kısmen karşılandı; müşteri eksik adede razı oldu.')
-          : t('Paket talebi tam karşıladı.'),
+          : t('Talep tam karşılandı.'),
       alternativeChannelNote: t('{kanal} alış-satış farkıyla fiyatlandı.', {
         kanal: t(CHANNEL_LABEL_TR[purchase.channel]),
       }),

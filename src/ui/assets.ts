@@ -119,7 +119,7 @@ export function productArt(templateId: string, silhouette: Silhouette): Art | un
 export const MOVE_ART: Record<string, Art | undefined> = {
   reason: art('realistic/gameplay/bargaining/reason.png', 'Gerekçe göster'),
   gesture: art('realistic/gameplay/bargaining/gesture.png', 'Jest yap'),
-  package: art('realistic/gameplay/bargaining/package.png', 'Paket teklif'),
+  package: art('realistic/gameplay/bargaining/package.png', 'Toplu teklif'),
   requestCounter: art('realistic/gameplay/bargaining/counter-offer.png', 'Karşı teklif iste'),
 };
 

@@ -878,7 +878,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         items={[
           {
             id: 'clearPackage',
-            label: t('Paketi boşalt'),
+            label: t('Seçimi boşalt'),
             icon: <IconReject size={19} />,
             onPress: s.clearPackage,
             disabled: purchase.lines.length === 0 || locked,
@@ -1079,12 +1079,12 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         },
       ];
 
-      // Paket teklif yalnız en az 2 kalem yeterince değerlenmişse (GDD 23.13).
+      // Toplu teklif yalnız en az 2 kalem yeterince değerlenmişse (GDD 23.13).
       const appraisedLines = deal.lines.filter((l) => l.band !== null).length;
       if (deal.lines.length > 1 && appraisedLines >= 2) {
         items.push({
           id: 'package',
-          label: 'Paket',
+          label: t('Toplu Teklif'),
           icon: <IconPackage size={19} />,
           onPress: () => s.negotiationMove({ kind: 'package', atRound: session.round }),
         });
@@ -1506,7 +1506,7 @@ function PurchaseDock({
       const ready = purchase.fulfilment !== 'none';
       return (
         <DecisionDock
-          summaryLabel={count === 0 ? t('Pakette') : ready ? t('Kanal önerisi') : t('Pakette')}
+          summaryLabel={count === 0 ? t('Seçim') : ready ? t('Kanal önerisi') : t('Seçim')}
           summaryValue={
             count === 0 ? (
               t('Henüz ürün seçilmedi')

@@ -35,7 +35,7 @@ const STATE_ORDER: NegotiationSession['state'][] = ['OPEN', 'HARDENING', 'FINAL_
 const MOVE_LABEL: Record<string, string> = {
   reason: 'Gerekçe gösterdin',
   gesture: 'Jest yaptın',
-  package: 'Paket teklif ettin',
+  package: 'Toplu teklif ettin',
   requestCounter: 'Karşı teklif istedin',
 };
 

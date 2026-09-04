@@ -164,7 +164,7 @@ export function StockPickStage({
                       >
                         −
                       </button>
-                      {position.poolId === '24K_GRAM_GOLD_POOL' ? <input className="qtyStep__value num" aria-label={t('Paket gramı')} type="number" min="0.001" step="0.001" max={Math.min(position.quantity, demand.quantity)} value={qty} onChange={e => onQuantity(item.id, Number(e.target.value))} /> : <span className="qtyStep__value num">{amountLabel(demand, qty)}</span>}
+                      {position.poolId === '24K_GRAM_GOLD_POOL' ? <input className="qtyStep__value num" aria-label={t('Gram miktarı')} type="number" min="0.001" step="0.001" max={Math.min(position.quantity, demand.quantity)} value={qty} onChange={e => onQuantity(item.id, Number(e.target.value))} /> : <span className="qtyStep__value num">{amountLabel(demand, qty)}</span>}
                       <button
                         type="button"
                         className="qtyStep__btn"

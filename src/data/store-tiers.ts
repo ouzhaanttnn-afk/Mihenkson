@@ -65,7 +65,7 @@ export const STORE_TIERS: StoreTierDef[] = [
     tier: 1,
     name: 'Semt Kuyumcusu',
     theme: 'Dar, sıcak, güven odaklı',
-    unlocks: ['Temel al-sat', 'Terazi ve mihenk', 'Vitrin 8 · arka stok 16', 'Pakete 2 kalem'],
+    unlocks: ['Temel al-sat', 'Terazi ve mihenk', 'Vitrin 8 · arka stok 16', 'Tek seferde 2 kalem'],
     investment: 0,
     requires: null,
     grants: { displaySlots: 8, backStockSlots: 16, workshopCapacity: 2, dailyOverhead: 1_200 },
@@ -78,7 +78,7 @@ export const STORE_TIERS: StoreTierDef[] = [
     unlocks: [
       'Vitrin 14 · arka stok 28',
       'Atölyede 3 iş birden',
-      'Pakete 3 kalem',
+      'Tek seferde 3 kalem',
       'Yeni ürün türleri: kolye, set, gümüş obje ve taşlı yüzük',
       'Koleksiyoncu müşteri (itibar 55+)',
       'Toptancı limiti büyür',
@@ -102,7 +102,7 @@ export const STORE_TIERS: StoreTierDef[] = [
     unlocks: [
       'Vitrin 22 · arka stok 44',
       'Atölyede 4 iş birden',
-      'Pakete 4 kalem',
+      'Tek seferde 4 kalem',
       'Premium taşlı ürün, vintage broş ve koleksiyon parası',
     ],
     investment: 850_000,
@@ -121,7 +121,7 @@ export const STORE_TIERS: StoreTierDef[] = [
     tier: 4,
     name: 'Şehir Flagship',
     theme: 'Yüksek hacim ve uzmanlık',
-    unlocks: ['Vitrin 32 · arka stok 70', 'Atölyede 6 iş birden', 'Pakete 5 kalem'],
+    unlocks: ['Vitrin 32 · arka stok 70', 'Atölyede 6 iş birden', 'Tek seferde 5 kalem'],
     investment: 2_600_000,
     requires: {
       netWorth: 7_000_000,

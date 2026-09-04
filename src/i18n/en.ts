@@ -86,7 +86,6 @@ export const EN: Record<string, string> = {
   'Söz': 'Promise',
   'Sonuç': 'Result',
   'Kuyruk': 'Queue',
-  'Paket': 'Bundle',
   'Rapor': 'Report',
   'Test': 'Test',
   'İşlem aşaması': 'Transaction stage',
@@ -272,7 +271,7 @@ export const EN: Record<string, string> = {
   'Kondisyon / Risk': 'Condition / Risk',
   'İç yapı': 'Inner structure',
   'Ağırlık': 'Weight',
-  'Paket gramı': 'Bundle grams',
+  'Gram miktarı': 'Gram amount',
   'Ürün': 'Item',
   'Parça': 'Piece',
   'Adet': 'Qty',
@@ -334,8 +333,11 @@ export const EN: Record<string, string> = {
   'Fiyatı Ver': 'Set the Price',
   'Tatlı Dil & Esnaf Nüktesi': 'Sweet Talk & Trader Wit',
 
-  // ——— Paket ———
-  'Paketi boşalt': 'Empty the bundle',
+  // ——— Alış paketi (Stok Seçimi) ———
+  'Seçimi boşalt': 'Clear selection',
+  'Seçim': 'Selection',
+  'Toplu Teklif': 'Combined Offer',
+  'Toplu teklif ettin': 'You made a combined offer',
   'Müşterinin ürünleri': "The customer's items",
   'Müşteriden aldığınız her ürün buraya düşer ve çıkış planı burada yönetilir.':
     'Every item you take from a customer lands here, and its exit plan is managed here.',
@@ -675,7 +677,6 @@ export const EN: Record<string, string> = {
   'Gerekçe gösterdin': 'You gave a reason',
   'Jest yaptın': 'You made a gesture',
   'Karşı teklif istedin': 'You asked for a counter',
-  'Paket teklif ettin': 'You offered a bundle',
   'pırlanta': 'diamond',
   'safir': 'sapphire',
   'yakut': 'ruby',
@@ -898,7 +899,6 @@ export const EN: Record<string, string> = {
   'Kabul': 'Accept',
   'Kondisyon': 'Condition',
   'Mekân': 'Venue',
-  'Pakette': 'In bundle',
   'Risk': 'Risk',
   'Telemetri': 'Telemetry',
   'Teslim tamponu': 'Delivery buffer',
@@ -1244,7 +1244,6 @@ export const EN: Record<string, string> = {
     'This customer has too few pieces for a bundle offer.',
   'Talep kısmen karşılandı; müşteri eksik adede razı oldu.':
     'The request was partly met; the customer accepted the shortfall.',
-  'Paket talebi tam karşıladı.': 'The bundle met the request in full.',
   'Yeni müşteri': 'New customer',
 
   // ——— Mağaza ve ekonomi balonları ———
@@ -1344,10 +1343,10 @@ export const EN: Record<string, string> = {
   'Atölyede 3 iş birden': '3 workshop jobs at once',
   'Atölyede 4 iş birden': '4 workshop jobs at once',
   'Atölyede 6 iş birden': '6 workshop jobs at once',
-  'Pakete 2 kalem': '2 items per bundle',
-  'Pakete 3 kalem': '3 items per bundle',
-  'Pakete 4 kalem': '4 items per bundle',
-  'Pakete 5 kalem': '5 items per bundle',
+  'Tek seferde 2 kalem': '2 items at once',
+  'Tek seferde 3 kalem': '3 items at once',
+  'Tek seferde 4 kalem': '4 items at once',
+  'Tek seferde 5 kalem': '5 items at once',
   'Yeni ürün türleri: kolye, set, gümüş obje ve taşlı yüzük':
     'New product types: necklaces, sets, silver objects and stone rings',
   'Koleksiyoncu müşteri (itibar 55+)': 'Collector customers (reputation 55+)',
@@ -1707,7 +1706,6 @@ export const EN: Record<string, string> = {
   'Cömert teklif': 'Generous offer',
   'Makul teklif': 'Fair offer',
   'Ölçülü teklif': 'Measured offer',
-  'Paket teklif': 'Bundle offer',
   'Gerekçe göster': 'Give a reason',
   'Jest yap': 'Make a gesture',
   'Karşı teklif iste': 'Ask for a counter-offer',
@@ -1735,8 +1733,8 @@ export const EN: Record<string, string> = {
   'Limit yetmiyor: kullanılabilir {tutar}.': 'Limit too low: {tutar} available.',
   'Müşteri Teklifi': "Customer's Offer",
   'Satış Teklifim': 'My Asking Price',
-  'Pakette ürün yok.': 'The bundle is empty.',
-  'Paket henüz boş.': 'The bundle is still empty.',
+  'Seçimde ürün yok.': 'The selection is empty.',
+  'Seçim henüz boş.': 'The selection is still empty.',
   '{gram} g · {birim}': '{gram} g · {birim}',
   '{n} adet · {birim}': '{n} pcs · {birim}',
 

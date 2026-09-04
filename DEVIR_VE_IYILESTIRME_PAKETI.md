@@ -2304,6 +2304,61 @@ Dock'unda) hâlâ görünüyor — bilgi kaybı yok. Sayfanın hiçbir yerinde
 
 ---
 
+#### YENİ · Ekranda kalan "Paket" kelimesi komple temizlendi — ✅ YAPILDI
+`src/ui/screens/ShopScreen.tsx`, `src/ui/workbench/PurchaseStages.tsx`,
+`src/ui/workbench/NegotiateStage.tsx`, `src/ui/assets.ts`,
+`src/state/gameStore.ts`, `src/domain/purchase.ts`, `src/data/store-tiers.ts`,
+`src/i18n/en.ts`
+
+Kullanıcı: **"Paket yazmasın hiç kafa karıştırıyor."** Önceki turda ekran
+(Aşama Şeridi) kaldırılmıştı ama kelime hâlâ dört yerde kalmıştı — hepsi
+ayrı bir grep taramasıyla bulundu ve değiştirildi:
+- ToolRail "Paketi boşalt" (Stok aşaması) → **"Seçimi boşalt"**
+- Karar Dock'u özet etiketi "Pakette" (Stok aşaması) → **"Seçim"**
+- ToolRail "Paket" (Pazarlık aşaması, çoklu ürün toplu teklif hamlesi —
+  `negotiationMove({kind:'package'})`, GDD 23.13) → **"Toplu Teklif"**;
+  hamle şeridi geçmişi "Paket teklif ettin" → **"Toplu teklif ettin"**
+- `data/store-tiers.ts`'teki mağaza kademesi unlock açıklaması "Pakete N
+  kalem" (İşletme → Mağaza rotasında görünür, farklı bir mekanik: bir
+  ziyarette kaç kalemin birden işlenebileceği) → **"Tek seferde N kalem"**
+- `domain/purchase.ts`'teki iki `rationale` metni ("Pakette ürün yok."/
+  "Paket henüz boş.") şu an hiçbir ekranda okunmuyor (`purchase.rationale`
+  alanının artık UI tüketicisi yok) ama ileride yeniden bağlanırsa diye
+  tutarlılık için yine de yeniden yazıldı: **"Seçimde ürün yok."** /
+  **"Seçim henüz boş."**
+
+Ayrıca `label:'Paket'` bir yerde hiç `t()` içine alınmamıştı (çevrilmeyen
+sabit dize) — bu da düzeltilirken fark edilip `t()`e alındı.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 881/881 (0/0), 976/976 test
+yeşil, `npm run build` + `cap:sync` temiz. Playwright uçtan uca: `grep`
+ile `src/i18n/en.ts`, `src/data`, `src/ui` içinde canlı (yorum dışı) hiçbir
+"Paket" dizesi kalmadığı doğrulandı; Stok → Pazarlık akışı yine sorunsuz
+tamamlanıyor.
+
+---
+
+#### B0 · Terminoloji/kafa karıştırıcılık araştırması — 🔎 BULGULAR, ONAY BEKLİYOR
+Kullanıcı: "Bu tarz kafa karıştırıp oynamayı zorlaştıracak şeyleri de
+araştırır mısın." Proje zaten bir "İşlem Akışı ve Terminoloji Ara
+Düzeltmesi" turu geçirmiş (`src/ui/terms.ts` — likidite→Nakit Durumu,
+tez→Çıkış Planı gibi merkezi bir çeviri tablosu var). Bu turda ek olarak
+şu adaylar bulundu ama HENÜZ DOKUNULMADI — kapsamı geniş ve öznel olduğu
+için önce kullanıcı onayı isteniyor:
+1. Müşteri "mizaç" rozetleri (TEMKİNLİ/KARARLI/HESAPLI/ACELECİ vb.,
+   `CustomerStrip`) hiçbir yerde açıklanmıyor — yeni oyuncu bunun
+   pazarlığı nasıl etkilediğini bilmiyor.
+2. Aynı kavram için tutarsız kelime seçimi: "kalem" / "ürün" / "parça" /
+   "mal" ekrandan ekrana değişiyor (StockPickStage "ürün", store-tiers
+   "kalem", bazı toast'lar "mal").
+3. Pazarlık ekranında üç ayrı "değer" rakamı bir arada ("Senin Analizin",
+   "Piyasa Referans Alış/Satış", "Adil değer" — alış akışında) — hangisinin
+   karar için asıl olduğu ilk bakışta net olmayabilir.
+Bunlardan hangisiyle ilgilenmek istediğini kullanıcıya sorduk; onay
+gelmeden geniş çaplı yeniden adlandırma yapılmadı.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
