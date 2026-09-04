@@ -745,7 +745,14 @@
   color: var(--text-dark-3);
 }
 
+/*
+ * Kullanıcı: "değer tek bir yerde gözüksün ama gözükür olsun." Dock'un
+ * tekrar eden küçük özetini kaldırdık (ShopScreen.tsx); geriye kalan TEK
+ * yer olan bu satırın değeri artık `--fs-micro`den (11 px, `.contextRow`
+ * miras) `--fs-body`ya (15 px) çıktı — "Alış tavanı" artık gözden kaçmaz.
+ */
 .contextRow__val {
+  font-size: var(--fs-body);
   font-weight: var(--fw-semibold);
   color: var(--brass-300);
 }

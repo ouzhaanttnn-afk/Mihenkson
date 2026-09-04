@@ -1380,14 +1380,20 @@ function ShopDock({
 
       const canAfford = offer <= s.store.cash;
 
+      /*
+       * Kullanıcı: "Pazarlık ekranında değer tek bir yerde gözüksün ama
+       * gözükür olsun." Bu özet satırı "Alış tavanı"nı tekrar ediyordu —
+       * aynı rakam, aynı isimle, birkaç santim üstte `contextRow`da zaten
+       * duruyordu (bkz. NegotiateStage.tsx). İki yerde aynı sayı, hangisinin
+       * asıl olduğunu belirsizleştiriyordu. Son teklif geldiğinde ise özet
+       * BAŞKA bir bilgi taşıyor (müşterinin son rakamı) — o TEK yer, bu
+       * yüzden yalnız o an gösterilir.
+       */
       return (
         <DecisionDock
-          summaryLabel={isFinal ? t('Son teklif') : 'Teklifiniz'}
-          summaryValue={
-            isFinal && counter !== null
-              ? t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter) })
-              : t('Alış tavanı {tutar}', { tutar: tl(ceiling) })
-          }
+          summaryLabel={t('Son teklif')}
+          summaryValue={t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter ?? 0) })}
+          hideSummary={!isFinal}
           primary={
             isFinal && counter !== null
               ? {
@@ -1558,14 +1564,20 @@ function PurchaseDock({
 
       const bounds = purchaseBounds(purchase);
 
+      /*
+       * Kullanıcı: "Pazarlık ekranında değer tek bir yerde gözüksün ama
+       * gözükür olsun." Bu özet "Adil değer" gösteriyordu; birkaç santim
+       * üstte de `NegotiateStage`'in referans paneli "Piyasa Referans
+       * Satış" gösteriyor — iki farklı isimle iki ayrı "değer" rakamı aynı
+       * ekranda, hangisinin asıl olduğu belirsizdi. Referans panel TEK
+       * kalıcı yer (Workbench.css: "HİÇBİR KADEMEDE GİZLENMEZ"); bu özet
+       * yalnız son teklif geldiğinde BAŞKA bir bilgi taşıdığında gösterilir.
+       */
       return (
         <DecisionDock
-          summaryLabel={isFinal ? t('Son teklif') : t('İstediğiniz fiyat')}
-          summaryValue={
-            isFinal && counter !== null
-              ? t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter) })
-              : t('Adil değer {tutar}', { tutar: tl(purchase.packageFairValue) })
-          }
+          summaryLabel={t('Son teklif')}
+          summaryValue={t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter ?? 0) })}
+          hideSummary={!isFinal}
           primary={{
             label: isFinal ? t('Son Teklifi Kabul Et') : t('Fiyatı Ver'),
             onPress: () =>

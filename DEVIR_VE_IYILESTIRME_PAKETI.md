@@ -2400,6 +2400,46 @@ sorunsuz tetikleniyor (önce hata veriyordu), RushFab/`coachOk` sınırları
 
 ---
 
+#### YENİ · Pazarlık ekranında "değer" artık tek yerde, ama görünür — ✅ YAPILDI
+`src/ui/screens/ShopScreen.tsx` (her iki `case 'negotiate'` — alış ve
+satış akışı), `src/ui/workbench/NegotiateStage.tsx`,
+`src/ui/workbench/Workbench.css`, `src/i18n/en.ts`
+
+Kullanıcı, önceki turda önerdiğim üç araştırma bulgusundan birini seçti:
+**"Pazarlık ekranında değer tek bir yerde gözüksün ama gözükür olsun."**
+İnceleyince iki akışta da AYNI kalıp çıktı: Karar Dock'unun üst özet
+satırı ("Teklifiniz"/"İstediğiniz fiyat") bir rakam gösteriyordu
+("Alış tavanı"/"Adil değer") ama bu rakam BİRKAÇ SANTİM ÜSTTE, referans
+panelinde ("Alış tavanı" `contextRow`da; "Piyasa Referans Satış"
+`refPanel`da) ZATEN duruyordu — üstelik dock'un ETİKETİ ile GÖSTERDİĞİ
+rakam bile birbirini tutmuyordu ("Teklifiniz" yazıp "Alış tavanı"
+gösteriyordu). İki farklı yerde, bazen iki farklı isimle aynı ya da
+benzer bir "değer" — hangisinin asıl olduğu belirsizdi.
+
+**Kaldırılan:** Dock'un özet satırı artık yalnız SON TEKLİF geldiğinde
+gösteriliyor (`hideSummary={!isFinal}`) — o an gösterdiği bilgi
+("Müşteri: X — geri dönüş yok") başka hiçbir yerde yok, gerçekten TEK
+yer. Pazarlığın normal akışında (henüz final değilken) özet satırı hiç
+render edilmiyor; tekrar eden rakam gitti.
+
+**Büyütülen (`gözükür olsun`):** Geriye kalan TEK yer artık daha görünür:
+- Satış akışı: `.contextRow__val` ("Alış tavanı") `--fs-micro` (11px,
+  bağlamdan miras) → `--fs-body` (15px).
+- Alış akışı: `refPanel`ın referans satırı (`Piyasa Referans Satış/Alış`)
+  band yokken (`!band` — alış akışında test/band hiç yok) `Senin
+  Analizin`le AYNI "çapa" görünümünü (`refPanel__row--analysis`: pirinç
+  renk + ayırıcı kenarlık) alıyor — panelin var olan, zaten test edilmiş
+  vurgu deseni; yeni bir stil icat edilmedi.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 878/878 (3 ölü anahtar
+silindi: "Adil değer {tutar}", "Alış tavanı {tutar}", "İstediğiniz
+fiyat"), 976/976 test yeşil, build + cap:sync temiz. Playwright: alış
+akışında ekran metninde artık ikinci bir "değer" satırı yok, referans
+satırı görünür biçimde vurgulu; satış akışında "Alış tavanı" tam olarak
+BİR kez geçiyor (`contextRow`da, büyütülmüş), dock'un tekrarı kayboldu.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

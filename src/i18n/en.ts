@@ -303,7 +303,6 @@ export const EN: Record<string, string> = {
   'Piyasa Referans Satış': 'Market Reference Ask',
   'Piyasa birim referansı': 'Market unit reference',
   'İstediğin Fiyat': 'Your Asking Price',
-  'İstediğiniz fiyat': 'Your asking price',
   'Senin Teklifin': 'Your Offer',
   'Seçili teklif': 'Selected offer',
   'Teklif tutarı': 'Offer amount',
@@ -1450,9 +1449,7 @@ export const EN: Record<string, string> = {
   'Toplu müşteri': 'Bulk customer',
   'Esnaf ağı': 'Trade network',
 
-  // ——— Şablon cümleler: dükkan, pazarlık, paket ———
-  'Adil değer {tutar}': 'Fair value {tutar}',
-  'Alış tavanı {tutar}': 'Buy ceiling {tutar}',
+  // ——— Şablon cümleler: dükkan, pazarlık ———
   'Müşteri: {tutar} — geri dönüş yok': 'Customer: {tutar} — no way back',
   'Minimum teklif {teklif} · mevcut nakit {nakit} · eksik {eksik}':
     'Minimum offer {teklif} · cash on hand {nakit} · short by {eksik}',

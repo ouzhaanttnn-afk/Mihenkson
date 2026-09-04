@@ -294,8 +294,15 @@ export function NegotiateStage({
             </div>
           )}
 
+          {/*
+            Kullanıcı: "değer tek bir yerde gözüksün ama gözükür olsun."
+            Band yoksa (alış akışı — ürün oyuncunun kendi stoğu, ölçülecek
+            gizli gerçek yok) bu satır panelin TEK çapasıdır; "Senin
+            Analizin" ile aynı vurgulu görünümü alır ki tek bakışta
+            "asıl rakam bu" dediği belli olsun.
+          */}
           {reference && (
-            <div className="refPanel__row">
+            <div className={`refPanel__row ${!band ? 'refPanel__row--analysis' : ''}`}>
               <span className="refPanel__key">
                 {reference.direction === 'shopBuys'
                   ? t('Piyasa Referans Alış')
