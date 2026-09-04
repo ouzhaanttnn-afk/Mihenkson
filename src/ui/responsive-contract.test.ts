@@ -145,6 +145,9 @@ describe('mobil kabuk sözleşmesi', () => {
 
     expect(shellCss).toContain('@media (max-width: 430px)');
     expect(shellCss).toContain('grid-template-columns: minmax(0, 1fr)');
+    expect(shellCss).toMatch(
+      /@media \(max-width: 430px\)[\s\S]*?\.statusStrip__clock\s*\{[\s\S]*?grid-template-columns:\s*max-content max-content;[\s\S]*?\.statusStrip__time\s*\{[\s\S]*?grid-column:\s*1 \/ -1;/,
+    );
     expect(shellCss).toContain('@media (orientation: landscape) and (max-height: 520px)');
     expect(shellCss).toContain('flex-direction: column;');
     expect(screensCss).toContain('.horizontalRailCue');

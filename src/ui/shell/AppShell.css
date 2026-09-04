@@ -1718,7 +1718,33 @@
   .statusStrip__clock {
     grid-column: 2;
     grid-row: 1;
-    min-width: 44px;
+    min-width: 54px;
+    /*
+     * Mobil üst satır 30–36 px yüksekliğinde. Saat bloğunu üç metin
+     * satırına (GÜN / PZT / 09:16) bölmek onu hız kontrolünün satırına
+     * taşıyordu. Gün + hafta günü aynı satır, saat ikinci satırdır.
+     */
+    display: grid;
+    grid-template-columns: max-content max-content;
+    grid-template-rows: auto auto;
+    align-content: center;
+    justify-content: center;
+    column-gap: 4px;
+    row-gap: 2px;
+    white-space: nowrap;
+  }
+
+  .statusStrip__day,
+  .statusStrip__weekday {
+    align-self: baseline;
+  }
+
+  .statusStrip__weekday {
+    margin: 0;
+  }
+
+  .statusStrip__time {
+    grid-column: 1 / -1;
   }
 
   .statusStrip__cash {
