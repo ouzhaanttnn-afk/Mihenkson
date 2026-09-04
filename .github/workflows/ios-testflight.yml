@@ -87,13 +87,25 @@ jobs:
             -t cert \
             -f pkcs12 \
             -k "$KEYCHAIN_PATH"
-          security list-key-partition-list \
+          security set-key-partition-list \
             -S apple-tool:,apple: \
             -k "$KEYCHAIN_PASSWORD" \
             "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
-          security cms -D -i "$PROFILE_PATH������AI=%1}A1%MQ}AQ �(����������AI=%1}UU%������Ƚ����ᕌ�A����	Ց�䀵���Aɥ�Ѐ�UU%����AI=%1}A1%MQ}AQ ��(����������AI=%1}95������Ƚ����ᕌ�A����	Ց�䀵���Aɥ�Ѐ�9�������AI=%1}A1%MQ}AQ ��(����������AI=%1}	U91}%������Ƚ����ᕌ�A����	Ց�䀵���Aɥ�Ѐ��ѥѱ�������������ѥ�������ѥ���Ȝ���AI=%1}A1%MQ}AQ ��((�������������ml���AI=%1}	U91}%���􀈑AA1}Q5}%��AA}	U91}%��ut�ѡ��(������������������Aɽ٥ͥ�������ɽ�����������́Ѽ����չ�����ѕ�����%��(��������������Ѐ�(������������((����������AI=%1}%9MQ11}%H�!=5�1��Ʌ��5������٥���Aɽ٥ͥ������Aɽ����̈(��������������Ȁ�����AI=%1}%9MQ11}%H�(���������cp "$PROFILE_PATH" "$PROFILE_INSTALL_DIR/$PROFILE_UUID.mobileprovision"
+          security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST_PATH"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_PLIST_PATH")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_PLIST_PATH")
+          PROFILE_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$PROFILE_PLIST_PATH")
+
+          if [[ "$PROFILE_BUNDLE_ID" != "$APPLE_TEAM_ID.$APP_BUNDLE_ID" ]]; then
+            echo "Provisioning profile belongs to an unexpected App ID."
+            exit 1
+          fi
+
+          PROFILE_INSTALL_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_INSTALL_DIR"
+          cp "$PROFILE_PATH" "$PROFILE_INSTALL_DIR/$PROFILE_UUID.mobileprovision"
 
           echo "profile_name=$PROFILE_NAME" >> "$GITHUB_OUTPUT"
           echo "profile_uuid=$PROFILE_UUID" >> "$GITHUB_OUTPUT"
