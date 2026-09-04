@@ -5,10 +5,9 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 ## 1. Hesap ve kimlik
 - [ ] Play Console hesabı açık, geliştirici profili tamamlandı
 - [ ] Yeni uygulama kaydı oluşturuldu
-- [ ] Paket adı (application ID) kesinleştirildi — `capacitor.config.ts`'de şu an
-      **GEÇİCİ** `com.mihenkaynak.app` yazıyor; gerçek şirket/geliştirici kimliğin
-      netleşince değiştirilmeli (bkz. `../README.md`). Yayından önce değiştirmek
-      bedava, sonra pratikte imkânsız.
+- [x] Paket adı (application ID) **kesinleştirildi** — kullanıcı kararı:
+      `com.mihenkaynak.app` (`capacitor.config.ts`). Değer zaten native tarafta
+      aynıydı (`android/app/build.gradle`), ek bir senkronizasyon gerekmedi.
 
 ## 2. Native derleme
 - [x] Capacitor kuruldu — `@capacitor/core`, `@capacitor/android`, `@capacitor/cli`
@@ -21,7 +20,6 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 - [x] `strings.xml`'deki `admob_app_id` gerçek AdMob Android App ID'si
       (`ca-app-pub-4229088811556918~6302768552`) — kullanıcının AdMob
       hesabından alındı, `isTesting` kaldırıldı (bkz. `src/ui/ads.ts`)
-- [ ] Paket adı kesinleşince `npm run cap:sync` ile yeniden senkronize et
 - [ ] İmzalama anahtarı (keystore) üretildi ve **güvenli bir yere yedeklendi**
       (kaybedilirse uygulama bir daha güncellenemez) — **bu ortamda Android
       Studio yok, senin makinende yapılmalı**
@@ -78,6 +76,6 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
       ("shared with anyone with the link"). Play incelemecisi erişebilir.
 
 ## 8. Fiyatlandırma ve dağıtım
-- [ ] Ücretsiz / ücretli — `[DOLDURULACAK]`
-- [ ] Uygulama içi satın alma var mı? **Kodda hiçbir IAP entegrasyonu yok**
+- [x] Ücretsiz / ücretli — kullanıcı kararı: **Ücretsiz**
+- [x] Uygulama içi satın alma var mı? **Kodda hiçbir IAP entegrasyonu yok** — ücretsiz karara uygun
 - [ ] Dağıtım ülkeleri

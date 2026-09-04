@@ -22,7 +22,8 @@ Bu klasörün işi o adımlara gelene kadarki her şeyi hazır bulundurmak.
 | iOS/Android uygulama ikonları (tüm yoğunluklar) + splash ekranı | ✅ Üretildi — `assets/icon.png`, `assets/splash.png` kaynağından, `ios/` ve `android/` içine yerleştirildi |
 | Play Store öne çıkan görsel (1024×500) | ✅ Üretildi — `assets/generated/feature-graphic-1024x500.png` |
 | Mağaza ekran görüntüleri | ✅ 4+4 adet, iPhone 6.7" (1290×2796) ve 6.5" (1284×2778) — `assets/generated/screenshots/`, `screenshots-6.5in/` |
-| Bundle ID / paket adı | 🟡 GEÇİCİ yer tutucu — `com.mihenkaynak.app` (`capacitor.config.ts`) — kullanıcı kararıyla ŞİMDİLİK ertelendi, yayından önce kesinleşmeli, bkz. aşağıda |
+| Bundle ID / paket adı | ✅ KESİNLEŞTİRİLDİ — kullanıcı kararı: `com.mihenkaynak.app` (`capacitor.config.ts`) |
+| Fiyatlandırma | ✅ KARARLAŞTIRILDI — kullanıcı kararı: **Ücretsiz** (IAP yok, buna uygun) |
 | Gizlilik politikası | ✅ Barındırıldı, tasarlandı, herkese açık — bkz. `legal/gizlilik-politikasi.md` |
 | Kullanım şartları | ✅ Barındırıldı, tasarlandı, herkese açık — bkz. `legal/kullanim-sartlari.md` |
 | Apple Developer hesabı | ❓ Sende — bu oturumun bilgisi yok |
@@ -83,11 +84,10 @@ derleme/imza adımını kör bir şekilde "tamamladım" demek, hiç doğrulanmam
 hazır göstermek olurdu. Sıradaki adım **senin makinende**:
 
 1. `git pull` ile depoyu çek, `npm install` çalıştır.
-2. **Paket adını (bundle ID) kesinleştir.** Şu an `capacitor.config.ts`'de
-   `com.mihenkaynak.app` yazıyor — **geçici bir yer tutucu**, kullanıcı kararıyla
-   şimdilik böyle bırakıldı ("gerçek şirket/geliştirici adını sonra netleştiririz").
-   Yayından ÖNCE değiştirmek bedava; yayından SONRA pratikte imkânsız — o yüzden ilk
-   gerçek derlemeden önce kesinleştirilmesi şart, ama scaffolding'i bloke etmedi.
+2. **Paket adı (bundle ID) kesinleşti** — `com.mihenkaynak.app`
+   (`capacitor.config.ts`). Native tarafta (`android/app/build.gradle`,
+   `PRODUCT_BUNDLE_IDENTIFIER`) zaten aynı değerdi, ayrıca değiştirilecek bir
+   şey yok.
 3. `npm run cap:sync` (derler + `ios/`/`android/`'i günceller).
 4. iOS: `npm run cap:open:ios` → Xcode açılır → imzalama takımını (Apple Developer
    hesabın) seç → cihazında veya TestFlight'ta dene.

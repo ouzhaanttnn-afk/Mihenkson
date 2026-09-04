@@ -6,10 +6,9 @@ senin yerine atamaz. Sırayla:
 ## 1. Hesap ve kimlik
 - [ ] Apple Developer Program üyeliği aktif (developer.apple.com)
 - [ ] App Store Connect'te yeni uygulama kaydı açıldı
-- [ ] Bundle ID kesinleştirildi — `capacitor.config.ts`'de şu an **GEÇİCİ**
-      `com.mihenkaynak.app` yazıyor; gerçek şirket/geliştirici kimliğin
-      netleşince değiştirilmeli (bkz. `../README.md`). Yayından önce
-      değiştirmek bedava, sonra pratikte imkânsız.
+- [x] Bundle ID **kesinleştirildi** — kullanıcı kararı: `com.mihenkaynak.app`
+      (`capacitor.config.ts`). Değer zaten native tarafta aynıydı
+      (`PRODUCT_BUNDLE_IDENTIFIER`), ek bir senkronizasyon gerekmedi.
 - [ ] SKU (iç referans kodu) belirlendi
 
 ## 2. Native derleme
@@ -23,7 +22,6 @@ senin yerine atamaz. Sırayla:
 - [x] `GADApplicationIdentifier` gerçek AdMob iOS App ID'si
       (`ca-app-pub-4229088811556918~3768104554`) — kullanıcının AdMob
       hesabından alındı, `isTesting` kaldırıldı (bkz. `src/ui/ads.ts`)
-- [ ] Bundle ID kesinleşince `npm run cap:sync` ile yeniden senkronize et
 - [ ] İmzalama sertifikası + provisioning profile Xcode'da tanımlı — **bu
       ortamda Xcode yok, senin makinende yapılmalı**
 - [ ] TestFlight'a ilk derleme yüklendi ve kendi cihazında denendi
@@ -71,9 +69,10 @@ senin yerine atamaz. Sırayla:
       "App Privacy" bölümünde ayrıca beyan ediliyor (bkz. yukarıdaki madde).
 
 ## 6. Fiyatlandırma ve kullanılabilirlik
-- [ ] Fiyat katmanı (ücretsiz / ücretli) — `[DOLDURULACAK]`, ürün kararı
-- [ ] Uygulama içi satın alma var mı? Şu an **kodda hiçbir IAP entegrasyonu
-      yok**; Market sekmesi yalnız oyun içi para (₺) harcıyor.
+- [x] Fiyat katmanı (ücretsiz / ücretli) — kullanıcı kararı: **Ücretsiz**
+- [x] Uygulama içi satın alma var mı? Şu an **kodda hiçbir IAP entegrasyonu
+      yok**; Market sekmesi yalnız oyun içi para (₺) harcıyor — ücretsiz
+      karara uygun.
 - [ ] Kullanılabilir ülkeler/bölgeler
 
 ## 7. İnceleme notları
