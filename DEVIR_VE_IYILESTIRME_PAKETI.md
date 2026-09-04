@@ -2596,6 +2596,44 @@ mesajını TETİKLEMEDİĞİ, gerçek bir yeni tur olarak işlendiği doğruland
 
 ---
 
+#### YENİ · Pazarlık ekranının sıkıştırma eşiği genişletildi — 🟡 KISMEN DOĞRULANABİLDİ
+`src/ui/workbench/Workbench.css`, `src/ui/shell/AppShell.css`
+
+Kullanıcı, PC'de kompakt gördükten sonra telefonda: **"PC tarayıcıda güzel
+gözüküyor telefonda hala çok iç içe gözüküyor."** Ekran görüntüsünde
+Karar Paneli (`.refPanel`) yalnız "Senin Analizin" satırını gösterip
+kesiliyordu — kodda "Senin Teklifin" satırı KOŞULSUZ render edilir, yani
+en az 2 satır görünmesi gerekirdi.
+
+**Dürüst sınır:** Bu ortamda yalnız Chromium var, Safari/WebKit motoru
+yok (`/opt/pw-browsers/` içinde). Chromium'da 390×700–852 arası hiçbir
+yükseklikte `.refPanel` kırpılması ÜRETEMEDİM (`scrollHeight ===
+clientHeight`, satırlar arasında rahat boşluk var) — yani bu muhtemelen
+iOS Safari'ye özgü bir görüntüleme farkı ve burada birebir doğrulayamadım.
+
+**Bulduğum, makul kök neden adayı:** Sıkıştırma medya sorguları
+`max-height: 760px`/`720px` eşiğini kullanıyordu. `max-height` `100dvh`'ye
+göre ölçülür; iOS Safari'de adres çubuğu açıkken birçok telefonun GERÇEK
+`dvh`'si 760-900 px aralığına düşüyor — yani bu aralıktaki cihazlar hiç
+sıkıştırma almadan tam boy içerikle karşılaşıyordu. Eşiği `900px`'e
+çıkardım (`.negotiate` üst blok küçülmesi, `.wb`/`.offer__amount`/
+`.contextRow`/`.stateBadge` sıkıştırması, `.dock` padding/gap) — daha
+geniş bir cihaz aralığını kapsıyor artık.
+
+**Not:** `.negotiate` zaten `overflow-y: auto` ile (görünmez scrollbar,
+`-webkit-overflow-scrolling: touch`) kaydırılabilir durumda — GDD 23.22
+"Dikey scroll YOK" ilkesine göre bu bilinçli bir GÜVENLİK AĞI, birincil
+çözüm değil (birincil çözüm yoğunluk azaltma). Eğer bu değişiklikten
+sonra hâlâ kırpılma görülürse, muhtemelen panel gerçekten kayıyor ama
+görünmez scrollbar yüzünden fark edilmiyor — o zaman iş bir kaydırma
+İPUCU (görünür "daha var" işareti) eklemeye döner, düzen hatası değil.
+
+**Doğrulama:** `tsc` temiz, 976/976 test yeşil, `npm run build` temiz.
+Playwright: yeni eşiğin tetiklendiği yükseklikler doğrulandı, ama gerçek
+cihaz/Safari testi YAPILAMADI — kullanıcının tekrar denemesi gerekiyor.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

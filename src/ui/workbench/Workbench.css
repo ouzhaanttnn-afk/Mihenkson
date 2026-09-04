@@ -597,8 +597,15 @@
  * Kısa ekranda üst blok daralır. Konuşma balonu ve durum rozeti karar
  * bilgisi taşımaz — biri müşterinin sözü, öteki tek kelimelik bir durum.
  * Sayılar (karşı teklif, band, referans) buradan yer kazanır.
+ *
+ * Eşik 720'den 900'e çıkarıldı: `max-height` burada `100dvh`'ye göre
+ * ölçülüyor ve iOS Safari'de adres çubuğu açıkken gerçek `dvh` birçok
+ * telefonda (ör. 852 pt'lik bir cihazda ~750-800 px'e) 720'in ÜSTÜNDE ama
+ * masaüstü/900+ tam ekranın ALTINDA kalıyor — yani bu aralıktaki cihazlar
+ * hiç sıkıştırma almadan referans panelinin kırpılma riskiyle karşılaşıyordu
+ * (kullanıcı: "PC'de güzel, telefonda hala iç içe").
  */
-@media (max-height: 720px) {
+@media (max-height: 900px) {
   .negotiate {
     gap: var(--sp-2);
   }
@@ -1879,8 +1886,12 @@
  * artık geçerli değil: band, piyasa referansı ve teklif AYNI panelde ve
  * pazarlık boyunca kalıcı olmak zorunda. Karar için gereken şey, kararın
  * verildiği ekranda durur.
+ *
+ * Eşik 760'tan 900'e çıkarıldı — bkz. yukarıdaki 720→900 notu: iOS
+ * Safari'de adres çubuğu açıkken çoğu telefonun gerçek `dvh`'si bu
+ * aralıkta kalıyor, önceki eşik onları hiç yakalamıyordu.
  */
-@media (max-height: 760px) {
+@media (max-height: 900px) {
   .wb {
     padding: var(--sp-2) var(--gutter-narrow);
     gap: var(--sp-2);

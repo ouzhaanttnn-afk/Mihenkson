@@ -992,8 +992,13 @@
   flex: 1 1 0;
 }
 
-/* Kısa cihazda Dock sıkışır ama CTA yüksekliği korunur (GDD 23.22). */
-@media (max-height: 760px) {
+/*
+ * Kısa cihazda Dock sıkışır ama CTA yüksekliği korunur (GDD 23.22). Eşik
+ * 760'tan 900'e çıkarıldı — iOS Safari'de adres çubuğu açıkken çoğu
+ * telefonun gerçek `dvh`'si bu aralıkta kalıyor (bkz. Workbench.css'teki
+ * aynı notlar).
+ */
+@media (max-height: 900px) {
   .dock {
     padding: var(--sp-2) var(--gutter-narrow);
     gap: var(--sp-1);
