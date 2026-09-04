@@ -2009,6 +2009,21 @@
   transition:
     border-color var(--t-fast) var(--ease-standard),
     box-shadow var(--t-fast) var(--ease-standard);
+  /*
+   * GÜVENLİK AĞI (bkz. .negotiate'teki aynı desen). Kart, yan yana duran
+   * kardeşiyle aynı yüksekliğe stretch edilir (align-items:stretch) — o
+   * yükseklik medya sorgularının öngördüğünden az kalırsa satırlar +
+   * gerekçe metni TAŞARDI ve altındaki `.svc__note` ile görsel olarak iç
+   * içe girerdi (kullanıcı bildirimi). Görünmez kaydırma bunu engeller;
+   * birincil çözüm hâlâ yoğunluk azaltmadır (yukarıdaki medya sorguları).
+   */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.venue::-webkit-scrollbar {
+  display: none;
 }
 
 .venue--selected {
@@ -2219,8 +2234,16 @@
   font-size: var(--fs-caption);
 }
 
-/* Kısa cihazda yoğunluk azalır (GDD 23.22). */
-@media (max-height: 760px) {
+/*
+ * Kısa cihazda yoğunluk azalır (GDD 23.22). Eşikler 760/680'den 900/760'a
+ * çıkarıldı — bkz. negotiate bölümündeki aynı not: iOS Safari'de adres
+ * çubuğu açıkken gerçek `dvh` çoğu telefonda bu aralıkta kalıyor, önceki
+ * eşikler onları hiç yakalamıyordu. Bulgu: "Teklif" aşamasında (Kendi
+ * Atölyem / Dış Usta kartları) `.venue` içeriği (satırlar + gerekçe)
+ * sıkıştırılmamış hâlde kart sınırını taşıp altındaki `.svc__note`
+ * metniyle görsel olarak iç içe giriyordu — kullanıcı bildirimi.
+ */
+@media (max-height: 900px) {
   .svc__silhouette {
     width: 72px;
     height: 72px;
@@ -2236,7 +2259,7 @@
   }
 }
 
-@media (max-height: 680px) {
+@media (max-height: 760px) {
   .svc__hero {
     display: none;
   }

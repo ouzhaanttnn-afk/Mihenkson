@@ -2689,6 +2689,41 @@ birim fiyat okunur şekilde satıra sığıyor.
 
 ---
 
+#### YENİ · Servis "Teklif" ekranında kartlar iç içe giriyordu — ✅ YAPILDI
+`src/ui/workbench/Workbench.css`
+
+Kullanıcı, telefondan ekran görüntüsü ("Kendi Atölyem" / "Dış Usta"
+kartları) ile: **"İç içe giriyor."** Bu, negotiate ekranından FARKLI bir
+yüzey — servis kabul akışının "Teklif" aşaması (`ServiceStages.tsx`).
+
+**Kök neden (kodda doğrulandı):** `.venue` kartları `.venues` (satır
+flex) içinde `align-items: stretch` ile birbirine EŞİT yüksekliğe
+zorlanıyor. `.venues`'ın kendi yüksekliği ise `.svc`'nin (sütun flex)
+esnek/`min-height:0` çocuğu — üstteki `.svc__typeHead` ve alttaki
+`.svc__note` sabit yer kaplayınca `.venues`'a kalan pay küçülüyor. Kart
+İÇERİĞİ (satırlar + gerekçe metni) o küçülen payı fiilen aşıyordu ama
+`.venue`'de `overflow` tanımlı değildi — taşan metin kartın alt sınırının
+DIŞINA, hemen altındaki `.svc__note` metninin üzerine biniyordu. Aynı
+"iOS Safari'de adres çubuğu açıkken gerçek dvh 760-900px aralığında
+kalıyor" deseni burada da geçerli: sıkıştırma medya sorguları (`.venue`
+padding'i, `.venue__rationale`'ı gizleme) 760px/680px eşiklerini
+kullanıyordu — negotiate ekranında zaten doğrulanmış 900px/760px'e
+çıkarıldı.
+
+**Ayrıca yapısal bir güvenlik ağı eklendi:** `.venue`'ye `.negotiate`'teki
+AYNI görünmez-kaydırma deseni (`overflow-y: auto`, gizli scrollbar)
+verildi — eşikler tam isabet etmese bile içerik artık ALTINDAKİ metinle
+görsel olarak asla iç içe giremez, en kötü ihtimalle kart kendi içinde
+sessizce kayar.
+
+**Doğrulama:** `tsc` temiz, 976/976 test yeşil, `npm run build` temiz.
+Bu spesifik ekrana ( rastgele servis müşterisi + tanı aracı gerektiriyor)
+otomatik testte GÜVENİLİR şekilde ulaşamadım — CSS mekanizması kod
+okumasıyla kesin doğrulandı ve negotiate ekranındaki AYNI kök nedenin
+AYNI düzeltmesi, ama bu belirli ekranda canlı ölçüm YAPAMADIM.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
