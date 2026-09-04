@@ -35,6 +35,10 @@ senin yerine atamaz. Sırayla:
       export compliance sorusu uygulama paketiyle tutarlı.
 - [ ] İmzalama sertifikası + provisioning profile Xcode'da tanımlı — **bu
       ortamda Xcode yok, senin makinende yapılmalı**
+- [x] Mac erişimi yoksa kullanılacak, yalnız elle başlatılan GitHub Actions
+      TestFlight iş akışı hazır (`../../.github/workflows/ios-testflight.yml`;
+      kurulum ayrıntıları: `github-actions-testflight.md`). Apple Distribution
+      sertifikası, provisioning profile ve GitHub secrets henüz oluşturulmadı.
 - [ ] TestFlight'a ilk derleme yüklendi ve kendi cihazında denendi
 
 ## 3. Görseller (bkz. `../assets/eksikler.md`)

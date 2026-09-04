@@ -10,3 +10,10 @@ build/
 .vite/
 coverage/
 tsconfig.tsbuildinfo
+
+# Apple signing material must never be committed.
+*.cer
+*.p12
+*.p8
+*.mobileprovision
+apple-signing/
