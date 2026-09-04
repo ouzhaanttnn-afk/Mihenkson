@@ -1750,7 +1750,7 @@
 .offer__amount {
   flex: 1 1 auto;
   font-family: var(--font-display);
-  font-size: var(--fs-figure);
+  font-size: var(--fs-title);
   font-weight: var(--fw-bold);
   color: var(--text-light-1);
   line-height: 1;
@@ -1761,7 +1761,7 @@
 }
 
 .offer__currency {
-  font-size: var(--fs-subtitle);
+  font-size: var(--fs-label);
   color: var(--text-light-3);
   font-weight: var(--fw-medium);
   margin-left: 2px;
@@ -1889,7 +1889,7 @@
     font-size: var(--fs-title);
   }
   .offer__amount {
-    font-size: var(--fs-title);
+    font-size: var(--fs-subtitle);
   }
   .contextRow {
     display: none;
