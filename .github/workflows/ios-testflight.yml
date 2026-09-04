@@ -1,0 +1,198 @@
+name: iOS TestFlight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-testflight
+  cancel-in-progress: false
+
+jobs:
+  build-and-upload:
+    name: Build and upload to TestFlight
+    runs-on: macos-latest
+    timeout-minutes: 45
+    env:
+      APPLE_TEAM_ID: 8X6KZC5R23
+      APP_BUNDLE_ID: com.mihenkaynak.app
+      APP_SCHEME: App
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify required secrets
+        shell: bash
+        run: |
+          missing=0
+          for name in \
+            APPLE_ID \
+            APPLE_APP_SPECIFIC_PASSWORD \
+            BUILD_CERTIFICATE_BASE64 \
+            P12_PASSWORD \
+            BUILD_PROVISION_PROFILE_BASE64 \
+            KEYCHAIN_PASSWORD
+          do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required GitHub Actions secret: $name"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Install dependencies and verify the web app
+        run: |
+          npm ci
+          npm test
+          npm run release:check
+
+      - name: Synchronize the iOS project
+        run: |
+          npm run build
+          npx cap sync ios
+
+      - name: Install Apple signing certificate and provisioning profile
+        id: signing
+        shell: bash
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
+          PROFILE_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+          PROFILE_PLIST_PATH="$RUNNER_TEMP/build_pp.plist"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          printf '%s' "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          printf '%s' "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" \
+            -P "$P12_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          security list-key-partition-list \
+            -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          security cms -D -i "$PROFILE_PATH������AI=%1}A1%MQ}AQ �(����������AI=%1}UU%������Ƚ����ᕌ�A����	Ց�䀵���Aɥ�Ѐ�UU%����AI=%1}A1%MQ}AQ ��(����������AI=%1}95������Ƚ����ᕌ�A����	Ց�䀵���Aɥ�Ѐ�9�������AI=%1}A1%MQ}AQ ��(����������AI=%1}	U91}%������Ƚ����ᕌ�A����	Ց�䀵���Aɥ�Ѐ��ѥѱ�������������ѥ�������ѥ���Ȝ���AI=%1}A1%MQ}AQ ��((�������������ml���AI=%1}	U91}%���􀈑AA1}Q5}%��AA}	U91}%��ut�ѡ��(������������������Aɽ٥ͥ�������ɽ�����������́Ѽ����չ�����ѕ�����%��(��������������Ѐ�(������������((����������AI=%1}%9MQ11}%H�!=5�1��Ʌ��5������٥���Aɽ٥ͥ������Aɽ����̈(��������������Ȁ�����AI=%1}%9MQ11}%H�(���������cp "$PROFILE_PATH" "$PROFILE_INSTALL_DIR/$PROFILE_UUID.mobileprovision"
+
+          echo "profile_name=$PROFILE_NAME" >> "$GITHUB_OUTPUT"
+          echo "profile_uuid=$PROFILE_UUID" >> "$GITHUB_OUTPUT"
+          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild \
+            -resolvePackageDependencies \
+            -project ios/App/App.xcodeproj \
+            -scheme "$APP_SCHEME"
+
+      - name: Archive the iOS app
+        shell: bash
+        run: |
+          ARCHIVE_PATH="$RUNNER_TEMP/MIHENKAYNAK.xcarchive"
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme "$APP_SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$ARCHIVE_PATH" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY='Apple Distribution' \
+            PROVISIONING_PROFILE_SPECIFIER='${{ steps.signing.outputs.profile_name }}' \
+            CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            clean archive
+
+      - name: Export the signed IPA
+        shell: bash
+        run: |
+          EXPORT_OPTIONS_PATH="$RUNNER_TEMP/ExportOptions.plist"
+          EXPORT_PATH="$RUNNER_TEMP/export"
+
+          cat > "$EXPORT_OPTIONS_PATH" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>destination</key>
+            <string>export</string>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>$APP_BUNDLE_ID</key>
+              <string>${{ steps.signing.outputs.profile_name }}</string>
+            </dict>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>teamID</key>
+            <string>$APPLE_TEAM_ID</string>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$RUNNER_TEMP/MIHENKAYNAK.xcarchive" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist "$EXPORT_OPTIONS_PATH"
+
+          IPA_PATH=$(find "$EXPORT_PATH" -maxdepth 1 -name '*.ipa' -print -quit)
+          if [[ -z "$IPA_PATH" ]]; then
+            echo 'The signed IPA was not produced.'
+            exit 1
+          fi
+          echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_ENV"
+
+      - name: Validate and upload the build to TestFlight
+        shell: bash
+        run: |
+          xcrun altool \
+            --validate-app \
+            --file "$IPA_PATH" \
+            --type ios \
+            --username "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD"
+
+          xcrun altool \
+            --upload-app \
+            --file "$IPA_PATH" \
+            --type ios \
+            --username "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD"
+
+      - name: Clean up signing material
+        if: always()
+        shell: bash
+        run: |
+          security delete-keychain '${{ steps.signing.outputs.keychain_path }}' 2>/dev/null || true
+          rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/${{ steps.signing.outputs.profile_uuid }}.mobileprovision"
+
