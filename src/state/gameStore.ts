@@ -1492,8 +1492,32 @@ export const useGame = create<GameState>((set, get) => {
 
     setActiveLine: (lineId) => {
       const s = get();
-      if (!s.activeDeal) return;
-      set({ activeDeal: { ...s.activeDeal, activeLineId: lineId } });
+      const deal = s.activeDeal;
+      if (!deal) return;
+
+      const requested = deal.lines.find((line) => line.lineId === lineId);
+      if (!requested) return;
+
+      /*
+        Çoklu ürün şeridi yalnız kalemi değil, o kalemin kaldığı doğru aşamayı
+        da seçer. Eski davranış `negotiate` aşamasını koruyup daha hiç
+        incelenmemiş (veya zaten terminal olmuş) bir kalemi pazarlık ekranına
+        taşıyabiliyordu. Terminal kalem tekrar seçilirse çözümlenmemiş sıradaki
+        kaleme yönel; böylece UI bitmiş bir durum makinesine kilitlenmez.
+      */
+      const target = isTerminal(requested.negotiation.state)
+        ? nextUnresolvedLine(deal.lines, requested.lineId)
+        : requested;
+
+      set({
+        activeDeal: target
+          ? {
+              ...deal,
+              activeLineId: target.lineId,
+              stage: resumeStageForLine(s, deal, target),
+            }
+          : { ...deal, stage: 'result' },
+      });
     },
 
     // -----------------------------------------------------------------------
@@ -1674,7 +1698,21 @@ export const useGame = create<GameState>((set, get) => {
 
       const line = activeLine(deal);
       if (!line) return;
-      if (isTerminal(line.negotiation.state)) return;
+      if (isTerminal(line.negotiation.state)) {
+        // Eski bir kayıt terminal kalemi aktif bıraktıysa ilk dokunuşta
+        // kendini onarır; oyuncunun ziyareti terk etmesi gerekmez.
+        const next = nextUnresolvedLine(deal.lines, line.lineId);
+        set({
+          activeDeal: next
+            ? {
+                ...deal,
+                activeLineId: next.lineId,
+                stage: resumeStageForLine(s, deal, next),
+              }
+            : { ...deal, stage: 'result' },
+        });
+        return;
+      }
 
       const options = line.thesisOptions;
       const isPurchase = deal.flow === 'purchase' && !!deal.purchase;
@@ -1721,16 +1759,33 @@ export const useGame = create<GameState>((set, get) => {
         l.lineId === line.lineId ? { ...l, negotiation: session, status } : l,
       );
 
-      const nextDeal: ActiveDeal = {
+      const updatedDeal: ActiveDeal = {
         ...deal,
         lines: nextLines,
-        stage: isTerminal(session.state) && allLinesResolved(nextLines) ? 'result' : deal.stage,
       };
+
+      const continuation = isTerminal(session.state)
+        ? nextUnresolvedLine(nextLines, line.lineId)
+        : undefined;
+      const nextDeal: ActiveDeal = isTerminal(session.state)
+        ? continuation
+          ? {
+              ...updatedDeal,
+              activeLineId: continuation.lineId,
+              stage: resumeStageForLine(s, updatedDeal, continuation),
+            }
+          : { ...updatedDeal, stage: 'result' }
+        : updatedDeal;
 
       set({
         activeCustomer: nextCustomer,
         activeDeal: nextDeal,
-        customerMessage: response.message,
+        // Bir kalem reddedilince müşterinin "başka yere bakacağım" cümlesini
+        // ekranda bırakıp diğer kalemleri açık tutmak çelişkiliydi. Ziyaret
+        // sürüyorsa bunu açıkça söyleyen nötr bir geçiş cümlesi kullan.
+        customerMessage: continuation
+          ? localizedMessage('Bu parçayı kapattık. Sıradakine bakalım.')
+          : response.message,
       });
 
       if (isTerminal(session.state)) {
@@ -3017,6 +3072,42 @@ function economyToState(e: EconomyState): Pick<GameState, 'store' | 'inventory' 
 
 export function activeLine(deal: ActiveDeal): DealLine | undefined {
   return deal.lines.find((l) => l.lineId === deal.activeLineId);
+}
+
+/**
+ * Çözülen kalemin ardından, görsel sırayı koruyarak ilk açık kalemi bulur.
+ * Listenin sonundaysak başa sarar; böylece kullanıcı ürünleri istediği sırada
+ * ele alsa da ziyaret tek bir terminal satırda takılı kalmaz.
+ */
+function nextUnresolvedLine(lines: DealLine[], afterLineId: string): DealLine | undefined {
+  const pivot = Math.max(0, lines.findIndex((line) => line.lineId === afterLineId));
+  const ordered = [...lines.slice(pivot + 1), ...lines.slice(0, pivot)];
+  return ordered.find((line) => !isTerminal(line.negotiation.state));
+}
+
+/** Bir ürün sekmesine dönüldüğünde, o kalemin gerçek ilerlemesini açar. */
+function resumeStageForLine(
+  s: Pick<GameState, 'items'>,
+  deal: ActiveDeal,
+  line: DealLine,
+): WorkbenchStage {
+  // Çok satırlı akış ticarettir. Diğer akışlarda mevcut aşama semantiğini
+  // korumak, gelecekte eklenebilecek çoklu servis/ekspertizi yanlış atlamaz.
+  if (deal.flow !== 'trade') return deal.stage;
+  if (isTerminal(line.negotiation.state)) return 'result';
+
+  // Daha önce pazarlığa girilmiş bir kalem kaldığı yerden devam eder.
+  if (line.negotiation.moveHistory.length > 0 || line.selectedThesis !== null) {
+    return 'negotiate';
+  }
+
+  // Test sonucu var fakat band henüz hesaplanmadıysa değerleme görünmelidir.
+  if (line.band === null) return line.testResults.length > 0 ? 'appraise' : 'inspect';
+
+  const item = s.items[line.itemId];
+  // Hızlı işlemin çıkış planı zorunlu değildir; diğer ürünlerde oyuncuya
+  // hesapladığı bandın ardından tez kararını tamamlama fırsatı verilir.
+  return item && !flowPolicy(item).requiresExitPlan ? 'negotiate' : 'thesis';
 }
 
 /**

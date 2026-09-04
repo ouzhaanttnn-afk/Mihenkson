@@ -199,7 +199,14 @@
  *   · Karar Dock'u 104 px: içeriğin tam ölçüsü (12+18+8+54+12), kırpma yok.
  * ═══════════════════════════════════════════════════════════════════════
  */
-@media (max-height: 720px) {
+/*
+ * Gerçek iPhone web viewport'u cihazın katalog yüksekliği değildir. Safari'nin
+ * üst/alt çubukları açıkken 844–874 pt ekranlar yaklaşık 730–800 CSS px'e
+ * düşer. 720 px eşiği bu cihazları birkaç piksel farkla kaçırıyor, pazarlık
+ * masasını içeriden kaydırmaya zorluyordu. 820 px, portre telefonda kompakt
+ * kabuğu erken açar; geniş masaüstü cihaz çerçevesini etkilemez.
+ */
+@media (max-height: 820px) {
   :root {
     --h-status-strip: 64px;
     /*
@@ -209,6 +216,7 @@
      * ekranın en çok okunan iki sayısını çakıştırmak kötü bir takas.
      */
     --h-customer-strip: 44px;
+    --h-tool-rail: 52px;
     --h-decision-dock: 104px;
     --h-bottom-nav: 56px;
     /*

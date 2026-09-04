@@ -115,8 +115,18 @@ describe('mobil kabuk sözleşmesi', () => {
         background: '--stone-200',
       },
       {
+        selector: '.stageStrip__step',
+        css: shellCss,
+        background: '--stone-200',
+      },
+      {
         selector: '.impact__value--warning',
         css: workbenchCss,
+        background: '--stone-50',
+      },
+      {
+        selector: '.dock__disabledReason',
+        css: shellCss,
         background: '--stone-50',
       },
     ];
@@ -152,6 +162,38 @@ describe('mobil kabuk sözleşmesi', () => {
     );
     expect(shellCss).toMatch(
       /\.toolRailSlot > \.rushFabAnchor\s*\{[\s\S]*?position:\s*absolute;/,
+    );
+  });
+
+  it('gerçek iPhone portresinde pazarlık kararlarını kaydırmadan gösterir', () => {
+    const tokens = projectFile('src/ui/tokens.css');
+    const shellCss = projectFile('src/ui/shell/AppShell.css');
+    const workbenchCss = projectFile('src/ui/workbench/Workbench.css');
+    const shop = projectFile('src/ui/screens/ShopScreen.tsx');
+
+    expect(tokens).toContain('@media (max-height: 820px)');
+    expect(tokens).toMatch(/--h-tool-rail:\s*52px/);
+    expect(shellCss).toMatch(
+      /@media \(max-width: 430px\)[\s\S]*?\.statusStrip\s*\{[\s\S]*?overflow-x:\s*clip;/,
+    );
+    expect(workbenchCss).toMatch(
+      /@media \(orientation: portrait\) and \(max-height: 820px\)[\s\S]*?\.negotiate\s*\{[\s\S]*?overflow-y:\s*hidden;/,
+    );
+    expect(workbenchCss).toMatch(
+      /@media \(orientation: portrait\) and \(max-height: 820px\)[\s\S]*?\.refPanel\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\);/,
+    );
+    expect(workbenchCss).toMatch(
+      /\.history,[\s\S]*?\.moveStrip\s*\{\s*display:\s*none;/,
+    );
+    expect(workbenchCss).toMatch(
+      /@media \(orientation: portrait\) and \(max-height: 620px\)[\s\S]*?\.negotiate\s*\{[\s\S]*?overflow-y:\s*auto;/,
+    );
+    expect(shop).toContain('<div className="appraisalInspect">');
+    expect(workbenchCss).toMatch(
+      /\.appraisalInspect\s*\{[\s\S]*?min-height:\s*0;[\s\S]*?overflow:\s*hidden;/,
+    );
+    expect(workbenchCss).toMatch(
+      /@media \(orientation: portrait\) and \(max-height: 820px\)[\s\S]*?\.appraisalInspect \.inspect__fields\s*\{[\s\S]*?overflow:\s*hidden;/,
     );
   });
 

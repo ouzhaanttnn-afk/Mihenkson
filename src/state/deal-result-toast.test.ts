@@ -80,6 +80,69 @@ function satanMusteriyiKarsila(): void {
   throw new Error('satan müşteri bulunamadı');
 }
 
+/**
+ * Üç bağımsız kalem getiren bir satıcı kurar. Spawn edilmiş gerçek müşteri
+ * profili kullanılır; yalnız taşıdığı ürün sayısı sabitlenir ki çoklu kalem
+ * ilerleme regresyonu rastgele müşteri dağılımına bağlı kalmasın.
+ */
+function cokluSatanMusteriyiKarsila(): string[] {
+  const eko = ekonomi();
+  let seller = null as ReturnType<typeof spawnCustomer> | null;
+  for (let index = 1; index < 60; index++) {
+    const spawned = spawnCustomer(SEED, index, market, eko.store, character, undefined, {
+      inventory: eko.inventory,
+      items: eko.items,
+    });
+    if (spawned.customer.intent === 'sell') {
+      seller = spawned;
+      break;
+    }
+  }
+  if (!seller) throw new Error('çoklu satıcı için müşteri bulunamadı');
+
+  const products = [
+    spawnItem(SEED, 101, 'bracelet_22k_thin'),
+    spawnItem(SEED, 102, 'bracelet_22k_thin'),
+    spawnItem(SEED, 103, 'bracelet_22k_thin'),
+  ];
+  const lineIds = products.map((_, i) => `${seller!.customer.id}_multi_${i + 1}`);
+
+  useGame.setState({
+    ...eko,
+    seed: SEED,
+    market,
+    dayCharacter: character,
+    queue: [
+      {
+        customer: {
+          ...seller.customer,
+          intent: 'sell' as const,
+          lineIds,
+        },
+        items: products,
+      },
+    ],
+    activeDeal: null,
+    activeCustomer: null,
+    profileOpen: false,
+    profileSetupDone: true,
+    toasts: [],
+  });
+  useGame.getState().greetCustomer();
+
+  // Her kalemi değerleyip tezini seç; üçüncü kalemi pazarlıkta bırak.
+  for (const lineId of lineIds) {
+    useGame.getState().setActiveLine(lineId);
+    useGame.getState().setStage('appraise');
+    const current = useGame.getState().activeDeal?.lines.find((line) => line.lineId === lineId);
+    const thesis = current?.thesisOptions[0];
+    if (thesis) useGame.getState().selectThesis(thesis.channel);
+    useGame.getState().setStage('negotiate');
+  }
+
+  return lineIds;
+}
+
 /** Vitrinde duran tek bir işçilikli ürün — satış akışının konusu. */
 function vitrindekiUrun(): ItemInstance {
   const item = spawnItem(SEED, 1, 'bracelet_22k_thin');
@@ -193,5 +256,44 @@ describe('satış balonu', () => {
     useGame.getState().negotiationMove({ kind: 'reject', atRound: 0 });
 
     expect(balonlar()).toContain('Satış yapılmadı');
+  });
+});
+
+describe('çoklu ürün pazarlığı', () => {
+  it('biten kalemden sıradaki açık kaleme geçer ve terminal satırda donmaz', () => {
+    const [first, second, third] = cokluSatanMusteriyiKarsila();
+    if (!first || !second || !third) throw new Error('üç kalem kurulamadı');
+
+    // Ekran görüntüsündeki durum: üçüncü ürün reddedildi, ilk ikisi açık.
+    useGame.getState().negotiationMove({ kind: 'reject', atRound: 0 });
+
+    let s = useGame.getState();
+    expect(s.activeDeal?.lines.find((line) => line.lineId === third)?.negotiation.state).toBe('REJECTED');
+    expect(s.activeDeal?.activeLineId).toBe(first);
+    expect(s.activeDeal?.stage).toBe('negotiate');
+    expect(s.customerMessage).toMatchObject({
+      key: 'Bu parçayı kapattık. Sıradakine bakalım.',
+    });
+
+    // Bitmiş ürün pill'ine basmak terminal durum makinesini yeniden açmaz.
+    useGame.getState().setActiveLine(third);
+    s = useGame.getState();
+    expect(s.activeDeal?.activeLineId).toBe(first);
+    expect(s.activeDeal?.stage).toBe('negotiate');
+
+    // Eski bir kayıt terminal kalemi aktif bırakmışsa ilk hamlede toparlanır.
+    useGame.setState({
+      activeDeal: s.activeDeal
+        ? { ...s.activeDeal, activeLineId: third, stage: 'negotiate' }
+        : null,
+    });
+    useGame.getState().negotiationMove({ kind: 'reject', atRound: 0 });
+    expect(useGame.getState().activeDeal?.activeLineId).toBe(first);
+
+    // Son açık kalem de kapanınca ancak o zaman sonuç ekranına geçilir.
+    useGame.getState().negotiationMove({ kind: 'reject', atRound: 0 });
+    expect(useGame.getState().activeDeal?.activeLineId).toBe(second);
+    useGame.getState().negotiationMove({ kind: 'reject', atRound: 0 });
+    expect(useGame.getState().activeDeal?.stage).toBe('result');
   });
 });

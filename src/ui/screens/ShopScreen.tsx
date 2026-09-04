@@ -353,7 +353,7 @@ export function ShopScreen() {
           ) : /* --- Ekspertiz / danışma akışı (GDD 23.23 beşinci akış) --- */
           deal.flow === 'appraisal' && deal.appraisal ? (
             stage === 'inspect' ? (
-              <>
+              <div className="appraisalInspect">
                 <AppraisalIntro item={item} />
                 <InspectStage
                   item={item}
@@ -361,7 +361,7 @@ export function ShopScreen() {
                   testResults={line.testResults}
                   market={s.market}
                 />
-              </>
+              </div>
             ) : stage === 'test' && line.band ? (
               // Test adımı ticaretin değerleme ekranını AYNEN kullanır:
               // ölçüm ölçümdür, akış değişince fizik değişmez.

@@ -1184,6 +1184,7 @@ export const EN: Record<string, string> = {
   */
   'Bunu bozdurmak istiyorum.': "I'd like to sell this.",
   'Birkaç parça getirdim, bakar mısınız?': "I've brought a few pieces — would you take a look?",
+  'Bu parçayı kapattık. Sıradakine bakalım.': "We're done with this piece. Let's look at the next one.",
   'Bir şeye bakıyordum.': 'I was looking for something.',
   'Bunun tamiri mümkün mü?': 'Can this be repaired?',
   'Bunun değerini öğrenmek istiyorum.': "I'd like to know what this is worth.",

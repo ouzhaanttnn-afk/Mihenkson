@@ -2681,6 +2681,19 @@ input.qtyStep__value {
 /* dokunma hedefi (GDD 23.22), 11 px altına düşen metin yok.            */
 /* ------------------------------------------------------------------ */
 
+.appraisalInspect {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  overflow: hidden;
+}
+
+.appraisalInspect .apr__intro {
+  margin-bottom: 0;
+}
+
 .apr {
   flex: 1;
   min-height: 0;
@@ -3131,5 +3144,162 @@ input.qtyStep__value {
   .speech__portrait {
     width: 52px;
     height: 52px;
+  }
+}
+
+/*
+ * PORTRE TELEFON · TEK BAKIŞTA PAZARLIK
+ *
+ * Gerçek cihaz ekran görüntüsünde Safari çubukları açıkken kullanılabilir
+ * yükseklik 700 px'in biraz üstünde kaldığı için eski 700 px kademesi
+ * çalışmıyor; “Senin Analizin” paneline ulaşmak için pazarlık yüzeyi
+ * kaydırılıyordu. Ana karar bilgilerini silmeden şu sırayla yoğunluk azalır:
+ *
+ *   1. Müşteri portresi küçülür (kimlik üst şeritte de var).
+ *   2. Teklif geçmişi ve hamle özeti saklanır (ikisi de ikincil geri bildirim).
+ *   3. Analiz/referans/teklif/fark iki sütuna yerleşir.
+ *   4. Türetilmiş “Referansa Göre Fark” ve tekrar eden toplam satırı saklanır.
+ *
+ * Böylece 730–820 px portre viewport'ta pazarlık yüzeyi kaymaz. Yalnız
+ * gerçekten çok kısa (≤620 px) cihazlarda içerik kaydırma güvenlik ağı geri
+ * açılır; CTA ve karar bilgisi hiçbir zaman kırpılmaz. Bu blok dosyanın
+ * sonunda durur: portre/moveStrip temel kuralları aşağıda tanımlandığı için
+ * daha yukarıdaki bir medya bloğu CSS kaynak sırasına yeniliyordu.
+ */
+@media (orientation: portrait) and (max-height: 820px) {
+  .negotiate {
+    gap: 6px;
+    overflow-y: hidden;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .negotiate__top {
+    gap: var(--sp-2);
+  }
+
+  .speech__portrait {
+    width: 56px;
+    height: 56px;
+  }
+
+  .speech,
+  .counterRow {
+    padding: 6px var(--sp-3);
+  }
+
+  .history,
+  .moveStrip {
+    display: none;
+  }
+
+  .refPanel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2px var(--sp-3);
+    padding: var(--sp-1) var(--sp-3);
+  }
+
+  .refPanel__row {
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .refPanel__row--analysis {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1px;
+    padding-bottom: 3px;
+  }
+
+  .refPanel__row--refGap,
+  .refPanel__row--total {
+    display: none;
+  }
+
+  .refPanel__key {
+    max-width: 100%;
+    line-height: 1.1;
+  }
+
+  .refPanel__val {
+    max-width: 100%;
+  }
+
+  /*
+   * Ekspertiz İncele'de intro + ürün + son test + sinyal aynı masayı
+   * paylaşır. Eski flex düzeni `.inspect`i küçültüyor fakat iç satırları
+   * küçültmediği için başlık ve test okuması birbirinin üstüne çiziliyordu.
+   */
+  .appraisalInspect {
+    gap: 4px;
+  }
+
+  .appraisalInspect .apr__intro {
+    gap: var(--sp-2);
+    padding: 4px var(--sp-2);
+  }
+
+  .appraisalInspect .apr__introIcon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .appraisalInspect .apr__introText {
+    font-size: var(--fs-micro);
+    line-height: 1.2;
+  }
+
+  .appraisalInspect .inspect {
+    gap: var(--sp-2);
+  }
+
+  .appraisalInspect .inspect__stage {
+    padding: var(--sp-1);
+  }
+
+  .appraisalInspect .inspect__fields {
+    min-height: 0;
+    gap: 1px;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+  .appraisalInspect .inspect__title {
+    margin-bottom: 0;
+    font-size: var(--fs-body);
+  }
+
+  .appraisalInspect .field {
+    gap: var(--sp-1);
+    padding: 2px 0;
+  }
+
+  .appraisalInspect .readout {
+    gap: var(--sp-2);
+    padding: 4px var(--sp-2);
+    line-height: 1.2;
+  }
+
+  .appraisalInspect .readout__art {
+    width: 50px;
+    height: 34px;
+  }
+
+  .appraisalInspect .signals {
+    gap: 1px;
+    padding: 4px var(--sp-2);
+  }
+}
+
+@media (orientation: portrait) and (max-height: 620px) {
+  .negotiate {
+    overflow-y: auto;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 16px), transparent 100%);
   }
 }
