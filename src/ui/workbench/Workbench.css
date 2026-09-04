@@ -1741,8 +1741,8 @@
  * fiyat o hiyerarşiyi bozmadan, kararı doğrulayan ikinci satırdır.
  */
 .offer__unit {
-  margin-top: 2px;
-  font-size: var(--fs-caption);
+  margin-top: 0;
+  font-size: var(--fs-micro);
   color: var(--text-light-3);
   letter-spacing: 0.01em;
 }
@@ -1750,7 +1750,7 @@
 .offer__amount {
   flex: 1 1 auto;
   font-family: var(--font-display);
-  font-size: var(--fs-hero);
+  font-size: var(--fs-figure);
   font-weight: var(--fw-bold);
   color: var(--text-light-1);
   line-height: 1;
@@ -1761,7 +1761,7 @@
 }
 
 .offer__currency {
-  font-size: var(--fs-title);
+  font-size: var(--fs-subtitle);
   color: var(--text-light-3);
   font-weight: var(--fw-medium);
   margin-left: 2px;
@@ -1840,7 +1840,7 @@
 /* Tahmini etki etiketleri — kesinlik iddiası taşımaz (GDD 23.12). */
 .impacts {
   display: flex;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
   flex-wrap: wrap;
 }
 
@@ -1889,7 +1889,7 @@
     font-size: var(--fs-title);
   }
   .offer__amount {
-    font-size: var(--fs-figure);
+    font-size: var(--fs-title);
   }
   .contextRow {
     display: none;

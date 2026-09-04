@@ -2534,6 +2534,31 @@ edildi.
 
 ---
 
+#### YENİ · Pazarlık Karar Dock'u kompaktlaştırıldı — ✅ YAPILDI
+`src/ui/workbench/Workbench.css`, `src/ui/shell/AppShell.css`
+
+Kullanıcı, ekran görüntüsüyle: **"Bak bu ekran çok büyük. Bunu
+kompaktlaştırmanız lazım"** — pazarlıkta teklif tutarı + zarar uyarısı +
+slider + etki satırının bulunduğu Karar Dock'u (GDD 23.12'de 128 px
+hedefli) baz durumda `--fs-hero` (34px) gibi büyük tipografi ve geniş
+boşluklarla ekranın önemli bir kısmını kaplıyordu — önceden bu küçültme
+yalnız kısa ekranlarda (`max-height: 760px`) devreye giriyordu.
+
+**Ne değişti:** `.offer__amount` taban font boyutu `--fs-hero` (34px) →
+`--fs-figure` (26px); kısa ekran kademesi de buna göre `--fs-title`
+(20px)'e indirildi. `.offer__currency` ve `.offer__unit` orantılı
+küçültüldü. `.dock` dikey padding/gap ve `.dock__lossWarning` padding/font
+sıkılaştırıldı (`sp-3`→`sp-2`, `sp-2`→`sp-1`). `.impacts` satır arası
+boşluğu azaltıldı. Dokunma hedefleri (`+`/`−` düğmeleri 44px, CTA 54px)
+GDD 23.22 gereği DEĞİŞTİRİLMEDİ — yalnız tipografi ve boşluklar küçüldü.
+
+**Doğrulama:** `tsc` temiz, 976/976 test yeşil, `npm run build` temiz.
+Playwright (390×844): Karar Dock'u yüksekliği artık 161.8 px (CTA + ikincil
+buton + slider + etki satırı dahil) — okunabilir, hiçbir eleman kesilmiyor
+veya üst üste binmiyor; alt navigasyon her zaman görünür kalıyor.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
