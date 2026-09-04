@@ -11,6 +11,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const KEY_RE = /\bt\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1/g;
+const normalizePath = (path) => path.replaceAll('\\', '/');
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -26,7 +27,7 @@ const sources = new Map();
 for (const file of walk('src')) {
   // Sözlüğün kendisi taranmaz: yorumlarındaki örnek `t('...')` sahte anahtar
   // üretiyordu.
-  if (file.endsWith('i18n/en.ts')) continue;
+  if (normalizePath(file).endsWith('src/i18n/en.ts')) continue;
   const src = readFileSync(file, 'utf8');
   sources.set(file, src);
   for (const m of src.matchAll(KEY_RE)) {
@@ -85,4 +86,5 @@ if (process.argv.includes('--json')) {
     console.log('\n--- sözlükte var, kodda yok ---');
     for (const k of unused) console.log(k);
   }
+  if (missing.length) process.exitCode = 1;
 }

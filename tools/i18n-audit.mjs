@@ -31,6 +31,8 @@ function walk(dir, out = []) {
   return out;
 }
 
+const normalizePath = (path) => path.replaceAll('\\', '/');
+
 /** Yorumları boşlukla değiştirir — konum kayması olmasın diye aynı uzunlukta. */
 function yorumsuz(src) {
   let out = '';
@@ -77,7 +79,8 @@ const GORUNMEZ_ALAN = /^\s*(designNote|goodStrategy|badStrategy|demandTags|prefe
 const bulgular = [];
 
 for (const dosya of walk('src')) {
-  if (dosya.endsWith('i18n/en.ts')) continue; // sözlüğün kendisi
+  const dosyaKey = normalizePath(dosya);
+  if (dosyaKey.endsWith('src/i18n/en.ts')) continue; // sözlüğün kendisi
   const ham = readFileSync(dosya, 'utf8');
   const src = yorumsuz(ham);
   const satirlar = src.split('\n');
@@ -96,7 +99,7 @@ for (const dosya of walk('src')) {
     const once = src.slice(Math.max(0, m.index - 40), m.index);
     if (/\bt\(\s*$/.test(once)) continue;             // t('...') / t(\n  '...')
     const satirNo = src.slice(0, m.index).split('\n').length;
-    bulgular.push({ dosya, satirNo, tur: 'dize', metin: val });
+    bulgular.push({ dosya: dosyaKey, satirNo, tur: 'dize', metin: val });
   }
 
   // 2) JSX metin düğümleri — `>metin<`
@@ -105,7 +108,7 @@ for (const dosya of walk('src')) {
     const val = m[1].trim();
     if (!turkce(val) || sozluk.has(val)) continue;
     const satirNo = src.slice(0, m.index).split('\n').length;
-    bulgular.push({ dosya, satirNo, tur: 'jsx', metin: val });
+    bulgular.push({ dosya: dosyaKey, satirNo, tur: 'jsx', metin: val });
   }
 
   // 3) Şablon dizeleri — içinde Türkçe geçen `...`
@@ -115,7 +118,7 @@ for (const dosya of walk('src')) {
     const duz = val.replace(/\$\{[^}]*\}/g, '·').trim();
     if (!turkce(duz) || sozluk.has(duz)) continue;
     const satirNo = src.slice(0, m.index).split('\n').length;
-    bulgular.push({ dosya, satirNo, tur: 'şablon', metin: duz });
+    bulgular.push({ dosya: dosyaKey, satirNo, tur: 'şablon', metin: duz });
   }
   void satirlar;
 }
@@ -127,21 +130,55 @@ for (const b of bulgular) {
 }
 
 /*
-  KALAN SAYI SIFIR OLMAZ VE OLMAMALI. Geriye kalanlar EKRANA HİÇ ÇIKMAYAN
-  metinlerdir ve tek tek doğrulandı:
-
-    · tasarım notları (`designNote`) ve arketip strateji notları — arayüzde
-      hiçbir yerde render edilmiyor;
-    · geliştirici hataları (`throw new Error(...)`) — oyuncu görmez;
-    · veri kimlikleri (talep etiketi, ürün sınıfı etiketi, `daDe` ünlü
-      listesi) — kod bunlara göre dallanıyor, çevrilirlerse EKONOMİ değişir;
-    · kişi adları (müşteri, esnaf) — Türk sarrafın müşterisi Türk adı taşır.
-
-  Yani bu araç "0 olmalı" diye değil, "yeni bir şey eklendi mi" diye
-  okunur: sayı artarsa yeni bir metin gelmiştir ve bakılması gerekir.
+  Bu tarayıcı sözdizimsel olduğu için kişi adları, geliştirici hataları ve
+  karşılaştırmada kullanılan veri kimlikleri gibi bilinçli Türkçe sabitleri de
+  bulur. Bunlar dosya bazında gözden geçirilmiş tabandır; yeni bir dosyada ilk
+  bulgu veya mevcut dosyada artış olduğunda CI durur. Bir bulgu temizlenince
+  aşağıdaki tavan da aynı değişiklikte düşürülmelidir. Böylece eski "~70"
+  mesajının aksine sayı yalnız bilgi vermekle kalmaz, gerçek regresyon kapısıdır.
 */
-console.log(`SARILMAMIŞ TÜRKÇE METİN: ${bulgular.length}  (beklenen: ~70, hepsi ekran dışı)\n`);
+const INCELENMIS_DOSYA_TAVANI = new Map(Object.entries({
+  'src/data/archetypes.ts': 16,
+  'src/data/product-classes.ts': 10,
+  'src/data/item-templates.ts': 8,
+  'src/data/tools.ts': 7,
+  'src/data/service-types.ts': 5,
+  'src/domain/trade-network.ts': 5,
+  'src/ui/ads.ts': 4,
+  'src/state/save.ts': 3,
+  'src/domain/profile.ts': 2,
+  'src/domain/rng.ts': 2,
+  'src/ui/format.ts': 2,
+  'src/data/store-tiers.ts': 1,
+  'src/domain/appraisal.ts': 1,
+  'src/domain/item-spawn.ts': 1,
+  'src/domain/preferences.ts': 1,
+  'src/domain/settlement.ts': 1,
+  'src/domain/v5-rules.ts': 1,
+  'src/main.tsx': 1,
+  'src/ui/assets.ts': 1,
+  'src/ui/workbench/ServiceStages.tsx': 1,
+}));
+
+const tabanToplami = [...INCELENMIS_DOSYA_TAVANI.values()].reduce((sum, n) => sum + n, 0);
+const gerilemeler = [];
+for (const [dosya, liste] of grup) {
+  const tavan = INCELENMIS_DOSYA_TAVANI.get(dosya) ?? 0;
+  if (liste.length > tavan) gerilemeler.push({ dosya, mevcut: liste.length, tavan });
+}
+
+console.log(`SARILMAMIŞ TÜRKÇE METİN: ${bulgular.length}  (incelenmiş taban tavanı: ${tabanToplami})\n`);
 for (const [dosya, liste] of [...grup].sort((a, b) => b[1].length - a[1].length)) {
   console.log(`--- ${dosya} (${liste.length}) ---`);
   for (const b of liste) console.log(`  ${b.satirNo}:${b.tur}  ${b.metin.slice(0, 100)}`);
+}
+
+if (gerilemeler.length > 0) {
+  console.error('\nI18N AUDIT BAŞARISIZ — incelenmiş dosya tavanı aşıldı:');
+  for (const item of gerilemeler) {
+    console.error(`  ${item.dosya}: ${item.mevcut} (tavan ${item.tavan})`);
+  }
+  process.exitCode = 1;
+} else {
+  console.log('\nI18N audit kapısı başarılı: yeni sarılmamış Türkçe metin yok.');
 }

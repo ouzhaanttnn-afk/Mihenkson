@@ -274,7 +274,7 @@ export function PromiseStage({
                 {days === 0
                   ? t('Güven +, risk yüksek')
                   : days === 1
-                    ? 'Dengeli'
+                    ? t('Dengeli')
                     : t('Güvenli, güven −')}
               </span>
             </button>
@@ -335,8 +335,8 @@ export function JobQueueStage({
       </div>
 
       <div className="svc__note">
-        <IconClock size={13} /> İş atölye kuyruğuna girdi. Sonucu Atölye ekranından takip
-        edin; ücret <strong>teslimde</strong> tahsil edilir.
+        <IconClock size={13} />
+        {t('İş atölye kuyruğuna girdi. Sonucu Atölye ekranından takip edin; ücret teslimde tahsil edilir.')}
       </div>
     </div>
   );

@@ -23,7 +23,7 @@
  */
 
 import { t } from '@i18n/index';
-import { pct } from '@i18n/money';
+import { pct, preciseGrams } from '@i18n/money';
 import { PURCHASE } from './balance';
 import { isMassPool, poolForItem, poolForTemplate, poolUnitGrams, validQuantity } from './stock-pools';
 import { customerPriceBand, isCrafted } from './customer-pricing';
@@ -146,13 +146,11 @@ export function spawnDemand(
     acceptsPartial,
     minQuantity,
     /*
-      ÖZET METNİ ÜRETİM ANINDA ÇEVRİLİR ve müşteriyle birlikte durumda
-      saklanır. Bunun bilinen sınırı şudur: oyuncu tezgâhta bir müşteri
-      varken dili değiştirirse O MÜŞTERİNİN özeti eski dilde kalır, sonraki
-      müşteriden itibaren yeni dil gelir. Alternatifi özeti çizim anında
-      yeniden kurmaktı; talep nesnesi kayda da giriyor ve oradaki metnin
-      üretildiği anla tutarlı kalması, dille tutarlı kalmasından daha
-      önemli — sayı ve ürün eşleşmesi o metne bakılarak doğrulanıyor.
+      `summary` kayıt uyumu için taşınmaya devam eder; arayüz bunu doğrudan
+      çizmez. Dil değişince eski dilde donmuş bir cümle göstermemek için
+      görünür özet `localizedDemandSummary()` ile talebin semantik
+      alanlarından yeniden kurulur. Ürün eşleşmesi zaten bu metne değil,
+      `poolId` / `templateId` / `quantity` alanlarına bakar.
     */
     summary:
       poolId === '24K_GRAM_GOLD_POOL'
@@ -162,6 +160,37 @@ export function spawnDemand(
           : demandSummary(templateId, families, quantity, isBulk),
     alternativesLabel: '',
   };
+}
+
+/**
+ * Bir talebin GÖRÜNÜR özetini etkin dilde yeniden kurar.
+ *
+ * `CustomerDemand.summary` eski kayıtlarla uyumlu bir anlık görüntüdür ve
+ * müşteri üretildiği sıradaki dilde olabilir. Onu doğrudan ekrana basmak,
+ * Ayarlar'da dil değiştirildiğinde aktif ve kuyruktaki müşterileri eski
+ * dilde bırakıyordu. Burada yalnız semantik, dile kapalı alanlar okunur;
+ * ekonomi ve eşleşme kuralları etkilenmez.
+ */
+export function localizedDemandSummary(demand: CustomerDemand): string {
+  if (demand.targetInventoryItemId && demand.templateId) {
+    return t('★ Vitrindeki {ad} ile ilgileniyor', {
+      ad: t(getTemplate(demand.templateId).displayName),
+    });
+  }
+  if (demand.poolId === '24K_GRAM_GOLD_POOL') {
+    return t('{g} gram altın', { g: preciseGrams(demand.quantity).replace(/ g$/, '') });
+  }
+  if (demand.poolId === '22K_INVESTMENT_BANGLE_POOL') {
+    return t('{g} gram 22 ayar işçiliksiz bilezik', {
+      g: preciseGrams(demand.quantity * 10).replace(/ g$/, ''),
+    });
+  }
+  return demandSummary(
+    demand.templateId,
+    demand.families,
+    demand.quantity,
+    demand.isBulk,
+  );
 }
 
 function demandSummary(

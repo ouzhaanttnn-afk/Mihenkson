@@ -17,6 +17,7 @@ import { matchDemand, showcaseStock, showcaseDemand, spawnDemand, repricePackage
 import { createSession, effectiveReservation, applyMove } from './negotiation';
 import { quoteLiquidation, supplyOffer } from './wholesaler';
 import { EXIT_CHANNEL } from './balance';
+import { LESSONS } from './onboarding';
 import type { InventoryPosition, ItemInstance, SettlementTransaction, MarketRegime, Customer } from './types';
 
 const initial = useGame.getState();
@@ -95,13 +96,15 @@ describe('UPDATEv5 · master acceptance edge cases', () => {
     const invalid = { ...entry, customer: { ...entry.customer, intent: 'buy' as const, demand: null }, items: [] };
     vi.spyOn(customerSpawn, 'spawnCustomer').mockReturnValue(invalid);
     useGame.setState({ ...economy(), market: { ...market, clockMinutes: 550 }, dayCharacter: character,
-      queue: [entry,entry,entry,entry], activeDeal: null, activeCustomer: null, profileOpen: false, profileSetupDone: true, nextCustomerAtMinutes: 550, missedGuestCountToday: 0 });
+      queue: [entry,entry,entry,entry], activeDeal: null, activeCustomer: null, profileOpen: false, profileSetupDone: true,
+      seenLessons: LESSONS.map(lesson => lesson.id), nextCustomerAtMinutes: 550, missedGuestCountToday: 0 });
     useGame.getState().tick(1);
     expect(useGame.getState().missedGuestCountToday).toBe(0);
   });
   it('a free queue slot accepts arrival without counting a missed guest', () => {
     useGame.setState({ ...economy(), seed: 456, market: { ...market, clockMinutes: 550 }, dayCharacter: character,
-      queue: [], activeDeal: null, activeCustomer: null, profileOpen: false, profileSetupDone: true, nextCustomerAtMinutes: 550, missedGuestCountToday: 0 });
+      queue: [], activeDeal: null, activeCustomer: null, profileOpen: false, profileSetupDone: true,
+      seenLessons: LESSONS.map(lesson => lesson.id), nextCustomerAtMinutes: 550, missedGuestCountToday: 0 });
     useGame.getState().tick(1);
     expect(useGame.getState().queue).toHaveLength(1);
     expect(useGame.getState().missedGuestCountToday).toBe(0);
@@ -268,7 +271,8 @@ describe('UPDATEv5 · deterministic daily rules, personnel, queue', () => {
     const entry = spawnCustomer(456, 1, market, economy().store, character);
     const queue = [0,1,2,3].map(i => ({ ...entry, customer: { ...entry.customer, id: `q${i}` } }));
     useGame.setState({ ...economy(), seed: 456, market: { ...market, clockMinutes: 550 }, dayCharacter: character,
-      queue, activeDeal: null, activeCustomer: null, profileOpen: false, profileSetupDone: true, nextCustomerAtMinutes: 550, spawnCounter: 50, missedGuestCountToday: 0 });
+      queue, activeDeal: null, activeCustomer: null, profileOpen: false, profileSetupDone: true,
+      seenLessons: LESSONS.map(lesson => lesson.id), nextCustomerAtMinutes: 550, spawnCounter: 50, missedGuestCountToday: 0 });
     const before = useGame.getState().store;
     useGame.getState().tick(1);
     expect(useGame.getState().queue).toHaveLength(4);

@@ -118,6 +118,12 @@ export const EN: Record<string, string> = {
     'Audio is on. If you hear nothing, check the silent switch on the side of your phone.',
   'Ses açılamadı; tarayıcı izin vermedi.': 'Audio could not start; the browser refused.',
   'Bu cihaz titreşimi desteklemiyor': 'This device does not support vibration',
+  'Bekliyor': 'Waiting',
+  'Kapasite': 'Capacity',
+  'Gecikme': 'Overdue',
+  'Tazmin': 'Compensation',
+  'Ekipman': 'Equipment',
+  'Personel': 'Staff',
   'Ses düzeyi': 'Volume',
   'Dil': 'Language',
   'Arayüz metinleri': 'Interface text',
@@ -521,19 +527,13 @@ export const EN: Record<string, string> = {
 
   // ——— Kayıt ———
   'Kayıt': 'Save',
-  /*
-    "Hesap" bölümü — App Store/Play Store bağlama yer tutucuları. Gerçek bir
-    kimlik doğrulama arka ucu yok; "Bağla" iddiasında bulunmuyor, basınca
-    "yakında" diyor (bkz. SettingsDialog).
-  */
-  'Hesap': 'Account',
-  'App Store Hesabını Bağla': 'Connect App Store Account',
-  'Google Play Hesabını Bağla': 'Connect Google Play Account',
-  'Bulut kayıt için — yakında': 'For cloud save — coming soon',
-  'App Store hesabı bağlama yakında geliyor.': 'Connecting your App Store account is coming soon.',
-  'Google Play hesabı bağlama yakında geliyor.': 'Connecting your Google Play account is coming soon.',
-  'Gün sonunda otomatik kayıt · hesap bağlama Ayarlar’da':
-    'Saved automatically at day’s end · account linking is in Settings',
+  'İlerleme bu cihazda otomatik kaydedilir': 'Progress is saved automatically on this device',
+  'Yerel': 'Local',
+  'Gizlilik ve destek': 'Privacy and support',
+  'Yayımlanmış politika ve iletişim': 'Published policy and contact details',
+  'Gizlilik': 'Privacy',
+  'Destek': 'Support',
+  'Gün sonunda otomatik yerel kayıt': 'Automatic local save at day’s end',
   'Son Kaydı Geri Yükle': 'Restore the Last Save',
   'Son kayıt': 'Last save',
   'Kayıt zamanı': 'Saved at',
@@ -1786,4 +1786,78 @@ export const EN: Record<string, string> = {
   '{kanal} · {gerekce} · Hacim indirimi {oran}': '{kanal} · {gerekce} · Volume discount {oran}',
   'Dükkân açık': 'The shop is open',
   'Müşteri trafiği': 'Customer traffic',
+
+  // ——— Son dinamik arayüz etiketleri ———
+  '+{oran} tam kapasitede': '+{oran} at full capacity',
+  'Dilim': 'Portion',
+  'Erit → HAS': 'Melt → Fine Gold',
+  'Finans': 'Finance',
+  'HAS Al': 'Buy Fine Gold',
+  'HAS Sat': 'Sell Fine Gold',
+  'Al {alis}/g · Sat {satis}/g': 'Buy {alis}/g · Sell {satis}/g',
+  'Jest': 'Gesture',
+  'Kademe {kademe} ekipman bonusu': 'Tier {kademe} equipment bonus',
+  'Konum': 'Location',
+  'Maliyet': 'Cost',
+  'Marj': 'Margin',
+  'Onayla': 'Confirm',
+  'Piyasa': 'Market',
+  'Raporun': 'Your report',
+  'Red': 'Rejected',
+  'Reddet': 'Reject',
+  'Rotalar': 'Routes',
+  'Sarrafiye Al': 'Buy Bullion',
+  'Sinyaller': 'Signals',
+  'Sonraki kademe': 'Next tier',
+  'Tahmini': 'Estimated',
+  'Tedarik': 'Supply',
+  'Teklifleriniz': 'Your offers',
+  'Toplu bozma': 'Bulk liquidation',
+  'Toplu teklif': 'Package offer',
+  'Dengeli': 'Balanced',
+  '{n} servis işi teslime hazır — Atölyeye bak.':
+    '{n} service jobs are ready for delivery — check the Workshop.',
+  'Değer {tutar}': 'Value {tutar}',
+  'En çok {miktar}': 'At most {miktar}',
+  'Ölü stok riski · {n} gündür bekliyor': 'Dead-stock risk · waiting for {n} days',
+  'Yüksek tutar: {tutar}. Satın almak için tekrar onayla.':
+    'High amount: {tutar}. Confirm again to complete the purchase.',
+  'İş atölye kuyruğuna girdi. Sonucu Atölye ekranından takip edin; ücret teslimde tahsil edilir.':
+    'The job entered the workshop queue. Track it on the Workshop screen; the fee is collected on delivery.',
+  'Reklam gizlilik tercihleri': 'Ad privacy choices',
+  'Google AdMob onay seçenekleri': 'Google AdMob consent options',
+  'Tercihleri Aç': 'Open Choices',
+  'Reklam gizlilik tercihleri güncellendi.': 'Ad privacy choices updated.',
+  'Bu bölgede ek reklam tercihi gerekmiyor.': 'No additional ad privacy choice is required in this region.',
+  'Reklam gizlilik tercihleri şu anda açılamadı.': 'Ad privacy choices could not be opened right now.',
+  'Band {alt}–{ust}': 'Range {alt}–{ust}',
+  'Gün {gun} · {n} test · güven {guven}': 'Day {gun} · {n} tests · {guven} confidence',
+  'Gün {gun} · {rejim} · oynaklık {oran}': 'Day {gun} · {rejim} · volatility {oran}',
+  'Gün {gun}: {n} misafir kaçırıldı · Gider {gider} (personel dahil).':
+    'Day {gun}: {n} guests missed · Overhead {gider} (including staff).',
+  'Günün {rejim}': "Today's {rejim}",
+  'Kademe {kademe} · {tema}': 'Tier {kademe} · {tema}',
+  'Kısa vadeli borç · en çok {tutar} · {gun} gün · dayanışma ücreti {ucret}':
+    'Short-term loan · up to {tutar} · {gun} days · community fee {ucret}',
+  'Semt itibarı 100 üzerindendir. İyi kapanan işlemler yükseltir; kırıcı teklif ve müşteriyi kaçırmak düşürür.':
+    'Neighbourhood standing is out of 100. Well-closed deals raise it; harsh offers and missed customers lower it.',
+  'Sinyaller karar desteğidir; ertesi günün yönünü ya da büyüklüğünü garanti etmez.':
+    "Signals support decisions; they do not guarantee the next day's direction or size.",
+  'Stok ort. {fiyat}/g': 'Stock avg. {fiyat}/g',
+  'Toptancı güveni 100 üzerindendir. Anlamlı alışlar güveni {sinir}’e kadar büyütür; üstü için vade alıp zamanında ödemek gerekir.':
+    'Wholesaler trust is out of 100. Meaningful purchases raise it to {sinir}; beyond that, use terms and repay on time.',
+  'Yerel dayanışma · {n} esnaf · kısa vadeli': 'Local network · {n} traders · short-term',
+  'Yükseltme kalıcı bir gider taahhüdüdür: kademe büyüdükçe günlük sabit gider de büyür.':
+    'An upgrade is a permanent cost commitment: daily fixed overhead rises with each tier.',
+  'orta': 'medium',
+  '{ad} · ilişki {guven}/100': '{ad} · relationship {guven}/100',
+  '{fiyat} / adet · {gram} gr · tek işlemde en çok {n} adet':
+    '{fiyat} / pc · {gram} g · up to {n} pcs per transaction',
+  '{guven} {puan}/100 · {gun} gün vade · vade farkı {fark}':
+    '{guven} {puan}/100 · {gun}-day terms · finance cost {fark}',
+  '{n} adet sığar': '{n} pcs fit',
+  '{tutar} alırsınız, {gun}. gün {odeme} ödersiniz.':
+    'You receive {tutar} and repay {odeme} on day {gun}.',
+  'Söz verilen gün geçti · her gün {n} puan güven kaybı':
+    'Promised day missed · {n} trust points lost per day',
 };

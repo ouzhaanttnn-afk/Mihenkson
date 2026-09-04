@@ -12,8 +12,9 @@
  * ekran veya modal açmaz.
  */
 
-import { t } from '@i18n/index';
+import { localizeCustomerName, t } from '@i18n/index';
 import { TERM } from '@ui/terms';
+import { renderCustomerMessage } from '@ui/customer-message';
 
 import { CONFIDENCE_LABEL } from '@domain/valuation';
 import { Art } from '@ui/Art';
@@ -22,6 +23,7 @@ import { IconCounter, IconGesture, IconPackage, IconReason } from '@ui/icons';
 import { tl, tlBare, tlRange, tlSigned, tonWord } from '@ui/format';
 import type {
   ExitChannel,
+  CustomerMessage,
   Money,
   NegotiationSession,
   ThesisOption,
@@ -47,7 +49,7 @@ interface Props {
   /** Oyuncunun kendi vitrin stoğu: tarihî maliyet ile güncel metal ayrı. */
   saleAccounting?: { acquisitionCost: Money; metalValue: Money };
   session: NegotiationSession;
-  message: string;
+  message: CustomerMessage;
   /**
    * Oyuncunun masadaki TOPLAM teklifi. `reference` yalnız sarrafiyede dolu
    * olduğu için, işçilikli üründe teklifi buradan okuruz — analiz satırı
@@ -185,12 +187,12 @@ export function NegotiateStage({
           <Art
             art={customerArt(customerName)}
             size={72}
-            alt={`${customerName} portresi`}
+            alt={t('{ad} portresi', { ad: localizeCustomerName(customerName) })}
             className="speech__portrait art--portrait"
             fallback={null}
           />
         )}
-        <p className="speech">“{message}”</p>
+        <p className="speech">“{renderCustomerMessage(message)}”</p>
       </div>
 
       {counter !== null && (
@@ -369,7 +371,7 @@ export function NegotiateStage({
 
       {session.offerHistory.length > 0 && (
         <div className="history">
-          <span className="history__label">Teklifleriniz</span>
+          <span className="history__label">{t('Teklifleriniz')}</span>
           {session.offerHistory.map((offer, i) => {
             const prev = session.offerHistory[i - 1];
             // Anti-spam görünür kanıtı: tekrar eden teklif işaretlenir (GDD 11.4).

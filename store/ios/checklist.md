@@ -4,8 +4,8 @@ Apple Developer Program hesabı (yıllık ücretli) gerekir; bu adımı kimse
 senin yerine atamaz. Sırayla:
 
 ## 1. Hesap ve kimlik
-- [ ] Apple Developer Program üyeliği aktif (developer.apple.com)
-- [ ] App Store Connect'te yeni uygulama kaydı açıldı
+- [x] Apple Developer Program üyeliği aktif (developer.apple.com)
+- [x] App Store Connect uygulama kaydı açıldı — Apple ID `6808742428`
 - [x] Bundle ID **kesinleştirildi** — kullanıcı kararı: `com.mihenkaynak.app`
       (`capacitor.config.ts`). Değer zaten native tarafta aynıydı
       (`PRODUCT_BUNDLE_IDENTIFIER`), ek bir senkronizasyon gerekmedi.
@@ -22,6 +22,17 @@ senin yerine atamaz. Sırayla:
 - [x] `GADApplicationIdentifier` gerçek AdMob iOS App ID'si
       (`ca-app-pub-4229088811556918~3768104554`) — kullanıcının AdMob
       hesabından alındı, `isTesting` kaldırıldı (bkz. `src/ui/ads.ts`)
+- [x] `SKAdNetworkItems`, Google'ın
+      [güncel resmi iOS gizlilik stratejileri listesindeki](https://developers.google.com/admob/ios/privacy/strategies)
+      50 tekrarsız kimlikle eşitlendi (son kontrol: 4 Eylül 2026).
+- [ ] Her App Store sürümünden önce aynı resmi Google sayfasını yeniden kontrol
+      et; liste değiştiyse `Info.plist` ve release kontrolünü güncelle. AdMob
+      mediation açılırsa her ağ ortağının ek SKAdNetwork kimliklerini de ekle.
+- [x] Ürün kararı: bu sürüm iPhone-only ve yalnız Portrait. Xcode cihaz ailesi
+      `1`; iPad'e özel yön ve mağaza görseli ilan edilmiyor.
+- [x] Yalnız standart HTTPS ve SDK-içi şifreleme kullanımı için
+      `ITSAppUsesNonExemptEncryption = false` eklendi; App Store Connect
+      export compliance sorusu uygulama paketiyle tutarlı.
 - [ ] İmzalama sertifikası + provisioning profile Xcode'da tanımlı — **bu
       ortamda Xcode yok, senin makinende yapılmalı**
 - [ ] TestFlight'a ilk derleme yüklendi ve kendi cihazında denendi
@@ -30,7 +41,7 @@ senin yerine atamaz. Sırayla:
 - [x] 1024×1024 App Store ikonu — **alfa kanalı OLMAMALI**, köşeler
       kare (Apple kendi yuvarlıyor) — üretildi:
       `../assets/generated/icon-1024-appstore.png` (1024×1024, RGB, ölçüldü)
-- [x] iPhone 6.7" ekran görüntüleri (1290×2796) — en az 3, en çok 10 —
+- [x] Güncel iPhone 6.9" kabul ölçüsünde ekran görüntüleri (1290×2796) — en az 3, en çok 10 —
       4 adet üretildi: `../assets/generated/screenshots/`
 - [x] iPhone 6.5" ekran görüntüleri (1284×2778) — 4 adet üretildi:
       `../assets/generated/screenshots-6.5in/`
@@ -41,32 +52,42 @@ senin yerine atamaz. Sırayla:
 - [ ] Alt başlık (≤30 karakter)
 - [ ] Açıklama (≤4000 karakter)
 - [ ] Anahtar kelimeler (≤100 karakter, virgülle ayrık)
-- [ ] Destek URL'si — GEÇİCİ olarak `mailto:nostoscomp@gmail.com` önerildi
-      (bkz. `metadata-taslak.md`); Apple gerçek bir web sayfası tercih eder
-- [ ] Pazarlama URL'si (opsiyonel)
+- [x] Destek URL'si (Türkçe) — `https://alpersonmihenk-chi.vercel.app/support.html`
+- [x] Support URL (English) — `https://alpersonmihenk-chi.vercel.app/support-en.html`
+- [x] Pazarlama URL'si — `https://alpersonmihenk-chi.vercel.app/`
 
 ## 5. Gizlilik ve yaş derecelendirmesi
-- [x] Gizlilik politikası barındırıldı — `../legal/gizlilik-politikasi.md`
-      taslağının tasarlanmış sürümü yayınlandı:
-      https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
-- [x] Sayfa herkese açık — kullanıcı paylaşım menüsünden yaptı, doğrulandı
-      ("shared with anyone with the link"). Apple incelemecisi erişebilir.
+- [x] Gizlilik politikaları depoda ve Vercel dağıtımına dahil:
+      Türkçe `https://alpersonmihenk-chi.vercel.app/privacy.html` ·
+      English `https://alpersonmihenk-chi.vercel.app/privacy-en.html`
+- [ ] Son production dağıtımından sonra gizlilik ve destek URL'lerini oturum
+      kapalı/anonim pencerede açarak HTTP 200 ve içerik doğrulaması yap
+- [ ] AdMob Console → Privacy & messaging altında GDPR/European regulations
+      mesajını ve iOS IDFA açıklama mesajını oluştur, yayınla ve doğru iOS/
+      Android uygulamalarına bağlandığını doğrula. Kod ATT istemini ayrıca
+      çağırmaz; iOS ATT akışının tek kaynağı yayımlanmış UMP IDFA mesajıdır.
+- [ ] Gerçek cihaz reklam gizliliği kapısı: EEA test geography ile ilk onay +
+      "Gizlilik tercihleri" yeniden açma, non-EEA akışı ve temiz kurulumlu
+      iPhone'da ATT kabul/ret seçenekleri sınanıp ekran görüntüsü/log saklanır.
+      `canRequestAds = false` iken hiçbir reklam isteği çıkmamalı; izinli akışta
+      ödüllü ve geçiş reklamı ayrı ayrı yüklenebilmelidir.
 - [ ] "App Privacy" anketi (App Store Connect içinde) — AdMob eklendiğinden
-      beri **"Veri Toplanmıyor" ARTIK DOĞRU DEĞİL**: "Identifiers → Device
-      ID", kullanım amacı "Third-Party Advertising" olarak işaretlenmeli
-      (bkz. `../README.md` "Mağaza konsollarında AYRICA doldurulması
-      gerekenler"). Bulut kayıt eklenince bu anket YENİDEN doldurulmalı.
-- [ ] Yaş derecelendirmesi anketi (App Store Connect'te doldurulur, ben
-      giremem) — kodun bugünkü hâli taranarak belirlendi, **hedef: 4+**.
-      Her madde için işaretlenecek: Karikatür/Fantastik Şiddet — Yok ·
-      Gerçekçi Şiddet — Yok · Cinsel İçerik/Çıplaklık — Yok · Küfür/Kaba
-      Mizah — Yok · Alkol/Tütün/Uyuşturucu — Yok (kuyumculuk, madde değil)
-      · Olgun/Müstehcen Temalar — Yok · Korku Temaları — Yok · Simüle
-      Kumar — **Yok** (pazarlık/haggle deterministik, GDD 28.3'e göre
-      sabit RNG türetimi kullanır — şans temelli bahis/loot box değil) ·
-      Yarışmalar — Yok · Kısıtlanmamış Web Erişimi — Yok (uygulama içi
-      tarayıcı yok) · Reklam (AdMob) var ama bu anketin bir maddesi değil,
-      "App Privacy" bölümünde ayrıca beyan ediliyor (bkz. yukarıdaki madde).
+      beri **"Veri Toplanmıyor" ARTIK DOĞRU DEĞİL**. Google Mobile Ads SDK'nın
+      güncel resmi veri açıklamasına göre Coarse Location (IP üzerinden),
+      Device ID, Advertising Data, Product Interaction, Crash Data,
+      Performance Data ve Other Diagnostic Data kategorilerini kontrol et.
+      Her kategori için gerçek SDK ayarına göre amaç, kullanıcıyla bağlantı
+      (linked) ve tracking alanlarını App Store Connect'te ayrı ayrı doğrula;
+      Third-Party Advertising amacını atlama. Hosted politika ile Nutrition
+      Label birebir tutarlı kalmalı. Bulut kayıt eklenince anketi yeniden doldur.
+- [ ] Güncel yaş derecelendirmesi anketi App Store Connect'te gerçek sürüm
+      üzerinden doldurulacak; sonuç portal tarafından hesaplanmadan kesin bir
+      yaş etiketi yazılmayacak. Şiddet, cinsel içerik, küfür, madde kullanımı,
+      korku, kumar/loot box, yarışma, sosyal/mesajlaşma ve sağlık içeriği yok;
+      kısıtlanmamış web erişimi yok. **Advertising / Reklam: Var** (Google
+      AdMob ödüllü ve geçiş reklamları). Ebeveyn denetimi, yaş doğrulama ve
+      uygulama içi satın alma yok. Portal soruları değişebildiği için gönderim
+      gününde görünen bütün capability/content soruları yeniden doğrulanacak.
 
 ## 6. Fiyatlandırma ve kullanılabilirlik
 - [x] Fiyat katmanı (ücretsiz / ücretli) — kullanıcı kararı: **Ücretsiz**

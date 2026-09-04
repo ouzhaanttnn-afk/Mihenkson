@@ -24,6 +24,7 @@
 import { getLanguage, t } from '@i18n/index';
 import { getTemplate } from '@data/item-templates';
 import { isBullion } from '@data/bullion';
+import { localizedDemandSummary } from '@domain/purchase';
 import type { Customer, ItemInstance } from '@domain/types';
 
 /** Ziynet sarrafiyede adet, ürünün kendi adıyla sayılır: "3 Çeyrek Altın". */
@@ -113,11 +114,14 @@ export function customerIntentLine(customer: Customer, items: ItemInstance[]): s
     }
 
     case 'buy': {
-      // Talebin özeti zaten oyuncunun dilinde ("10 adet Çeyrek Altın").
       const demand = customer.demand;
       if (!demand) return t('Dükkandan ürün almak istiyor');
-      if (demand.targetInventoryItemId) return demand.summary;
-      if (demand.poolId) return t('{ne} almak istiyor', { ne: demand.summary });
+      // Kayıttaki `summary` müşteri doğduğu dilde kalabilir. Görünür metin
+      // her çizimde semantik alanlardan etkin dilde yeniden kurulur.
+      if (demand.targetInventoryItemId) return localizedDemandSummary(demand);
+      if (demand.poolId) {
+        return t('{ne} almak istiyor', { ne: localizedDemandSummary(demand) });
+      }
 
       if (demand.templateId) {
         const name = getTemplate(demand.templateId)?.displayName ?? demand.templateId;

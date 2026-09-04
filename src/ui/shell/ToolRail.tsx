@@ -83,7 +83,7 @@ export function ToolRail({ items, disabled = false, emptyLabel, idle = false }: 
              * ekran okuyucuya "etkileşilemez" derdik ama buton iş yapıyor.
              * Durum bunun yerine erişilebilir isme yazılır.
              */
-            aria-label={item.locked ? `${item.label} — kilitli, ${item.lockReason}` : undefined}
+            aria-label={item.locked ? `${item.label} — ${t('Kilitli')}, ${item.lockReason}` : undefined}
             title={item.locked ? item.lockReason : item.label}
             aria-pressed={item.selected}
           >

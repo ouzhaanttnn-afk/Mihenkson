@@ -40,9 +40,12 @@ interface Props {
 export function DecisionDock({ summaryLabel, summaryValue, children, primary, secondary = [], idle = false, hideSummary = false }: Props) {
   // GDD 23.9.2 sözleşmesi: en fazla 2 ikincil eylem.
   const actions = secondary.slice(0, 2);
+  const hasContent = children !== undefined && children !== null && children !== false;
 
   return (
-    <footer className={`dock ${idle ? 'dock--idle' : ''} ${hideSummary ? 'dock--summaryless' : ''}`}>
+    <footer
+      className={`dock ${idle ? 'dock--idle' : ''} ${hideSummary ? 'dock--summaryless' : ''} ${hasContent ? 'dock--withContent' : ''} ${actions.length === 2 ? 'dock--twoSecondary' : ''}`}
+    >
       {!hideSummary && (
         <div className="dock__summary">
           <span className="dock__summaryLabel">{summaryLabel}</span>
@@ -50,7 +53,7 @@ export function DecisionDock({ summaryLabel, summaryValue, children, primary, se
         </div>
       )}
 
-      {children}
+      {hasContent && <div className="dock__content">{children}</div>}
 
       <div className="dock__actions">
         <button

@@ -9,19 +9,12 @@
  *   2. Uyarılar üç taneye çıkınca aşağı itiliyor, yeri her gün değişiyordu.
  * Oyuncu isteği: düğme ekranın kenarında, yuvarlak ve KALICI dursun.
  *
- * KONUM — araç rayının üst kenarına oturur.
- * Bu bir tercih değil, ölçümün sonucu. Dükkân ekranı 390×844'te tepeden
- * tırnağa dolu: durum şeridi, piyasa şeridi, müşteri şeridi, aşama şeridi,
- * İşlem Masası, ray ve Karar Dock'u. Sağ kenarda her aşamada boş kalan tek
- * bant, İşlem Masası'nın dibi ile rayın üstü. Ölçüldü:
- *   · boşta        → arka plan fotoğrafı, boş
- *   · stok aşaması → masanın boş dibi
- *   · pazarlık     → değer kartının altındaki koyu boşluk
- * Dock'un ÜSTÜNE hiç binmez: ana karar yüzeyi (Teklifi Gönder, Müşteriyi
- * Gönder) örtülemez. Ray yüksekliği sabit 56 px olduğu için düğme yarısı
- * rayda yarısı masada durur ve dock'un değişken yüksekliğinden etkilenmez.
- * Bu yüzden mutlak bir "bottom" değeri yerine, akışa sıfır yükseklikli bir
- * çapa konur: ray nereye giderse düğme oraya gider.
+ * KONUM — araç rayının sağındaki ayrılmış yuvadır.
+ * Önce daire yarı tezgâh/yarı ray üzerinde duruyordu; kısa ekran ve ders
+ * şeridinde Karar Dock'una kadar taşıp "Günü Bitir" hedefini örtüyordu.
+ * Araç rayı sabit yükseklikte olduğu için 52 px düğme artık bütünüyle bu
+ * banda oturur; rayın sağ dolgusu da araçların düğmenin altına kaymasını
+ * engeller. Böylece dock yüksekliği değişse bile iki eylem kesişmez.
  *
  * GDD 23.24 — ikon tek başına anlam taşımaz. Daire ikonu TEK BAŞINA
  * göstermez; altında 11 px (GDD 23.22 mutlak alt sınırı) etiket vardır.

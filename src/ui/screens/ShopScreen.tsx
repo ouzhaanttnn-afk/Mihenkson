@@ -108,8 +108,13 @@ import { poolForItem, poolForTemplate } from '@domain/stock-pools';
 import { customerPriceBand } from '@domain/customer-pricing';
 import { BullionCatalog } from '@ui/screens/StockScreen';
 import { clock, grams, moneyUnit, pct, tl, tlBare, tlSigned, tonWord } from '@ui/format';
-import { getLanguage, t } from '@i18n/index';
+import { getLanguage, localizeCustomerName, t } from '@i18n/index';
 import { offerUnitLabel } from '@ui/offer-view';
+import { useModalSurface } from '@ui/useModalSurface';
+import {
+  shopStageNoticeText,
+  type ShopStageNotice,
+} from '@ui/transient-copy';
 import type {
   DealLine,
   ExitChannel,
@@ -142,7 +147,7 @@ export function ShopScreen() {
   // Teklif tutarı — aşama değiştikçe alış tavanına göre yeniden konumlanır.
   const ceiling = line ? effectiveCeiling(line.thesisOptions, line.selectedThesis) : 0;
   const [offer, setOffer] = useState<Money>(0);
-  const [stageNotice, setStageNotice] = useState<string | null>(null);
+  const [stageNotice, setStageNotice] = useState<ShopStageNotice | null>(null);
 
   const offerBounds = useMemo(() => {
     if (!line?.band) return { min: 0, max: 0, step: 100 };
@@ -155,25 +160,37 @@ export function ShopScreen() {
     return { min, max, step };
   }, [line?.band, ceiling]);
 
-  // Pazarlığa girildiğinde teklifi slider'ın gerçekten göstereceği değere
-  // yerleştir. Ham kanal önerisini state'te bırakmak ekranda snap'lenmiş başka
-  // bir rakam gösterirken submit/kâr hesabında eski rakamı kullanıyordu.
+  // Yeni işlem/kalem/aşama için teklifi TEK effect içinde kur. Önceden ayrı
+  // "başlangıç teklifi" ve "yeni müşteri → sıfırla" effect'leri ilk mount'ta
+  // art arda çalışıyor, ikincisi doğru başlangıcı yeniden 0'a çeviriyordu.
+  // Bu özellikle yönetim sekmesine gidip aktif pazarlığa dönünce görünüyordu.
   useEffect(() => {
-    if (deal?.stage !== 'negotiate' || offer !== 0) return;
+    if (deal?.stage !== 'negotiate') {
+      setOffer(0);
+      return;
+    }
     if (deal.purchase) {
       setOffer(purchaseStartingOffer(deal.purchase));
     } else if (ceiling > 0) {
       setOffer(snapOffer(ceiling * 0.9, offerBounds.min, offerBounds.max, offerBounds.step));
     }
-  }, [deal?.stage, deal?.purchase, ceiling, offer, offerBounds]);
+  }, [
+    deal?.dealId,
+    deal?.activeLineId,
+    deal?.stage,
+    ceiling,
+    offerBounds.min,
+    offerBounds.max,
+    offerBounds.step,
+  ]);
 
-  // Yeni kalem / yeni müşteri → teklif sıfırlanır.
+  // Yeni kalem / yeni müşteri → yalnız yardımcı aşama mesajını sıfırla.
   useEffect(() => {
-    setOffer(0);
     setStageNotice(null);
   }, [deal?.dealId, deal?.activeLineId]);
 
-  // Gün akışı: aktif pazarlık yokken saat ilerler (store.tick bunu denetler).
+  // Gün akışı: yalnız boş Dükkan bağlamında ilerler; ders/modal/
+  // müşteri işlemi ayrımını merkezi store.tick politikası denetler.
   useEffect(() => {
     const id = window.setInterval(() => useGame.getState().tick(0.5), 500);
     return () => window.clearInterval(id);
@@ -186,6 +203,7 @@ export function ShopScreen() {
 
   return (
     <>
+      <h1 className="srOnly">{t('Dükkan')}</h1>
       <StatusStrip
         store={s.store}
         market={s.market}
@@ -229,7 +247,7 @@ export function ShopScreen() {
               item &&
               transactionClass(item) !== 'fast'
             ) {
-              setStageNotice(t('Değerleme atlandı · teklif aralığı daha belirsiz ve riskli olabilir.'));
+              setStageNotice('valuation-skipped');
             } else {
               setStageNotice(null);
             }
@@ -250,11 +268,16 @@ export function ShopScreen() {
           */
           skipStages={item && transactionClass(item) === 'fast' ? ['thesis'] : []}
         />
-        {stageNotice && <div className="stageNotice" role="status">{stageNotice}</div>}
+        {stageNotice && (
+          <div className="stageNotice" role="status">{shopStageNoticeText(stageNotice)}</div>
+        )}
         </>
       )}
 
-      <main className={`workbench ${!deal ? 'workbench--idle' : ''} ${s.playerMarket.equipped.shopTheme ? `workbench--${s.playerMarket.equipped.shopTheme}` : ''}`}>
+      <section
+        className={`workbench ${!deal ? 'workbench--idle' : ''} ${s.playerMarket.equipped.shopTheme ? `workbench--${s.playerMarket.equipped.shopTheme}` : ''}`}
+        aria-label={t('Dükkan')}
+      >
         <div className="wb">
           {/* Çoklu ürün kalem şeridi — dikey scroll yerine yatay pill (GDD 23.13) */}
           {deal && deal.lines.length > 1 && (
@@ -421,7 +444,7 @@ export function ShopScreen() {
             />
           ) : null}
         </div>
-      </main>
+      </section>
 
       {/*
         GDD 25 — öğretim şeridi. Araç rayının ÜSTÜNDE, İşlem Masası'nın
@@ -438,9 +461,14 @@ export function ShopScreen() {
         />
       )}
 
-      <RushFab />
-
-      <ContextualToolRail liquidity={liquidity} />
+      {/*
+        Ray bazı boş/kuyruk durumlarında içerik üretmese de bu yuva daima
+        56 px yer tutar. Canlandır böylece hiçbir zaman dock'a düşmez.
+      */}
+      <div className="toolRailSlot">
+        <ContextualToolRail liquidity={liquidity} />
+        <RushFab />
+      </div>
 
       <ShopDock offer={offer} setOffer={setOffer} bounds={offerBounds} liquidity={liquidity} />
 
@@ -453,18 +481,26 @@ export function ShopScreen() {
 
 function QuickStockSheet({ onClose }: { onClose: () => void }) {
   const cash = useGame((s) => s.store.cash);
+  const { dialogRef, initialFocusRef } = useModalSurface(onClose);
 
   return (
     <div className="quickStockScrim" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
-      <section className="quickStockSheet" role="dialog" aria-modal="true" aria-labelledby="quick-stock-title">
+      <section
+        ref={dialogRef}
+        className="quickStockSheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-stock-title"
+        tabIndex={-1}
+      >
         <header className="quickStockSheet__head">
           <span>
             <span className="quickStockSheet__eyebrow">{t('Hızlı Stok')}</span>
             <h2 id="quick-stock-title">{t('İlk Sarrafiyeni Al')}</h2>
           </span>
-          <button type="button" className="quickStockSheet__close" onClick={onClose} aria-label={t('Hızlı stok ekranını kapat')}>×</button>
+          <button ref={initialFocusRef} type="button" className="quickStockSheet__close" onClick={onClose} aria-label={t('Hızlı stok ekranını kapat')}>×</button>
         </header>
         <p className="quickStockSheet__intro">{t('Dükkan ekranından ayrılmadan satılabilir sarrafiye oluştur. Kullanılabilir nakit:')} <strong>{tl(cash)}</strong></p>
         <div className="quickStockSheet__scroll">
@@ -475,6 +511,32 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
           yapılıyor; buranın tek işi pencereyi kapatmak.
         */}
         <button type="button" className="quickStockSheet__done" onClick={onClose}>{t('Kapat')}</button>
+      </section>
+    </div>
+  );
+}
+
+function TalentTreeSheet({ onClose }: { onClose: () => void }) {
+  const { dialogRef, initialFocusRef } = useModalSurface(onClose);
+
+  return (
+    <div className="talentTreeScrim" role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <section
+        ref={dialogRef}
+        className="talentTreeSheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shop-talent-title"
+        tabIndex={-1}
+      >
+        <header className="talentTreeSheet__head">
+          <div><span>{t('Uzmanlık')}</span><h2 id="shop-talent-title">{t('Yetenek Ağacı')}</h2></div>
+          <button ref={initialFocusRef} type="button" onClick={onClose} aria-label={t('Yetenek ağacını kapat')}>×</button>
+        </header>
+        <div className="talentTreeSheet__scroll"><TalentTreePanel /></div>
+        <button type="button" className="talentTreeSheet__done" onClick={onClose}>{t('Dükkana Dön')}</button>
       </section>
     </div>
   );
@@ -491,7 +553,6 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
  */
 function IdleWorkbench({ coaching }: { coaching: boolean }) {
   const s = useGame();
-  const [talentTreeOpen, setTalentTreeOpen] = useState(false);
   const [shopOverviewOpen, setShopOverviewOpen] = useState(false);
   const liquidity = selectors.liquidity(s);
   const band = selectors.liquidityBand(s);
@@ -646,7 +707,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         </button>
 
         {shopOverviewOpen ? <div className="shopOverview__details" id="shop-overview-details">
-          <button type="button" className="shopTalentButton" onClick={() => setTalentTreeOpen(true)}>
+          <button type="button" className="shopTalentButton" onClick={() => s.setShopTalentTreeOpen(true)}>
             <span><IconBusiness size={18} /> {t('Yetenek Ağacı')}</span>
             <small>Ayar %{Math.round(s.skillProgress.assayAccuracyRank === 0 ? 60 : 60 + s.skillProgress.assayAccuracyRank * 10)} · Tatlı Dil {s.skillProgress.tatliDilLevel}/3</small>
             <span aria-hidden="true">›</span>
@@ -727,17 +788,8 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
        * Pazar günü gizlenmez, söner — gerekçesi orada yazılı.
        */}
 
-      {talentTreeOpen ? (
-        <div className="talentTreeScrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setTalentTreeOpen(false); }}>
-          <section className="talentTreeSheet" role="dialog" aria-modal="true" aria-labelledby="shop-talent-title">
-            <header className="talentTreeSheet__head">
-              <div><span>{t('Uzmanlık')}</span><h2 id="shop-talent-title">{t('Yetenek Ağacı')}</h2></div>
-              <button type="button" onClick={() => setTalentTreeOpen(false)} aria-label={t('Yetenek ağacını kapat')}>×</button>
-            </header>
-            <div className="talentTreeSheet__scroll"><TalentTreePanel /></div>
-            <button type="button" className="talentTreeSheet__done" onClick={() => setTalentTreeOpen(false)}>{t('Dükkana Dön')}</button>
-          </section>
-        </div>
+      {s.shopTalentTreeOpen ? (
+        <TalentTreeSheet onClose={() => s.setShopTalentTreeOpen(false)} />
       ) : null}
     </div>
   );
@@ -770,7 +822,10 @@ function ReadyJobsReminder() {
   if (ready.length === 0) return null;
 
   const detail = ready.length === 1
-    ? t('{musteri} · {urun}', { musteri: ready[0]!.customerName, urun: ready[0]!.itemName })
+    ? t('{musteri} · {urun}', {
+        musteri: localizeCustomerName(ready[0]!.customerName),
+        urun: t(ready[0]!.itemName),
+      })
     : t('{n} tamir teslime hazır', { n: ready.length });
 
   return (
@@ -857,14 +912,14 @@ function WaitingCustomerQueue() {
                     {customer.intent === 'service' && (
                       <IconWorkshop size={12} className="waitingCustomer__repairIcon" />
                     )}
-                    {customer.displayName}
+                    {localizeCustomerName(customer.displayName)}
                   </strong>
                   <span>{isNext ? t('Şimdi') : t('{n}. sırada', { n: index + 1 })}</span>
                 </div>
                 <p>{customerIntentLine(customer, items)}</p>
                 <div className="waitingCustomer__meta">
                   <span>{t(archetype.demeanor)}</span>
-                  <span>Bekliyor</span>
+                  <span>{t('Bekliyor')}</span>
                 </div>
               </div>
             </article>
@@ -916,7 +971,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           items={[
             {
               id: 'gesture',
-              label: 'Jest',
+              label: t('Jest'),
               icon: <IconGesture size={19} />,
               used: session.gesturesUsed >= NEGOTIATION.maxEffectiveGestures,
               onPress: () => s.negotiationMove({ kind: 'gesture', atRound: session.round }),
@@ -1076,7 +1131,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         },
         {
           id: 'market',
-          label: 'Piyasa',
+          label: t('Piyasa'),
           icon: <IconLiquidity size={19} />,
           onPress: () => s.setTab('business'),
         },
@@ -1131,7 +1186,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         },
         {
           id: 'gesture',
-          label: 'Jest',
+          label: t('Jest'),
           icon: <IconGesture size={19} />,
           used: session.gesturesUsed >= NEGOTIATION.maxEffectiveGestures,
           onPress: () => s.negotiationMove({ kind: 'gesture', atRound: session.round }),
@@ -1433,7 +1488,7 @@ function ShopDock({
       const estimatedMargin = ceiling - offer;
       const impacts: OfferImpact[] = [
         {
-          label: 'Tahmini',
+          label: t('Tahmini'),
           value: `${tlSigned(estimatedMargin)} ${tonWord(estimatedMargin)}`,
           tone: estimatedMargin >= 0 ? 'positive' : 'negative',
         },
@@ -1494,7 +1549,7 @@ function ShopDock({
           }
           secondary={[
             {
-              label: 'Reddet',
+              label: t('Reddet'),
               onPress: () => s.negotiationMove({ kind: 'reject', atRound: session.round }),
               danger: true,
               icon: <IconReject size={16} />,
@@ -1813,7 +1868,7 @@ function ServiceDock({ deal }: { deal: NonNullable<GameStateDeal> }) {
             disabled: !affordable,
             icon: <IconWorkshop size={18} />,
           }}
-          secondary={[{ label: 'Reddet', onPress: s.declineServiceJob, danger: true }]}
+          secondary={[{ label: t('Reddet'), onPress: s.declineServiceJob, danger: true }]}
         />
       );
     }

@@ -163,7 +163,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
           className="pageHead__art art--hero"
           fallback={null}
         />
-        <h1 className="pageHead__title">{t('İşletme')}</h1>
+        <h1 className="pageHead__title" id="business-page-title">{t('İşletme')}</h1>
         <p className="pageHead__sub">
           {t('{dukkan} · Kademe {kademe} · Seviye {seviye}', {
             dukkan: shopDisplayName(s.profile.jewelerName, t(SHOP_SUFFIX), t(DEFAULT_JEWELER_NAME)),
@@ -173,10 +173,15 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
         </p>
       </header>
 
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="business-page-title"
+        tabIndex={0}
+      >
         {/* Finans — kısa özet satırları, dev kart değil (GDD 23.19) */}
         <div className="group">
-          <h2 className="group__title">Finans</h2>
+          <h2 className="group__title">{t('Finans')}</h2>
           <div className="group__body">
             <StatLine label={t('Nakit')} value={tl(wealth.cash)} icon={<IconCash size={15} />} />
             <StatLine
@@ -214,7 +219,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
           >
             <span className="personnelDisclosure__icon"><IconBusiness size={18} /></span>
             <span className="personnelDisclosure__copy">
-              <strong>Personel</strong>
+              <strong>{t('Personel')}</strong>
               <small>
                 {t('{n} personel · Kapasite {kap} · Günlük {gunluk}', {
                   n: personnelCount(s.store),
@@ -367,7 +372,11 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
           <h2 className="group__title">{t('Günlük Akış')}</h2>
           <div className="group__body v5Controls">
             <p>{t('Kaçırılan Misafir: {n}', { n: s.missedGuestCountToday })}</p>
-            {s.lastDayReport && <p>Gün {s.lastDayReport.day}: {s.lastDayReport.missedGuestCountToday ?? 0} misafir kaçırıldı · Gider {tl(s.lastDayReport.overhead)} (personel dahil).</p>}
+            {s.lastDayReport && <p>{t('Gün {gun}: {n} misafir kaçırıldı · Gider {gider} (personel dahil).', {
+              gun: s.lastDayReport.day,
+              n: s.lastDayReport.missedGuestCountToday ?? 0,
+              gider: tl(s.lastDayReport.overhead),
+            })}</p>}
           </div>
         </div>
 
@@ -433,10 +442,10 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
 
         {/* İkincil rotalar (GDD 23.9.1) */}
         <div className="group">
-          <h2 className="group__title">Rotalar</h2>
+          <h2 className="group__title">{t('Rotalar')}</h2>
           <div className="group__body">
             <MenuLine
-              title="Piyasa"
+              title={t('Piyasa')}
               sub={t('{rejim} · {n} varlık', {
                 rejim: t(MARKET_REGIME[s.market.regime].label),
                 n: s.market.assets.length,
@@ -466,7 +475,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             />
             <MenuLine
               title={t('Kayıt')}
-              sub={t('Gün sonunda otomatik kayıt · hesap bağlama Ayarlar’da')}
+              sub={t('Gün sonunda otomatik yerel kayıt')}
               icon={<IconReason size={17} />}
               onPress={() => onOpen('save')}
             />
@@ -503,12 +512,17 @@ function CareerRoute({ onBack }: { onBack: () => void }) {
         <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>
           {t('← İşletme')}
         </button>
-        <h1 className="pageHead__title">Kariyer / Yetenekler</h1>
+        <h1 className="pageHead__title" id="career-page-title">{t('Kariyer / Yetenekler')}</h1>
         <p className="pageHead__sub">
           {t('Seviye {seviye} · uzmanlık ilerlemesi', { seviye: s.store.level })}
         </p>
       </header>
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="career-page-title"
+        tabIndex={0}
+      >
         <div className="group">
           <h2 className="group__title">{t('Seviye ilerlemesi')}</h2>
           <div className="group__body">
@@ -566,10 +580,15 @@ function SaveRoute({ onBack }: { onBack: () => void }) {
     <div className="page">
       <header className="pageHead">
         <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>{t('← İşletme')}</button>
-        <h1 className="pageHead__title">{t('Kayıt')}</h1>
-        <p className="pageHead__sub">{t('Gün sonunda otomatik kayıt · hesap bağlama Ayarlar’da')}</p>
+        <h1 className="pageHead__title" id="save-page-title">{t('Kayıt')}</h1>
+        <p className="pageHead__sub">{t('Gün sonunda otomatik yerel kayıt')}</p>
       </header>
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="save-page-title"
+        tabIndex={0}
+      >
         <div className="group">
           <h2 className="group__title">{t('Mevcut oyun')}</h2>
           <div className="group__body">
@@ -662,14 +681,23 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
           className="pageHead__art art--hero"
           fallback={null}
         />
-        <h1 className="pageHead__title">{t('Toptancı Hesabı')}</h1>
+        <h1 className="pageHead__title" id="supplier-account-page-title">{t('Toptancı Hesabı')}</h1>
         <p className="pageHead__sub">
-          {t(TERM.supplierTrust)} {Math.round(s.store.supplier.trust)}/100 · {creditTermDays(s.store)} gün vade ·
-          vade farkı {pct(financeRate(s.store))}
+          {t('{guven} {puan}/100 · {gun} gün vade · vade farkı {fark}', {
+            guven: t(TERM.supplierTrust),
+            puan: Math.round(s.store.supplier.trust),
+            gun: creditTermDays(s.store),
+            fark: pct(financeRate(s.store)),
+          })}
         </p>
       </header>
 
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="supplier-account-page-title"
+        tabIndex={0}
+      >
         {/* §7 — limit durumu */}
         <div className="group">
           <h2 className="group__title">{t('Limit ve vade')}</h2>
@@ -681,7 +709,7 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
               tone={available <= 0 ? 'negative' : undefined}
             />
             {s.store.supplier.openInvoices.length === 0 ? (
-              <StatLine label={t("Açık vade")} value="Yok" />
+              <StatLine label={t("Açık vade")} value={t('Yok')} />
             ) : (
               s.store.supplier.openInvoices.map((inv) => {
                 const late = inv.dueDay < today;
@@ -712,7 +740,7 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
 
         {/* §4.2 — toplu bozma */}
         <div className="group">
-          <h2 className="group__title">Toplu bozma</h2>
+          <h2 className="group__title">{t('Toplu bozma')}</h2>
           <div className="group__body">
             <WholesalerLiquidationList />
           </div>
@@ -720,7 +748,7 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
 
         {/* §4.1 / §7 — tedarik */}
         <div className="group">
-          <h2 className="group__title">Tedarik</h2>
+          <h2 className="group__title">{t('Tedarik')}</h2>
           <div className="group__body">
             {probes.map((probe) => (
               <SupplyRow key={probe.templateId} probe={probe} today={today} />
@@ -771,8 +799,11 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
       </div>
 
       <div className="lotRow__terms">
-        {tl(lot.unitPrice)} / adet · {lot.grams.toFixed(2)} gr · tek işlemde en çok{' '}
-        {lot.maxQuantity} adet
+        {t('{fiyat} / adet · {gram} gr · tek işlemde en çok {n} adet', {
+          fiyat: tl(lot.unitPrice),
+          gram: lot.grams.toFixed(2),
+          n: lot.maxQuantity,
+        })}
       </div>
 
       <div className="lotRow__terms">
@@ -806,7 +837,7 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
             setQuantity(suggested);
             setConfirming(false);
           }}>
-            {suggested} adet sığar
+            {t('{n} adet sığar', { n: suggested })}
           </button>
         )}
         <button
@@ -872,13 +903,18 @@ function NetworkRoute({ onBack }: { onBack: () => void }) {
         <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>
           {t('← İşletme')}
         </button>
-        <h1 className="pageHead__title">{t('Esnaf Ağı')}</h1>
+        <h1 className="pageHead__title" id="trade-network-page-title">{t('Esnaf Ağı')}</h1>
         <p className="pageHead__sub">
-          Yerel dayanışma · {s.network.length} esnaf · kısa vadeli
+          {t('Yerel dayanışma · {n} esnaf · kısa vadeli', { n: s.network.length })}
         </p>
       </header>
 
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="trade-network-page-title"
+        tabIndex={0}
+      >
         {/* §8 "Ağ kapasitesi sonludur" — tavan en üstte, gizlenmeden. */}
         <div className="group">
           <h2 className="group__title">{t('Ağ kapasitesi')}</h2>
@@ -957,7 +993,7 @@ function NetworkMemberCard({
           fallback={null}
         />
         <span>
-          {member.displayName} · ilişki {member.trust}/100
+          {t('{ad} · ilişki {guven}/100', { ad: member.displayName, guven: member.trust })}
         </span>
         <span className="networkMember__summary">{tl(member.cashOnHand)} · {buysBullion(member) ? t('altın alır') : t('hizmet ağı')}</span>
       </summary>
@@ -998,17 +1034,24 @@ function NetworkMemberCard({
         ) : (
           <div className="lotRow">
             <div className="lotRow__terms">
-              Kısa vadeli borç · en çok {tl(offer.maxAmount)} · {offer.termDays} gün ·
-              dayanışma ücreti {pct(memberFeeRate(member))}
+              {t('Kısa vadeli borç · en çok {tutar} · {gun} gün · dayanışma ücreti {ucret}', {
+                tutar: tl(offer.maxAmount),
+                gun: offer.termDays,
+                ucret: pct(memberFeeRate(member)),
+              })}
             </div>
             {amount > 0 && !offer.blockedReason && (
               <div className="lotRow__terms">
-                {tl(offer.amount)} alırsınız, {offer.dueDay}. gün {tl(offer.totalDue)} ödersiniz.
+                {t('{tutar} alırsınız, {gun}. gün {odeme} ödersiniz.', {
+                  tutar: tl(offer.amount),
+                  gun: offer.dueDay,
+                  odeme: tl(offer.totalDue),
+                })}
               </div>
             )}
             <div className="lotRow__controls">
               <label className="lotRow__field">
-                <span>Tutar</span>
+                <span>{t('Tutar')}</span>
                 <input
                   type="number"
                   min={0}
@@ -1048,7 +1091,9 @@ function NetworkMemberCard({
             <div key={position.itemId} className="lotRow">
               <div className="lotRow__head">
                 <span className="lotRow__name">
-                  {s.items[position.itemId]?.displayName ?? t('Ürün')} ×{liq!.quantity}
+                  {s.items[position.itemId]
+                    ? t(s.items[position.itemId]!.displayName)
+                    : t('Ürün')} ×{liq!.quantity}
                 </span>
                 <span className="lotRow__price num">{tl(liq!.total)}</span>
               </div>
@@ -1186,13 +1231,21 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
         <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>
           {t('← İşletme')}
         </button>
-        <h1 className="pageHead__title">{t(evaluation.current.name)}</h1>
+        <h1 className="pageHead__title" id="store-tier-page-title">{t(evaluation.current.name)}</h1>
         <p className="pageHead__sub">
-          Kademe {evaluation.current.tier} · {evaluation.current.theme}
+          {t('Kademe {kademe} · {tema}', {
+            kademe: evaluation.current.tier,
+            tema: t(evaluation.current.theme),
+          })}
         </p>
       </header>
 
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="store-tier-page-title"
+        tabIndex={0}
+      >
         <div className="group">
           <h2 className="group__title">{t('Bu kademede açık')}</h2>
           <div className="group__body">
@@ -1210,7 +1263,7 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
 
         {!evaluation.next ? (
           <div className="group">
-            <h2 className="group__title">Sonraki kademe</h2>
+            <h2 className="group__title">{t('Sonraki kademe')}</h2>
             <div className="group__body">
               {/* GDD 19.3 — Marka Ağı post-1.0 kapsamı. */}
               <p className="emptyNote">{evaluation.blockedReason}</p>
@@ -1233,14 +1286,14 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
                 ))}
                 {evaluation.gates.some((g) => !g.met && g.key === 'supplierTrust') && (
                   <p className="emptyNote">
-                    Toptancı güveni 100 üzerindendir. Anlamlı alışlar güveni {WHOLESALE.tradeTrustCap}
-                    {'’'}e kadar büyütür; üstü için vade alıp zamanında ödemek gerekir.
+                    {t('Toptancı güveni 100 üzerindendir. Anlamlı alışlar güveni {sinir}’e kadar büyütür; üstü için vade alıp zamanında ödemek gerekir.', {
+                      sinir: WHOLESALE.tradeTrustCap,
+                    })}
                   </p>
                 )}
                 {evaluation.gates.some((g) => !g.met && g.key === 'reputation') && (
                   <p className="emptyNote">
-                    Semt itibarı 100 üzerindendir. İyi kapanan işlemler yükseltir; kırıcı teklif ve
-                    müşteriyi kaçırmak düşürür.
+                    {t('Semt itibarı 100 üzerindendir. İyi kapanan işlemler yükseltir; kırıcı teklif ve müşteriyi kaçırmak düşürür.')}
                   </p>
                 )}
               </div>
@@ -1261,8 +1314,7 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
                 />
                 <div className="lotRow">
                   <div className="lotRow__terms">
-                    Yükseltme kalıcı bir gider taahhüdüdür: kademe büyüdükçe günlük
-                    sabit gider de büyür.
+                    {t('Yükseltme kalıcı bir gider taahhüdüdür: kademe büyüdükçe günlük sabit gider de büyür.')}
                   </div>
                   <button
                     type="button"
@@ -1322,9 +1374,13 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
         <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>
           {t('← İşletme')}
         </button>
-        <h1 className="pageHead__title">Piyasa</h1>
+        <h1 className="pageHead__title" id="market-intelligence-page-title">{t('Piyasa')}</h1>
         <p className="pageHead__sub">
-          Gün {market.day} · {regime.label} · oynaklık {pct(market.volatility, 1)}
+          {t('Gün {gun} · {rejim} · oynaklık {oran}', {
+            gun: market.day,
+            rejim: t(regime.label),
+            oran: pct(market.volatility, 1),
+          })}
         </p>
 
         {market.activeEvent && (
@@ -1342,7 +1398,12 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
         )}
       </header>
 
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="market-intelligence-page-title"
+        tabIndex={0}
+      >
         {/*
           §5.2 — "Oyuncuya rejim, volatilite, talep baskısı, olay riski ve
           kanal koşulları hakkında OKUNABİLİR sinyaller verilir. Sinyaller
@@ -1350,7 +1411,7 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
           Bu yüzden hiçbir satır yön söylemez; koşul söyler.
         */}
         <div className="group">
-          <h2 className="group__title">Sinyaller</h2>
+          <h2 className="group__title">{t('Sinyaller')}</h2>
           <div className="group__body">
             {signals.map((signal) => (
               <StatLine
@@ -1371,17 +1432,16 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
               <StatLine label={t('Telemetri')} value={alarm.warning} tone="warning" />
             )}
             <p className="emptyNote">
-              Sinyaller karar desteğidir; ertesi günün yönünü ya da büyüklüğünü
-              garanti etmez.
+              {t('Sinyaller karar desteğidir; ertesi günün yönünü ya da büyüklüğünü garanti etmez.')}
             </p>
           </div>
         </div>
 
         <div className="group">
-          <h2 className="group__title">Günün {t(TERM.regime)}</h2>
+          <h2 className="group__title">{t('Günün {rejim}', { rejim: t(TERM.regime) })}</h2>
           <div className="group__body">
             <div className="statLine">
-              <span className="statLine__label">{regime.label}</span>
+              <span className="statLine__label">{t(regime.label)}</span>
               <span className="statLine__value" style={{ fontWeight: 400, fontSize: 12 }}>
                 {t(regime.note)}
               </span>
@@ -1399,12 +1459,14 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
                   <div className="assetRow__unit">{assetUnitLabel(asset)}</div>
                   {asset.history.length > 1 && (
                     <div className="assetRow__range num">
-                      Band {assetPrice(asset, Math.min(...asset.history))}–
-                      {assetPrice(asset, Math.max(...asset.history))}
+                      {t('Band {alt}–{ust}', {
+                        alt: assetPrice(asset, Math.min(...asset.history)),
+                        ust: assetPrice(asset, Math.max(...asset.history)),
+                      })}
                     </div>
                   )}
                   {asset.id === 'goldGram' && averageGoldCost !== null && (
-                    <div className="assetRow__range num">Stok ort. {price(averageGoldCost)}/g</div>
+                    <div className="assetRow__range num">{t('Stok ort. {fiyat}/g', { fiyat: price(averageGoldCost) })}</div>
                   )}
                 </div>
 
@@ -1479,13 +1541,18 @@ function JournalRoute({ onBack }: { onBack: () => void }) {
         <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>
           {t('← İşletme')}
         </button>
-        <h1 className="pageHead__title">{t('İşlem Defteri')}</h1>
+        <h1 className="pageHead__title" id="ledger-page-title">{t('İşlem Defteri')}</h1>
         <p className="pageHead__sub">
           {t('{n} kayıt · her işlemin gerekçesi ve sonucu', { n: deals.length })}
         </p>
       </header>
 
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="ledger-page-title"
+        tabIndex={0}
+      >
         {deals.length === 0 ? (
           <div className="empty">
             <div className="empty__icon">
@@ -1509,18 +1576,21 @@ function JournalRoute({ onBack }: { onBack: () => void }) {
                 <div key={deal.dealId} className="row">
                   <div className="row__body">
                     <div className="row__title">
-                      {item?.displayName ?? t('Ürün')}{' '}
+                      {item ? t(item.displayName) : t('Ürün')}{' '}
                       <span className={`tag ${accepted ? '' : 'tag--neutral'}`}>
-                        {accepted ? 'Kabul' : 'Red'}
+                        {accepted ? t('Kabul') : t('Red')}
                       </span>
                     </div>
                     <div className="row__meta">
-                      Gün {deal.day} · {deal.testsUsed.length} test · güven{' '}
-                      {deal.confidence === 'high'
-                        ? t('yüksek')
-                        : deal.confidence === 'medium'
-                          ? 'orta'
-                          : t('düşük')}
+                      {t('Gün {gun} · {n} test · güven {guven}', {
+                        gun: deal.day,
+                        n: deal.testsUsed.length,
+                        guven: deal.confidence === 'high'
+                          ? t('yüksek')
+                          : deal.confidence === 'medium'
+                            ? t('orta')
+                            : t('düşük'),
+                      })}
                     </div>
 
                     <div className="row__figures">

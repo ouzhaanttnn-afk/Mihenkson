@@ -237,7 +237,7 @@ export function AppraisalResultStage({ appraisal }: { appraisal: AppraisalSessio
       */}
       <div className="apr__compare">
         <div className="apr__compareCol">
-          <span className="apr__compareLabel">Raporun</span>
+          <span className="apr__compareLabel">{t('Raporun')}</span>
           <span className="apr__compareValue num">
             {tlRange(v.reported.min, v.reported.max)}
           </span>

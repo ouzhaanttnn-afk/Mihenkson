@@ -1,17 +1,12 @@
 # Kullanım Şartları — MİHENKAYNAK
 
-**Taslak.** Yayımlamadan önce `[DOLDURULACAK]` alanları doldur ve bir hukuk
-danışmanına göster.
+Bu dosya yayımlanan şartların depo içindeki kaynak kopyasıdır. Yayımlamadan
+önce yargı bölgesine uygunluğu hukuk danışmanıyla gözden geçirilmelidir.
 
-**Barındırılan sürüm (tasarlanmış, aynı içerik):**
-https://claude.ai/code/artifact/adf82548-792c-47f9-af22-814424f9dc10
+**Barındırılan sürüm:**
+https://alpersonmihenk-chi.vercel.app/terms.html
 
-> ✅ **Herkese açık.** Kullanıcı paylaşım menüsünden herkese açık yaptı,
-> doğrulandı (`action: read` → "shared with anyone with the link"). Bu
-> dosya (`.md`) hâlâ tek doğruluk kaynağı; yayınlanan sayfa onun
-> tasarlanmış bir aynası.
-
-Son güncelleme: 3 Eylül 2026
+Son güncelleme: 4 Eylül 2026
 Geliştirici: Nostoscomp
 
 ---
@@ -30,8 +25,7 @@ ve **gerçek finansal, yatırım veya kuyumculuk tavsiyesi değildir.**
 
 Oyun içinde geçen "₺" ve "$" tamamen kurgusal, oyun içi bir birimdir; gerçek
 para veya değerli maden karşılığı taşımaz ve gerçek paraya çevrilemez.
-[DOLDURULACAK — eğer ileride gerçek para ile satın alma (IAP) eklenirse bu
-madde yeniden yazılmalı; bugünkü kodda hiçbir IAP entegrasyonu yoktur.]
+Bu sürümde hiçbir uygulama içi satın alma (IAP) entegrasyonu yoktur.
 
 ## 4. Fikri mülkiyet
 
@@ -43,12 +37,16 @@ Uygulamanın adı, logosu, görsel tasarımı ve içeriği Nostoscomp'a aittir.
 İlerlemeniz cihazınızda yerel olarak saklanır (bkz. Gizlilik Politikası).
 Uygulamayı silmeniz, cihaz değiştirmeniz veya tarayıcı verilerini
 temizlemeniz hâlinde ilerlemenizin kaybolabileceğini kabul edersiniz.
-[DOLDURULACAK — bulut tabanlı kayıt eklendiğinde bu madde güncellenmeli.]
+Bu sürüm bulut kayıt veya mağaza hesabı bağlantısı vaat etmez.
 
 ## 6. Sorumluluk sınırlaması
 
-Uygulama "olduğu gibi" sunulur. [DOLDURULACAK — yargı bölgenize uygun
-standart sorumluluk sınırlaması metni; bu bir hukuk danışmanı işidir.]
+Uygulama yürürlükteki hukukun izin verdiği ölçüde "olduğu gibi" sunulur.
+Geliştirici kesintisiz veya hatasız çalışma garantisi vermez; cihaz değişimi,
+uygulamanın silinmesi, yerel depolamanın temizlenmesi ya da üçüncü taraf reklam
+hizmetindeki kesintilerden kaynaklanan ilerleme kaybından sorumlu tutulamaz.
+Bu hüküm, tüketicinin yürürlükteki mevzuattan doğan ve sözleşmeyle
+sınırlandırılamayan haklarını ortadan kaldırmaz.
 
 ## 7. Değişiklikler
 

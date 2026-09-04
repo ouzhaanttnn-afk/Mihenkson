@@ -69,11 +69,10 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 - [ ] Bulut kayıt eklenince bu form AYRICA **yeniden doldurulmalı**
 
 ## 7. Gizlilik politikası
-- [x] Barındırıldı — `../legal/gizlilik-politikasi.md` taslağının
-      tasarlanmış sürümü yayınlandı:
-      https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
-- [x] Sayfa herkese açık — kullanıcı paylaşım menüsünden yaptı, doğrulandı
-      ("shared with anyone with the link"). Play incelemecisi erişebilir.
+- [x] Uygulamayla birlikte Vercel production dağıtımına dahil:
+      https://alpersonmihenk-chi.vercel.app/privacy.html
+- [ ] Son production dağıtımından sonra gizlilik ve destek URL'lerini anonim
+      pencerede açarak HTTP 200 ve içerik doğrulaması yap.
 
 ## 8. Fiyatlandırma ve dağıtım
 - [x] Ücretsiz / ücretli — kullanıcı kararı: **Ücretsiz**

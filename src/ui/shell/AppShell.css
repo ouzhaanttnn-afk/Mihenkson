@@ -24,7 +24,9 @@
   overflow: hidden;
   /* Notch / Dynamic Island ve home indicator alanı (GDD 23.5). */
   padding-top: var(--safe-top);
+  padding-right: var(--safe-right);
   padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
 }
 
 /* Masaüstünde bir cihaz çerçevesi hissi ver; oyun hâlâ portrait kalır. */
@@ -431,8 +433,8 @@
 }
 
 .speed__step--locked {
-  color: var(--text-dark-3);
-  opacity: 0.75;
+  color: var(--text-dark-2);
+  opacity: 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -533,14 +535,14 @@
   color: var(--positive-soft);
 }
 .marketStrip__change--down {
-  color: var(--negative-soft);
+  color: var(--negative-on-dark);
 }
 .marketStrip__change--flat {
   color: var(--text-dark-3);
 }
 
 .marketStrip--closed .marketStrip__price {
-  opacity: 0.72;
+  opacity: 0.92;
 }
 
 .marketStrip--closed .marketStrip__regimeValue,
@@ -716,7 +718,7 @@
 }
 
 .stageStrip__step--done {
-  color: var(--brass-600);
+  color: var(--brass-700);
 }
 
 .stageStrip__step--locked {
@@ -757,6 +759,22 @@
 /* F — Bağlamsal Araç Rayı · 56 px (GDD 23.11)                        */
 /* ------------------------------------------------------------------ */
 
+.toolRailSlot {
+  position: relative;
+  flex: 0 0 var(--h-tool-rail);
+  width: 100%;
+  height: var(--h-tool-rail);
+  min-height: var(--h-tool-rail);
+  background: var(--ink-600);
+}
+
+.toolRailSlot > .toolRail {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
 .toolRail {
   flex: 0 0 var(--h-tool-rail);
   height: var(--h-tool-rail);
@@ -769,7 +787,9 @@
    * oyuncunun en çok dokunduğu yüzeyde. 4 px dolgu butonları 46 px'e
    * çıkarır ve rayın kendi yüksekliğine dokunmaz.
    */
-  padding: 4px var(--sp-3);
+  /* Sağdaki Canlandır denetiminin sabit yuvası; araçlar onun altına girmez. */
+  padding: 4px 72px 4px var(--sp-3);
+  scroll-padding-right: 72px;
   background: var(--ink-600);
   border-top: 1px solid var(--line-dark);
   border-bottom: 1px solid var(--ink-900);
@@ -912,6 +932,14 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+}
+
+/* Teklif gibi baskın Dock içeriğini responsive düzende tek parça tutar. */
+.dock__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--sp-1);
 }
 
 /* Ana ekran boş durumunda kuyruk özeti yukarıdaki kartta zaten var. */
@@ -1440,10 +1468,13 @@
 .dayCloseDialog__cancel { width: 100%; border: 1px solid var(--line-light); background: transparent; color: var(--text-light-1); }
 .dayCloseDialog button:focus-visible { outline: 3px solid var(--brass-500); outline-offset: 3px; }
 
-/* Kuyruk varken aşırı kısa ekran: boş ray ve özet yerine tam müşteri kartı. */
+/*
+ * Kuyruk varken aşırı kısa ekran: ray artık Canlandır için gerçek bir yuva
+ * taşıdığı için bütünüyle gizlenmez; yalnız boş durum açıklaması saklanır.
+ */
 @media (max-height: 560px) {
-  .toolRail--idle {
-    display: none;
+  .toolRail--idle .toolRail__empty {
+    visibility: hidden;
   }
 
   .coach--queuePriority {
@@ -1647,6 +1678,78 @@
   }
 }
 
+/*
+ * Dar telefonlarda durum verisini iki satıra dağıt. Profil ilk sütunda iki
+ * satırı kaplar; saat/nakit üstte, hız ve ayarlar altta kalır. Böylece isim
+ * yalnız gerçekten çok uzunsa kısalır, XP ile hız kontrolleri birbirini ezmez.
+ */
+@media (max-width: 430px) {
+  .statusStrip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(44px, auto) auto;
+    grid-template-rows: minmax(30px, 1fr) 28px;
+    gap: 0 6px;
+    padding-inline: 8px;
+  }
+
+  .profileChip {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 100%;
+    height: calc(100% - 8px);
+  }
+
+  .profileChip__avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .profileChip__name {
+    max-width: none;
+  }
+
+  .statusStrip__clock {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 44px;
+  }
+
+  .statusStrip__cash {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .statusStrip__cashValue {
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .speed {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 340px) {
+  .profileChip__avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .statusStrip {
+    gap: 0 4px;
+    padding-inline: 6px;
+  }
+
+  .speed__step {
+    min-width: 22px;
+    padding-inline: 3px;
+  }
+}
+
 /* Visual polish: premium mor-altın kök navigasyon. */
 .bottomNav {
   padding: 5px 4px;
@@ -1724,7 +1827,7 @@
 .settingsBox {
   width: min(360px, 100%);
   max-height: calc(100dvh - 60px);
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   /* KOMPAKT GEÇİŞ: 10px → 8px, dış dolgu 20px → 16px. Satır sayısı arttıkça
@@ -1757,10 +1860,27 @@
   100 px iken 58 px'e eziliyor ve kaydırıcı satırdan 43 px taşıp "Dil"
   satırının üstüne biniyordu (375×667'de ölçüldü).
 
-  Doğru davranış: satır kendi boyunu korur, kutu kaydırılır — `max-height` ve
-  `overflow-y: auto` bunun için zaten yerinde.
+  Doğru davranış: satır kendi boyunu korur; başlık ve Kapat yerinde kalırken
+  yalnız `.settingsBox__scroll` kaydırılır.
 */
 .settingsBox > * { flex-shrink: 0; }
+
+.settingsBox__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.settingsBox__scroll > * {
+  flex-shrink: 0;
+}
 
 .settingsRow {
   display: flex;
@@ -1792,6 +1912,53 @@
   color: var(--amethyst-500);
   font-size: var(--fs-caption);
   font-weight: var(--fw-semibold);
+}
+
+.settingsRow__badge {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border: 1px solid var(--line-light-strong);
+  border-radius: 999px;
+  color: var(--text-light-2);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+}
+
+.settingsRow__linkGroup {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settingsTextLink {
+  min-height: var(--touch-min);
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 7px;
+  border-radius: 8px;
+  color: var(--amethyst-500);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.settingsTextButton {
+  min-height: var(--touch-min);
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid var(--line-light-strong);
+  border-radius: 8px;
+  color: var(--amethyst-500);
+  background: transparent;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+}
+
+.settingsTextLink:focus-visible {
+  outline: 2px solid var(--brass-500);
+  outline-offset: 2px;
 }
 
 /* Anahtar: durum hem konumla hem renkle okunur (GDD 23.3 — renk tek başına
@@ -1947,9 +2114,8 @@
  * DÜKKÂNI CANLANDIR — kalıcı yuvarlak kenar düğmesi.
  *
  * Çapa akışta SIFIR YÜKSEKLİKTE bir satırdır: kendisi hiç yer kaplamaz,
- * yalnız düğmeye konum verir. Araç rayının hemen üstüne konduğu için düğme
- * her aşamada rayın üst kenarına oturur; dock'un yüksekliği aşamadan
- * aşamaya 82→194 px değişse de düğme yerinden kıpırdamaz.
+ * yalnız düğmeye konum verir. Düğme araç rayının sağındaki ayrılmış yuvaya
+ * oturur; böylece ne tezgâhtaki içeriğe ne de karar dock'una taşar.
  *
  * z-index 7: ray (arka planı var) ve masa üstünde çizilsin. Alt navigasyon
  * 6'da; düğme onun hizasına hiç gelmiyor ama sıralama yine de tutarlı olsun.
@@ -1961,26 +2127,28 @@
   pointer-events: none;
 }
 
+/* Slot, ray bileşeni `null` dönse bile düğmenin koordinat sistemidir. */
+.toolRailSlot > .rushFabAnchor {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+
 /*
- * Öğretim şeridi açıkken çapa çizgisi masa yerine `.coach`in ALT kenarına
- * düşer (RushFab, ShopScreen.tsx'te CoachBar'ın hemen ardından render
- * edilir — DOM'da doğrudan komşudur). Ölçüldü: -32 px'lik standart taşma,
- * şeritteki "Anladım" düğmesinin üstüne biniyordu (Playwright tıklaması
- * "intercepts pointer events" ile gerçekten engellendi — kurgusal değil,
- * gerçek bir dokunma hatası). Bu tek durumda daire ray tarafına çekilir;
- * "yarısı masada" görünümü yalnız ders şeridi YOKKEN geçerlidir.
+ * Öğretim şeridi olsun ya da olmasın çapa araç rayının hemen önündedir.
+ * Aynı `top` değeri kullanılır; dersin "Anladım" düğmesi artık örtülemez.
  */
 .coach + .rushFabAnchor .rushFab {
-  top: 0;
+  top: 2px;
 }
 
 .rushFab {
   position: absolute;
-  right: var(--sp-3);
-  /* Dairenin merkezi çapa çizgisinde: yarısı masada, yarısı rayda. */
-  top: -32px;
-  width: 64px;
-  height: 64px;
+  right: 8px;
+  /* 56 px ray içinde ikişer piksel güvenli boşluk. */
+  top: 2px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--r-pill);
   pointer-events: auto;
 
@@ -2033,4 +2201,177 @@
 .rushFab:disabled {
   opacity: 0.38;
   box-shadow: none;
+}
+
+/*
+ * Web/PWA landscape güvenlik ağı. Native paket portreyi tercih edebilir;
+ * tarayıcı yataya dönerse ise 430 px'lik portre sütunu bırakmak yerine tüm
+ * genişliği kullanır ve kök navigasyonu sağ raya taşır. Böylece kısa ekranın
+ * 56 pikseli tekrar oyun alanına kazandırılır.
+ */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) {
+  :root {
+    --h-status-strip: 56px;
+    --h-customer-strip: 40px;
+    --h-tool-rail: 52px;
+    --h-decision-dock: 68px;
+  }
+
+  .deviceFrame {
+    width: 100vw;
+    min-height: 100dvh;
+    padding: 0;
+  }
+
+  .device {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    margin: 0;
+    flex-direction: row;
+  }
+
+  .screen {
+    min-width: 0;
+    height: 100%;
+  }
+
+  .profileChip {
+    height: 52px;
+  }
+
+  .profileChip__avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .profileChip__name {
+    max-width: 160px;
+  }
+
+  .bottomNav {
+    flex: 0 0 76px;
+    width: 76px;
+    height: 100%;
+    flex-direction: column;
+    padding: 4px;
+    border-top: 0;
+    border-left: 1px solid var(--brass-700);
+  }
+
+  .bottomNav__item {
+    width: 100%;
+    min-height: var(--touch-min);
+  }
+
+  .bottomNav__item--active::before {
+    top: 50%;
+    left: -4px;
+    width: 2px;
+    height: 24px;
+    transform: translateY(-50%);
+  }
+
+  .coach {
+    gap: var(--sp-2);
+    padding: 2px var(--sp-2);
+  }
+
+  .coach__text {
+    -webkit-line-clamp: 1;
+  }
+
+  .toolRail {
+    padding-right: 66px;
+    scroll-padding-right: 66px;
+  }
+
+  .rushFab,
+  .coach + .rushFabAnchor .rushFab {
+    top: 2px;
+    width: 48px;
+    height: 48px;
+  }
+
+  /*
+   * Aktif işlemde özet + CTA + iki ikincil eylem 132 px'e kadar uzuyordu;
+   * 390 px yatay ekranda son satır viewport dışında kalıyordu. Kararları
+   * iki sütuna alarak 44/46 px dokunma hedeflerini korurken Dock'u tek eylem
+   * sırası yüksekliğine indiririz.
+   */
+  .dock:not(.dock--idle) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-auto-rows: auto;
+    align-content: center;
+    gap: 4px 8px;
+    min-height: var(--h-decision-dock);
+    padding: 4px 12px;
+  }
+
+  .dock:not(.dock--idle) > .dock__summary {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .dock:not(.dock--idle) > .dock__actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  .dock:not(.dock--idle).dock--summaryless > .dock__actions {
+    grid-row: 1;
+  }
+
+  .dock--twoSecondary:not(.dock--idle) > .dock__actions {
+    grid-column: 1;
+  }
+
+  .dock--twoSecondary:not(.dock--idle) > .dock__secondaryRow {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  .dock--twoSecondary.dock--summaryless:not(.dock--idle) > .dock__secondaryRow {
+    grid-row: 1;
+  }
+
+  /* Pazarlıkta teklif kontrolü solda, sabit karar alanı sağda kalır. */
+  .dock--withContent:not(.dock--idle) {
+    grid-template-columns: minmax(0, 1.4fr) minmax(190px, 0.8fr);
+  }
+
+  .dock--withContent:not(.dock--idle) > .dock__content {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+  }
+
+  .dock--withContent:not(.dock--idle) > .dock__actions {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+  }
+
+  .dock--withContent.dock--summaryless:not(.dock--idle) > .dock__content,
+  .dock--withContent.dock--summaryless:not(.dock--idle) > .dock__actions {
+    grid-row: 1;
+  }
+
+  .dock--withContent:not(.dock--idle) > .dock__disabledReason,
+  .dock--withContent:not(.dock--idle) > .dock__secondaryRow {
+    grid-column: 2;
+    grid-row: 3;
+    margin: 0;
+  }
+
+  .settingsScrim {
+    padding: 8px;
+  }
+
+  .settingsBox {
+    max-height: calc(100dvh - 16px);
+  }
 }

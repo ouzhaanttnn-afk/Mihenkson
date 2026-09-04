@@ -17,14 +17,14 @@
  * bir sonuç veremez — çünkü atılacak bir zar yoktur.
  */
 
-import { t } from '@i18n/index';
-import { tl } from '@i18n/money';
 import { NEGOTIATION, TRUST } from './balance';
+import { localizedMessage } from './localized-message';
 import { getArchetype } from '@data/archetypes';
 import type {
   Customer,
   TradeSide,
   FieldKnowledge,
+  LocalizedMessage,
   Money,
   NegotiationMove,
   NegotiationResponse,
@@ -234,7 +234,7 @@ export function applyMove(
       session,
       response: {
         state: session.state,
-        message: t('İşlem tamamlandı.'),
+        message: localizedMessage('İşlem tamamlandı.'),
         counterOffer: session.activeCounter,
         patienceDelta: 0,
         trustDelta: 0,
@@ -261,7 +261,7 @@ export function applyMove(
     case 'package':
       // Paket teklif çoklu ürün katmanında ele alınır (GDD 12.2); tek kalemde
       // anlamsızdır ve UI tarafından zaten gösterilmez.
-      return handleNoop(session, t('Bu müşteride paket teklif için yeterli kalem yok.'));
+      return handleNoop(session, localizedMessage('Bu müşteride paket teklif için yeterli kalem yok.'));
   }
 }
 
@@ -299,7 +299,7 @@ function handleOffer(
       session: next,
       response: {
         state: session.state,
-        message: t('Aynı rakamı tekrar ediyorsunuz. Cevabım değişmedi.'),
+        message: localizedMessage('Aynı rakamı tekrar ediyorsunuz. Cevabım değişmedi.'),
         // Karşı teklif de değişmez — yeni bilgi verilmediği için.
         counterOffer: session.activeCounter,
         patienceDelta: -NEGOTIATION.repeatOfferPatiencePenalty,
@@ -391,7 +391,7 @@ function handleOffer(
       },
       response: {
         state: 'REJECTED',
-        message: t('Bu fiyatlarla olmayacak. Başka yere bakacağım.'),
+        message: localizedMessage('Bu fiyatlarla olmayacak. Başka yere bakacağım.'),
         counterOffer: null,
         patienceDelta: -patienceCost,
         trustDelta: -TRUST.rejectPenalty,
@@ -492,7 +492,7 @@ function handleReason(
   move: NegotiationMove,
 ): { session: NegotiationSession; response: NegotiationResponse } {
   const evidence = move.reasonEvidence;
-  if (!evidence) return handleNoop(session, t('Gösterecek doğrulanmış veri yok.'));
+  if (!evidence) return handleNoop(session, localizedMessage('Gösterecek doğrulanmış veri yok.'));
 
   const reasonKey = `${evidence.field}:${evidence.toolId}`;
 
@@ -506,7 +506,7 @@ function handleReason(
       },
       response: {
         state: session.state,
-        message: t('Bunu zaten söylediniz.'),
+        message: localizedMessage('Bunu zaten söylediniz.'),
         counterOffer: session.activeCounter,
         patienceDelta: -1,
         trustDelta: 0,
@@ -531,9 +531,11 @@ function handleReason(
       },
       response: {
         state: session.state,
-        message: knowledgeable
-          ? t('Bunu ölçmediniz. Elinizde olmayan bir veriyle konuşuyorsunuz.')
-          : t('Peki, siz bilirsiniz.'),
+        message: localizedMessage(
+          knowledgeable
+            ? 'Bunu ölçmediniz. Elinizde olmayan bir veriyle konuşuyorsunuz.'
+            : 'Peki, siz bilirsiniz.',
+        ),
         counterOffer: session.activeCounter,
         patienceDelta: -1,
         trustDelta: knowledgeable ? -NEGOTIATION.falseReasonTrustPenalty : -2,
@@ -584,9 +586,11 @@ function handleGesture(
     },
     response: {
       state: session.state,
-      message: beyondCap
-        ? t('Nezaketiniz için sağ olun, ama mesele fiyatta.')
-        : t('İnce düşünmüşsünüz, teşekkür ederim.'),
+      message: localizedMessage(
+        beyondCap
+          ? 'Nezaketiniz için sağ olun, ama mesele fiyatta.'
+          : 'İnce düşünmüşsünüz, teşekkür ederim.',
+      ),
       counterOffer: session.activeCounter,
       patienceDelta: beyondCap ? -1 : 1,
       trustDelta: beyondCap ? 0 : Math.round(NEGOTIATION.gestureTrustGain * a.gestureResponsiveness),
@@ -662,7 +666,7 @@ function handleRequestCounter(
       },
       response: {
         state: 'REJECTED',
-        message: t('Son sözümü söyledim. Başka yere bakacağım.'),
+        message: localizedMessage('Son sözümü söyledim. Başka yere bakacağım.'),
         counterOffer: null,
         patienceDelta: -patienceCost,
         trustDelta: -TRUST.rejectPenalty,
@@ -701,8 +705,12 @@ function handleRequestCounter(
       state: nextState,
       message:
         nextState === 'FINAL_OFFER'
-          ? t('Son sözüm {tutar}. Daha fazla uzatmayalım.', { tutar: formatTl(counter) })
-          : t('Benim beklentim {tutar} civarı.', { tutar: formatTl(counter) }),
+          ? localizedMessage('Son sözüm {tutar}. Daha fazla uzatmayalım.', {
+              tutar: { kind: 'money', value: counter },
+            })
+          : localizedMessage('Benim beklentim {tutar} civarı.', {
+              tutar: { kind: 'money', value: counter },
+            }),
       counterOffer: counter,
       patienceDelta: -patienceCost,
       trustDelta: 0,
@@ -719,7 +727,9 @@ function handleAcceptCounter(
   move: NegotiationMove,
 ): { session: NegotiationSession; response: NegotiationResponse } {
   const price = session.finalOffer ?? session.activeCounter;
-  if (price === null) return handleNoop(session, t('Masada kabul edilecek bir teklif yok.'));
+  if (price === null) {
+    return handleNoop(session, localizedMessage('Masada kabul edilecek bir teklif yok.'));
+  }
 
   const fairness = price / Math.max(1, ctx.customer.reservationPrice);
 
@@ -734,7 +744,7 @@ function handleAcceptCounter(
     },
     response: {
       state: 'ACCEPTED',
-      message: t('Anlaştık. Sağ olun.'),
+      message: localizedMessage('Anlaştık. Sağ olun.'),
       counterOffer: null,
       patienceDelta: 0,
       trustDelta: fairness >= TRUST.fairPriceRatio ? TRUST.fairDealGain : 3,
@@ -760,7 +770,7 @@ function handleReject(
     },
     response: {
       state: 'REJECTED',
-      message: t('Anlıyorum. Yine de teşekkürler.'),
+      message: localizedMessage('Anlıyorum. Yine de teşekkürler.'),
       counterOffer: null,
       patienceDelta: 0,
       // GDD 11.2 — red bazen profesyonelliği korur; ağır ceza yoktur.
@@ -774,7 +784,7 @@ function handleReject(
 
 function handleNoop(
   session: NegotiationSession,
-  message: string,
+  message: LocalizedMessage,
 ): { session: NegotiationSession; response: NegotiationResponse } {
   return {
     session,
@@ -821,10 +831,10 @@ function countBadOffers(session: NegotiationSession, ctx: NegotiationContext): n
     .length;
 }
 
-function acceptMessage(fairness: number): string {
-  if (fairness >= 1.06) return t('Bu gerçekten iyi bir teklif. Anlaştık.');
-  if (fairness >= 1.0) return t('Tamam, anlaştık.');
-  return t('Peki. İhtiyacım olduğu için kabul ediyorum.');
+function acceptMessage(fairness: number): LocalizedMessage {
+  if (fairness >= 1.06) return localizedMessage('Bu gerçekten iyi bir teklif. Anlaştık.');
+  if (fairness >= 1.0) return localizedMessage('Tamam, anlaştık.');
+  return localizedMessage('Peki. İhtiyacım olduğu için kabul ediyorum.');
 }
 
 function counterMessage(
@@ -832,27 +842,30 @@ function counterMessage(
   ratio: number,
   demeanor: string,
   insulting: boolean,
-): string {
-  if (state === 'FINAL_OFFER') return t('Son fiyatım bu. Daha aşağısına bırakmam.');
-  if (insulting) return t('Bu rakam ciddi değil. Ürünün hâlini biliyorum.');
-  if (state === 'HARDENING') return t('Bakın, buradan aşağı inmem artık.');
-  if (ratio > 0.95) return t('Az kaldı. Biraz daha düşünün.');
-  return t('{tavir} davranmak istiyorum ama bu fiyat beklentimin altında.', {
-    tavir: t(demeanor),
+): LocalizedMessage {
+  if (state === 'FINAL_OFFER') return localizedMessage('Son fiyatım bu. Daha aşağısına bırakmam.');
+  if (insulting) return localizedMessage('Bu rakam ciddi değil. Ürünün hâlini biliyorum.');
+  if (state === 'HARDENING') return localizedMessage('Bakın, buradan aşağı inmem artık.');
+  if (ratio > 0.95) return localizedMessage('Az kaldı. Biraz daha düşünün.');
+  return localizedMessage('{tavir} davranmak istiyorum ama bu fiyat beklentimin altında.', {
+    tavir: { kind: 'translation', value: demeanor },
   });
 }
 
-function reasonReplyFor(archetypeId: string, claim: string): string {
+function reasonReplyFor(archetypeId: string, claim: string): LocalizedMessage {
   if (archetypeId === 'investor' || archetypeId === 'informedSeller') {
-    return t('{iddia} — doğru, ölçüm mantıklı.', { iddia: claim });
+    return localizedMessage('{iddia} — doğru, ölçüm mantıklı.', {
+      iddia: { kind: 'translation', value: claim },
+    });
   }
   if (archetypeId === 'collector')
-    return t('{iddia} demek. Bunu bilmek iyi oldu.', { iddia: claim });
-  return t('{iddia} diyorsunuz. Anlıyorum.', { iddia: claim });
+    return localizedMessage('{iddia} demek. Bunu bilmek iyi oldu.', {
+      iddia: { kind: 'translation', value: claim },
+    });
+  return localizedMessage('{iddia} diyorsunuz. Anlıyorum.', {
+    iddia: { kind: 'translation', value: claim },
+  });
 }
-
-/* Para birimi ve sayı yereli tek yerden — bkz. `@i18n/money`. */
-const formatTl = tl;
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));

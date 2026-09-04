@@ -26,6 +26,13 @@
   padding: 0 var(--gutter) var(--sp-6);
 }
 
+/* Klavyeyle kaydırılan tek ana bölgeyi görünür kıl; iç denetimlere ek tab
+   durağı eklenmez, ekran başına yalnız bu adlandırılmış bölge odaklanır. */
+.page__scroll:focus-visible {
+  outline: 2px solid var(--brass-500);
+  outline-offset: -3px;
+}
+
 /* Sticky üst başlık — kısa özet satırı, dev kart değil. */
 .pageHead {
   position: sticky;
@@ -102,16 +109,27 @@
 .summaryRow__value--warning { color: var(--warning); }
 
 /* Sticky filtre rayı (GDD 23.15) */
-.filterRail {
+.horizontalRailWrap {
+  position: relative;
+  min-width: 0;
+}
+
+.filterRailWrap {
   position: sticky;
   top: 0;
   z-index: 1;
+  background: var(--stone-100);
+}
+
+.filterRail {
   display: flex;
   gap: var(--sp-2);
-  padding: var(--sp-3) 0;
+  padding: var(--sp-3) 40px var(--sp-3) 0;
   background: var(--stone-100);
   overflow-x: auto;
   scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--sp-2) 40px;
   /*
    * Altı filtre 360 px'e sığmaz; ray kaydırılır. Solma olmadan son çipler
    * sessizce kesiliyor ve oyuncu "Bekleyen"/"Ölü Stok" filtrelerinin
@@ -121,10 +139,40 @@
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 20px), transparent 100%);
 }
 
+.filterRail .chip {
+  scroll-snap-align: start;
+}
+
+/* Kesilen yatay listenin kaydırılabildiğini parmak simgesi olmadan anlatır. */
+.horizontalRailCue {
+  position: absolute;
+  z-index: 2;
+  right: 4px;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(215, 170, 74, 0.55);
+  border-radius: var(--r-pill);
+  background: rgba(17, 24, 33, 0.94);
+  color: var(--brass-300);
+  box-shadow: -8px 0 16px rgba(11, 15, 20, 0.72);
+  font-size: 22px;
+  line-height: 1;
+  pointer-events: none;
+}
+
 @media (min-width: 620px) {
   .filterRail {
     -webkit-mask-image: none;
     mask-image: none;
+    padding-right: 0;
+  }
+
+  .horizontalRailCue {
+    display: none;
   }
 }
 
@@ -1179,6 +1227,10 @@
   background: rgba(11, 17, 25, 0.94);
 }
 
+.page .filterRailWrap {
+  background: rgba(11, 17, 25, 0.94);
+}
+
 .page .row,
 .page .group__body,
 .page .eventCard,
@@ -1617,11 +1669,19 @@
   flex: 0 0 auto;
   display: flex;
   gap: 6px;
-  padding: var(--sp-2) var(--gutter);
+  width: 100%;
+  padding: var(--sp-2) 48px var(--sp-2) var(--gutter);
   overflow-x: auto;
   scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter) 48px;
   background: rgba(10, 15, 22, 0.92);
   border-bottom: 1px solid rgba(215, 170, 74, 0.16);
+}
+
+.marketCategoriesWrap {
+  flex: 0 0 auto;
+  background: rgba(10, 15, 22, 0.92);
 }
 
 .marketCategories::-webkit-scrollbar,
@@ -1640,6 +1700,7 @@
   background: rgba(255, 255, 255, 0.025);
   font-size: var(--fs-caption);
   font-weight: var(--fw-semibold);
+  scroll-snap-align: start;
 }
 
 .marketCategory span { color: var(--brass-400); }

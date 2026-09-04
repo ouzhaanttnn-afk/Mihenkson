@@ -424,6 +424,29 @@ export interface VisitRecord {
 // Pazarlık (GDD 11)
 // ---------------------------------------------------------------------------
 
+/**
+ * Kayda girebilen, ancak gösterildiği anda yerelleştirilen müşteri metni.
+ *
+ * Pazarlık yanıtını önceden `t()` ile bir dile çevirmek aktif bir
+ * işlemde dil/para birimi değişince balonu eski dilde ve eski para
+ * biçiminde bırakıyordu. Anahtar ile ham parametreler JSON uyumludur; eski
+ * kayıtlardaki düz `string` de `CustomerMessage` birleşiminde geçerlidir.
+ */
+export type LocalizedMessageParam =
+  | { kind: 'raw'; value: string | number }
+  | { kind: 'translation'; value: string }
+  | { kind: 'money'; value: Money }
+  | { kind: 'demand'; value: CustomerDemand };
+
+export interface LocalizedMessage {
+  /** Türkçe kaynak metin; aynı zamanda i18n sözlük anahtarı. */
+  key: string;
+  params?: Record<string, LocalizedMessageParam>;
+}
+
+/** Yeni kayıtlar yapısal metin, eski kayıtlar düz metin taşıyabilir. */
+export type CustomerMessage = LocalizedMessage | string;
+
 /** GDD 11.1 durum makinesi. */
 export type NegotiationState = 'OPEN' | 'HARDENING' | 'FINAL_OFFER' | 'ACCEPTED' | 'REJECTED';
 
@@ -447,8 +470,8 @@ export interface NegotiationMove {
 /** Müşterinin bir hamleye verdiği deterministik yanıt. */
 export interface NegotiationResponse {
   state: NegotiationState;
-  /** Müşteri mesajı — aynı yüzeyde gösterilir, yeni ekran açmaz (GDD 23.24). */
-  message: string;
+  /** Müşteri mesajı — gösterim anında etkin dile çevrilir (GDD 23.24). */
+  message: LocalizedMessage;
   counterOffer: Money | null;
   patienceDelta: number;
   trustDelta: number;

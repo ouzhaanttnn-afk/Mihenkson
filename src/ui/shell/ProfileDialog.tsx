@@ -33,6 +33,7 @@ import { avatarArt } from '@ui/assets';
 import { Art } from '@ui/Art';
 import { IconTrust } from '@ui/icons';
 import { t } from '@i18n/index';
+import { useModalSurface } from '@ui/useModalSurface';
 
 interface Props {
   profile: PlayerProfile;
@@ -67,48 +68,19 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
   const titleId = useId();
   const nameId = useId();
   const errorId = useId();
-  const panelRef = useRef<HTMLDivElement>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
+  const { dialogRef, initialFocusRef: nameRef } = useModalSurface<
+    HTMLDivElement,
+    HTMLInputElement
+  >(
+    onCancel,
+    { closeOnEscape: !welcome },
+  );
   const gridRef = useRef<HTMLDivElement>(null);
   const nameCheck = checkJewelerName(name);
 
   useEffect(() => {
-    nameRef.current?.focus();
     nameRef.current?.select();
   }, []);
-
-  // Escape kapatır; Tab pencerenin içinde döner.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        // Karşılama ekranında kapatacak bir "önceki hâl" yok; Escape yutulur.
-        if (!welcome) onCancel();
-        return;
-      }
-      if (e.key !== 'Tab') return;
-
-      const panel = panelRef.current;
-      if (!panel) return;
-      // `[tabindex="-1"]` olanlar hariç: roving tabindex ile ızgaranın
-      // seçili olmayan 10 kartı Tab sırasında yoktur.
-      const focusable = panel.querySelectorAll<HTMLElement>(
-        'button:not([disabled]):not([tabindex="-1"]), input:not([disabled])',
-      );
-      if (focusable.length === 0) return;
-      const first = focusable[0]!;
-      const last = focusable[focusable.length - 1]!;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onCancel, welcome]);
 
   const submit = () => {
     const check = checkJewelerName(name);
@@ -142,7 +114,8 @@ export function ProfileDialog({ profile, mode = 'edit', onCancel, onSave }: Prop
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        ref={panelRef}
+        ref={dialogRef}
+        tabIndex={-1}
       >
         <h2 className="profileDialog__title" id={titleId}>
           {welcome ? t('Hoş geldin, sarraf') : t('Profili Düzenle')}

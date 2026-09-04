@@ -24,6 +24,7 @@ import { createMarketForDay, stepMarketIntraday } from '@domain/market';
 import { spawnItem } from '@domain/item-spawn';
 import { ITEM_TEMPLATES } from '@data/item-templates';
 import { useGame } from '@state/gameStore';
+import { LESSONS } from '@domain/onboarding';
 import type { MarketState } from '@domain/types';
 
 const initial = useGame.getState();
@@ -64,7 +65,12 @@ function spawnFingerprint(seed: number): string {
  * (ya da bir çekilişi atlasaydı) buradaki parmak izi ayrışırdı.
  */
 function storeFingerprint(): string {
-  useGame.setState({ ...initial, seed: 777_777, profileSetupDone: true }, true);
+  useGame.setState({
+    ...initial,
+    seed: 777_777,
+    profileSetupDone: true,
+    seenLessons: LESSONS.map((lesson) => lesson.id),
+  }, true);
   const rows: string[] = [];
   for (let round = 0; round < 40; round += 1) {
     useGame.getState().tick(30);

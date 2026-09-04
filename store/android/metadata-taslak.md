@@ -43,8 +43,9 @@ Pazar ikisi de kapalı.
 
 Türkçe ve İngilizce arayüz; ₺ ve $ gösterimi.
 
-İsteğe bağlı ödüllü reklam var (Google AdMob) — yalnız oyuncu "reklamla aç"a
-dokununca gösterilir; izleyici/analitik yok, kayıt yalnız cihazında durur.
+İsteğe bağlı ödüllü reklam ve hafta açılışında geçiş reklamı var (Google AdMob).
+Geliştiriciye ait ek analitik yoktur; AdMob gizlilik politikasında açıklanan
+reklam etkileşimi ve teşhis verilerini işleyebilir. Kayıt yalnız cihazında durur.
 ```
 
 ## Kategori
@@ -55,7 +56,9 @@ Oyun > Simülasyon
 ## İletişim
 ```
 E-posta: nostoscomp@gmail.com
-Web sitesi: [DOLDURULACAK] (opsiyonel)
-Gizlilik politikası: https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
+Web sitesi: https://alpersonmihenk-chi.vercel.app/
+Gizlilik politikası: https://alpersonmihenk-chi.vercel.app/privacy.html
+Destek: https://alpersonmihenk-chi.vercel.app/support.html
 ```
-✅ Sayfa herkese açık — doğrulandı (bkz. `../legal/gizlilik-politikasi.md`).
+⏳ Son production dağıtımından sonra URL'leri oturum kapalıyken HTTP 200 ve
+doğru içerik için doğrula (bkz. `../legal/gizlilik-politikasi.md`).

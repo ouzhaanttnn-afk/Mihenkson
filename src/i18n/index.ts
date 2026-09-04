@@ -59,6 +59,41 @@ export function getLanguage(): LanguageId {
   return activeLanguage;
 }
 
+/** HTML'in dil etiketi de çeviri tercihini izler. */
+export function documentLanguage(id: LanguageId = activeLanguage): LanguageId {
+  return id === 'en' ? 'en' : 'tr';
+}
+
+/**
+ * CSS `text-transform` dahil tarayıcının yerel-dil davranışını senkronlar.
+ *
+ * Belge sürekli `lang="tr"` kaldığında İngilizce "Undecided", Türkçe büyük
+ * harf kuralıyla "UNDECİDED" oluyordu. Etiketi gerçek tercihe bağlamak
+ * yalnız o kelimeyi değil, tüm CSS dönüşümlerini ve ekran okuyucu telaffuzunu
+ * kökten düzeltir.
+ */
+export function syncDocumentLanguage(
+  root: { lang: string } | null = typeof document === 'undefined'
+    ? null
+    : document.documentElement,
+): void {
+  if (root) root.lang = documentLanguage();
+}
+
+/**
+ * Türkçe hitap ekini İngilizce arayüzde doğal sıraya taşır.
+ * Kişinin asıl adı çevrilmez; yalnız kullanıcıya görünen "Hanım/Bey" kısmı
+ * yerelleştirilir. Bilinmeyen veya eski kayıt isimleri aynen korunur.
+ */
+export function localizeCustomerName(displayName: string): string {
+  if (activeLanguage !== 'en') return displayName;
+  const female = /^(.*) Hanım$/.exec(displayName);
+  if (female) return `Ms ${female[1]}`;
+  const male = /^(.*) Bey$/.exec(displayName);
+  if (male) return `Mr ${male[1]}`;
+  return displayName;
+}
+
 /**
  * Metni etkin dile çevirir.
  *

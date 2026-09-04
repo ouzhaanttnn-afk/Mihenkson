@@ -57,13 +57,16 @@
   --positive-soft: #43a65d; /* paket success — koyu zeminde 5,82:1 */
   --negative: #c62828;
   --negative-soft: #d9564f;
+  --negative-on-dark: #df625b; /* --ink-700 üzerinde 4,67:1 */
   --warning: #c9822e;
+  --warning-on-light: #9d641d; /* --stone-50 üzerinde 4,60:1 */
   --neutral: #6e6a63;
 
   /* ---- Renk · Metin ---- */
   --text-dark-1: #f2ecde;
   --text-dark-2: #b3ab9b;
-  --text-dark-3: #7c7568;
+  /* En açık koyu yüzeyde (--ink-600) 4.96:1; mikro etiketler AA'yı geçer. */
+  --text-dark-3: #a79f90;
   --text-light-1: #131a24;
   --text-light-2: #4a5462;
   --text-light-3: #6e6a63;
@@ -135,7 +138,9 @@
   /* İşlem Masası (337px referans) esneyen tek bölgedir → flex: 1 */
 
   --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 
   /* ---- Dokunma hedefleri ---- */
   --touch-min: 44px;
@@ -267,6 +272,19 @@ button {
 
 button:disabled {
   cursor: default;
+}
+
+/* Görsel başlığa ihtiyaç duymayan oyun yüzeyleri için erişilebilir metin. */
+.srOnly {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 ul,

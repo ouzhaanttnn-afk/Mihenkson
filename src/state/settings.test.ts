@@ -76,6 +76,9 @@ describe('ayarlar penceresi', () => {
 
     // Kapatınca zaman kaldığı yerden akmalı; kalıcı donma bir hata olurdu.
     useGame.getState().closeSettings();
+    // Bu test ayarlar modalını izole eder; onboarding'in kendi saat kilidi
+    // time-flow.test.ts'de ayrıca korunur.
+    useGame.getState().skipOnboarding();
     useGame.getState().tick(60);
     expect(useGame.getState().market.clockMinutes).toBeGreaterThan(before);
   });

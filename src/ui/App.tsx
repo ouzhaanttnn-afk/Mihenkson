@@ -9,7 +9,7 @@
  * `overflow: hidden`; ikincil ekranlar kendi scroll'unu yönetir.
  */
 
-import { t } from '@i18n/index';
+import { syncDocumentLanguage, t } from '@i18n/index';
 import { useEffect, useRef } from 'react';
 
 import { useGame } from '@state/gameStore';
@@ -41,12 +41,14 @@ export function App() {
   const dismissToast = useGame((s) => s.dismissToast);
   const profile = useGame((s) => s.profile);
   const profileOpen = useGame((s) => s.profileOpen);
+  const settingsOpen = useGame((s) => s.settingsOpen);
   const profileSetupDone = useGame((s) => s.profileSetupDone);
   const completeProfileSetup = useGame((s) => s.completeProfileSetup);
   const closeProfile = useGame((s) => s.closeProfile);
-  // Yalnız `key` için okunur — bkz. aşağıdaki gerekçe.
+  // Bu iki abonelik App'i ve alt ağacı sunum tercihi değiştiğinde yeniden
+  // çizer; bileşenleri remount edip yerel teklif durumunu silmez.
   const language = useGame((s) => s.preferences.language);
-  const currency = useGame((s) => s.preferences.currency);
+  useGame((s) => s.preferences.currency);
   const updateProfile = useGame((s) => s.updateProfile);
   const workshopAttention = useGame((s) => {
     const ids = new Set([
@@ -56,6 +58,14 @@ export function App() {
     return ids.size;
   });
   const shopQueueCount = useGame((s) => s.queue.length);
+
+  /*
+    Metin kadar belgenin dili de değişir. CSS büyük/küçük harf dönüşümü ve
+    ekran okuyucu telaffuzu `<html lang>` üzerinden yerel seçer.
+  */
+  useEffect(() => {
+    syncDocumentLanguage();
+  }, [language]);
 
   /*
     SES — SUNUM KATMANINDA BAĞLANIR.
@@ -202,29 +212,17 @@ export function App() {
 
   return (
     <div className="deviceFrame">
-      {/*
-        DİL VE PARA BİRİMİ DEĞİŞİNCE TÜM AĞAÇ YENİDEN KURULUR.
-
-        `t()` etkin dili modül düzeyinde okuyor; React bunu bir bağımlılık
-        olarak GÖREMEZ. Dolayısıyla dil değiştiğinde, o dili okuyan yüzlerce
-        bileşenden yalnız tercihe abone olanlar yeniden çizilirdi — ekranın
-        yarısı yeni dilde, yarısı eskisinde kalırdı.
-
-        Her bileşene ayrı bir `useT()` aboneliği eklemek de mümkündü ama
-        yüzlerce dokunuş demekti ve biri unutulunca hata sessiz olurdu.
-        `key` ile yeniden kurmak tek satırda kesin sonuç verir. Bedeli, o an
-        açık olan yerel arayüz durumunun (açık çekmece gibi) sıfırlanması;
-        oyunun kendi durumu mağazada olduğu için para, stok ve pazarlık
-        etkilenmez. Dil değiştirmek nadir bir eylem, sıfırlama kabul edilir.
-      */}
-      <div className="device" key={`${language}-${currency}`}>
-        <div className={`screen ${tab === 'shop' ? 'screen--noScroll' : ''}`}>
+      <div className="device">
+        <main
+          id="main-content"
+          className={`screen screen--${tab} ${tab === 'shop' ? 'screen--noScroll' : ''}`}
+        >
           {tab === 'shop' && <ShopScreen />}
           {tab === 'stock' && <StockScreen />}
           {tab === 'workshop' && <WorkshopScreen />}
           {tab === 'market' && <MarketPlaceholderScreen />}
           {tab === 'business' && <BusinessScreen />}
-        </div>
+        </main>
 
         <BottomNav
           active={tab}
@@ -235,46 +233,29 @@ export function App() {
         <DayCloseDialog />
 
         {/*
-          Profil penceresi CİHAZ SEVİYESİNDE: ekranın değil, çerçevenin
-          çocuğu. Ekranın içine konsaydı Dükkan'ın `overflow: hidden`
-          gövdesine hapsolur ve alt navigasyonun altında kalırdı.
+          CİHAZ SEVİYESİ MODAL ÖNCELİĞİ: welcome > profil > ayarlar.
+
+          Bu yüzeyler ekranın içine konsa Dükkan'ın `overflow: hidden`
+          gövdesine hapsolur. Tek zincir olmaları da yalnız normal akışı
+          değil bozuk/geri yüklenmiş birden çok `open` state'ini korur:
+          iki modal aynı anda mount olup birbirini `inert` yapamaz.
         */}
-        {profileOpen && (
-          <ProfileDialog
-            profile={profile}
-            onCancel={closeProfile}
-            onSave={updateProfile}
-          />
-        )}
-
-        {/*
-          İLK AÇILIŞ — ad ve portre.
-
-          Oyunun ilk ekranı budur; oyuncu kendini tanıtmadan tezgâhın
-          arkasına geçmez. Yalnız HİÇ KAYIT YOKKEN çıkar: kaydı olan oyuncuda
-          `profileSetupDone` true gelir (eski kayıtlarda alan eksikse de
-          `true`ya düşer — bkz. save.ts), yani zaten oynamış birine hoş geldin
-          ekranı gösterilmez.
-
-          Profil penceresiyle aynı anda açılamaz: bu ekran kapanmadan oyuna
-          girilmiyor, dolayısıyla profil penceresini açacak düğmeye de
-          ulaşılamıyor.
-        */}
-        {!profileSetupDone && (
+        {!profileSetupDone ? (
           <ProfileDialog
             profile={profile}
             mode="welcome"
             onCancel={() => undefined}
             onSave={completeProfileSetup}
           />
-        )}
-
-        {/*
-          Ayarlar da CİHAZ SEVİYESİNDE — profil penceresiyle aynı sebep:
-          ekranın içine konsaydı Dükkan'ın `overflow: hidden` gövdesine
-          hapsolur ve alt navigasyonun altında kalırdı.
-        */}
-        <SettingsDialog />
+        ) : profileOpen ? (
+          <ProfileDialog
+            profile={profile}
+            onCancel={closeProfile}
+            onSave={updateProfile}
+          />
+        ) : settingsOpen ? (
+          <SettingsDialog />
+        ) : null}
 
         {/*
           En fazla İKİ balon çizilir. Ömür sorunu yukarıda kökünden çözüldü

@@ -1,22 +1,16 @@
 # Gizlilik Politikası — MİHENKAYNAK
 
-**Taslak.** Yayımlamadan önce `[DOLDURULACAK]` alanları doldur, bir hukuk
-danışmanına göster. Bu metin uydurulmadı — depodaki kodun bugünkü hâli
-taranarak yazıldı (bkz. depo kökü `store/README.md`).
+Bu dosya yayımlanan politikanın depo içindeki kaynak kopyasıdır. Önemli bir
+ürün veya veri işleme değişikliğinde hukuk danışmanıyla yeniden gözden
+geçirilmelidir.
 
-**Barındırılan sürüm (tasarlanmış, aynı içerik):**
-https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
+**Barındırılan sürüm:**
+https://alpersonmihenk-chi.vercel.app/privacy.html
 
-> ⚠️ **Herkese açık ama İÇERİK GÜNCEL DEĞİL.** Sayfa AdMob reklam bölümünü
-> (madde 02) içerecek şekilde aynı URL'e yeniden yayınlandı, ama paylaşım
-> linki eski bir sürüme "pinlenmiş" — ziyaretçiler hâlâ ESKİ (reklamdan
-> önceki) içeriği görüyor. Bunu ben düzeltemem: sayfanın SAHİBİ (kullanıcı),
-> paylaşım menüsünden pini en güncel sürüme taşımalı — muhtemelen "Update
-> shared version" / benzeri bir seçenek. Bu düzeltilmeden Apple/Google
-> incelemecisi hâlâ "reklam yok" diyen eski metni görür; gerçek uygulama
-> ile hosted sayfa çelişir. Bu iki dosya (`.md`) hâlâ tek doğruluk kaynağı.
+Sayfa bu deponun `public/privacy.html` dosyasından Vercel dağıtımıyla
+yayınlanır; eski, güncellenemeyen üçüncü taraf paylaşım bağlantısı kullanılmaz.
 
-Son güncelleme: 3 Eylül 2026
+Son güncelleme: 4 Eylül 2026
 Geliştirici: Nostoscomp
 İletişim: nostoscomp@gmail.com
 
@@ -24,14 +18,11 @@ Geliştirici: Nostoscomp
 
 ## Özet
 
-MİHENKAYNAK'in kendisi hiçbir kişisel veriyi toplamaz, sunucuya göndermez
-veya üçüncü taraflarla paylaşmaz — oyun ilerlemeniz tamamen cihazınızda
-kalır. Tek istisna: **isteğe bağlı ödüllü reklamlar.** Uygulama, "4x hızı
-reklamla aç" ve "Dükkânı Canlandır" düğmelerine BİZZAT DOKUNDUĞUNUZDA
-Google AdMob aracılığıyla bir video reklam gösterir; bu reklam sağlayıcı
-kendi başına bazı cihaz/reklam verilerini işleyebilir. Aşağıda bunun tam
-kapsamı var. Reklam dışında hiçbir ekran, hiçbir arka plan süreç veri
-göndermez.
+Oyun ilerlemeniz tamamen cihazınızda kalır ve geliştiriciye ait bir sunucuya
+gönderilmez. Uygulamada **isteğe bağlı ödüllü reklamlar** ve hafta açılışında
+gösterilebilen **geçiş reklamları** Google AdMob tarafından sağlanır. Google
+Mobile Ads SDK, reklam sunumu/güvenliği/ölçümü için aşağıda açıklanan bazı
+verileri işleyebilir.
 
 ## Topladığımız veri — oyun tarafı
 
@@ -39,9 +30,9 @@ göndermez.
 her şey yalnızca cihazınızın yerel depolamasında durur; bizim
 sunucularımıza hiçbir zaman ulaşmaz — çünkü böyle bir sunucumuz yok.
 
-Oyunun kendisi şunları YAPMAZ:
-- Analitik veya kullanım istatistiği toplamaz
-- Çökme raporu göndermez
+Uygulamanın kendi kodu şunları YAPMAZ:
+- Geliştiriciye ait analitik veya kullanım istatistiği toplamaz
+- Geliştiriciye ait çökme raporlama hizmeti kullanmaz
 - Konum, kamera, mikrofon veya kişi listesine erişmez
 - Hesap oluşturmanızı istemez
 
@@ -58,20 +49,22 @@ Uygulamada iki tür reklam var; banner (ekranda sabit duran şerit) YOK.
   dükkânınızı yeniden açtığınızda otomatik gösterilir; oyun içi bir ödül
   vermez, Google'ın kendi kapatma kontrolüyle geçilir.
 
-Bu reklamları sağlayan **Google AdMob**, reklamı seçip göstermek için
-şunları işleyebilir: reklam kimliği (Android Advertising ID / iOS IDFA),
-cihaz/uygulama bilgisi ve yaklaşık konum (IP üzerinden). Bu veri bize değil,
-doğrudan Google'a gider; MİHENKAYNAK bu veriyi göremez, saklamaz. Google'ın
-bu veriyi nasıl işlediği kendi politikasında yazıyor:
-https://policies.google.com/technologies/ads
+Bu reklamları sağlayan **Google AdMob / Google Mobile Ads SDK**; IP adresi
+ve bundan çıkarılabilen yaklaşık konum, cihaz veya reklam kimlikleri,
+reklam gösterimi ve etkileşim bilgileri, uygulama etkileşimleri, performans
+verileri ve kişiyi doğrudan tanımlamayan çökme/teşhis verilerini işleyebilir.
+Bu işleme reklam sunumu, reklam ölçümü, sahteciliği önleme, güvenlik, analiz
+ve performans iyileştirme amaçlarıyla yapılabilir. Veriler Google'ın
+sistemlerine gider. Güncel teknik kapsam:
+https://developers.google.com/admob/ios/privacy/data-disclosure
+Google politikası: https://policies.google.com/privacy
 
-- **iOS — App Tracking Transparency:** İlk reklamdan önce iOS izin ister
-  ("bu kimlik sana daha ilgili reklam göstermek için kullanılacak").
-  Reddederseniz kişiselleştirilmemiş reklam gösterilmeye devam eder,
-  reklam özelliği kapanmaz.
+- **iOS — App Tracking Transparency:** İlk reklamdan önce iOS izin ister.
+  Reddederseniz IDFA izleme amacıyla kullanılamaz; uygulama çalışmaya devam
+  eder ve reklam varsa kişiselleştirilmemiş veya sınırlı biçimde sunulur.
 - **AB/İngiltere — GDPR onayı:** Google'ın Kullanıcı Mesajlaşma Platformu
-  (UMP) üzerinden, gerekiyorsa bir onay formu gösterilir; onayınızı
-  Ayarlar'dan istediğiniz zaman değiştirebilirsiniz.
+  (UMP) üzerinden, gerekiyorsa bir onay formu gösterilir. Onay vermemek
+  oyunun temel özelliklerini engellemez.
 - Uygulama gerçek bir AdMob hesabına bağlı (bkz. `src/ui/ads.ts`); yeni bir
   reklam biriminin gerçek reklam getirmeye başlaması Google tarafında
   birkaç saati bulabilir.
@@ -86,19 +79,16 @@ yerel depolamada saklanır. Bu veri:
 
 ## Üçüncü taraf hizmetler
 
-Yalnız **Google AdMob** (Google Mobile Ads SDK) — yukarıdaki "Reklamlar"
-bölümünde açıklandı. Bunun dışında uygulama içinde hiçbir üçüncü taraf SDK,
-analitik kütüphanesi veya izleyici bulunmuyor.
+Veri işleyen üçüncü taraf hizmet **Google AdMob**'dur (Google Mobile Ads SDK);
+yukarıdaki "Reklamlar" bölümünde açıklanmıştır. Capacitor uygulama kabuğu
+oyunun cihaz üzerinde çalışmasını sağlar ve ayrı bir hesap/analitik hizmeti
+değildir.
 
 ## Çocukların gizliliği
 
-Oyunun kendisi kişisel veri toplamaz. Reklam tarafında: bu sürüm reklamları
-çocuğa yönelik (child-directed) olarak İŞARETLEMİYOR — hedeflenen mağaza yaş
-derecelendirmesi 4+ / Everyone (şiddet, kumar veya yetişkin içerik yok;
-bkz. `store/ios/checklist.md` ve `store/android/checklist.md` madde 5).
-Gerekirse AdMob'un COPPA/"yaşça uygun reklam deneyimi" ayarları
-(`tagForChildDirectedTreatment`, `maxAdContentRating`, bkz. `src/ui/ads.ts`)
-buna göre güncellenmeli.
+Uygulama genel kitleye yönelik bir simülasyon oyunudur ve kullanıcıdan yaş,
+ad, e-posta veya hesap bilgisi istemez. Bir ebeveyn veya vasi gizlilikle
+ilgili bir sorun olduğunu düşünüyorsa aşağıdaki iletişim adresine yazabilir.
 
 ## Değişiklikler
 

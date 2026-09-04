@@ -16,6 +16,7 @@ export function DayCloseDialog() {
   const risk = weekendRisk(s.market.day, selectors.position(s));
   const tomorrow = s.market.day + 1;
   const open = s.dayCloseConfirmOpen || !!report;
+  const forcedClose = !report && s.market.clockMinutes >= DAY.closeMinutes;
   const lifestyleExpense = lifestyleDailyExpense(s.playerMarket);
   const scaleMaintenance = scaleMaintenanceCost(s.store, s.market.day);
   const scaleMaintenanceDebt = dueScaleMaintenanceDebt(s.store, s.market.day);
@@ -28,7 +29,10 @@ export function DayCloseDialog() {
   }, [open, report?.day]);
   if (!open) return null;
   return <dialog ref={dialogRef} className="dayCloseDialog" aria-labelledby="day-close-title"
-    onCancel={event => { event.preventDefault(); if (!report) s.cancelDayClose(); }}>
+    onCancel={event => {
+      event.preventDefault();
+      if (!report && !forcedClose) s.cancelDayClose();
+    }}>
     {report ? <>
       <h2 id="day-close-title">
         {t('Gün {gun} · {haftaGunu} kapandı', {
@@ -114,6 +118,13 @@ export function DayCloseDialog() {
               }),
         })}
       </p>
+      {s.dayCloseIssue ? (
+        <p role="alert">
+          {s.dayCloseIssue === 'insufficient-funds'
+            ? t('Günlük gider karşılanamadı; gün kapatılmadı.')
+            : t('Gün kapatılamadı: kayıt doğrulanamadı. Tekrar deneyin.')}
+        </p>
+      ) : null}
       {risk ? <p>{risk.note}</p> : null}
       {!isMarketOpen(tomorrow) && (
         <p>
@@ -130,7 +141,7 @@ export function DayCloseDialog() {
       )}
       <div className="dayCloseDialog__actions">
         <button type="button" className="dayCloseDialog__cancel" onClick={s.cancelDayClose} autoFocus>
-          {t('Vazgeç')}
+          {forcedClose ? t('Stoka Bak') : t('Vazgeç')}
         </button>
         <button type="button" className="dayCloseDialog__primary" onClick={s.advanceDay}>
           {t('Günü Bitir')}

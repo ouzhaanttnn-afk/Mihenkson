@@ -14,7 +14,7 @@
  * yalnız "Teslim Et" ile, yalnız tamamlanmış bir iş için hareket eder.
  */
 
-import { t } from '@i18n/index';
+import { localizeCustomerName, t } from '@i18n/index';
 import { SERVICE } from '@domain/balance';
 import { activeJobs, inHouseLoad, overdueJobs, readyJobs } from '@domain/service';
 import { getServiceType } from '@data/service-types';
@@ -32,6 +32,26 @@ export function WorkshopScreen() {
   const active = activeJobs(s.jobs);
   const ready = readyJobs(s.jobs);
   const overdue = overdueJobs(s.jobs, s.market.day);
+  const delivered = s.lastServiceDelivery;
+  const deliveredTitle = delivered?.serviceLabel && delivered.itemName
+    ? `${t(delivered.serviceLabel)} · ${t(delivered.itemName)}`
+    : delivered
+      ? t(delivered.jobName)
+      : '';
+  const deliveredMessage = delivered?.serviceLabel
+    ? !delivered.succeeded
+      ? t('{is} işinde hata oluştu. Tazmin ödendi ve müşteri memnun ayrılmadı.', {
+          is: t(delivered.serviceLabel),
+        })
+      : (delivered.lateDays ?? 0) > 0
+        ? t('{is} tamamlandı ama söz verilen günden {gun} gün sonra teslim edildi.', {
+            is: t(delivered.serviceLabel),
+            gun: delivered.lateDays ?? 0,
+          })
+        : t('{is} sözünde teslim edildi.', { is: t(delivered.serviceLabel) })
+    : delivered
+      ? t(delivered.message)
+      : '';
   const load = inHouseLoad(s.jobs);
   const capacity = s.store.workshopCapacity;
 
@@ -43,12 +63,12 @@ export function WorkshopScreen() {
     <div className="page">
       {/* Kapasite şeridi — sticky (GDD 23.18) */}
       <header className="pageHead">
-        <h1 className="pageHead__title">{t('Atölye')}</h1>
+        <h1 className="pageHead__title" id="workshop-page-title">{t('Atölye')}</h1>
         <p className="pageHead__sub">{t('Servis kuyruğu, kapasite ve teslim sözleri')}</p>
 
         <div className="summaryRow">
           <div className="summaryRow__item">
-            <span className="summaryRow__label">Kapasite</span>
+            <span className="summaryRow__label">{t('Kapasite')}</span>
             <span
               className={`summaryRow__value num ${
                 load >= capacity ? 'summaryRow__value--warning' : ''
@@ -62,7 +82,7 @@ export function WorkshopScreen() {
             <span className="summaryRow__value num">{t('{n} iş', { n: dueToday })}</span>
           </div>
           <div className="summaryRow__item">
-            <span className="summaryRow__label">Gecikme</span>
+            <span className="summaryRow__label">{t('Gecikme')}</span>
             <span
               className={`summaryRow__value num ${
                 overdue.length > 0 ? 'summaryRow__value--negative' : ''
@@ -83,14 +103,19 @@ export function WorkshopScreen() {
         </div>
       </header>
 
-      <div className="page__scroll">
+      <div
+        className="page__scroll"
+        role="region"
+        aria-labelledby="workshop-page-title"
+        tabIndex={0}
+      >
         {s.lastServiceDelivery && (
           <section className={`deliveryResult ${s.lastServiceDelivery.succeeded ? 'deliveryResult--success' : 'deliveryResult--failed'}`} aria-live="polite">
             <div className="deliveryResult__head">
               <div>
                 <span className="deliveryResult__eyebrow">{t('Son teslimat')}</span>
-                <h2>{s.lastServiceDelivery.jobName}</h2>
-                <p>{s.lastServiceDelivery.customerName} · {s.lastServiceDelivery.succeeded ? t('Başarılı') : t('Hatalı sonuç')}</p>
+                <h2>{deliveredTitle}</h2>
+                <p>{localizeCustomerName(s.lastServiceDelivery.customerName)} · {s.lastServiceDelivery.succeeded ? t('Başarılı') : t('Hatalı sonuç')}</p>
               </div>
               <span className="tag">
                 {s.lastServiceDelivery.succeeded ? t('BAŞARILI') : t('HATALI')}
@@ -98,14 +123,14 @@ export function WorkshopScreen() {
             </div>
             <div className="deliveryResult__grid">
               <span>{t('Ücret')} <strong>{tl(s.lastServiceDelivery.fee)}</strong></span>
-              <span>Tazmin <strong>{tl(s.lastServiceDelivery.compensation)}</strong></span>
+              <span>{t('Tazmin')} <strong>{tl(s.lastServiceDelivery.compensation)}</strong></span>
               <span>{t('Net nakit')} <strong>{tl(s.lastServiceDelivery.cashDelta)}</strong></span>
               <span>{t('Net katkı')} <strong>{tl(s.lastServiceDelivery.netContribution)}</strong></span>
               <span>{t('İlişki')} <strong>{s.lastServiceDelivery.trustDelta > 0 ? '+' : ''}{s.lastServiceDelivery.trustDelta}</strong></span>
               <span>{t('İtibar')} <strong>{s.lastServiceDelivery.reputationDelta > 0 ? '+' : ''}{s.lastServiceDelivery.reputationDelta}</strong></span>
             </div>
-            <p className="deliveryResult__message">Risk {pct(s.lastServiceDelivery.risk)} · {s.lastServiceDelivery.message}</p>
-            <button type="button" className="secondary" onClick={s.dismissServiceDelivery}>Devam Et</button>
+            <p className="deliveryResult__message">{t('Risk')} {pct(s.lastServiceDelivery.risk)} · {deliveredMessage}</p>
+            <button type="button" className="secondary" onClick={s.dismissServiceDelivery}>{t('Devam Et')}</button>
           </section>
         )}
         {/* Teslime hazır işler önce — oyuncunun aksiyon alması gerekenler. */}
@@ -202,10 +227,12 @@ export function WorkshopScreen() {
 
         {/* Ekipman — kapasite/hata/süreyi etkiler; pasif üretim yok (GDD 23.18) */}
         <div className="group">
-          <h2 className="group__title">Ekipman</h2>
+          <h2 className="group__title">{t('Ekipman')}</h2>
           <div className="group__body">
             <div className="statLine">
-              <span className="statLine__label">Kademe {s.store.storeTier} ekipman bonusu</span>
+              <span className="statLine__label">
+                {t('Kademe {kademe} ekipman bonusu', { kademe: s.store.storeTier })}
+              </span>
               <span
                 className={`statLine__value num ${
                   equipmentBonus > 0 ? 'statLine__value--positive' : ''
@@ -217,7 +244,7 @@ export function WorkshopScreen() {
               </span>
             </div>
             <div className="statLine">
-              <span className="statLine__label">Personel</span>
+              <span className="statLine__label">{t('Personel')}</span>
               <span className="statLine__value num">
                 {s.store.staff.length === 0
                   ? t('Yok')
@@ -227,7 +254,7 @@ export function WorkshopScreen() {
             <div className="statLine">
               <span className="statLine__label">{t('Yoğunluk risk etkisi')}</span>
               <span className="statLine__value statLine__value--warning num">
-                +{pct(SERVICE.loadRiskWeight)} tam kapasitede
+                {t('+{oran} tam kapasitede', { oran: pct(SERVICE.loadRiskWeight) })}
               </span>
             </div>
           </div>
@@ -285,7 +312,7 @@ function JobRow({
           </span>
         </div>
         <div className="row__meta">
-          {job.itemName} · {job.customerName}
+          {t(job.itemName)} · {localizeCustomerName(job.customerName)}
         </div>
 
         <div className="row__figures">
@@ -300,11 +327,11 @@ function JobRow({
             <span
               className={`figure__value num ${isLate ? 'figure__value--negative' : ''}`}
             >
-              {job.promisedDay}. gün
+              {t('{gun}. gün', { gun: job.promisedDay })}
             </span>
           </span>
           <span className="figure">
-            <span className="figure__label">Hata riski</span>
+            <span className="figure__label">{t('Hata riski')}</span>
             <span
               className={`figure__value num ${
                 job.risk >= 0.3 ? 'figure__value--negative' : ''
@@ -323,7 +350,9 @@ function JobRow({
         {isLate && (
           <div className="rowAlert">
             <IconWarning size={12} />
-            Söz verilen gün geçti · her gün {SERVICE.latePenaltyPerDay} puan güven kaybı
+            {t('Söz verilen gün geçti · her gün {n} puan güven kaybı', {
+              n: SERVICE.latePenaltyPerDay,
+            })}
           </div>
         )}
         {!isLate && job.result === 'pending' && daysToPromise <= 1 && (

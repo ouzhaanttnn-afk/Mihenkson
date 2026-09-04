@@ -7,7 +7,7 @@
  * GDD 11.3: Sabır sayısal skor olarak gösterilmez; nokta dizisiyle okunur.
  */
 
-import { t } from '@i18n/index';
+import { localizeCustomerName, t } from '@i18n/index';
 import { MEMORY } from '@domain/balance';
 import { loyaltyEffects, type CustomerRecord } from '@domain/customer-memory';
 import { getArchetype } from '@data/archetypes';
@@ -39,6 +39,7 @@ function tieTone(record: CustomerRecord): 'good' | 'bad' | 'neutral' {
 export function CustomerStrip({ customer, record, lineCount, broughtItems }: Props) {
   const archetype = getArchetype(customer.archetype);
   const initial = customer.displayName.charAt(0);
+  const customerName = localizeCustomerName(customer.displayName);
 
   return (
     <div className="customerStrip">
@@ -65,9 +66,11 @@ export function CustomerStrip({ customer, record, lineCount, broughtItems }: Pro
           {customer.intent === 'service' && (
             <IconWorkshop size={12} className="customerStrip__repairIcon" />
           )}
-          {customer.displayName}
+          {customerName}
           {lineCount > 1 && (
-            <span style={{ color: 'var(--brass-600)', fontWeight: 500 }}> · {lineCount} ürün</span>
+            <span style={{ color: 'var(--brass-600)', fontWeight: 500 }}>
+              {' · '}{t('{n} ürün', { n: lineCount })}
+            </span>
           )}
         </div>
         <div className="customerStrip__intent">
@@ -111,7 +114,11 @@ export function PatienceDots({ value, max }: { value: number; max: number }) {
   return (
     <div
       className="patience"
+      role="meter"
       aria-label={t('Sabır: {simdi}/{toplam}', { simdi: filled, toplam: total })}
+      aria-valuemin={0}
+      aria-valuemax={total}
+      aria-valuenow={filled}
       title={t('Müşteri sabrı {simdi}/{toplam}', { simdi: filled, toplam: total })}
     >
       {Array.from({ length: total }, (_, i) => (

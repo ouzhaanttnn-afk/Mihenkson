@@ -13,6 +13,7 @@
     "typecheck": "tsc -b --noEmit",
     "i18n": "node tools/i18n-keys.mjs",
     "i18n:audit": "node tools/i18n-audit.mjs",
+    "release:check": "node tools/release-check.mjs",
     "cap:sync": "npm run build && npx cap sync",
     "cap:open:ios": "npx cap open ios",
     "cap:open:android": "npx cap open android",

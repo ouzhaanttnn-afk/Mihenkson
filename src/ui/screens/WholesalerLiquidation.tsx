@@ -100,7 +100,7 @@ function WholesalerLiquidationRow({
           </label>
         )}
         <label className="lotRow__field">
-          <span>Dilim</span>
+          <span>{t('Dilim')}</span>
           <input
             type="number"
             min={1}

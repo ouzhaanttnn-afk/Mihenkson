@@ -83,6 +83,7 @@ import {
   tradeTrustAfterPurchase,
 } from '@domain/wholesaler';
 import { applyMove, createSession, effectiveReservation, isTerminal } from '@domain/negotiation';
+import { localizedMessage } from '@domain/localized-message';
 import { applyTest, estimateBand, initialKnowledge, trueValue } from '@domain/valuation';
 import {
   effectiveCeiling,
@@ -179,6 +180,7 @@ import type {
   AppraisalSession,
   AppraisalStance,
   Customer,
+  CustomerMessage,
   DealLine,
   DealRecord,
   ExitChannel,
@@ -207,6 +209,25 @@ import type {
 
 export type RootTab = 'shop' | 'stock' | 'workshop' | 'market' | 'business';
 
+/**
+ * Oyuncuya gösterilen bir karar yüzeyi varken saatin neden durduğunu
+ * adlandırır. Değerler UI metni değil, test/teşhis anahtarlarıdır.
+ */
+export type ClockPauseReason =
+  | 'profile-setup'
+  | 'management-tab'
+  | 'onboarding'
+  | 'quick-stock'
+  | 'shop-modal'
+  | 'profile'
+  | 'settings'
+  | 'day-close'
+  | 'rewarded-ad'
+  | 'customer-deal';
+
+/** Kapanış onayında oyuncuya gösterilen, kayda girmeyen kurtarma nedeni. */
+export type DayCloseIssue = 'insufficient-funds' | 'save-failed' | null;
+
 export interface ToastMessage {
   id: string;
   text: string;
@@ -215,6 +236,11 @@ export interface ToastMessage {
 
 export interface ServiceDeliverySummary {
   jobId: string;
+  /** Yeni kayıtlarda başlığı etkin dilde yeniden kurmak için semantik alanlar. */
+  serviceLabel?: string;
+  itemName?: string;
+  lateDays?: number;
+  /** Eski kayıtlarla uyumlu birleşik başlık. */
   jobName: string;
   customerName: string;
   succeeded: boolean;
@@ -313,12 +339,16 @@ export interface GameState {
   lastDayReport: import('@domain/settlement').DayReport | null;
   dayCloseConfirmOpen: boolean;
   dayReportOpen: boolean;
+  dayCloseIssue: DayCloseIssue;
   requestDayClose: () => void;
   cancelDayClose: () => void;
   startNewDay: () => void;
   stockCatalogOpen: boolean;
   openStockCatalog: () => void;
   setStockCatalogOpen: (open: boolean) => void;
+  /** Dükkan içindeki yetenek ağacı modalı (yalnız arayüz durumu). */
+  shopTalentTreeOpen: boolean;
+  setShopTalentTreeOpen: (open: boolean) => void;
   setPersonnelCount: (count: number) => void;
   /** Bugünkü personel giderini ödüllü reklamla ücretsizleştirir. */
   requestPersonnelAdWaiver: () => Promise<void>;
@@ -356,7 +386,7 @@ export interface GameState {
   activeCustomer: Customer | null;
   activeDeal: ActiveDeal | null;
   /** Müşterinin son mesajı — aynı yüzeyde gösterilir (GDD 23.24). */
-  customerMessage: string;
+  customerMessage: CustomerMessage;
   lastReview: CaseReview | null;
 
   toasts: ToastMessage[];
@@ -618,7 +648,9 @@ export const useGame = create<GameState>((set, get) => {
     lastDayReport: null,
     dayCloseConfirmOpen: false,
     dayReportOpen: false,
+    dayCloseIssue: null,
     stockCatalogOpen: false,
+    shopTalentTreeOpen: false,
     nextCustomerAtMinutes: DAY.openMinutes + 3,
 
     jobs: [],
@@ -644,11 +676,29 @@ export const useGame = create<GameState>((set, get) => {
       davranışı. İkisini ayırmasaydık alt rotadan çıkış yolu kalmıyordu.
     */
     setTab: (tab) =>
-      set((s) => (s.tab === tab ? { tabHomeSignal: s.tabHomeSignal + 1 } : { tab })),
+      set((s) => {
+        /*
+          19:00'da toparlanmak için Stok/İşletme'ye çıkan oyuncu Dükkan'a
+          döndüğü anda kapanış onayı yeniden açılır. Interval'in ilk
+          500 ms'sini bekleseydik kuyruktaki müşteriye tek dokunuşluk bir
+          "mesai sonrası işlem" yarışı bırakırdık.
+        */
+        if (tab === 'shop' && s.market.clockMinutes >= DAY.closeMinutes) {
+          return {
+            tab,
+            dayCloseConfirmOpen: true,
+            dayCloseIssue: null,
+            stockCatalogOpen: false,
+            shopTalentTreeOpen: false,
+          };
+        }
+        return s.tab === tab ? { tabHomeSignal: s.tabHomeSignal + 1 } : { tab };
+      }),
     // Ana Dükkan'daki hızlı alım, oyuncuyu bağlamından koparmadan sheet açar.
     // Stok ekranındaki aynı katalog kendi açılır tezgâhı olarak yaşamaya devam eder.
     openStockCatalog: () => set({ stockCatalogOpen: true }),
     setStockCatalogOpen: (stockCatalogOpen) => set({ stockCatalogOpen }),
+    setShopTalentTreeOpen: (shopTalentTreeOpen) => set({ shopTalentTreeOpen }),
     setPersonnelCount: (count) => {
       const s = get();
       if (!canSetPersonnel(s.store, count, s.market.day)) return;
@@ -811,8 +861,11 @@ export const useGame = create<GameState>((set, get) => {
     */
     setPreference: (key, value) => {
       const preferences = normalizePreferences({ ...get().preferences, [key]: value });
-      set({ preferences });
+      // Zustand aboneleri `set` içinde senkron çalışır. Sunum modüllerini
+      // önce güncelle ki anahtar ile remount etmeden yapılan React çizimi yeni
+      // dil ve para birimini ilk karede görsün.
       applyDisplayPreferences(preferences);
+      set({ preferences });
       persistPreferences(get());
     },
     restoreOnboarding: () => set({ seenLessons: [] }),
@@ -876,23 +929,31 @@ export const useGame = create<GameState>((set, get) => {
     // -----------------------------------------------------------------------
     tick: (deltaRealSeconds) => {
       const s = get();
-      // Profil penceresi açıkken oyun dünyası donar; oyuncu seçim yaparken
-      // günün ve müşteri kuyruğunun ilerlemesi cezaya dönüşmemeli.
-      // §4 — modal açıkken oyun zamanı durur. Oyuncu ayarlara bakarken
-      // saatin işlemesi, kuyruğun ilerlemesi ve günün akması cezaya dönerdi.
-      // İlk açılış ekranı da bir modaldır: oyuncu adını ve portresini seçerken
-      // gün akmaya başlamamalı — daha dükkâna girmeden müşteri kaçırmasın.
-      if (!s.profileSetupDone) return;
-      if (s.profileOpen || s.settingsOpen || s.dayCloseConfirmOpen || s.dayReportOpen) return;
-      // Aktif pazarlık sırasında saat ilerlemez: oyuncu düşünürken müşteri
-      // sabrı gerçek zamanla erimez (GDD 11 — refleks oyunu değildir).
-      if (s.activeDeal && !isDealFinished(s.activeDeal)) return;
+      /*
+        SAATİN TEK KAPISI.
+
+        Interval'in bugün Dükkan ekranında kuruluyor olması bir zaman politikası
+        değildir: yarın sayaç App'e taşınırsa yönetim ekranları oyuncuyu yeniden
+        cezalandırırdı. Bütün durma sebepleri bu saf seçicide toplanır; tick'i
+        testten ya da başka bir zamanlayıcıdan çağırmak da kuralı delemez.
+      */
+      if (clockPauseReason(s) !== null) return;
 
       const advance = deltaRealSeconds * DAY.minutesPerRealSecond * s.speed;
       const clock = s.market.clockMinutes + advance;
 
       if (clock >= DAY.closeMinutes) {
-        get().advanceDay();
+        /*
+          KAPANIŞ YARIŞINI ÖNLE.
+
+          Son tick'in içinde doğrudan mutabakat yapmak, oyuncu 18:59'da bir
+          düğmeye uzanırken günü ve kasayı habersiz değiştiriyordu. Saat denge
+          sabitindeki kapanışa sabitlenir ve mevcut onay penceresi açılır. Para,
+          kuyruk ve gün ancak oyuncu "Günü Bitir" dediğinde değişir.
+        */
+        const market = stepMarketIntraday(s.market, DAY.closeMinutes);
+        const inventory = revalueInventory(s.inventory, s.items, thesisContext({ ...s, market }));
+        set({ market, inventory, dayCloseConfirmOpen: true, dayCloseIssue: null });
         return;
       }
 
@@ -953,12 +1014,15 @@ export const useGame = create<GameState>((set, get) => {
 
     // -----------------------------------------------------------------------
     greetCustomer: () => {
-      cue(set, get, 'customer');
       const s = get();
+      // Kontrollü kapanış kurtarma ekranlarından Dükkan'a dönüşte de
+      // 19:00 sonrası yeni işlem başlatılamaz (UI yarışına karşı store kapısı).
+      if (s.market.clockMinutes >= DAY.closeMinutes) return;
       if (s.activeDeal && !isDealFinished(s.activeDeal)) return;
 
       let head = s.queue[0];
       if (!head) return;
+      cue(set, get, 'customer');
       const targetId = head.customer.demand?.targetInventoryItemId;
       if (targetId && !showcaseStock(s.inventory, s.items).some(p => p.itemId === targetId)) {
         // Regenerate the SAME spawn's standard demand; no extra arrival/count.
@@ -1183,7 +1247,9 @@ export const useGame = create<GameState>((set, get) => {
           stage: 'jobQueue',
           service: { ...deal.service, createdJobId: job.jobId, outcome: 'accepted' },
         },
-        customerMessage: t('Anlaştık. {gun}. gün için sözünüzü aldım.', { gun: job.promisedDay }),
+        customerMessage: localizedMessage('Anlaştık. {gun}. gün için sözünüzü aldım.', {
+          gun: { kind: 'raw', value: job.promisedDay },
+        }),
       });
     },
 
@@ -1197,7 +1263,7 @@ export const useGame = create<GameState>((set, get) => {
           stage: 'jobQueue',
           service: { ...deal.service, outcome: 'declined' },
         },
-        customerMessage: t('Peki, başka yere bakayım.'),
+        customerMessage: localizedMessage('Peki, başka yere bakayım.'),
       });
     },
 
@@ -1253,6 +1319,9 @@ export const useGame = create<GameState>((set, get) => {
         ),
         lastServiceDelivery: {
           jobId: job.jobId,
+          serviceLabel: getServiceType(job.type).label,
+          itemName: job.itemName,
+          lateDays: delivery.lateDays,
           jobName: `${getServiceType(job.type).label} · ${job.itemName}`,
           customerName: job.customerName,
           succeeded: delivery.succeeded,
@@ -1403,7 +1472,7 @@ export const useGame = create<GameState>((set, get) => {
           stage: 'result',
           appraisal: { ...deal.appraisal, outcome: 'declined' },
         },
-        customerMessage: t('Anlıyorum, başka bir yere sorayım.'),
+        customerMessage: localizedMessage('Anlıyorum, başka bir yere sorayım.'),
       });
     },
 
@@ -2190,10 +2259,32 @@ export const useGame = create<GameState>((set, get) => {
 
     requestDayClose: () => {
       const s = get();
-      if (s.dayReportOpen || (s.activeDeal && !isDealFinished(s.activeDeal))) return;
-      set({ dayCloseConfirmOpen: true });
+      // Sonuç kartı da müşteri işleminin parçasıdır; oyuncu incelemeden
+      // günü kapatıp kartı kaybetmemeli.
+      if (s.dayReportOpen || s.activeDeal) return;
+      set({ dayCloseConfirmOpen: true, dayCloseIssue: null });
     },
-    cancelDayClose: () => set({ dayCloseConfirmOpen: false }),
+    cancelDayClose: () => {
+      const s = get();
+      if (s.market.clockMinutes >= DAY.closeMinutes) {
+        /*
+          ZORUNLU KAPANIŞ KURTARMA YOLU.
+
+          Gideri karşılayamayan oyuncuyu modalda kilitlemek yerine Stok'a
+          çıkar: orada toptancıya tasfiye yapabilir, alt navigasyondan
+          İşletme'ye geçip borç/tedarik hesaplarını düzenleyebilir. Saat tam
+          19:00'da kalır ve yönetim sekmeleri zaten pause'dur. Dükkan'a dönüş
+          `setTab` tarafından onayı anında yeniden açar.
+
+          Aynı yol kalıcı save hatasında da güvenli çıkış verir; oyuncu
+          "Günü Bitir" ile dilediği zaman yeniden deneyebilir.
+        */
+        set({ dayCloseConfirmOpen: false, dayCloseIssue: null, tab: 'stock' });
+        return;
+      }
+      // Erken kapanış onayı her zaman iptal edilebilir.
+      set({ dayCloseConfirmOpen: false, dayCloseIssue: null });
+    },
     startNewDay: () => {
       const s = get();
       if (!s.dayReportOpen) return;
@@ -2213,7 +2304,11 @@ export const useGame = create<GameState>((set, get) => {
         lifestyleDailyExpense(s.playerMarket),
         s.personnelCostWaivedToday,
       );
-      if (!applied) { pushToast(set, get, t('Günlük gider karşılanamadı; gün kapatılmadı.'), 'negative'); return; }
+      if (!applied) {
+        set({ dayCloseIssue: 'insufficient-funds' });
+        pushToast(set, get, t('Günlük gider karşılanamadı; gün kapatılmadı.'), 'negative');
+        return;
+      }
       const nextDay = s.market.day + 1;
       const market = createMarketForDay(s.seed, nextDay, s.market);
 
@@ -2275,6 +2370,7 @@ export const useGame = create<GameState>((set, get) => {
         lastDayReport: { ...report, overnightSummary: overnightOutcome.summary },
         dayCloseConfirmOpen: false,
         dayReportOpen: true,
+        dayCloseIssue: null,
         activeCustomer: null,
         activeDeal: null,
         nextCustomerAtMinutes: DAY.openMinutes + 3,
@@ -2285,6 +2381,7 @@ export const useGame = create<GameState>((set, get) => {
       // yazılabildiğini doğrula. Kayıt başarısızsa oyuncu eski günde kalır;
       // sessiz ilerleme kaybı yerine güvenle tekrar deneyebilir.
       if (!writeSave({ ...s, ...nextState } as GameState)) {
+        set({ dayCloseIssue: 'save-failed' });
         pushToast(set, get, t('Gün kapatılamadı: kayıt doğrulanamadı. Tekrar deneyin.'), 'negative');
         return;
       }
@@ -2412,9 +2509,9 @@ export const useGame = create<GameState>((set, get) => {
       if (!loaded) return false;
       // Oyuncu devam etmeyi seçti: "Kaydı sil"den kalan yazma kilidi kalkar.
       resumeSaves();
-      set(loaded);
-      // Kayıttaki dil ve para birimi ekrana da uygulanmalı.
+      // Aboneler yüklenmiş tercihle çizilmeden önce sunum modüllerini kur.
       applyDisplayPreferences(loaded.preferences);
+      set(loaded);
       pushToast(set, get, t('Kayıt yüklendi · Gün {gun}', { gun: loaded.market.day }), 'info');
       return true;
     },
@@ -3114,30 +3211,32 @@ function allLinesResolved(lines: DealLine[]): boolean {
   return lines.every((l) => isTerminal(l.negotiation.state));
 }
 
-function openingLine(customer: Customer): string {
+function openingLine(customer: Customer): CustomerMessage {
   switch (customer.intent) {
     case 'sell':
       return customer.lineIds.length > 1
-        ? t('Birkaç parça getirdim, bakar mısınız?')
-        : t('Bunu bozdurmak istiyorum.');
+        ? localizedMessage('Birkaç parça getirdim, bakar mısınız?')
+        : localizedMessage('Bunu bozdurmak istiyorum.');
     case 'buy':
       // Talep spawn anında sabittir; müşteri ne aradığını ilk cümlede söyler
       // ki oyuncu stok seçimine bilgiyle girsin (GDD 23.23).
       return customer.demand
-        ? t('{ne} için geldim.', { ne: customer.demand.summary })
-        : t('Bir şeye bakıyordum.');
+        ? localizedMessage('{ne} için geldim.', {
+            ne: { kind: 'demand', value: customer.demand },
+          })
+        : localizedMessage('Bir şeye bakıyordum.');
     case 'service':
-      return t('Bunun tamiri mümkün mü?');
+      return localizedMessage('Bunun tamiri mümkün mü?');
     case 'appraisal':
-      return t('Bunun değerini öğrenmek istiyorum.');
+      return localizedMessage('Bunun değerini öğrenmek istiyorum.');
   }
 }
 
-function patienceComment(customer: Customer): string {
+function patienceComment(customer: Customer): CustomerMessage {
   const ratio = customer.patience / Math.max(1, customer.patienceMax);
-  if (ratio < 0.25) return t('Biraz acelem var, uzattık.');
-  if (ratio < 0.5) return t('Peki, bakın bakalım.');
-  return t('Buyurun, inceleyin.');
+  if (ratio < 0.25) return localizedMessage('Biraz acelem var, uzattık.');
+  if (ratio < 0.5) return localizedMessage('Peki, bakın bakalım.');
+  return localizedMessage('Buyurun, inceleyin.');
 }
 
 // UI-only sequence: never consume the simulation RNG for notification IDs.
@@ -3159,6 +3258,47 @@ function clamp(n: number, lo: number, hi: number): number {
 /* Para birimi ve sayı yereli tek yerden — bkz. `@i18n/money`. */
 const fmt = tl;
 
+/** GDD 25 bağlamını hem ders seçicisi hem saat politikası kullanır. */
+function coachContextOf(s: GameState): CoachContext {
+  const deal = s.activeDeal;
+  const line = deal ? activeLine(deal) : undefined;
+  const item = line ? s.items[line.itemId] : undefined;
+
+  return {
+    day: s.market.day,
+    hasCustomer: s.activeCustomer !== null,
+    queueLength: s.queue.length,
+    flow: deal?.flow ?? null,
+    stage: deal?.stage ?? null,
+    transactionClass: item ? transactionClass(item) : null,
+    testsRun: line?.testResults.length ?? 0,
+    hasBand: line?.band !== null && line?.band !== undefined,
+    stockUnits: s.inventory.reduce((n, p) => n + p.quantity, 0),
+  };
+}
+
+/**
+ * Simülasyon saatinin merkezi duraklatma politikası.
+ *
+ * Yalnız boş Dükkan tezgâhında, oyuncunun önünde okunacak bir ders veya
+ * karar penceresi yokken zaman akar. Yönetim sekmelerinde oyuncu bilgi
+ * toplar; onu gerçek zaman baskısıyla cezalandırmak bu oyunu refleks oyununa
+ * çevirirdi. Aktif işlemin sonuç kartı da işlemin parçasıdır.
+ */
+export function clockPauseReason(s: GameState): ClockPauseReason | null {
+  if (!s.profileSetupDone) return 'profile-setup';
+  if (s.tab !== 'shop') return 'management-tab';
+  if (s.profileOpen) return 'profile';
+  if (s.settingsOpen) return 'settings';
+  if (s.dayCloseConfirmOpen || s.dayReportOpen) return 'day-close';
+  if (s.stockCatalogOpen) return 'quick-stock';
+  if (s.shopTalentTreeOpen) return 'shop-modal';
+  if (s.rewardedAdPending !== null) return 'rewarded-ad';
+  if (s.activeDeal !== null) return 'customer-deal';
+  if (nextLesson(coachContextOf(s), s.seenLessons) !== null) return 'onboarding';
+  return null;
+}
+
 // UI'nin ihtiyaç duyduğu türetilmiş seçiciler.
 export const selectors = {
   /** İşlem Akışı §2 — aktif kalemin işlem sınıfı ve akış politikası. */
@@ -3174,26 +3314,13 @@ export const selectors = {
    * Ders koşulları saf fonksiyonlardır ve YALNIZ bu bağlamı görür; store'un
    * tamamını görselerdi test edilemez, sırası da denetlenemez olurdu.
    */
-  coachContext: (s: GameState): CoachContext => {
-    const deal = s.activeDeal;
-    const line = deal ? activeLine(deal) : undefined;
-    const item = line ? s.items[line.itemId] : undefined;
-
-    return {
-      day: s.market.day,
-      hasCustomer: s.activeCustomer !== null,
-      queueLength: s.queue.length,
-      flow: deal?.flow ?? null,
-      stage: deal?.stage ?? null,
-      transactionClass: item ? transactionClass(item) : null,
-      testsRun: line?.testResults.length ?? 0,
-      hasBand: line?.band !== null && line?.band !== undefined,
-      stockUnits: s.inventory.reduce((n, p) => n + p.quantity, 0),
-    };
-  },
+  coachContext: coachContextOf,
 
   /** GDD 25 — şu an gösterilecek ders; yoksa null. */
   lesson: (s: GameState) => nextLesson(selectors.coachContext(s), s.seenLessons),
+
+  /** Saatin neden durduğu; null ise simülasyon akabilir. */
+  clockPauseReason,
 
   /** §5 — bugünkü pozisyon (gün içinde canlı; kapanışta sabitlenir). */
   position: (s: GameState) =>

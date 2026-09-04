@@ -62,7 +62,8 @@ export interface SaveFile {
   /** Bugün personel reklam kirası izlendi mi — bkz. `closeDay` 5. parametresi. */
   personnelCostWaivedToday?: boolean;
   lastDayReport?: GameState['lastDayReport'];
-  customerMessage?: string;
+  /** Yapısal mesajlar yeniden yerelleşir; eski kayıtlar düz string taşır. */
+  customerMessage?: GameState['customerMessage'];
   version: number;
   /** Yazıldığı gerçek zaman; eski kayıtlarda bulunmayabilir. */
   savedAt?: number;

@@ -41,7 +41,6 @@
 import { Capacitor } from '@capacitor/core';
 import {
   AdMob,
-  AdmobConsentStatus,
   InterstitialAdPluginEvents,
   RewardAdPluginEvents,
   type AdMobRewardItem,
@@ -75,30 +74,72 @@ function platformOf(): 'android' | 'ios' | null {
   return platform === 'android' || platform === 'ios' ? platform : null;
 }
 
-let initPromise: Promise<void> | null = null;
+type PrivacyOptionsRequirement = 'UNKNOWN' | 'REQUIRED' | 'NOT_REQUIRED';
+
+interface AdConsentGate {
+  canRequestAds: boolean;
+  privacyOptionsRequirement: PrivacyOptionsRequirement;
+}
+
+let initPromise: Promise<AdConsentGate> | null = null;
 
 /**
- * SDK'yı, iOS App Tracking Transparency iznini ve GDPR (UMP) onay akışını
- * tek seferlik hazırlar. Sıralama AdMob'un kendi önerdiği sırayla aynı:
- * initialize → (iOS'ta gerekirse) ATT izni → GDPR onayı gerekiyorsa form.
+ * SDK'yı ve Google UMP onay akışını tek seferlik hazırlar. Reklam isteği
+ * ancak UMP `canRequestAds` döndürdükten sonra açılır. ATT/IDFA açıklaması
+ * AdMob konsolundaki UMP mesajı tarafından yönetilir; burada ayrıca sistem
+ * istemi çağırıp kullanıcıya iki farklı onay akışı göstermeyiz.
  */
-function ensureInitialized(): Promise<void> {
+function ensureInitialized(): Promise<AdConsentGate> {
   if (!initPromise) {
     initPromise = (async () => {
       await AdMob.initialize();
 
-      const tracking = await AdMob.trackingAuthorizationStatus();
-      if (tracking.status === 'notDetermined') {
-        await AdMob.requestTrackingAuthorization();
+      let consent = await AdMob.requestConsentInfo();
+      if (
+        !consent.canRequestAds &&
+        consent.isConsentFormAvailable
+      ) {
+        consent = await AdMob.showConsentForm();
       }
-
-      const consent = await AdMob.requestConsentInfo();
-      if (consent.status === AdmobConsentStatus.REQUIRED && consent.isConsentFormAvailable) {
-        await AdMob.showConsentForm();
-      }
-    })();
+      return {
+        canRequestAds: consent.canRequestAds,
+        privacyOptionsRequirement: consent.privacyOptionsRequirementStatus,
+      };
+    })().catch((error) => {
+      // Ağ/UMP hatasında daha sonraki kullanıcı eylemi yeniden deneyebilsin.
+      initPromise = null;
+      throw error;
+    });
   }
   return initPromise;
+}
+
+export type AdPrivacyOptionsResult = 'shown' | 'not-required' | 'unavailable' | 'failed';
+
+/** Native Ayarlar'daki Google UMP gizlilik tercihleri giriş noktası. */
+export async function showAdPrivacyOptions(): Promise<AdPrivacyOptionsResult> {
+  if (!Capacitor.isNativePlatform()) return 'unavailable';
+  try {
+    const consent = await ensureInitialized();
+    if (consent.privacyOptionsRequirement === 'UNKNOWN') {
+      return 'unavailable';
+    }
+    if (consent.privacyOptionsRequirement === 'NOT_REQUIRED') {
+      return 'not-required';
+    }
+    await AdMob.showPrivacyOptionsForm();
+    // Form sonrasında izin durumu değişmiş olabilir; bir sonraki reklamın
+    // güncel `canRequestAds` kararını yeniden almasını sağla.
+    initPromise = null;
+    return 'shown';
+  } catch (error) {
+    console.warn('[ads] Gizlilik tercihleri açılamadı:', error);
+    return 'failed';
+  }
+}
+
+export function adPrivacyOptionsSupported(): boolean {
+  return Capacitor.isNativePlatform();
 }
 
 /**
@@ -119,7 +160,7 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
   if (!unitId) return false;
 
   try {
-    await ensureInitialized();
+    if (!(await ensureInitialized()).canRequestAds) return false;
     await AdMob.prepareRewardVideoAd({ adId: unitId });
   } catch (err) {
     console.warn('[ads] Reklam yüklenemedi:', err);
@@ -169,7 +210,7 @@ export async function showInterstitialAd(): Promise<void> {
   if (!unitId) return;
 
   try {
-    await ensureInitialized();
+    if (!(await ensureInitialized()).canRequestAds) return;
     await AdMob.prepareInterstitial({ adId: unitId });
   } catch (err) {
     console.warn('[ads] Geçiş reklamı yüklenemedi:', err);

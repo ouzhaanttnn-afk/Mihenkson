@@ -31,7 +31,7 @@
       "400": "#D8B463",
       "500": "#C9A04A",
       "600": "#A8823A",
-      "700": "#80611F"
+      "700": "#775018"
     },
     "amethyst": {
       "300": "#A87FD6",
@@ -44,7 +44,9 @@
       "positiveSoft": "#4E9E52",
       "negative": "#C62828",
       "negativeSoft": "#D9564F",
+      "negativeOnDark": "#DF625B",
       "warning": "#C9822E",
+      "warningOnLight": "#9D641D",
       "neutral": "#6E6A63"
     },
     "text": {

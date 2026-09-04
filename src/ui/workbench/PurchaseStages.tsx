@@ -23,7 +23,13 @@
  */
 
 import { t } from '@i18n/index';
-import { demandOutcome, matchDemand, type DemandMatch, type DemandOutcome } from '@domain/purchase';
+import {
+  demandOutcome,
+  localizedDemandSummary,
+  matchDemand,
+  type DemandMatch,
+  type DemandOutcome,
+} from '@domain/purchase';
 import { getTemplate } from '@data/item-templates';
 import { IconPackage, IconWarning, ProductSilhouette } from '@ui/icons';
 import { tl } from '@ui/format';
@@ -75,7 +81,7 @@ export function StockPickStage({
           <IconPackage size={20} />
         </span>
         <div>
-          <h2 className="svc__title">{demand.summary}</h2>
+          <h2 className="svc__title">{localizedDemandSummary(demand)}</h2>
           <p className="svc__meta">
             {demand.targetInventoryItemId
               ? t('★ Vitrin Müşterisi')

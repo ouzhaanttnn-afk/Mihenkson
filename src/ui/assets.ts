@@ -20,7 +20,7 @@
  * Varlık bulunamazsa <Art> bileşeni SVG ikonuna düşer — kırık görsel yok.
  */
 
-import { t } from '@i18n/index';
+import { localizeCustomerName, t } from '@i18n/index';
 import type { Silhouette } from '@ui/icons';
 
 /** Paket içindeki göreli yol → uygulama URL'i. Vite `base: './'` ile uyumlu. */
@@ -213,7 +213,7 @@ function stableIndex(key: string, length: number): number {
 export function customerArt(displayName: string): Art {
   const pool = displayName.endsWith('Hanım') ? CUSTOMER_F : CUSTOMER_M;
   const picked = pool[stableIndex(displayName, pool.length)] ?? CUSTOMER_M[0]!;
-  return { src: picked.src, alt: t('{ad} portresi', { ad: displayName }) };
+  return { src: picked.src, alt: t('{ad} portresi', { ad: localizeCustomerName(displayName) }) };
 }
 
 export function merchantArt(memberId: string, name: string): Art {

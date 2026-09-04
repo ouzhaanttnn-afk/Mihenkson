@@ -170,10 +170,14 @@ describe('oyun zamanı', () => {
     expect(useGame.getState().market.clockMinutes).toBe(before);
   });
 
-  it('tamamlanınca kaldığı yerden akar — kalıcı donma olmaz', () => {
+  it('profil tamamlanınca ilk ders okunana kadar durur; ders kapanınca akar', () => {
     const before = useGame.getState().market.clockMinutes;
 
     useGame.getState().completeProfileSetup({ jewelerName: 'Alvera', avatarId: 'male-01' });
+    useGame.getState().tick(60);
+    expect(useGame.getState().market.clockMinutes).toBe(before);
+
+    useGame.getState().dismissLesson('welcome');
     useGame.getState().tick(60);
 
     expect(useGame.getState().market.clockMinutes).toBeGreaterThan(before);

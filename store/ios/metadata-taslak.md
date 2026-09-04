@@ -1,7 +1,6 @@
 # iOS — App Store metadata taslağı
 
-Kopyala/yapıştır için hazırlanmış taslak. `[DOLDURULACAK]` işaretli yerler
-uydurulmadı; senin karar vereceğin alanlar.
+Kopyala/yapıştır için hazırlanmış, yayın öncesi son kez gözden geçirilecek taslak.
 
 ## Uygulama adı (≤30 karakter)
 ```
@@ -43,8 +42,9 @@ hikâyenin doğru olduğu garanti değildir. Mihenk taşı, terazi ve yoğunluk
   riski taşır. Pazar ikisi de kapalı.
 • Türkçe ve İngilizce; ₺ ve $ gösterimi.
 
-İsteğe bağlı ödüllü reklam var (Google AdMob) — yalnız oyuncu "reklamla aç"a
-dokununca gösterilir; izleyici/analitik yok, kayıt yalnız cihazında durur.
+İsteğe bağlı ödüllü reklam ve hafta açılışında geçiş reklamı var (Google AdMob).
+Geliştiriciye ait ek analitik yoktur; AdMob gizlilik politikasında açıklanan
+reklam etkileşimi ve teşhis verilerini işleyebilir. Kayıt yalnız cihazında durur.
 ```
 
 ## Anahtar kelimeler (≤100 karakter, virgülle, boşluksuz)
@@ -55,17 +55,19 @@ kuyumcu,sarraf,altın,simülasyon,dükkan,pazarlık,ekonomi,tycoon,jewelry,gold
 ## Alt kategori
 ```
 Birincil: Oyun > Simülasyon
-İkincil: Oyun > Strateji  [DOLDURULACAK — App Store Connect'te seçilecek]
+İkincil: Oyun > Strateji
 ```
 
 ## Destek ve pazarlama
 ```
-Destek URL'si:     mailto:nostoscomp@gmail.com  (GEÇİCİ — Apple gerçek bir
-                   web sayfası tercih eder; bir destek sayfan olursa onu kullan)
-Pazarlama URL'si:  [DOLDURULACAK] (opsiyonel)
-Gizlilik politikası URL'si: https://claude.ai/code/artifact/820c2ec1-26f3-4271-847b-a8ff36829f51
+Destek URL'si (Türkçe): https://alpersonmihenk-chi.vercel.app/support.html
+Support URL (English):  https://alpersonmihenk-chi.vercel.app/support-en.html
+Pazarlama URL'si:  https://alpersonmihenk-chi.vercel.app/ (opsiyonel)
+Gizlilik politikası URL'si (Türkçe): https://alpersonmihenk-chi.vercel.app/privacy.html
+Privacy Policy URL (English):        https://alpersonmihenk-chi.vercel.app/privacy-en.html
 ```
-✅ Sayfa herkese açık — doğrulandı (bkz. `../legal/gizlilik-politikasi.md`).
+App Store Connect'te Türkçe ve English yerelleştirmelerine karşılık gelen URL'yi
+ayrı gir. Dağıtımdan sonra sayfaları oturum kapalıyken doğrula (bkz. `../legal/`).
 
 ## Telif hakkı satırı
 ```

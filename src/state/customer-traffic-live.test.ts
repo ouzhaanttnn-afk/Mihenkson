@@ -24,6 +24,7 @@ import { createMarketForDay } from '@domain/market';
 import { dayCharacter } from '@domain/intent';
 import { DAY, START } from '@domain/balance';
 import { customerDensity } from '@domain/customer-traffic';
+import { LESSONS } from '@domain/onboarding';
 
 const SEED = 456;
 const initial = useGame.getState();
@@ -44,6 +45,8 @@ function gunuOynat(gun: number, reputation: number, storeTier: 1 | 2 | 3 | 4 | 5
       profileOpen: false,
       // Karşılama ekranı açıkken saat donuyor; ölçüm için kapalı olmalı.
       profileSetupDone: true,
+      // Trafik ölçümü onboarding dersinde beklememeli.
+      seenLessons: LESSONS.map((lesson) => lesson.id),
       spawnCounter: 0,
       nextCustomerAtMinutes: DAY.openMinutes,
       missedGuestCountToday: 0,

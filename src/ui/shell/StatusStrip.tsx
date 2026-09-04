@@ -45,6 +45,9 @@ export function StatusStrip({
   onEditProfile,
 }: Props) {
   const xpRatio = Math.min(1, store.xp / Math.max(1, store.xpToNext));
+  const profileAriaLabel = `${t('Profili düzenle — {ad}', {
+    ad: profile.jewelerName,
+  })}. ${t('XP')}: ${store.xp}/${store.xpToNext}`;
 
   return (
     <header className="statusStrip">
@@ -69,7 +72,7 @@ export function StatusStrip({
         type="button"
         className="profileChip"
         onClick={onEditProfile}
-        aria-label={t('Profili düzenle — {ad}', { ad: profile.jewelerName })}
+        aria-label={profileAriaLabel}
       >
         <span className={`profileChip__avatar ${profileFrame ? `profileChip__avatar--${profileFrame}` : ''}`}>
           <Art
@@ -92,17 +95,23 @@ export function StatusStrip({
               {store.xp}/{store.xpToNext}
             </span>
           </span>
-          <span className="statusStrip__xpBar">
-            <span className="statusStrip__xpFill" style={{ width: `${xpRatio * 100}%` }} />
+          <span className="statusStrip__xpBar" aria-hidden="true">
+            <span
+              className="statusStrip__xpFill"
+              style={{ width: `${xpRatio * 100}%` }}
+            />
           </span>
         </span>
       </button>
 
       <div
         className="statusStrip__clock"
+        role="timer"
+        aria-live="off"
+        aria-atomic="true"
         aria-label={t('Gün {gun}, {haftaGunu}, saat {saat}', {
           gun: market.day,
-          haftaGunu: weekdayLabel(market.day),
+          haftaGunu: t(weekdayLabel(market.day)),
           saat: clock(market.clockMinutes),
         })}
       >

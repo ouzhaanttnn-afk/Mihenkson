@@ -13,6 +13,7 @@ import {
 import { useGame } from '@state/gameStore';
 import { IconCash, IconCollection, IconLock, IconMarket } from '@ui/icons';
 import { tl } from '@ui/format';
+import { useModalSurface } from '@ui/useModalSurface';
 
 const PRODUCT_MARK: Record<MarketCategory, string> = {
   profile: '◆', frames: '◈', shop: '▣', decoration: '◇', collection: '♛', lifestyle: '✦',
@@ -155,16 +156,19 @@ export function MarketPlaceholderScreen() {
         </section>
       )}
 
-      <nav className="marketCategories" aria-label={t('Market kategorileri')}>
-        {MARKET_CATEGORIES.map((item) => (
-          <button key={item.id} type="button" className={`marketCategory ${category === item.id ? 'marketCategory--active' : ''}`}
-            onClick={() => setCategory(item.id)} aria-pressed={category === item.id}>
-            <span>{PRODUCT_MARK[item.id]}</span>{t(item.label)}
-          </button>
-        ))}
-      </nav>
+      <div className="horizontalRailWrap marketCategoriesWrap">
+        <nav className="marketCategories" aria-label={t('Market kategorileri')}>
+          {MARKET_CATEGORIES.map((item) => (
+            <button key={item.id} type="button" className={`marketCategory ${category === item.id ? 'marketCategory--active' : ''}`}
+              onClick={() => setCategory(item.id)} aria-pressed={category === item.id}>
+              <span>{PRODUCT_MARK[item.id]}</span>{t(item.label)}
+            </button>
+          ))}
+        </nav>
+        <span className="horizontalRailCue" aria-hidden="true">›</span>
+      </div>
 
-      <main className="marketCatalog">
+      <section className="marketCatalog" aria-label={t('Market')}>
         <div className="marketCatalog__intro">
           <div>
             <strong>{t(MARKET_CATEGORIES.find((item) => item.id === category)?.label ?? '')}</strong>
@@ -223,29 +227,77 @@ export function MarketPlaceholderScreen() {
             );
           })}
         </div>
-      </main>
+      </section>
 
       {pending && (
-        <div className="marketConfirmScrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPending(null); }}>
-          <section className="marketConfirm" role="dialog" aria-modal="true" aria-labelledby="market-confirm-title">
-            <span className="marketConfirm__eyebrow">{t('Pahalı satın alma')}</span><h2 id="market-confirm-title">{t(pending.name)}</h2>
-            <p>
-              {t('{tutar} ödenecek.', { tutar: tl(pending.price) })}{' '}
-              {t('İşlemden sonra kasanda {kalan} kalacak.', {
-                kalan: tl(Math.max(0, s.store.cash - pending.price)),
-              })}
-            </p>
-            {(pending.dailyUpkeep ?? 0) > 0 && (
-              <p className="marketConfirm__upkeep">
-                {t('Her gün kapanışında ayrıca {tutar} bakım gideri işleyecek.', {
-                  tutar: tl(pending.dailyUpkeep ?? 0),
-                })}
-              </p>
-            )}
-            <div className="marketConfirm__actions"><button type="button" className="secondary" onClick={() => setPending(null)} autoFocus>{t('Vazgeç')}</button><button type="button" className="cta" onClick={confirmPurchase}>{t('Satın Al')}</button></div>
-          </section>
-        </div>
+        <MarketPurchaseDialog
+          product={pending}
+          cash={s.store.cash}
+          onClose={() => setPending(null)}
+          onConfirm={confirmPurchase}
+        />
       )}
+    </div>
+  );
+}
+
+function MarketPurchaseDialog({
+  product,
+  cash,
+  onClose,
+  onConfirm,
+}: {
+  product: MarketProduct;
+  cash: number;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const { dialogRef, initialFocusRef } = useModalSurface(onClose);
+
+  return (
+    <div
+      className="marketConfirmScrim"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        ref={dialogRef}
+        className="marketConfirm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="market-confirm-title"
+        aria-describedby="market-confirm-description"
+        tabIndex={-1}
+      >
+        <span className="marketConfirm__eyebrow">{t('Pahalı satın alma')}</span>
+        <h2 id="market-confirm-title">{t(product.name)}</h2>
+        <p id="market-confirm-description">
+          {t('{tutar} ödenecek.', { tutar: tl(product.price) })}{' '}
+          {t('İşlemden sonra kasanda {kalan} kalacak.', {
+            kalan: tl(Math.max(0, cash - product.price)),
+          })}
+        </p>
+        {(product.dailyUpkeep ?? 0) > 0 && (
+          <p className="marketConfirm__upkeep">
+            {t('Her gün kapanışında ayrıca {tutar} bakım gideri işleyecek.', {
+              tutar: tl(product.dailyUpkeep ?? 0),
+            })}
+          </p>
+        )}
+        <div className="marketConfirm__actions">
+          <button
+            ref={initialFocusRef}
+            type="button"
+            className="secondary"
+            onClick={onClose}
+          >
+            {t('Vazgeç')}
+          </button>
+          <button type="button" className="cta" onClick={onConfirm}>{t('Satın Al')}</button>
+        </div>
+      </section>
     </div>
   );
 }

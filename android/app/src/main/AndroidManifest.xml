@@ -7,7 +7,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <!-- AdMob (bkz. src/ui/ads.ts) — App ID @string/admob_app_id, şu an GEÇİCİ test kimliği. -->
+        <!-- AdMob (bkz. src/ui/ads.ts) — üretim App ID'si @string/admob_app_id içinde tutulur. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/admob_app_id" />

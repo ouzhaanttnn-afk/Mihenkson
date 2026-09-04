@@ -9,14 +9,13 @@
  *   Titreşim          → GERÇEKTEN ÇALIŞIR (destekleyen cihazda; iOS'ta API yok)
  *   Dil               → GERÇEKTEN ÇALIŞIR (tr / en)
  *   Para birimi       → GERÇEKTEN ÇALIŞIR (₺ / $) — yalnız GÖSTERİM
- *   Hesap             → App Store / Play Store bağlama — YER TUTUCU, arka
- *                        uç yok; basınca "yakında" bildirir (bkz. aşağıda)
+ *   Kayıt             → bugünkü gerçek davranış: cihazda otomatik yerel kayıt
+ *   Yasal / destek    → yayımlanmış HTTPS gizlilik ve destek sayfaları
  *
- * "YENİ OYUN / KAYDI SİL" KALDIRILDI (bir zamanlar buradaydı). Kayıt bulut
- * tabanlı bir hesaba taşınınca yerel "kaydı sil" düğmesinin anlamı kalmadı;
- * sıfırlama artık hesap tarafında olacak. `resetGame` mağaza eylemi hâlâ
- * duruyor (testler ve ileride hesap çıkışı onu kullanabilir) — kaldırılan
- * yalnız bu penceredeki DÜĞMEYDİ.
+ * "YENİ OYUN / KAYDI SİL" bu pencerede sunulmaz. `resetGame` mağaza eylemi
+ * testler ve ileride açık bir sıfırlama akışı için durur. Henüz var olmayan
+ * bulut hesap özelliği ise App Review'da yarım özellik gibi görünmesin diye
+ * burada vaat edilmez.
  *
  * "MÜZİK" ANAHTARI VE "MÜZİK DÜZEYİ" DE KALDIRILDI. Kullanıcı geri bildirimi:
  * "müziği beğenmedim" → önce varsayılan kapatıldı, sonra kullanıcı özelliğin
@@ -45,7 +44,7 @@
  * döner (odak tuzağı) — aksi halde klavye kullanıcısı arkadaki oyuna düşer.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import {
   CURRENCIES,
@@ -59,8 +58,19 @@ import { pct } from '@ui/format';
 import { t } from '@i18n/index';
 import { hapticsSupported, playHaptic } from '@ui/haptics';
 import { audioStatus, playSound, unlockAudio } from '@ui/audio';
-import { IconAppStore, IconPlayStore } from '@ui/icons';
+import { adPrivacyOptionsSupported, showAdPrivacyOptions } from '@ui/ads';
+import { soundTestNoteText, type SoundTestNote } from '@ui/transient-copy';
+import { useModalSurface } from '@ui/useModalSurface';
 import { useGame } from '@state/gameStore';
+
+const PRIVACY_URL = {
+  tr: 'https://alpersonmihenk-chi.vercel.app/privacy.html',
+  en: 'https://alpersonmihenk-chi.vercel.app/privacy-en.html',
+} as const;
+const SUPPORT_URL = {
+  tr: 'https://alpersonmihenk-chi.vercel.app/support.html',
+  en: 'https://alpersonmihenk-chi.vercel.app/support-en.html',
+} as const;
 
 export function SettingsDialog() {
   const open = useGame((s) => s.settingsOpen);
@@ -89,49 +99,11 @@ export function SettingsDialog() {
       (/iP(hone|ad|od)/.test(navigator.userAgent) ||
         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)),
   );
-  const [sesNotu, setSesNotu] = useState(() =>
-    t('Kısa bir tıngırtı çalar; ses yolunun çalışıp çalışmadığını gösterir.'),
+  const [sesNotu, setSesNotu] = useState<SoundTestNote>('prompt');
+  const { dialogRef, initialFocusRef } = useModalSurface<HTMLDivElement>(
+    close,
+    { active: open },
   );
-  const boxRef = useRef<HTMLDivElement>(null);
-  const firstRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    firstRef.current?.focus();
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        close();
-        return;
-      }
-      if (e.key !== 'Tab') return;
-      const box = boxRef.current;
-      if (!box) return;
-      /*
-        Yalnız `button` aranıyordu; ses düzeyi kaydırıcısı bir `input` ve
-        listeye girmiyordu. Şu an pencerenin ortasında durduğu için tuzak
-        yine de tutuyordu — ama ilk ya da son denetim hâline geldiği gün
-        sessizce kırılırdı. Odaklanabilir her denetim sayılır.
-      */
-      const stops = Array.from(
-        box.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])'),
-      );
-      if (stops.length === 0) return;
-      const first = stops[0]!;
-      const last = stops[stops.length - 1]!;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, close]);
 
   if (!open) return null;
 
@@ -140,19 +112,21 @@ export function SettingsDialog() {
   return (
     <div className="settingsScrim" onClick={close} role="presentation">
       <div
-        ref={boxRef}
+        ref={dialogRef}
         className="settingsBox"
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="settingsBox__title" id="settings-title">
           {t('Ayarlar')}
         </h2>
 
+        <div className="settingsBox__scroll">
         <button
-          ref={firstRef}
+          ref={initialFocusRef}
           type="button"
           className="settingsRow"
           onClick={() => {
@@ -299,7 +273,7 @@ export function SettingsDialog() {
         <div className="settingsRow settingsRow--static settingsRow--stack">
           <span className="settingsRow__copy">
             <strong>{t('Sesi dene')}</strong>
-            <small>{sesNotu}</small>
+            <small>{soundTestNoteText(sesNotu)}</small>
           </span>
           <button
             type="button"
@@ -311,12 +285,12 @@ export function SettingsDialog() {
               const durum = audioStatus();
               setSesNotu(
                 !durum.supported
-                  ? t('Bu tarayıcı ses çalamıyor.')
+                  ? 'unsupported'
                   : durum.state === 'running'
                     ? sessizDugmeliCihaz
-                      ? t('Ses açıldı. Duymuyorsanız telefonun yan tarafındaki sessiz düğmesini kontrol edin.')
-                      : t('Ses açıldı — kısa bir tıngırtı duymalısınız.')
-                    : t('Ses açılamadı; tarayıcı izin vermedi.'),
+                      ? 'running-silent-device'
+                      : 'running'
+                    : 'blocked',
               );
             }}
           >
@@ -392,47 +366,60 @@ export function SettingsDialog() {
           </span>
         </div>
 
-        {/*
-          HESAP — bulut kayda hazırlık.
-
-          Kullanıcı kararı: kayıt bulut tabanlı bir hesaba taşınacak; yerel
-          "kaydı sil / yeni oyun başlat" düğmesi bu yüzden kaldırıldı (o
-          işlev artık hesap tarafında olacak). Bu iki ikon-düğme onun yerini
-          TUTUYOR — henüz gerçek bir kimlik doğrulama arka ucu yok, o yüzden
-          "bağla" iddiasında bulunmuyorlar; basınca dürüstçe "yakında" diyor.
-          Ayarlar penceresinin geri kalanındaki disiplin burada da geçerli:
-          çalışmayan bir düğmeyi çalışıyormuş gibi göstermemek.
-
-          TEK SATIRDA İKİ İKON-DÜĞME — Dil/Para birimi satırlarıyla aynı
-          kalıp (metin solda, denetim sağda). Önceki sürümde bu iki mağaza
-          kendi başlığı ve iki ayrı tam satırıyla dört satır tutuyordu; kayıt
-          bulut hesabına taşınınca amaç "bağlan" demek değil "buraya
-          bakılacak" demek olduğundan, uzun metin yerine tanınır bir rozet
-          yeterli — pencere bu kadarını kısalttı.
-        */}
+        {/* Bugün gerçekten çalışan kayıt davranışı; gelecek özellik vaadi yok. */}
         <div className="settingsRow settingsRow--static">
           <span className="settingsRow__copy">
-            <strong>{t('Hesap')}</strong>
-            <small>{t('Bulut kayıt için — yakında')}</small>
+            <strong>{t('Kayıt')}</strong>
+            <small>{t('İlerleme bu cihazda otomatik kaydedilir')}</small>
           </span>
-          <span className="settingsRow__iconGroup">
+          <span className="settingsRow__badge">{t('Yerel')}</span>
+        </div>
+
+        <div className="settingsRow settingsRow--static">
+          <span className="settingsRow__copy">
+            <strong>{t('Gizlilik ve destek')}</strong>
+            <small>{t('Yayımlanmış politika ve iletişim')}</small>
+          </span>
+          <span className="settingsRow__linkGroup">
+            <a
+              className="settingsTextLink"
+              href={PRIVACY_URL[language]}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t('Gizlilik')}
+            </a>
+            <a
+              className="settingsTextLink"
+              href={SUPPORT_URL[language]}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t('Destek')}
+            </a>
+          </span>
+        </div>
+
+        {adPrivacyOptionsSupported() ? (
+          <div className="settingsRow">
+            <span className="settingsRow__copy">
+              <strong>{t('Reklam gizlilik tercihleri')}</strong>
+              <small>{t('Google AdMob onay seçenekleri')}</small>
+            </span>
             <button
               type="button"
-              className="settingsIconBtn"
-              aria-label={t('App Store Hesabını Bağla')}
-              onClick={() => notify(t('App Store hesabı bağlama yakında geliyor.'), 'info')}
+              className="settingsTextButton"
+              onClick={async () => {
+                const result = await showAdPrivacyOptions();
+                if (result === 'shown') notify(t('Reklam gizlilik tercihleri güncellendi.'), 'positive');
+                else if (result === 'not-required') notify(t('Bu bölgede ek reklam tercihi gerekmiyor.'), 'info');
+                else notify(t('Reklam gizlilik tercihleri şu anda açılamadı.'), 'negative');
+              }}
             >
-              <IconAppStore size={20} />
+              {t('Tercihleri Aç')}
             </button>
-            <button
-              type="button"
-              className="settingsIconBtn"
-              aria-label={t('Google Play Hesabını Bağla')}
-              onClick={() => notify(t('Google Play hesabı bağlama yakında geliyor.'), 'info')}
-            >
-              <IconPlayStore size={20} />
-            </button>
-          </span>
+          </div>
+        ) : null}
         </div>
 
         <button type="button" className="settingsBox__close" onClick={close}>

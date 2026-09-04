@@ -18,6 +18,7 @@ import { dayCharacter } from '@domain/intent';
 import { createMarketForDay } from '@domain/market';
 import { START } from '@domain/balance';
 import { bullionMeta } from '@data/bullion';
+import { preciseGrams } from '@i18n/money';
 import type { Customer, ItemInstance, StoreState } from '@domain/types';
 
 const SEED = 20260828;
@@ -65,7 +66,7 @@ describe('niyet cümlesi somuttur', () => {
       const line = customerIntentLine(c, []);
       expect(line, line).toMatch(/almak istiyor$/);
       if (c.demand.quantity > 1) {
-        expect(line, line).toContain(String(c.demand.quantity));
+        expect(line, line).toContain(preciseGrams(c.demand.quantity).replace(/ g$/, ''));
       }
       checked += 1;
     });
