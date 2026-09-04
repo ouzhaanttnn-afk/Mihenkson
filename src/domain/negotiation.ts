@@ -279,11 +279,14 @@ function handleOffer(
   const a = getArchetype(customer.archetype);
 
   // --- ANTI-SPAM (GDD 11.4 / 34.3) ---
-  // Aynı veya çok yakın teklifi tekrarlamak yeni kabul zarı üretmez.
+  // Aynı teklifi tekrarlamak yeni kabul zarı üretmez. TAM EŞİTLİK: `offer` bu
+  // fonksiyonun başında zaten `Math.round()`lanır ve `lastOffer` de aynı
+  // yoldan geçmiş bir önceki turun değeridir — göreli bir yüzde eşiği eskiden
+  // burada kullanılıyordu, ama pahalı kalemlerde (100.000 ₺+) tek bir slider
+  // adımı (50–500 ₺) o yüzdenin altında kalıp GERÇEK bir yeni teklifi "aynı"
+  // sayıyor, pazarlık durumu (SERTLEŞTİ/SON TEKLİF) hiç ilerlemiyordu.
   const lastOffer = session.offerHistory[session.offerHistory.length - 1];
-  const wasRepeat =
-    lastOffer !== undefined &&
-    Math.abs(offer - lastOffer) / Math.max(1, lastOffer) < NEGOTIATION.repeatEpsilon;
+  const wasRepeat = lastOffer !== undefined && offer === lastOffer;
 
   if (wasRepeat) {
     const next: NegotiationSession = {

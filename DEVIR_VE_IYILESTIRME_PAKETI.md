@@ -2559,6 +2559,43 @@ veya üst üste binmiyor; alt navigasyon her zaman görünür kalıyor.
 
 ---
 
+#### YENİ · Pazarlık durum noktaları (SERTLEŞTİ/SON TEKLİF) hiç ilerlemiyordu — ✅ YAPILDI
+`src/domain/negotiation.ts`, `src/domain/balance.ts`
+
+Kullanıcı, iki ekran görüntüsünü kıyaslayarak: **"İkisinin görevi de aynı,
+yukarıdaki yuvarlaklar çalışıyor aşağıdaki yuvarlaklar çalışmıyor"** — üstteki
+(müşteri sabrı, `PatienceDots`) canlı güncelleniyordu; alttaki (Pazarlık
+durum rozeti `StateBadge`, `AÇIK`/`SERTLEŞTİ`/`SON TEKLİF` + 3 nokta) hep
+"AÇIK" ve tek nokta üstünde donuk kalıyordu.
+
+**Kök neden:** `handleOffer`'daki spam-koruması (GDD 11.4/34.3 "aynı teklif
+spam'i yeni sonuç üretmez") iki teklifi `|fark| / önceki < %0,5` göreli
+eşiğiyle "aynı" sayıyordu. Slider'ın en küçük adımı (50–500 ₺, `bounds.step`)
+SABİTTİ; ama pahalı bir kalemde (100.000 ₺+) %0,5 kolayca 500–700 ₺'yi
+buluyordu — yani oyuncu +/− ile TEK adım oynatıp yeni bir teklif verse bile
+sistem bunu "aynı rakamı tekrar ediyorsunuz" diye görüp durumu asla
+ilerletmiyordu (`badOfferCount` hiç artmıyor, `HARDENING`/`FINAL_OFFER`'a hiç
+geçilmiyordu). Ucuz kalemlerde bu fark küçük kaldığı için sorun görünmüyordu
+— bu yüzden bazı pazarlıklarda "çalışıyor" gibi görünürken bazılarında hiç
+ilerlemiyordu.
+
+**Düzeltme:** Göreli yüzde eşiği yerine TAM EŞİTLİK kullanılıyor
+(`offer === lastOffer`) — `offer` zaten fonksiyon başında `Math.round()`
+lanıyor, kayan nokta gürültüsü riski yok. Bu, GDD 34.3'ün harfi harfine
+söylediği şeyle ("AYNI teklif") bire bir örtüşüyor ve fiyat büyüklüğünden
+tamamen bağımsız çalışıyor. Artık kullanılmayan `NEGOTIATION.repeatEpsilon`
+sabiti kaldırıldı.
+
+**Doğrulama:** `tsc` temiz, 976/976 test yeşil (mevcut GDD 34.3 testleri
+zaten TAM AYNI teklifi iki kez gönderiyordu, değişiklik onları etkilemedi),
+`npm run build` temiz. Ayrıca izole bir domain testiyle doğrulandı: ~140.000
+₺ eşikli bir kalemde 100 ₺'lik art arda farklı teklifler artık hiç "repeat"
+sayılmadan `OPEN` → `HARDENING`'e geçiyor. Playwright ile tarayıcıda da
+tek-adım teklif değişikliklerinin artık "Aynı rakamı tekrar ediyorsunuz"
+mesajını TETİKLEMEDİĞİ, gerçek bir yeni tur olarak işlendiği doğrulandı.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
