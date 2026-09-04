@@ -14,6 +14,7 @@ import { getArchetype } from '@data/archetypes';
 import { Art } from '@ui/Art';
 import { customerArt } from '@ui/assets';
 import { customerIntentLine } from '@ui/intent-line';
+import { IconWorkshop } from '@ui/icons';
 import type { Customer, ItemInstance } from '@domain/types';
 
 interface Props {
@@ -60,6 +61,10 @@ export function CustomerStrip({ customer, record, lineCount, broughtItems }: Pro
 
       <div className="customerStrip__main">
         <div className="customerStrip__name">
+          {/* Kullanıcı: "müşterinin tamir getirdiği belli olmalı." */}
+          {customer.intent === 'service' && (
+            <IconWorkshop size={12} className="customerStrip__repairIcon" />
+          )}
           {customer.displayName}
           {lineCount > 1 && (
             <span style={{ color: 'var(--brass-600)', fontWeight: 500 }}> · {lineCount} ürün</span>

@@ -25,7 +25,7 @@ import { liquidityRatio } from '@domain/settlement';
 import { toolsForLevel } from '@data/tools';
 import { getArchetype } from '@data/archetypes';
 import { getServiceType } from '@data/service-types';
-import { expectedCompletionDay, findQuote } from '@domain/service';
+import { expectedCompletionDay, findQuote, overdueJobs, readyJobs } from '@domain/service';
 import { activeLine, canEnterStage, selectors, useGame } from '@state/gameStore';
 import { offerableStock } from '@domain/purchase';
 import {
@@ -698,6 +698,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
           <button type="button" className="chip" onClick={s.openStockCatalog}>{t('İlk Stoğunu Al')}</button>
         </div>
       )}
+      <ReadyJobsReminder />
       {s.queue.length > 0 && <WaitingCustomerQueue />}
 
       <div className="alerts">
@@ -738,6 +739,59 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
           </section>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * Kullanıcı: "açılır bir uyarı paneli eklesek tamirlerini teslim etmeyi
+ * unutma diye, butona basınca atölyeye gidip teslimini yapsın."
+ *
+ * Atölye rozeti (bkz. `App.tsx` — `workshopAttention`) sayıyı bottom nav'da
+ * gösteriyordu ama oyuncu Dükkan'dan hiç ayrılmazsa o rozeti görmeyebilirdi.
+ * Bu satır aynı bilgiyi (`readyJobs`/`overdueJobs`) İŞLEM MASASI boşken —
+ * oyuncunun zaten baktığı yerde — tekrarlar.
+ *
+ * TEK iş hazırsa düğme onu doğrudan teslim eder (Atölye'deki "Teslim Et"
+ * ile birebir aynı eylem, GDD 22.1 tek settlement yolu — `s.deliverJob`)
+ * ve ardından Atölye'ye geçer; oyuncu sonucu orada görür. Birden fazla iş
+ * hazırsa düğme yalnız Atölye'ye götürür — farklı sonuçları (başarılı/
+ * başarısız) oyuncuya göstermeden art arda teslim etmek parayı nereden
+ * geldiği belirsiz bir şekilde değiştirirdi.
+ */
+function ReadyJobsReminder() {
+  const jobs = useGame((s) => s.jobs);
+  const day = useGame((s) => s.market.day);
+  const deliverJob = useGame((s) => s.deliverJob);
+  const setTab = useGame((s) => s.setTab);
+
+  const ready = readyJobs(jobs);
+  const overdue = overdueJobs(jobs, day);
+  if (ready.length === 0) return null;
+
+  const detail = ready.length === 1
+    ? t('{musteri} · {urun}', { musteri: ready[0]!.customerName, urun: ready[0]!.itemName })
+    : t('{n} tamir teslime hazır', { n: ready.length });
+
+  return (
+    <div className={`alert ${overdue.length > 0 ? 'alert--negative' : 'alert--warning'}`}>
+      <span className="alert__icon">
+        <IconWorkshop size={16} />
+      </span>
+      <span className="alert__body">
+        <span className="alert__title">{t('Tamirlerini teslim etmeyi unutma')}</span>
+        <span className="alert__detail"> · {detail}</span>
+      </span>
+      <button
+        type="button"
+        className="chip"
+        onClick={() => {
+          if (ready.length === 1) deliverJob(ready[0]!.jobId);
+          setTab('workshop');
+        }}
+      >
+        {t('Atölyeye Git')}
+      </button>
     </div>
   );
 }
@@ -791,7 +845,20 @@ function WaitingCustomerQueue() {
 
               <div className="waitingCustomer__body">
                 <div className="waitingCustomer__identity">
-                  <strong>{customer.displayName}</strong>
+                  <strong>
+                    {/*
+                      Kullanıcı: "müşterinin tamir getirdiği belli olmalı."
+                      Öncesinde bu yalnız alttaki cümlede ("... için tamir/
+                      servis istiyor") okunuyordu — kuyruğu göz gezdiren
+                      oyuncu fark etmeden geçebiliyordu. İkon tek başına
+                      anlam taşımaz kuralı burada da geçerli (GDD 23.24);
+                      cümle zaten var, ikon yalnız onu göze çarptırıyor.
+                    */}
+                    {customer.intent === 'service' && (
+                      <IconWorkshop size={12} className="waitingCustomer__repairIcon" />
+                    )}
+                    {customer.displayName}
+                  </strong>
                   <span>{isNext ? t('Şimdi') : t('{n}. sırada', { n: index + 1 })}</span>
                 </div>
                 <p>{customerIntentLine(customer, items)}</p>

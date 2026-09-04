@@ -2440,6 +2440,53 @@ BİR kez geçiyor (`contextRow`da, büyütülmüş), dock'un tekrarı kayboldu.
 
 ---
 
+#### YENİ · Tamir müşterisi kuyrukta belli oluyor + "teslimi unutma" paneli — ✅ YAPILDI
+`src/ui/screens/ShopScreen.tsx` (`ReadyJobsReminder`, `WaitingCustomerQueue`),
+`src/ui/shell/CustomerStrip.tsx`, `src/ui/workbench/Workbench.css`,
+`src/ui/shell/AppShell.css`, `src/i18n/en.ts`
+
+Kullanıcı: **"Tamire gelen ürünlerle ilgili de bir kolaylık yapalım
+müşterinin tamir getirdiği belli olmalı ayrıca açılır bir uyarı paneli
+eklesek tamirlerini teslim etmeyi unutma diye, butona basınca atölyeye
+gidip teslimini yapsın."** İki ayrı iyileştirme:
+
+**1. Tamir müşterisi artık görsel olarak ayırt ediliyor.** Önceden yalnız
+niyet cümlesinde okunuyordu ("...için tamir/servis istiyor" — bkz.
+`intent-line.ts`, zaten vardı); kuyruğu göz gezdiren oyuncu cümleyi
+okumadan fark edemiyordu. `customer.intent === 'service'` olduğunda hem
+Bekleyen Müşteriler kuyruğunda (`WaitingCustomerQueue`) hem de
+karşılandıktan sonraki Müşteri Şeridi'nde (`CustomerStrip`) adın hemen
+önünde küçük bir atölye ikonu (turuncu/uyarı rengi) beliriyor — GDD
+23.24'ün "ikon tek başına anlam taşımaz" kuralına uyarak cümlenin
+YANINDA, yerine değil.
+
+**2. "Tamirlerini teslim etmeyi unutma" paneli.** Atölye rozeti
+(`workshopAttention`, bottom nav'daki sayı — zaten vardı) oyuncu hiç
+Dükkan'dan ayrılmazsa gözden kaçabiliyordu. Yeni `ReadyJobsReminder`
+bileşeni, İşlem Masası boşken (müşteri yokken) aynı veriyi
+(`readyJobs`/`overdueJobs`, `@domain/service`) oyuncunun zaten baktığı
+yerde tekrarlıyor — var olan `.alert` desenini kullanıyor (yeni bir
+görsel dil icat edilmedi), gecikmiş iş varsa kırmızı tona geçiyor.
+
+**"Butona basınca atölyeye gidip teslimini yapsın":** TEK iş hazırsa
+düğme (`Atölyeye Git`) onu Atölye ekranındaki "Teslim Et" ile BİREBİR
+AYNI eylemle (`s.deliverJob` — GDD 22.1 tek settlement yolu) doğrudan
+teslim edip Atölye'ye geçiyor. Birden fazla iş hazırsa düğme yalnız
+Atölye'ye götürüyor, otomatik teslim ETMİYOR — farklı işlerin
+başarılı/başarısız sonuçlarını oyuncuya göstermeden art arda teslim
+etmek, kasadaki değişimin nereden geldiğini belirsizleştirirdi (bu
+oyunda hiçbir ekonomik işlem sessizce olmaz).
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 882/882 (0 çevrilmemiş, 0
+kullanılmayan — 4 yeni anahtar eklendi), 976/976 test yeşil, build +
+cap:sync temiz. Playwright: kuyrukta ve karşılama şeridinde tamir
+ikonu doğru müşteride görüldü (ekran görüntüsüyle doğrulandı); gerçek
+bir servis işi kabul edilip yalnız 2 gün kapatılarak paneli fiilen
+tetikledim — "Tamirlerini teslim etmeyi unutma" metni beklenen anda
+sayfada göründü.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

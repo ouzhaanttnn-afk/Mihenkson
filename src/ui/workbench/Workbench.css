@@ -1417,6 +1417,9 @@
 }
 
 .waitingCustomer__identity strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   min-width: 0;
   overflow: hidden;
   color: var(--text-dark-1);
@@ -1424,6 +1427,12 @@
   font-weight: var(--fw-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Kuyrukta tamir müşterisini tek bakışta ayırt et (bkz. yukarısı — kullanıcı isteği). */
+.waitingCustomer__repairIcon {
+  flex: 0 0 auto;
+  color: var(--warning);
 }
 
 .waitingCustomer__identity > span {

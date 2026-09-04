@@ -627,6 +627,13 @@
   text-overflow: ellipsis;
 }
 
+/* Kuyrukta olduğu gibi (WaitingCustomerQueue) tamir müşterisini işaretler. */
+.customerStrip__repairIcon {
+  vertical-align: -2px;
+  margin-right: 3px;
+  color: var(--warning);
+}
+
 .customerStrip__intent {
   font-size: var(--fs-micro);
   color: var(--text-light-3);
