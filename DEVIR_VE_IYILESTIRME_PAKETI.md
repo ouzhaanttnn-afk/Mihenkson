@@ -2663,6 +2663,32 @@ yok, konuşma balonu genişçe render oluyor, hiçbir görsel boşluk kalmıyor.
 
 ---
 
+#### YENİ · Karar Dock'u ~%20 daha küçültüldü — ✅ YAPILDI
+`src/ui/workbench/OfferControl.tsx`, `src/ui/workbench/Workbench.css`,
+`src/ui/shell/AppShell.css`, `src/ui/tokens.css`
+
+Kullanıcı, gerçek (taze yüklenmiş, doğrulanmış) bir telefon ekran görüntüsünde
+tüm teklif panelini işaretleyip: **"%20 falan küçültmen lazım."** İki
+önceki tur zaten gerçek kısaltmalar yapmıştı; bu turda somut bir yüzde
+hedefi verildiği için satır satır ölçüp karşıladım.
+
+**En büyük kazanç — birim fiyat satırı kaldırıldı, TUTARLA AYNI satıra
+taşındı:** "18.694 ₺" ile "5 g · 3.739 ₺/g" artık iki ayrı satır değil,
+tek satır ("18.694₺ 5 g · 3.739₺/g") — bir tam satır (~17px) kazanıldı.
+Ayrıca: `--cta-h` 54→46px (hâlâ Apple HIG'nin 44px dokunma tabanının
+üstünde), dock padding/gap sıkılaştırıldı (özel 6px değerler), slider
+20px→16px. **+/− butonlarına (44px) BİLEREK dokunulmadı** — kodda bu
+tam kontrol için "38px'ti, ıskalanan dokunuş yanlış teklife dönüşüyordu"
+diye belgelenmiş geçmiş bir regresyon var; oradan taviz vermedim.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 881/881, 976/976 test yeşil
+(`OfferControl.test.ts` DOM yapısına değil yalnız `snapOffer` mantığına
+bakıyor, etkilenmedi), `npm run build` temiz. Playwright: Karar Dock'u
+yüksekliği 180,6px → 145,8px (**−19,3%**, istenen ~%20'ye çok yakın),
+birim fiyat okunur şekilde satıra sığıyor.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

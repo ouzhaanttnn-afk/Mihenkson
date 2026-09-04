@@ -1678,7 +1678,7 @@
 .offer {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: 2px;
 }
 
 .offer__row {
@@ -1687,15 +1687,17 @@
   gap: var(--sp-2);
 }
 
-/* Teklif tutarı Dock'un EN BÜYÜK sayısal değeridir (GDD 23.12). */
 /*
- * Birim fiyat satırı — tutarın hemen altında, ondan belirgin küçük.
- * GDD 23.12: "Teklif tutarı Dock'un EN BÜYÜK sayısal değeri olur." Birim
- * fiyat o hiyerarşiyi bozmadan, kararı doğrulayan ikinci satırdır.
+ * Teklif tutarı Dock'un EN BÜYÜK sayısal değeridir (GDD 23.12). Birim
+ * fiyat eskiden tutarın ALTINDA ayrı bir satırdı — kullanıcı geri
+ * bildirimiyle (ekran görüntüsü, "%20 küçült") tüm paneli satır satır
+ * ölçüp bir tam satır kazanmak için tutarla AYNI satıra, para biriminin
+ * hemen yanına taşındı. Hiyerarşi bozulmadı: hâlâ en küçük, en soluk metin.
  */
 .offer__unit {
-  margin-top: 0;
+  margin-left: 6px;
   font-size: var(--fs-micro);
+  font-weight: var(--fw-medium);
   color: var(--text-light-3);
   letter-spacing: 0.01em;
 }
@@ -1746,7 +1748,7 @@
 /* Slider kaba ayar sağlar (GDD 23.12). */
 .offer__slider {
   width: 100%;
-  height: 20px;
+  height: 16px;
   appearance: none;
   background: transparent;
   margin: 0;
@@ -1766,9 +1768,9 @@
 
 .offer__slider::-webkit-slider-thumb {
   appearance: none;
-  width: 20px;
-  height: 20px;
-  margin-top: -8px;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
   border-radius: var(--r-pill);
   background: var(--amethyst-500);
   border: 2px solid var(--stone-50);
@@ -1776,8 +1778,8 @@
 }
 
 .offer__slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: var(--r-pill);
   background: var(--amethyst-500);
   border: 2px solid var(--stone-50);
