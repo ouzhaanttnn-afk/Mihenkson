@@ -613,11 +613,6 @@
   .speech {
     padding: var(--sp-2) var(--sp-3);
   }
-
-  .stateBadge {
-    width: 78px;
-    padding: 4px var(--sp-2);
-  }
 }
 
 /*
@@ -649,55 +644,6 @@
   display: flex;
   align-items: center;
   font-style: italic;
-}
-
-.stateBadge {
-  flex: 0 0 auto;
-  width: 96px;
-  padding: var(--sp-2);
-  border-radius: var(--r-md);
-  background: var(--ink-900);
-  border: 1px solid var(--line-dark);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-}
-
-.stateBadge__label {
-  font-size: var(--fs-micro);
-  color: var(--text-dark-3);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.stateBadge__value {
-  font-size: var(--fs-label);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.03em;
-}
-
-.stateBadge__value--OPEN { color: var(--positive-soft); }
-.stateBadge__value--HARDENING { color: var(--warning); }
-.stateBadge__value--FINAL_OFFER { color: var(--negative-soft); }
-.stateBadge__value--ACCEPTED { color: var(--positive-soft); }
-.stateBadge__value--REJECTED { color: var(--negative-soft); }
-
-.stateBadge__dots {
-  display: flex;
-  gap: 3px;
-}
-
-.stateBadge__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: var(--r-pill);
-  background: var(--ink-500);
-}
-
-.stateBadge__dot--on {
-  background: currentColor;
 }
 
 /* Karşı teklif — YENİ EKRAN AÇMAZ, bu satır güncellenir (GDD 23.24). */
@@ -1904,9 +1850,6 @@
   }
   .contextRow {
     display: none;
-  }
-  .stateBadge {
-    width: 84px;
   }
   .breakdown__row {
     padding: 4px var(--sp-3);

@@ -2634,6 +2634,35 @@ cihaz/Safari testi YAPILAMADI — kullanıcının tekrar denemesi gerekiyor.
 
 ---
 
+#### YENİ · Pazarlık durum rozeti tamamen kaldırıldı — ✅ YAPILDI
+`src/ui/workbench/NegotiateStage.tsx`, `src/ui/workbench/Workbench.css`
+
+Kullanıcı, ekran görüntüsünde iki alanı kırmızıyla işaretleyip: **"ikiside
+aynı şey değil mi sencede neden kaybolmuyorlar ikisinden birini yok et."**
+Müşteri şeridindeki sabır noktaları ile pazarlık üstündeki "PAZARLIK /
+AÇIK" kutusunun noktaları görsel olarak neredeyse aynı görünüyordu (ikisi
+de küçük nokta dizisi) — teknik olarak farklı şeyler ölçseler de (biri
+sabır, öteki tur ilerlemesi) kullanıcıya yinelenen/gereksiz görünüyordu.
+
+**Yapılan:** `StateBadge` bileşeni ("Pazarlık" etiketi + "AÇIK/SERTLEŞTİ/
+SON TEKLİF" metni + 3 nokta) `NegotiateStage.tsx`'ten TAMAMEN kaldırıldı;
+ölü `.stateBadge*` CSS kuralları (Workbench.css) silindi. Müşteri sabrı
+(`PatienceDots`, `CustomerStrip.tsx`) — GDD 11.3'ün asıl gerektirdiği
+gösterge — dokunulmadan kaldı. Konuşma balonu (`.speech`) artık boşalan
+alanı dolduruyor; `negotiate__top` satırı bir eleman ve bir nokta grubu
+eksildi, ekranın üst kısmı belirgin biçimde kısaldı.
+
+**Kaybolan bilgi yok:** Pazarlık durumu zaten müşteri mesajının tonundan
+("Bakın, buradan aşağı inmem artık" = SERTLEŞTİ) ve son teklif geldiğinde
+Karar Dock'unun özet satırından ("Son teklif — geri dönüş yok") okunuyor.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 881/881 (0 çevrilmemiş/kullanılmayan
+— `StateBadge`'in kullandığı anahtarlar artık kaynakta yok), 976/976 test
+yeşil, `npm run build` temiz. Playwright: "PAZARLIK/AÇIK" kutusu artık DOM'da
+yok, konuşma balonu genişçe render oluyor, hiçbir görsel boşluk kalmıyor.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
