@@ -71,7 +71,14 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(status).toContain("${t('XP')}: ${store.xp}/${store.xpToNext}");
     expect(status).toContain('aria-label={profileAriaLabel}');
     expect(status).toContain('className="statusStrip__xpBar" aria-hidden="true"');
+    expect(status).not.toContain('statusStrip__cash');
     expect(status).not.toContain('role="progressbar"');
+
+    const marketStrip = projectFile('src/ui/shell/MarketStrip.tsx');
+    expect(marketStrip).toContain('className="marketStrip__cashValue num"');
+    expect(marketStrip).not.toContain('marketStrip__regimeValue');
+    expect(marketStrip).not.toContain('MARKET_REGIME');
+    expect(marketStrip).toContain("varlik: t('Nakit')");
   });
 
   it('müşteri sabrını adsız bir div değil erişilebilir bir ölçer olarak sunar', () => {

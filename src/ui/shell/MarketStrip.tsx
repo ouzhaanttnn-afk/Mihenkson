@@ -1,6 +1,6 @@
 /**
  * B — Piyasa Şeridi (GDD 23.9.2, 44 px)
- * "3–5 varlık; yatay swipe. Dokununca Piyasa ekranı açılır."
+ * "Nakit + 3–5 varlık; yatay swipe. Dokununca Piyasa ekranı açılır."
  *
  * GDD 23.9.1: "Piyasa, ana Dükkan ekranındaki piyasa şeridine dokunularak
  * açılır; ayrı alt-nav öğesi değildir."
@@ -9,19 +9,16 @@
  */
 
 import { t } from '@i18n/index';
-import { TERM } from '@ui/terms';
-import { MARKET_REGIME } from '@domain/balance';
-import { weekdayShort } from '@domain/calendar';
-import { pctChange, price } from '@ui/format';
-import type { MarketState } from '@domain/types';
+import { pctChange, price, tl } from '@ui/format';
+import type { MarketState, Money } from '@domain/types';
 
 interface Props {
   market: MarketState;
+  cash: Money;
   onOpenMarket: () => void;
 }
 
-export function MarketStrip({ market, onOpenMarket }: Props) {
-  const regime = MARKET_REGIME[market.regime];
+export function MarketStrip({ market, cash, onOpenMarket }: Props) {
   const closed = market.marketOpen === false;
   const gramAsset = market.assets.find((asset) => asset.id === 'goldGram');
   /*
@@ -60,17 +57,15 @@ export function MarketStrip({ market, onOpenMarket }: Props) {
     >
       <button
         type="button"
-        className="marketStrip__regime"
+        className="marketStrip__cash"
         onClick={onOpenMarket}
-        aria-label={t('Piyasa ekranını aç')}
+        aria-label={t('{varlik} {fiyat} — piyasa ekranını aç', {
+          varlik: t('Nakit'),
+          fiyat: tl(cash),
+        })}
       >
-        <span className="marketStrip__regimeLabel">
-          {closed ? `${weekdayShort(market.day)} · Piyasa` : t(TERM.regime)}
-        </span>
-        <span className="marketStrip__regimeValue">
-          {closed ? t('Kapalı') : t(regime.label)}
-          {!closed && market.activeEvent ? ' •' : ''}
-        </span>
+        <span className="marketStrip__cashLabel">{t('Nakit')}</span>
+        <span className="marketStrip__cashValue num">{tl(cash)}</span>
       </button>
 
       {visibleAssets.map((asset) => (

@@ -108,8 +108,7 @@
   height: var(--h-status-strip);
   display: flex;
   align-items: center;
-  /* Beşinci sütun (ayarlar) eklenince boşluk ve kenar payı daraltıldı;
-     390 px'de profil adının ezilmemesi için gereken 33 px buradan çıktı. */
+  /* Ayarlar hız grubuyla aynı kümeyi paylaşır; profil adı için alan korunur. */
   gap: 6px;
   padding: 0 12px;
   background: var(--ink-800);
@@ -148,8 +147,7 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  /* Şerit beş sütuna çıkınca ad sütunu daralıyordu; bu boşluk doğrudan
-     metne gidiyor. */
+  /* Küçük boşluk, kimlik metnine mümkün olan genişliği bırakır. */
   gap: 4px;
   min-width: 0;
   /* Dokunma hedefi şeridin tamamı kadar yüksek (GDD 23.22 · 44 px). */
@@ -342,24 +340,6 @@
 /* Masaüstünde saat üç satırlıdır; ayraçlar yalnız mobil zaman rozetindedir. */
 .statusStrip__clockSep {
   display: none;
-}
-
-.statusStrip__cash {
-  flex: 0 0 auto;
-  text-align: right;
-}
-
-.statusStrip__cashLabel {
-  font-size: var(--fs-micro);
-  color: var(--text-dark-3);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.statusStrip__cashValue {
-  font-size: var(--fs-label);
-  font-weight: var(--fw-bold);
-  color: var(--brass-300);
 }
 
 /* Kompakt 1x / 2x / 4x hız kontrolü — ayrı kart açmaz (GDD 23.9.2). */
@@ -556,7 +536,6 @@
   opacity: 0.92;
 }
 
-.marketStrip--closed .marketStrip__regimeValue,
 .marketStrip--closed .marketStrip__change {
   color: var(--text-dark-3);
 }
@@ -565,14 +544,14 @@
   font-style: italic;
 }
 
-.marketStrip__regime {
+.marketStrip__cash {
   flex: 0 0 auto;
-  min-width: 82px;
+  min-width: 112px;
   padding: 5px var(--sp-3);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   background: var(--ink-600);
   scroll-snap-align: start;
   border: 0;
@@ -582,17 +561,20 @@
   font: inherit;
 }
 
-.marketStrip__regimeLabel {
+.marketStrip__cashLabel {
   font-size: var(--fs-micro);
   color: var(--text-dark-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.marketStrip__regimeValue {
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-semibold);
-  color: var(--brass-400);
+.marketStrip__cashValue {
+  max-width: 132px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-bold);
+  color: var(--brass-300);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1690,9 +1672,9 @@
 }
 
 /*
- * Mobil başlık iki dengeli kimlik kümesidir: solda oyuncu, sağda zaman/nakit/
- * hız. Zaman tek satırdır; nakit aynı sağ eksene, hız da hemen altına bağlanır.
- * Ayrı yüzen rozetler yerine tek bir okunma yönü oluşur.
+ * Mobil başlık iki dengeli kimlik kümesidir: solda oyuncu, sağda zaman ve
+ * hız. Nakit piyasa şeridinde HAS/gram referanslarıyla birlikte gösterilir;
+ * profil başlığında finans verisi tekrarlanmaz.
  */
 @media (max-width: 430px) {
   .statusStrip {
@@ -1759,20 +1741,6 @@
     display: inline;
     color: var(--text-dark-3);
     font-size: 9px;
-  }
-
-  .statusStrip__cash {
-    display: flex;
-    align-items: baseline;
-    justify-content: flex-end;
-    gap: 5px;
-  }
-
-  .statusStrip__cashValue {
-    max-width: 112px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .speed {
@@ -1856,7 +1824,7 @@
   }
 
   .marketStrip__asset,
-  .marketStrip__regime {
+  .marketStrip__cash {
     min-width: 112px;
   }
 }

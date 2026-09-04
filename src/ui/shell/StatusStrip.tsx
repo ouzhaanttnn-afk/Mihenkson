@@ -1,6 +1,7 @@
 /**
  * A — Durum Şeridi (UPDATEv1, 64–72 px)
- * "Seviye/XP, Gün-Saat, Nakit + kompakt 1x/2x/4x hız kontrolü."
+ * "Seviye/XP, Gün-Saat + kompakt 1x/2x/4x hız kontrolü."
+ * Nakit, ekonomik referanslarla aynı bağlamda Piyasa Şeridi'nde gösterilir.
  *
  * GDD 23.6: "Kompakt; ekranı domine etmez. 4x rewarded state ayrı kart açmaz."
  */
@@ -10,7 +11,7 @@ import { weekdayLabel, weekdayShort } from '@domain/calendar';
 import { IconLock, IconPencil, IconSettings, BrandMark } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { avatarArt } from '@ui/assets';
-import { clock, tl } from '@ui/format';
+import { clock } from '@ui/format';
 import { t } from '@i18n/index';
 import type { PlayerProfile } from '@domain/profile';
 import type { MarketState, StoreState } from '@domain/types';
@@ -121,11 +122,6 @@ export function StatusStrip({
           <div className="statusStrip__weekday">{t(weekdayShort(market.day))}</div>
           <span className="statusStrip__clockSep" aria-hidden="true">·</span>
           <div className="statusStrip__time num">{clock(market.clockMinutes)}</div>
-        </div>
-
-        <div className="statusStrip__cash">
-          <div className="statusStrip__cashLabel">{t('Nakit')}</div>
-          <div className="statusStrip__cashValue num">{tl(store.cash)}</div>
         </div>
 
         <SpeedControl

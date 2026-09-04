@@ -218,7 +218,7 @@ export function ShopScreen() {
         onEditProfile={s.openProfile}
       />
 
-      <MarketStrip market={s.market} onOpenMarket={() => s.setTab('business')} />
+      <MarketStrip market={s.market} cash={s.store.cash} onOpenMarket={() => s.setTab('business')} />
 
 
 
