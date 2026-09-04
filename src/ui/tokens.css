@@ -208,7 +208,7 @@
  */
 @media (max-height: 820px) {
   :root {
-    --h-status-strip: 64px;
+    --h-status-strip: 68px;
     /*
      * DURUM ŞERİDİ 52 px'TE KALIR — denendi ve geri alındı.
      * 46 px'e indirildiğinde "GÜN 1" iki satıra kırılıyor, saat aşağı

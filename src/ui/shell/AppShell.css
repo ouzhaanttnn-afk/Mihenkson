@@ -334,6 +334,11 @@
   line-height: 1.05;
 }
 
+/* Masaüstünde saat üç satırlıdır; ayraçlar yalnız mobil zaman rozetindedir. */
+.statusStrip__clockSep {
+  display: none;
+}
+
 .statusStrip__cash {
   flex: 0 0 auto;
   text-align: right;
@@ -1680,9 +1685,13 @@
 }
 
 /*
- * Dar telefonlarda durum verisini iki satıra dağıt. Profil ilk sütunda iki
- * satırı kaplar; saat/nakit üstte, hız ve ayarlar altta kalır. Böylece isim
- * yalnız gerçekten çok uzunsa kısalır, XP ile hız kontrolleri birbirini ezmez.
+ * Mobil başlık iki gerçek banttır:
+ *   üst: profil + nakit
+ *   alt: tek satırlık gün/saat rozeti + hız/ayarlar
+ *
+ * Gün bilgisini nakitle aynı dar üst hücreye üç satır yığmak, iPhone 15 Pro'da
+ * saati hız grubuna kadar indiriyordu. Alt bant profil genişliğinden bağımsız
+ * olduğu için zaman rozeti nefes alır; üst bantta da nakit tek başına kalır.
  */
 @media (max-width: 430px) {
   .statusStrip {
@@ -1690,9 +1699,9 @@
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    grid-template-columns: minmax(0, 1fr) minmax(44px, auto) auto;
-    grid-template-rows: minmax(30px, 1fr) 28px;
-    gap: 0 6px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(40px, 1fr) 28px;
+    gap: 0 8px;
     padding-inline: 8px;
     /* Uzun isim/nakit değeri üst şeridi yatay bir yüzeye dönüştürmesin. */
     overflow-x: clip;
@@ -1700,15 +1709,15 @@
 
   .profileChip {
     grid-column: 1;
-    grid-row: 1 / 3;
+    grid-row: 1;
     width: 100%;
-    height: calc(100% - 8px);
+    height: 40px;
     overflow: hidden;
   }
 
   .profileChip__avatar {
-    width: 48px;
-    height: 48px;
+    width: 38px;
+    height: 38px;
   }
 
   .profileChip__name {
@@ -1716,40 +1725,41 @@
   }
 
   .statusStrip__clock {
-    grid-column: 2;
-    grid-row: 1;
-    min-width: 54px;
-    /*
-     * Mobil üst satır 30–36 px yüksekliğinde. Saat bloğunu üç metin
-     * satırına (GÜN / PZT / 09:16) bölmek onu hız kontrolünün satırına
-     * taşıyordu. Gün + hafta günü aynı satır, saat ikinci satırdır.
-     */
-    display: grid;
-    grid-template-columns: max-content max-content;
-    grid-template-rows: auto auto;
-    align-content: center;
-    justify-content: center;
-    column-gap: 4px;
-    row-gap: 2px;
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 24px;
+    padding: 2px 8px;
+    border: 1px solid var(--line-dark);
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--ink-600) 72%, transparent);
     white-space: nowrap;
   }
 
   .statusStrip__day,
-  .statusStrip__weekday {
-    align-self: baseline;
+  .statusStrip__weekday,
+  .statusStrip__time {
+    line-height: 1;
   }
 
   .statusStrip__weekday {
     margin: 0;
   }
 
-  .statusStrip__time {
-    grid-column: 1 / -1;
+  .statusStrip__clockSep {
+    display: inline;
+    color: var(--text-dark-3);
+    font-size: var(--fs-micro);
   }
 
   .statusStrip__cash {
-    grid-column: 3;
+    grid-column: 2;
     grid-row: 1;
+    align-self: center;
   }
 
   .statusStrip__cashValue {
@@ -1760,7 +1770,7 @@
   }
 
   .speed {
-    grid-column: 2 / 4;
+    grid-column: 2;
     grid-row: 2;
     justify-self: end;
   }
@@ -1773,7 +1783,12 @@
   }
 
   .statusStrip {
-    gap: 0 4px;
+    gap: 0 6px;
+    padding-inline: 6px;
+  }
+
+  .statusStrip__clock {
+    gap: 3px;
     padding-inline: 6px;
   }
 

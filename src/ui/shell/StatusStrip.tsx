@@ -116,7 +116,9 @@ export function StatusStrip({
         })}
       >
         <div className="statusStrip__day">{t('Gün')} {market.day}</div>
+        <span className="statusStrip__clockSep" aria-hidden="true">·</span>
         <div className="statusStrip__weekday">{t(weekdayShort(market.day))}</div>
+        <span className="statusStrip__clockSep" aria-hidden="true">·</span>
         <div className="statusStrip__time num">{clock(market.clockMinutes)}</div>
       </div>
 
