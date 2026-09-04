@@ -1109,12 +1109,22 @@
 /* gizledi; ders şeridi o hatayı tekrarlamaz.                          */
 /* ------------------------------------------------------------------ */
 
+/*
+ * Kullanıcı: "tavanın üstü zarardır ibaresi ekranda yer kaplıyor, öğretici
+ * ipuçlarını ufaltmak istiyoruz." Dikey dolgu `--sp-2` (8 px) → `--sp-1`
+ * (4 px) — ÖLÇÜLEREK: "Anladım" düğmesi GDD 23.22'nin 44 px dokunma
+ * hedefini korumak zorunda (bu, düzenli basılan BİRİNCİL kapatma eylemi —
+ * "Öğretimi kapat" gibi ikincil bir bağlantı değil, o yüzden gerçek kutusu
+ * küçültülmedi). Satır yükseklikleri sıkılaşınca (aşağı bakın) gövde metni
+ * artık 44 px'in altında kalıyor; şeridin yüksekliğini asıl belirleyen
+ * "Anladım" oldu. Dolgu onun üstüne binen en küçük pay.
+ */
 .coach {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-2) var(--gutter);
+  padding: var(--sp-1) var(--gutter);
   background: var(--ink-700);
   border-top: 1px solid var(--brass-700);
   border-bottom: 1px solid var(--ink-900);
@@ -1133,6 +1143,7 @@
   font-size: var(--fs-caption);
   font-weight: var(--fw-semibold);
   color: var(--brass-300);
+  line-height: var(--lh-tight);
 }
 
 /*
@@ -1145,7 +1156,7 @@
 .coach__text {
   font-size: var(--fs-micro);
   color: var(--text-dark-2);
-  line-height: 1.35;
+  line-height: var(--lh-tight);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -1936,6 +1947,19 @@
   height: 0;
   z-index: 7;
   pointer-events: none;
+}
+
+/*
+ * Öğretim şeridi açıkken çapa çizgisi masa yerine `.coach`in ALT kenarına
+ * düşer (RushFab, ShopScreen.tsx'te CoachBar'ın hemen ardından render
+ * edilir — DOM'da doğrudan komşudur). Ölçüldü: -32 px'lik standart taşma,
+ * şeritteki "Anladım" düğmesinin üstüne biniyordu (Playwright tıklaması
+ * "intercepts pointer events" ile gerçekten engellendi — kurgusal değil,
+ * gerçek bir dokunma hatası). Bu tek durumda daire ray tarafına çekilir;
+ * "yarısı masada" görünümü yalnız ders şeridi YOKKEN geçerlidir.
+ */
+.coach + .rushFabAnchor .rushFab {
+  top: 0;
 }
 
 .rushFab {

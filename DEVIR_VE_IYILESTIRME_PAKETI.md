@@ -2359,6 +2359,47 @@ gelmeden geniş çaplı yeniden adlandırma yapılmadı.
 
 ---
 
+#### YENİ · Öğretim şeridi (CoachBar) tekrar küçültüldü + gizli bir dokunma hatası düzeltildi — ✅ YAPILDI
+`src/ui/shell/AppShell.css` (`.coach`, `.coach__title`, `.coach__text`,
+`.rushFab`)
+
+Kullanıcı örnek gösterdi: **"tavanın üstü zarardır ibaresi ekranda yer
+kaplıyor, öğretici ipuçlarını ufaltmak istiyoruz."** Bir önceki turda
+CoachBar'ı kompaktlaştırmıştım ("Öğretimi kapat" linkinin gerçek kutusunu
+küçültmüştüm) ama "Anladım" düğmesi GDD 23.22'nin 44 px dokunma hedefini
+korumak ZORUNDA (o BİRİNCİL kapatma eylemi, düzenli basılıyor — ikincil
+"Öğretimi kapat" gibi görsel kutusu küçültülemez). Bu yüzden asıl kazanım
+metin/dolgu tarafından geldi:
+
+- `.coach`in dikey dolgusu `--sp-2` (8 px) → `--sp-1` (4 px).
+- `.coach__title`/`.coach__text`in satır yüksekliği `1.35`/`--lh-normal` →
+  `--lh-tight` (1.15) — zaten var olan bir token, yeni bir sayı icat
+  edilmedi.
+
+**Ölçüm (Playwright, 390×844):** "Tavanın üstü zarardır" (Pazarlık dersi)
+şeridi **64,9 px → 54 px** (~%17 azalma); artık yüksekliği "Anladım"
+düğmesinin kendi 44 px'i belirliyor (44+10 dolgu/kenarlık ≈ 54), yani
+şerit fiilen mümkün olan en küçük hâlde — metin daha da kısılırsa hiçbir
+kazanç olmayacaktı, bu yüzden burada durduk.
+
+**Yan bulgu — gerçek bir dokunma hatası:** Ölçüm sırasında Playwright
+"Anladım"a tıklarken `<button class="rushFab">...intercepts pointer
+events` hatası verdi — kurgusal değil, GERÇEK bir örtüşme. `RushFab`
+("Dükkânı Canlandır" yuvarlak düğmesi) çapası DOM'da CoachBar'ın hemen
+ardından render ediliyor ve dairesi `top:-32px` ile "yarısı masada, yarısı
+rayda" durur; şerit küçülünce bu taşma "Anladım"ın üstüne binmeye
+başladı (ölçüldü: ~21 px dikey, ~60 px yatay örtüşme — daire üstte
+olduğu için TÜM tıklamaları yutuyordu). `.coach + .rushFabAnchor .rushFab
+{ top: 0 }` ile yalnız ders şeridi açıkken daire tamamen ray tarafına
+çekildi; dersiz durumdaki orijinal "yarısı masada" görünüm DEĞİŞMEDİ.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 881/881, 976/976 test yeşil,
+build + cap:sync temiz. Playwright: "Anladım" artık gerçek bir tıklamayla
+sorunsuz tetikleniyor (önce hata veriyordu), RushFab/`coachOk` sınırları
+ölçüldü — sıfır piksel örtüşme; ekran görüntüsüyle görsel doğrulama yapıldı.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
