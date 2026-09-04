@@ -9,14 +9,16 @@ export const roundMoney = (tl: number): number => Math.round(tl);
 export const PERSONNEL_SALARIES = [40_000, 50_000, 60_000] as const;
 export const PERSONNEL_MONTHLY = [0, PERSONNEL_SALARIES[0], PERSONNEL_SALARIES[0] + PERSONNEL_SALARIES[1], PERSONNEL_SALARIES[0] + PERSONNEL_SALARIES[1] + PERSONNEL_SALARIES[2]] as const;
 export const PERSONNEL_UNLOCK_LEVELS = [1, 3, 6, 10] as const;
-export const personnelPaidUnlockLevel = (store: StoreState): number =>
-  Math.min(3, Math.max(0, Math.trunc(store.personnelPaidUnlockLevel ?? 0)));
 /**
  * Ödüllü reklamla geçici açılan kademe kaç gün sürer. Kullanıcı isteği bir
  * kere izleyip "1 gün ya da 1 hafta, hangisi mantıklıysa" dedi — 1 gün zaten
  * `personnelCostWaivedToday`nin (günlük gider muafiyeti) işi; burada AYRI
  * bir ödül olması için 1 HAFTA seçildi, tek bir reklamı anlamlı kılan
  * kademeyi bir sonraki güne kadar değil bir sonraki haftaya kadar açıyor.
+ *
+ * YALNIZ 3. kademe için kullanılır — kullanıcı "3. personele reklam ekle,
+ * diğerleri [1. ve 2. kademe] yine kalksın" dedi: gerçek parayla açma
+ * denemesi TAMAMEN geri alındı, 1./2. kademe yalnız seviyeye bağlı.
  */
 export const PERSONNEL_TEMP_UNLOCK_DAYS = 7;
 export const personnelTempUnlockTier = (store: StoreState): number =>
@@ -25,12 +27,12 @@ export const personnelTempUnlockTier = (store: StoreState): number =>
 export const personnelTempUnlockActive = (store: StoreState, day: GameDay): boolean =>
   day <= (store.personnelTempUnlockUntilDay ?? -1);
 /**
- * Üç kaynağın (seviye, kalıcı ödeme, geçici reklam) EN YÜKSEĞİ — o gün
- * oyuncunun seviye şartı olmadan erişebileceği en üst personel kademesi.
+ * Seviye şartı ile aktif geçici (reklamla, yalnız 3. kademe) açılışın EN
+ * YÜKSEĞİ — o gün oyuncunun seviye şartı olmadan erişebileceği en üst
+ * personel kademesi.
  */
 export const personnelEffectiveMaxTier = (store: StoreState, day: GameDay): number => {
-  let max = personnelPaidUnlockLevel(store);
-  if (personnelTempUnlockActive(store, day)) max = Math.max(max, personnelTempUnlockTier(store));
+  let max = personnelTempUnlockActive(store, day) ? personnelTempUnlockTier(store) : 0;
   for (let count = 3; count > max; count -= 1) {
     if (store.level >= PERSONNEL_UNLOCK_LEVELS[count]!) { max = count; break; }
   }
@@ -49,15 +51,6 @@ export const canSetPersonnel = (store: StoreState, count: number, day: GameDay =
 export const personnelCount = (store: StoreState): number => Math.min(3, Math.max(0, Math.trunc(store.personnelCount ?? 0)));
 export const queueCapacity = (store: StoreState): number => Math.min(10, 4 + personnelCount(store) * 2);
 export const personnelDaily = (store: StoreState): number => PERSONNEL_MONTHLY[personnelCount(store)]! / 30;
-/**
- * Bir personel kademesini seviye şartı olmadan, tek seferlik ödeyerek açmanın
- * bedeli — kademenin AYLIK toplamıyla AYNI rakam (`PERSONNEL_MONTHLY`).
- * Kullanıcı isteği: "40k verip açtığın personeli reklam izleyip
- * kiralayabileceksin" — açılış bedeli ile o kademenin günlük tekrar dolum
- * bedeli (bkz. `personnelDaily`, reklamla ücretsiz olabilir) BİLEREK AYNI
- * kaynaktan (`PERSONNEL_MONTHLY`) geliyor, iki ayrı sayı icat edilmedi.
- */
-export const personnelPaidUnlockCost = (count: number): number => PERSONNEL_MONTHLY[count]!;
 export const dailyOperatingCost = (store: StoreState): number => roundMoney(store.dailyOverhead + personnelDaily(store));
 export const SCALE_MAINTENANCE_INTERVAL_DAYS = 30;
 export const scaleMaintenanceCost = (store: StoreState, day: number): number =>

@@ -324,7 +324,7 @@ export function migrate(file: SaveFile): SaveFile {
     activeDeal.purchase.units = activeDeal.purchase.lines.reduce((sum, line) => sum + line.quantity, 0);
   }
   return { ...file, version: SAVE_VERSION, inventory: pooled.inventory, items: pooled.items,
-    store: { ...file.store, personnelCount: file.store.personnelCount ?? 0, personnelPaidUnlockLevel: file.store.personnelPaidUnlockLevel ?? 0, personnelTempUnlockTier: file.store.personnelTempUnlockTier ?? 0, personnelTempUnlockUntilDay: file.store.personnelTempUnlockUntilDay ?? 0, hasBalanceMg: file.store.hasBalanceMg ?? 0, hasCostBasis: file.store.hasCostBasis ?? 0 },
+    store: { ...file.store, personnelCount: file.store.personnelCount ?? 0, personnelTempUnlockTier: file.store.personnelTempUnlockTier ?? 0, personnelTempUnlockUntilDay: file.store.personnelTempUnlockUntilDay ?? 0, hasBalanceMg: file.store.hasBalanceMg ?? 0, hasCostBasis: file.store.hasCostBasis ?? 0 },
     activeDeal, activeCustomer: file.activeCustomer ? { ...file.activeCustomer, demand: normalizeDemand(file.activeCustomer.demand) } : null,
     queue: file.queue?.map(entry => ({ ...entry, customer: { ...entry.customer, demand: normalizeDemand(entry.customer.demand) } })) };
 }

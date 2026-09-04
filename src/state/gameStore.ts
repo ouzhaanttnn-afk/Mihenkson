@@ -15,8 +15,6 @@ import {
   queueCapacity,
   toMg,
   canSetPersonnel,
-  personnelPaidUnlockLevel,
-  personnelPaidUnlockCost,
   personnelCount,
   personnelEffectiveMaxTier,
   personnelTempUnlockTier,
@@ -322,12 +320,6 @@ export interface GameState {
   openStockCatalog: () => void;
   setStockCatalogOpen: (open: boolean) => void;
   setPersonnelCount: (count: number) => void;
-  /**
-   * Bir personel kademesini seviye şartı olmadan, tek seferlik ödeyerek
-   * kalıcı açar (ve o kademeye hemen işe alır). Kullanıcı isteği: "40k
-   * verip açtığın personel..." — bkz. `personnelPaidUnlockCost`.
-   */
-  unlockPersonnelTier: (count: number) => boolean;
   /** Bugünkü personel giderini ödüllü reklamla ücretsizleştirir. */
   requestPersonnelAdWaiver: () => Promise<void>;
   /**
@@ -664,44 +656,6 @@ export const useGame = create<GameState>((set, get) => {
       writeSave(get());
     },
 
-    // GDD 22.1 — kasa hareketi TEK yoldan geçer; bu da bir işlemdir, tıpkı
-    // upgradeStore() gibi. Kademe zaten açıksa (veya count geçersizse) hiç
-    // işlem üretmeden çıkar — idempotent, çift ödeme yok.
-    unlockPersonnelTier: (count) => {
-      const s = get();
-      if (!Number.isInteger(count) || count < 1 || count > 3) return false;
-      if (personnelPaidUnlockLevel(s.store) >= count) return false;
-
-      const cost = personnelPaidUnlockCost(count);
-      const tx: SettlementTransaction = {
-        txId: `personnel_paid_unlock_tier_${count}`,
-        dealId: `personnel_paid_unlock_tier_${count}`,
-        day: s.market.day,
-        cashDelta: -cost,
-        itemsIn: [],
-        itemsOut: [],
-        trustDelta: 0,
-        reputationDelta: 0,
-        xpDelta: 0,
-        label: t('{n} personel kademesini seviye şartı olmadan aç', { n: count }),
-      };
-      const outcome = applyTransaction(economyOf(s), tx);
-      if (!outcome.applied) {
-        pushToast(set, get, t('Yeterli nakit yok.'), 'negative');
-        return false;
-      }
-
-      const nextStore = {
-        ...outcome.state.store,
-        personnelPaidUnlockLevel: Math.max(personnelPaidUnlockLevel(outcome.state.store), count),
-        personnelCount: Math.max(personnelCount(outcome.state.store), count),
-      };
-      set(economyToState({ ...outcome.state, store: nextStore }));
-      pushToast(set, get, t('{n} personel kademesi açıldı.', { n: count }), 'positive');
-      writeSave(get());
-      return true;
-    },
-
     requestPersonnelAdWaiver: async () => {
       const s = get();
       if (s.personnelCostWaivedToday || s.rewardedAdPending) return;
@@ -720,9 +674,11 @@ export const useGame = create<GameState>((set, get) => {
 
     /**
      * Bir personel kademesini reklam karşılığında GEÇİCİ (7 gün) açar —
-     * seviye şartını beklemeden. Kullanıcı isteği: "reklamı bir kere
-     * izleyip oyun içi 1 hafta personel açık kalıyor." `unlockPersonnelTier`
-     * ile KARIŞTIRILMAZ: bu ücretsizdir ama KALICI DEĞİLDİR; süre dolunca
+     * seviye şartını beklemeden. Kullanıcı isteği: "3. personele reklam
+     * ekle, diğerleri [1./2. kademe] yine kalksın" — UI (`BusinessScreen.tsx`)
+     * bu action'ı YALNIZ 3. kademe için çağırır; 1./2. kademede tek yol
+     * seviyedir, başka açılış YOK (gerçek parayla açma denemesi tamamen
+     * geri alındı). Ücretsizdir ama KALICI DEĞİLDİR; süre dolunca
      * `advanceDay()` fazla kadroyu kendiliğinden geri düşürür.
      */
     requestPersonnelTempUnlock: async (count) => {

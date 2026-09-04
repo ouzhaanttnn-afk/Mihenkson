@@ -20,7 +20,6 @@ import {
   PERSONNEL_TEMP_UNLOCK_DAYS,
   PERSONNEL_UNLOCK_LEVELS,
   canSetPersonnel,
-  personnelPaidUnlockCost,
   personnelCount,
   personnelDaily,
   personnelTempUnlockActive,
@@ -283,42 +282,27 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                       </small>
                     </button>
                     {/*
-                      KİLİTLİYSE İKİ ATLAMA YOLU VAR — kullanıcının üç turda
-                      netleştirdiği iki AYRI mekanik:
-                      1. Tek seferlik GERÇEK PARA (kademenin aylık toplamıyla
-                         aynı, bkz. `personnelPaidUnlockCost`) → KALICI açar.
-                      2. Ödüllü reklam, PARA YOK → yalnız `PERSONNEL_TEMP_UNLOCK_DAYS`
-                         gün (7) için açar; süre dolunca `advanceDay()` geri düşürür.
-                      İkisi birbirinin YERİNE DEĞİL, YANINDA durur.
+                      YALNIZ 3. KADEME reklamla atlanabilir — kullanıcı isteği:
+                      "gerçek para ödeme sistemini kaldır. 3. personele reklam
+                      ekle diğerleri yine kalksın." 1. ve 2. kademede TEK yol
+                      seviyedir (`PERSONNEL_UNLOCK_LEVELS`), başka açılış yok.
+                      Gerçek parayla açma denemesi tamamen geri alındı.
                     */}
-                    {locked && (
-                      <>
-                        <button
-                          type="button"
-                          className="chip personnelChoice__unlock"
-                          onClick={() => s.unlockPersonnelTier(count)}
-                          title={t('Seviye {sv} beklemeden {tutar} ödeyip kalıcı aç', {
-                            sv: seviye,
-                            tutar: tl(personnelPaidUnlockCost(count)),
-                          })}
-                        >
-                          {t('{tutar} öde, hemen aç', { tutar: tl(personnelPaidUnlockCost(count)) })}
-                        </button>
-                        <button
-                          type="button"
-                          className="chip personnelChoice__unlock"
-                          disabled={s.rewardedAdPending === 'personnelTempUnlock'}
-                          onClick={() => s.requestPersonnelTempUnlock(count)}
-                          title={t('Reklam izle, {gun} gün boyunca ücretsiz aç', {
-                            gun: PERSONNEL_TEMP_UNLOCK_DAYS,
-                          })}
-                        >
-                          <IconVideo size={11} />{' '}
-                          {s.rewardedAdPending === 'personnelTempUnlock'
-                            ? t('Reklam yükleniyor…')
-                            : t('Reklamla {gun} gün aç', { gun: PERSONNEL_TEMP_UNLOCK_DAYS })}
-                        </button>
-                      </>
+                    {locked && count === 3 && (
+                      <button
+                        type="button"
+                        className="chip personnelChoice__unlock"
+                        disabled={s.rewardedAdPending === 'personnelTempUnlock'}
+                        onClick={() => s.requestPersonnelTempUnlock(count)}
+                        title={t('Reklam izle, {gun} gün boyunca ücretsiz aç', {
+                          gun: PERSONNEL_TEMP_UNLOCK_DAYS,
+                        })}
+                      >
+                        <IconVideo size={11} />{' '}
+                        {s.rewardedAdPending === 'personnelTempUnlock'
+                          ? t('Reklam yükleniyor…')
+                          : t('Reklamla {gun} gün aç', { gun: PERSONNEL_TEMP_UNLOCK_DAYS })}
+                      </button>
                     )}
                   </div>
                 );

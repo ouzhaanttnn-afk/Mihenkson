@@ -2137,6 +2137,50 @@ satırı YANLIŞLIKLA görünmedi (ödül verilmediği için doğru), 0 konsol h
 
 ---
 
+#### YENİ · Personel: gerçek para ödeme yolu tamamen kaldırıldı, reklamla açılış YALNIZ 3. kademe — ✅ YAPILDI
+`src/domain/types.ts` (`personnelPaidUnlockLevel` alanı silindi) ·
+`src/domain/v5-rules.ts` (`personnelPaidUnlockLevel()`, `personnelPaidUnlockCost()`
+silindi; `personnelEffectiveMaxTier` iki kaynağa indi) · `src/state/gameStore.ts`
+(`unlockPersonnelTier` action'ı tamamen silindi) · `src/state/save.ts`
+(`migrate()`'ten alan kaldırıldı) · `src/ui/screens/BusinessScreen.tsx`
+("öde, hemen aç" düğmesi silindi, reklam düğmesi `count === 3` şartına
+bağlandı) · `src/state/day-close.test.ts` (5 eski test silindi, 1 test
+düzeltildi) · `src/i18n/en.ts` (5 kullanılmayan anahtar silindi)
+
+Bir önceki turda kullanıcının onayladığını sandığım tasarımı ("40k öde,
+kalıcı aç" + ayrıca "reklamla 7 gün geçici aç", ikisi birlikte) canlı
+ekranı görünce reddetti: **"bak demek istediğim tam olarak yapmamışsın.
+gerçek para ödeme sistemini kaldır. 3. personele reklam reklam ekle diğerleri
+yine kalksın."** Yani: 1. ve 2. kademe eskisi gibi YALNIZ seviye şartına
+bağlı kalsın (`PERSONNEL_UNLOCK_LEVELS`), başka hiçbir açılış yolu (ne para
+ne reklam) olmasın; SADECE 3. kademe reklamla (7 gün geçici) açılabilsin.
+
+**Kaldırılan:** `personnelPaidUnlockLevel` alanı, `personnelPaidUnlockLevel()`/
+`personnelPaidUnlockCost()` fonksiyonları, `unlockPersonnelTier` store
+action'ı (tek seferlik `SettlementTransaction` ile kasadan düşen kalıcı
+açılış), "{tutar} öde, hemen aç" UI düğmesi ve ilgili 5 test +
+5 i18n anahtarı.
+
+**Sadeleşen `personnelEffectiveMaxTier(store, day)`** artık yalnız İKİ
+kaynağın en yükseğini döner: seviye şartı ve aktif geçici (reklamlı)
+açılış — kalıcı-ödenmiş kaynak tamamen gitti. `requestPersonnelTempUnlock`
+action'ının kendisi (herhangi bir kademeyi kabul eden genel hâliyle)
+değişmedi; kısıtlama yalnız UI çağrı noktasında: `BusinessScreen.tsx`
+artık reklam düğmesini `locked && count === 3` şartıyla, yalnız 3. kademe
+için gösteriyor. `advanceDay()`in geri düşürme mantığı değişmedi.
+
+**Doğrulama:** `tsc -b --noEmit` temiz · `npm run i18n` → 887/887, 0
+çevrilmemiş, 0 kullanılmayan · `npx vitest run` → 976/976 yeşil (8 eski
+test silindi, 1 düzeltildi: `personnelEffectiveMaxTier` artık yalnız
+seviye+geçici test ediyor) · `npm run build` + `npm run cap:sync` temiz ·
+Taze tarayıcı doğrulaması (Playwright, 390×844): İşletme → Personel
+akordeonu açıldı, 1. ve 2. kademe sütunlarında (Sv 3, Sv 6) HİÇBİR düğme
+yok — yalnız düz metin ("Sv 3", "Sv 6"), tam olarak özellik öncesi hâliyle
+aynı; 3. kademe (Sv 10) altında TEK bir "Reklamla 7 gün aç" düğmesi var;
+"öde, hemen aç" metni sayfada 0 kez geçiyor.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI
