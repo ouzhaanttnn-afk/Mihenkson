@@ -255,7 +255,7 @@ export function PackageStage({
         <Figure label={t("Kâr / Zarar (öneri)")} value={tlSigned(potential)} tone={potential >= 0 ? 'positive' : 'negative'} />
       </div>
 
-      <p className="svc__note">
+      <p className="svc__note svc__note--clamp2">
         <IconPackage size={16} />
         <strong>{CHANNEL_LABEL_TR[purchase.channel]}</strong> alış-satış farkıyla{' '}
         fiyatlandı. {stripRepeatedChannel(purchase.rationale, purchase.channel)} Öneri bir dayatma değildir; pazarlıkta istediğiniz

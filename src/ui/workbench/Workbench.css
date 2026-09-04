@@ -2013,6 +2013,22 @@
   text-align: center;
 }
 
+/*
+ * Kullanıcı: "bu ekranda hala aşağı kaydırıyorum" — Paket aşamasında bu
+ * notun tamamı bazı cihazlarda `.wb`in `overflow: hidden` sınırına takılıp
+ * kelimenin ortasından ("...Güncel") kesiliyordu (ekran görüntüsüyle
+ * doğrulandı). GDD 23.22 "içerik taşarsa yoğunluk azaltılır" diyor — ham
+ * piksel kırpması yerine 2 satırda temiz "…" ile biten bir kırpma.
+ * Kararı etkileyen rakamlar (`.pkgFigures`) bu notun ÜSTÜNDE ve ayrı bir
+ * flex çocuğu; bu kırpma yalnız ikincil hatırlatma cümlesini kısaltır.
+ */
+.svc__note--clamp2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
 /* --- Teklif: kendi atölye vs dış usta (GDD 17.2) --- */
 
 .venues {

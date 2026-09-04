@@ -2181,6 +2181,77 @@ aynı; 3. kademe (Sv 10) altında TEK bir "Reklamla 7 gün aç" düğmesi var;
 
 ---
 
+#### YENİ · Dükkan ekranında sayfa kaydırması yapısal olarak kapatıldı — ✅ YAPILDI
+`src/ui/tokens.css` (`html, body, #root` artık `overflow: hidden`) ·
+`src/ui/workbench/Workbench.css` (`.svc__note--clamp2`) ·
+`src/ui/workbench/PurchaseStages.tsx` (`PackageStage` notuna clamp) ·
+`src/ui/shell/AppShell.css` (`.coach__text` clamp)
+
+Kullanıcı, Paket aşamasının ekran görüntüsünü göndererek "Oyunda bu ekranda
+hala aşağı kaydırıyorum bunların önüne geçmemiz lazım" dedi. GDD 23.22 bu
+ekranda dikey scroll'u zaten YASAKLIYOR ve `.device`/`.screen--noScroll`/
+`.workbench`/`.wb` hepsi `overflow: hidden`; ekran görüntüsünde de somut bir
+kanıt vardı: `.svc__note` paragrafı kelimenin ortasından ("...Güncel")
+kesiliyordu — `.wb`in kırpma sınırına takılmış hâm bir pikselkırpması,
+GDD'nin istediği "yoğunluk azalt" değil.
+
+Kök nedeni tam olarak kullanıcının cihazında birebir üretemedim (headless
+Playwright'ta 390×844'te aynı senaryo — tek kalemli "Talep tam karşılandı"
+paketi — hiç taşmadan tam oturdu, `docScroll.scrollHeight === clientHeight
+=== 844`); gerçek cihazda font/tarayıcı-arayüzü farkı taşmayı tetikliyor
+olmalı. Bu yüzden iki katmanlı çözüm:
+
+1. **Taban garantisi:** `html, body, #root`'a `overflow: hidden` eklendi.
+   Her ekran zaten kendi kapalı kutusunu yönetiyor (`.page`/`.page__scroll`
+   ayrımı Stok/Atölye/İşletme'de, `.avatarGrid`/`.talentTreeSheet__scroll`
+   modallerde) — hiçbir ekran belge/gövde kaydırmasına GÜVENMİYOR, doğrulandı
+   (Stok sekmesinde `.page__scroll` kendi `overflow-y:auto`sunu koruyor,
+   `body`/`html` `overflow:hidden` olsa da iç kaydırma çalışıyor). Artık iç
+   bir bileşen beklenmedik biçimde taşarsa bile dış sayfa ASLA kaymaz.
+2. **Zarif kırpma:** `.svc__note` (Paket notu) ve `.coach__text` (öğretim
+   şeridi metni) artık `-webkit-line-clamp: 2` ile 2 satırda temiz "…" ile
+   biter — kelimenin ortasından kesilme bir daha olamaz.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 887/887 (0/0), 976/976 test yeşil,
+`npm run build` + `cap:sync` temiz. Playwright: (a) Paket aşamasında
+`docScroll`/`bodyScroll` 844/844 — taşma yok; (b) Stok sekmesinde
+`.page__scroll` hâlâ kendi içinde kayabiliyor (`body`/`html`nin
+`overflow:hidden`ı iç kaydırmayı bozmadı).
+
+---
+
+#### YENİ · Öğretim şeridi (CoachBar) kompaktlaştırıldı — ✅ YAPILDI
+`src/ui/shell/AppShell.css` (`.coach__skip`, `.coach__text`)
+
+Kullanıcı: "oyuna başlarken yardımcı ipuçları ekranda bize engel oluyor onu
+nasıl kompaktlaştırabilirsin fikir yürütüp mantıklı geliyorsa uygulamanı
+istiyorum." Ölçüldü: oyunun İLK açılışında görünen tek ders olan
+`welcome`da (`showSkip=true`, GDD 25) `.coach__skip` ("Öğretimi kapat")
+düğmesi `min-height: 44px` taşıyordu — bir bağlantı metni için tam bir
+dokunma hedefi kadar GERÇEK dikey yer harcıyordu, İşlem Masası'ndan
+çalınıyordu.
+
+**Fix:** `.coach__skip`nin GERÇEK kutusu artık metnin doğal satır
+yüksekliğine (~13 px) düşüyor; 44 px'lik dokunma hedefi `.speed__step::after`
+ile AYNI desenle (görünmez, mutlak konumlu sözde-öge) korunuyor — dokunma
+alanı kaybolmadı, yalnız düzene ayırdığı GERÇEK yükseklik gitti. Ayrıca
+`.coach__text` (ders gövdesi) 2 satırda kırpılıyor — uzun bir ders metni
+şeridi büyütemez.
+
+**Ölçüm (Playwright, 390×844, ilk açılış, hiçbir ders kapatılmadan):**
+`.coach` toplam yüksekliği ÖNCE ~110-122 px (hesaplanan: skip 44 + text
+~2-3 satır + title + padding) → SONRA **80 px** — skip kutusu tek başına
+44 px'ten 13 px'e indi. `.workbench` alanı buna karşılık **445 px**'e
+çıktı (önceden ~365-380 px civarındaydı). Sayfa hâlâ taşmıyor
+(`docScroll` 844/844). Skip düğmesi görsel olarak küçüldü ama
+`getByRole('button', {name:'Öğretimi kapat'})` ile hâlâ tıklanabilir
+doğrulandı.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 887/887, 976/976 test yeşil,
+build + cap:sync temiz, ekran görüntüsüyle görsel doğrulama yapıldı.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

@@ -224,12 +224,23 @@
   box-sizing: border-box;
 }
 
+/*
+ * Kullanıcı: Dükkan ekranında "hala aşağı kaydırıyorum" (GDD 23.22 dikey
+ * scroll YOK kuralını çiğniyordu). Her ekran zaten kendi kapalı kutusunu
+ * yönetiyor (`.device`, `.workbench`, `.page` hepsi `overflow: hidden`;
+ * kaydırması gereken tek yerler `.page__scroll`, `.avatarGrid` gibi kendi
+ * içine kapalı alt kaplar). Belge kökünde hiçbir ekran sayfa kaydırmasına
+ * güvenmiyor — bu yüzden `overflow: hidden` burada TABAN GARANTİSİ: iç
+ * bir bileşen beklenmedik biçimde taşırsa bile dış sayfa asla kaymaz,
+ * taşma görünmez kalır (GDD'nin istediği "yoğunluk azalt", "sayfa kaydır" değil).
+ */
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 body {

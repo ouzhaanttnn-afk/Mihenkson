@@ -1135,10 +1135,21 @@
   color: var(--brass-300);
 }
 
+/*
+ * Kullanıcı: "oyuna başlarken yardımcı ipuçları ekranda bize engel oluyor."
+ * Ders metni GDD 25 gereği zaten kısa tutulur ("Uzun metin telefonda
+ * okunmaz") ama İncele/Değerle gibi bazı dersler 2 satırı geçebiliyordu ve
+ * her satır İşlem Masası'ndan çalınan pay demekti. 2 satırda "…" ile kes —
+ * ders zaten atlanabilir, kaybedilen üçüncü satır kritik bilgi taşımaz.
+ */
 .coach__text {
   font-size: var(--fs-micro);
   color: var(--text-dark-2);
   line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 /* GDD 23.22 — 44 px dokunma hedefi. Tek eylem, komşusu yok. */
@@ -1160,19 +1171,34 @@
 /*
  * Yıkıcı eylem: AYRI SÜTUNDA ve yalnız ilk derste. "Anladım"ın yanına
  * konsaydı ıskalanan dokunuş tüm öğretimi silerdi.
+ *
+ * Kullanıcı: "ipuçları ekranda bize engel oluyor" — GERÇEK KUTU artık
+ * `min-height: 44px` DEĞİL. O satır, oyunun ilk açılışında görülen tek
+ * ders olan "welcome"da toplam ~30 px'i tek başına yiyordu ve İşlem
+ * Masası'ndan çalınıyordu. Dokunma hedefi kaybolmadı — `.speed__step::after`
+ * ile aynı desen: 44 px'lik alan görünmez bir sözde-öge ile korunur, kutunun
+ * kendi yüksekliği metnin gerçek satır yüksekliğine (~15 px) düşer.
  */
 .coach__skip {
-  min-height: var(--touch-min);
-  margin-top: 2px;
+  position: relative;
+  min-height: 0;
+  margin-top: 1px;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--text-dark-3);
   font-size: var(--fs-micro);
+  line-height: 1.2;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.coach__skip::after {
+  content: '';
+  position: absolute;
+  inset: -15px -8px;
 }
 
 
