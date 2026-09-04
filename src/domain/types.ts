@@ -898,8 +898,9 @@ export type WorkbenchStage =
   | 'promise' // Teslim Sözü
   | 'jobQueue' // Atölye Kuyruğu
   // --- Müşteri alış akışı (GDD 23.23 · Addendum §3) ---
+  // Eskiden ayrı bir 'package' (Değer/Paket) aşaması vardı; kullanıcı
+  // isteğiyle kaldırıldı — Stok seçimi artık doğrudan Pazarlığa geçer.
   | 'stockPick' // Stok seçimi
-  | 'package' // Değer / Paket
   // --- Ekspertiz / danışma akışı (GDD 23.23 · beşinci akış) ---
   | 'test' // Test
   | 'report'; // Rapor / Ücret
@@ -909,7 +910,7 @@ export type DealFlow = 'trade' | 'service' | 'purchase' | 'appraisal';
 
 /**
  * Müşteri alış akışının oturum durumu (GDD 23.23:
- * Stok seçimi → Değer/Paket → Pazarlık).
+ * Stok seçimi → Pazarlık).
  */
 /** Pakete konan bir stok satırı (Addendum §4.1). */
 export interface PackageLine {

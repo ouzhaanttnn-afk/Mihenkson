@@ -289,7 +289,6 @@ export const EN: Record<string, string> = {
   'Kanal önerisi': 'Channel suggestion',
   'Öneri': 'Suggestion',
   'Öneri ile devam edilecek': 'Continuing with the suggestion',
-  'Kâr / Zarar (öneri)': 'Profit / Loss (suggested)',
   'Çıkış planı, ürünün müşteri işleminde değerlendirilip bir satış kanalı seçildiğinde atanır.':
     'The exit plan is assigned once the item is appraised in a customer transaction and a sales channel is chosen.',
 
@@ -336,10 +335,7 @@ export const EN: Record<string, string> = {
   'Tatlı Dil & Esnaf Nüktesi': 'Sweet Talk & Trader Wit',
 
   // ——— Paket ———
-  'Paketi Değerle': 'Appraise the Bundle',
-  'Paketi Düzenle': 'Edit the Bundle',
   'Paketi boşalt': 'Empty the bundle',
-  'Pakete bak': 'View the bundle',
   'Müşterinin ürünleri': "The customer's items",
   'Müşteriden aldığınız her ürün buraya düşer ve çıkış planı burada yönetilir.':
     'Every item you take from a customer lands here, and its exit plan is managed here.',
@@ -1475,7 +1471,6 @@ export const EN: Record<string, string> = {
   'Seçili {plan}': 'Chosen {plan}',
   '{plan} seçilmedi': 'No {plan} chosen',
   '{plan} yok': 'No {plan}',
-  '{miktar} · {tutar} adil değer': '{miktar} · {tutar} fair value',
   '{n} müşteri bekliyor': '{n} customers waiting',
   '{n} müşteriyi daha göster': 'Show {n} more customers',
   '{n}. sırada': 'No. {n} in line',

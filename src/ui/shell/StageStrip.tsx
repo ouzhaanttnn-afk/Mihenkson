@@ -45,14 +45,16 @@ const SERVICE_STEPS: { stage: WorkbenchStage; label: string }[] = [
 ];
 
 /**
- * GDD 23.23 — "Müşteri alış: Stok seçimi → Değer/Paket → Pazarlık."
- * Üç adımdır, dört değil: alış akışında ürün oyuncunun kendi stoğudur, test
- * edilecek gizli gerçek yoktur. Dördüncü bir adım uydurmak GDD'de olmayan
- * mekanik eklemek olurdu.
+ * GDD 23.23 — "Müşteri alış: Stok seçimi → Pazarlık."
+ * İki adımdır: alış akışında ürün oyuncunun kendi stoğudur, test edilecek
+ * gizli gerçek yoktur. Bir zamanlar ayrı bir "Paket" (Değer/Paket) aşaması
+ * vardı; kullanıcı isteğiyle ("Paket diye bir ekran seçeneği de olmasın...
+ * komple çıkart") kaldırıldı — adil değer/kanal önerisi/kâr-zarar rakamları
+ * zaten Pazarlık aşamasında (`NegotiateStage`) tekrar gösteriliyordu, ayrı
+ * bir ekran olmadan da bilgi kaybı olmuyor.
  */
 const PURCHASE_STEPS: { stage: WorkbenchStage; label: string }[] = [
   { stage: 'stockPick', label: 'Stok' },
-  { stage: 'package', label: 'Paket' },
   { stage: 'negotiate', label: 'Pazarlık' },
 ];
 
@@ -70,7 +72,7 @@ const APPRAISAL_STEPS: { stage: WorkbenchStage; label: string }[] = [
 
 const TRADE_ORDER: WorkbenchStage[] = ['inspect', 'appraise', 'thesis', 'negotiate', 'result'];
 const APPRAISAL_ORDER: WorkbenchStage[] = ['inspect', 'test', 'report', 'result'];
-const PURCHASE_ORDER: WorkbenchStage[] = ['stockPick', 'package', 'negotiate', 'result'];
+const PURCHASE_ORDER: WorkbenchStage[] = ['stockPick', 'negotiate', 'result'];
 const SERVICE_ORDER: WorkbenchStage[] = ['diagnose', 'quote', 'promise', 'jobQueue'];
 
 interface Props {

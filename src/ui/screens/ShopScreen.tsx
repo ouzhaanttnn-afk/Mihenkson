@@ -64,7 +64,7 @@ import {
   PromiseStage,
   QuoteStage,
 } from '@ui/workbench/ServiceStages';
-import { PackageStage, StockPickStage } from '@ui/workbench/PurchaseStages';
+import { StockPickStage, fulfilmentText } from '@ui/workbench/PurchaseStages';
 import {
   OfferControl,
   liquidityImpact,
@@ -107,7 +107,7 @@ import { showcaseStock } from '@domain/purchase';
 import { poolForItem, poolForTemplate } from '@domain/stock-pools';
 import { customerPriceBand } from '@domain/customer-pricing';
 import { BullionCatalog } from '@ui/screens/StockScreen';
-import { clock, grams, moneyUnit, pct, tl, tlBare, tlSigned, tonWord, preciseGrams } from '@ui/format';
+import { clock, grams, moneyUnit, pct, tl, tlBare, tlSigned, tonWord } from '@ui/format';
 import { getLanguage, t } from '@i18n/index';
 import { offerUnitLabel } from '@ui/offer-view';
 import type {
@@ -279,9 +279,7 @@ export function ShopScreen() {
             <IdleWorkbench coaching={lesson !== null} />
           ) : /* --- Müşteri alış akışı (GDD 23.23) --- */
           deal.flow === 'purchase' && deal.purchase ? (
-            stage === 'package' ? (
-              <PackageStage purchase={deal.purchase} items={s.items} />
-            ) : stage === 'negotiate' ? (
+            stage === 'negotiate' ? (
               <NegotiateStage
                 session={line.negotiation}
                 message={s.customerMessage}
@@ -884,14 +882,6 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
             icon: <IconReject size={19} />,
             onPress: s.clearPackage,
             disabled: purchase.lines.length === 0 || locked,
-          },
-          {
-            id: 'toPackage',
-            label: t('Pakete bak'),
-            icon: <IconPackage size={19} />,
-            onPress: () => s.setStage('package'),
-            selected: deal.stage === 'package',
-            disabled: purchase.lines.length === 0,
           },
         ]}
       />
@@ -1506,48 +1496,30 @@ function PurchaseDock({
 
   switch (deal.stage) {
     // --- STOK SEÇİMİ ---
+    // Kullanıcı isteği üzerine ayrı bir DEĞER/PAKET aşaması kaldırıldı;
+    // paket hazır olur olmaz (§4.1 — kısmi karşılamayı kabul etmeyen
+    // müşteriye eksik paket sunulmaz) doğrudan Pazarlığa geçiliyor. Kanal
+    // önerisi + maliyet özeti, eskiden "Paket" ekranında duran bilgiydi —
+    // şimdi burada, hazır olduğu an gösteriliyor.
     case 'stockPick': {
       const count = purchase.units;
-      return (
-        <DecisionDock
-          summaryLabel={t('Pakette')}
-          summaryValue={
-            count === 0
-              ? t('Henüz ürün seçilmedi')
-              : t('{miktar} · {tutar} adil değer', {
-                  miktar:
-                    purchase.demand.poolId === '24K_GRAM_GOLD_POOL'
-                      ? preciseGrams(count)
-                      : purchase.demand.poolId === '22K_INVESTMENT_BANGLE_POOL'
-                        ? preciseGrams(count * 10)
-                        : t('{n} adet', { n: count }),
-                  tutar: tl(purchase.packageFairValue),
-                })
-          }
-          primary={{
-            label: t('Paketi Değerle'),
-            onPress: () => s.setStage('package'),
-            disabled: count === 0,
-          }}
-          secondary={[{ label: t('Müşteriyi Gönder'), onPress: s.finishDeal, danger: true }]}
-        />
-      );
-    }
-
-    // --- DEĞER / PAKET ---
-    case 'package': {
-      // §4.1 — kısmi karşılamayı kabul etmeyen müşteriye eksik paket sunulmaz.
       const ready = purchase.fulfilment !== 'none';
       return (
         <DecisionDock
-          summaryLabel={t("Kanal önerisi")}
+          summaryLabel={count === 0 ? t('Pakette') : ready ? t('Kanal önerisi') : t('Pakette')}
           summaryValue={
-            <>
-              {tl(purchase.suggestedPrice)}
-              <span style={{ color: 'var(--muted)' }}>
-                {' '}· maliyet {tl(purchase.packageCost)}
-              </span>
-            </>
+            count === 0 ? (
+              t('Henüz ürün seçilmedi')
+            ) : ready ? (
+              <>
+                {tl(purchase.suggestedPrice)}
+                <span style={{ color: 'var(--muted)' }}>
+                  {' '}· maliyet {tl(purchase.packageCost)}
+                </span>
+              </>
+            ) : (
+              fulfilmentText(purchase, purchase.demand)
+            )
           }
           primary={{
             label: t('Pazarlığa Geç'),
@@ -1557,10 +1529,7 @@ function PurchaseDock({
             },
             disabled: !ready,
           }}
-          secondary={[
-            { label: t('Paketi Düzenle'), onPress: () => s.setStage('stockPick') },
-            { label: t('Müşteriyi Gönder'), onPress: s.finishDeal, danger: true },
-          ]}
+          secondary={[{ label: t('Müşteriyi Gönder'), onPress: s.finishDeal, danger: true }]}
         />
       );
     }

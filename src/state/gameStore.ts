@@ -3055,8 +3055,9 @@ export function canEnterStage(s: GameState, stage: WorkbenchStage): boolean {
   }
 
   // --- Müşteri alış akışı (GDD 23.23) ---
-  // Stok seçimi her zaman açık; paket ekranı en az bir kalem ister;
-  // pazarlık, talebin karşılanabilir bir paketle karşılanmasını ister.
+  // Stok seçimi her zaman açık; pazarlık, talebin karşılanabilir bir
+  // paketle karşılanmasını ister. Ayrı bir "Paket" (Değer/Paket) aşaması
+  // vardı, kullanıcı isteğiyle kaldırıldı (bkz. StageStrip.tsx yorumu).
   if (deal.flow === 'purchase') {
     const purchase = deal.purchase;
     if (!purchase) return false;
@@ -3064,8 +3065,6 @@ export function canEnterStage(s: GameState, stage: WorkbenchStage): boolean {
     switch (stage) {
       case 'stockPick':
         return true;
-      case 'package':
-        return purchase.lines.length > 0;
       case 'negotiate':
         // §4.1: kısmi karşılamayı kabul etmeyen müşteriye eksik paket sunulmaz.
         return purchase.fulfilment !== 'none';

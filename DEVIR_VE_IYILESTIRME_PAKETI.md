@@ -2252,6 +2252,58 @@ build + cap:sync temiz, ekran görüntüsüyle görsel doğrulama yapıldı.
 
 ---
 
+#### YENİ · Müşteri alış akışından "Paket" aşaması komple kaldırıldı — ✅ YAPILDI
+`src/domain/types.ts` (`WorkbenchStage`'den `'package'` silindi) ·
+`src/ui/shell/StageStrip.tsx` (`PURCHASE_STEPS`/`PURCHASE_ORDER` iki adıma
+indi: Stok → Pazarlık) · `src/state/gameStore.ts` (`canEnterStage`'den
+`case 'package'` silindi) · `src/ui/screens/ShopScreen.tsx` (`PackageStage`
+render dalı, `PurchaseDock`'un `case 'package'` bloğu ve ToolRail'in
+"Pakete bak" düğmesi silindi; `case 'stockPick'` doğrudan Pazarlığa geçecek
+şekilde büyütüldü) · `src/ui/workbench/PurchaseStages.tsx` (`PackageStage`,
+`Figure`, `stripRepeatedChannel` silindi; `fulfilmentText` export edildi) ·
+`src/ui/workbench/Workbench.css` (`.pkgLines`/`.pkgFigures`/`.pkgFigure*`/
+`.svc__note--clamp2` — artık tüketicisi kalmayan ölü kurallar silindi) ·
+`src/i18n/en.ts` (5 kullanılmayan anahtar silindi)
+
+Kullanıcı, Stok aşamasının ekran görüntüsünü göndererek: **"Paket diye bir
+ekran seçeneği de olmasın paket kısmını da çıkartır mısın komple."** Üç
+adımlı akış (Stok seçimi → Değer/Paket → Pazarlık) iki adıma indi (Stok
+seçimi → Pazarlık); ara "Paket" ekranı (Adil değer/Alış Maliyetim/Kanal
+önerisi/Kâr-Zarar rakamları + gerekçe notu) tamamen kaldırıldı.
+
+**Bilgi kaybı var mı diye önce kontrol edildi:** `NegotiateStage`
+zaten satış akışında bir `refPanel` gösteriyordu ("Piyasa Referans Satış",
+"İstediğin Fiyat", "Referansa Göre Fark") ve `PurchaseDock`'un pazarlık
+case'i zaten teklife göre "Kâr" etkisini `OfferControl`'e besliyordu.
+Pazarlığa girerken teklif zaten `purchaseStartingOffer(purchase)`e
+(= eski "kanal önerisi" rakamı) yerleşiyor. Yani PackageStage'in gösterdiği
+dört rakamın üçü (kanal önerisi = başlangıç teklifi, kâr/zarar = OfferControl
+etkisi, piyasa referansı = refPanel) zaten Pazarlık ekranında vardı;
+kaybolan yalnız statik "Adil değer" satırı ve tanıtım cümlesiydi (GDD 6.6
+zaten müşterinin gizli tavanını hiçbir yerde göstermiyordu).
+
+**`case 'stockPick'` (`PurchaseDock`)** artık paket hazır olur olmaz
+(`purchase.fulfilment !== 'none'`) özetini "Kanal önerisi: {tutar} · maliyet
+{tutar}"a yükseltiyor (eskiden Paket ekranında duran bilgi) ve "Pazarlığa
+Geç" birincil eylemi doğrudan `setOffer(purchaseStartingOffer(purchase));
+s.setStage('negotiate')` çağırıyor. Henüz yetersizken (`fulfilment ===
+'none'`) özet `fulfilmentText()`e döner ("Yetersiz · X gerekiyor." /
+"Kısmi karşılama · X/Y.") — oyuncu paketin durumunu hâlâ görüyor, yalnız
+ayrı bir ekrana geçmeden.
+
+**Doğrulama:** `tsc` temiz, `npm run i18n` 887→881 anahtar (0 çevrilmemiş,
+0 kullanılmayan — 5 ölü anahtar silindi), 976/976 test yeşil, `npm run
+build` + `cap:sync` temiz. Playwright (390×844) uçtan uca doğrulama: Stok
+sekmesine girildiğinde Aşama Şeridi'nde artık yalnız "Stok"/"Pazarlık"
+(`Contains "Paket"? false`); stoğu yetersiz bir müşteride Dock "Yetersiz ·
+… gerekiyor." gösterip "Pazarlığa Geç"i devre dışı bırakıyor (doğru
+davranış); yeterli stoklu bir müşteride "Pazarlığa Geç"e basınca doğrudan
+Pazarlık ekranına düşüyor ve "Adil değer"/"Kâr" rakamları orada (Karar
+Dock'unda) hâlâ görünüyor — bilgi kaybı yok. Sayfanın hiçbir yerinde
+"Paket" kelimesi geçmiyor.
+
+---
+
 ### B. Tasarım ve oynanış önerileri
 
 #### B1 · T · Cumartesi riski oyuncunun baktığı yerde yazmıyordu — ✅ YAPILDI

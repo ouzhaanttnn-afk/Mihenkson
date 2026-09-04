@@ -1,26 +1,32 @@
 /**
  * İşlem Masası · MÜŞTERİ ALIŞ AKIŞI (GDD 23.23)
  *
- * "Müşteri alış: Stok seçimi → Değer/Paket → Pazarlık."
+ * "Müşteri alış: Stok seçimi → Pazarlık."
  *
  * Ekonomi Ara Düzeltmesi §3'ün terminolojisiyle: müşteri ALIR, oyuncu SATAR.
  *
- * Bu akışın satış akışından yüzeysel farkı üç adım olması; YAPISAL farkı ise
+ * Bu akışın satış akışından yüzeysel farkı iki adım olması; YAPISAL farkı ise
  * belirsizliğin yer değiştirmesidir. Satış akışında bilinmeyen ürünün
  * gerçeğidir ve testlerle kapanır. Burada ürün oyuncunun kendi stoğudur;
  * bilinmeyen MÜŞTERİNİN ÖDEME TAVANIdır ve o hiçbir araçla ölçülemez —
  * yalnız doğru malı doğru pakette sunarak yükseltilebilir.
  *
- * GDD 23.24 gereği üç adım da AYNI Workbench yüzeyini kullanır.
+ * Kullanıcı isteği: "Paket diye bir ekran seçeneği de olmasın... paket
+ * kısmını da çıkartır mısın komple." Ayrı bir DEĞER/PAKET aşaması vardı
+ * (`PackageStage`); adil değer, maliyet, kanal önerisi ve kâr/zarar
+ * rakamlarını tekrar gösteriyordu — bunların hepsi zaten Pazarlık
+ * aşamasında (`NegotiateStage`'in kalıcı paneli + Karar Dock'unun teklif
+ * etki satırı) vardı. Kaldırıldı; Stok Seçimi artık doğrudan Pazarlığa geçer.
+ *
+ * GDD 23.24 gereği iki adım da AYNI Workbench yüzeyini kullanır.
  * GDD 6.6 gereği müşterinin tavanı hiçbir yerde sayı olarak gösterilmez.
  */
 
 import { t } from '@i18n/index';
 import { demandOutcome, matchDemand, type DemandMatch, type DemandOutcome } from '@domain/purchase';
-import { CHANNEL_LABEL_TR } from '@domain/channels';
 import { getTemplate } from '@data/item-templates';
 import { IconPackage, IconWarning, ProductSilhouette } from '@ui/icons';
-import { tl, tlSigned } from '@ui/format';
+import { tl } from '@ui/format';
 import type {
   CustomerDemand,
   InventoryPosition,
@@ -199,97 +205,18 @@ function outcomeText(outcome: DemandOutcome, available: number, demand: Customer
   }
 }
 
-// ---------------------------------------------------------------------------
-// 2. DEĞER / PAKET
-// ---------------------------------------------------------------------------
-
-export function PackageStage({
-  purchase,
-  items,
-}: {
-  purchase: PurchaseSession;
-  items: Record<string, ItemInstance>;
-}) {
-  const potential = purchase.suggestedPrice - purchase.packageCost;
-
-  return (
-    <div className="svc">
-      <div className="pkgDemand">
-        <span className="pkgDemand__icon">
-          <IconPackage size={20} />
-        </span>
-        <div>
-          <h2 className="svc__title">Paket · {amountLabel(purchase.demand, purchase.units)}</h2>
-          <p className="svc__meta">{fulfilmentText(purchase, purchase.demand)}</p>
-        </div>
-      </div>
-
-      <ul className="pkgLines">
-        {purchase.lines.map((line) => {
-          const item = items[line.itemId];
-          if (!item) return null;
-          return (
-            <li key={line.itemId} className="pkgLines__row">
-              <ProductSilhouette kind={getTemplate(item.templateId).silhouette} size={22} />
-              <span>{t(item.displayName)}</span>
-              <span className="pkgLines__qty num">×{line.quantity}</span>
-            </li>
-          );
-        })}
-      </ul>
-
-      {/*
-        GDD 6.6 — müşterinin ödeme tavanı GÖSTERİLMEZ. Gösterilen her sayı
-        oyuncunun kendi tarafındandır: paketin adil değeri, defter maliyeti,
-        kanal makasının önerdiği fiyat ve aradaki potansiyel.
-      */}
-      <div className="pkgFigures">
-        <Figure label={t("Adil değer")} value={tl(purchase.packageFairValue)} />
-        <Figure label={t("Alış Maliyetim")} value={tl(purchase.packageCost)} />
-        <Figure
-          label={t("Kanal önerisi")}
-          value={tl(purchase.suggestedPrice)}
-          tone={potential >= 0 ? 'positive' : 'negative'}
-          big
-        />
-        <Figure label={t("Kâr / Zarar (öneri)")} value={tlSigned(potential)} tone={potential >= 0 ? 'positive' : 'negative'} />
-      </div>
-
-      <p className="svc__note svc__note--clamp2">
-        <IconPackage size={16} />
-        <strong>{CHANNEL_LABEL_TR[purchase.channel]}</strong> alış-satış farkıyla{' '}
-        fiyatlandı. {stripRepeatedChannel(purchase.rationale, purchase.channel)} Öneri bir dayatma değildir; pazarlıkta istediğiniz
-        rakamı verirsiniz.
-      </p>
-    </div>
-  );
-}
-
-function stripRepeatedChannel(rationale: string, channel: PurchaseSession['channel']): string {
-  const label = CHANNEL_LABEL_TR[channel];
-  return rationale.replace(new RegExp(`^${label}\\s*[·—:-]?\\s*`, 'i'), '');
-}
-
-function Figure({
-  label,
-  value,
-  tone,
-  big,
-}: {
-  label: string;
-  value: string;
-  tone?: 'positive' | 'negative';
-  big?: boolean;
-}) {
-  return (
-    <div className={`pkgFigure ${big ? 'pkgFigure--big' : ''}`}>
-      <span className="pkgFigure__label">{label}</span>
-      <span className={`pkgFigure__value ${tone ? `pkgFigure__value--${tone}` : ''}`}>{value}</span>
-    </div>
-  );
-}
-
-function fulfilmentText(purchase: PurchaseSession, demand: CustomerDemand): string {
+/**
+ * Paket seçiminin karşılama durumu — "Talep tam karşılandı." / "Kısmi
+ * karşılama · 20 g / 32 g." vb. Kullanıcı isteği ("Paket diye bir ekran
+ * seçeneği de olmasın... paket kısmını da çıkartır mısın komple") üzerine
+ * ayrı bir DEĞER/PAKET aşaması (`PackageStage`) kaldırıldı; bu metin artık
+ * Stok Seçimi aşamasının Karar Dock'unda (`ShopScreen.tsx` → `PurchaseDock`
+ * → `case 'stockPick'`) gösteriliyor. Adil değer/kanal önerisi/kâr-zarar
+ * rakamları zaten Pazarlık aşamasının kalıcı panelinde (`NegotiateStage`)
+ * ve Karar Dock'unun teklif etki satırında (`OfferControl` impacts) vardı —
+ * bilgi kaybı yok, yalnız iki aşama biri.
+ */
+export function fulfilmentText(purchase: PurchaseSession, demand: CustomerDemand): string {
   switch (purchase.fulfilment) {
     case 'full':
       return t('Talep tam karşılandı.');

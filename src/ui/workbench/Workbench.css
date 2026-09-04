@@ -2013,22 +2013,6 @@
   text-align: center;
 }
 
-/*
- * Kullanıcı: "bu ekranda hala aşağı kaydırıyorum" — Paket aşamasında bu
- * notun tamamı bazı cihazlarda `.wb`in `overflow: hidden` sınırına takılıp
- * kelimenin ortasından ("...Güncel") kesiliyordu (ekran görüntüsüyle
- * doğrulandı). GDD 23.22 "içerik taşarsa yoğunluk azaltılır" diyor — ham
- * piksel kırpması yerine 2 satırda temiz "…" ile biten bir kırpma.
- * Kararı etkileyen rakamlar (`.pkgFigures`) bu notun ÜSTÜNDE ve ayrı bir
- * flex çocuğu; bu kırpma yalnız ikincil hatırlatma cümlesini kısaltır.
- */
-.svc__note--clamp2 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
 /* --- Teklif: kendi atölye vs dış usta (GDD 17.2) --- */
 
 .venues {
@@ -2433,12 +2417,6 @@ input.qtyStep__value {
   border-radius: 6px;
 }
 
-.pkgLines__qty {
-  margin-left: auto;
-  color: var(--brass-400);
-  font-weight: var(--fw-semibold);
-}
-
 .pickRow--on {
   border-color: var(--brass-500);
   background: rgba(196, 141, 43, 0.14);
@@ -2492,74 +2470,8 @@ input.qtyStep__value {
   white-space: nowrap;
 }
 
-/* --- Paket özeti --- */
-.pkgLines {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-1);
-}
-
-.pkgLines__row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  font-size: var(--fs-caption);
-  color: var(--text-dark-2);
-}
-
-.pkgFigures {
-  flex: 0 0 auto;
-  display: flex;
-  gap: var(--sp-3);
-  padding: var(--sp-2) 0;
-  border-top: 1px solid var(--line-dark);
-  border-bottom: 1px solid var(--line-dark);
-}
-
-.pkgFigure {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.pkgFigure__label {
-  display: block;
-  font-size: var(--fs-micro);
-  color: var(--text-dark-3);
-}
-
-.pkgFigure__value {
-  display: block;
-  margin-top: 2px;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-label);
-  font-weight: var(--fw-semibold);
-  color: var(--text-dark-1);
-}
-
-.pkgFigure--big .pkgFigure__value {
-  font-size: var(--fs-subtitle);
-}
-
-.pkgFigure__value--positive {
-  color: var(--positive-soft);
-}
-
-.pkgFigure__value--negative {
-  color: var(--negative-soft);
-}
-
-/* Dar ekranda paket rakamları sıkışmasın (360x640). */
+/* Dar ekranda dokunma hedefi korunur (360x640). */
 @media (max-height: 680px) {
-  .pkgFigure--big .pkgFigure__value {
-    font-size: var(--fs-label);
-  }
-
   .pickRow__pick {
     min-height: 44px;
   }
