@@ -13,8 +13,9 @@
  *   MÜŞTERİNİN fiilidir, dükkânın değil.
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * UPDATEv5: %35/%35 taban, günlük bağımsız zarla dağıtılan %10,
- * %20 mevcut sürpriz havuzu. Bunlar ağırlıktır; kota veya catch-up değildir.
+ * Erişilebilir ekonomi: %40 müşteri alış / %32 müşteri satış tabanı, günlük
+ * bağımsız zarla dağıtılan %8 ve %20 mevcut sürpriz havuzu. Bunlar ağırlıktır;
+ * kota veya catch-up değildir.
  *
  * DEĞİŞMEZ (§3): "Dinamik havuzun tamamını tek yöne yığarak fiili alış-satış
  * dengesini SÜREKLİ biçimde bozmak yasaktır; sapmalar kontrollü, sınırlı ve

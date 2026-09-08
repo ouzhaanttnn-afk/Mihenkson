@@ -65,7 +65,7 @@ function makeStore(): StoreState {
 // §3 — INTENT DAĞILIMI
 // ===========================================================================
 
-describe('§3 — Intent dağılımı %38 / %38 / %24', () => {
+describe('§3 — erişilebilir intent dağılımı', () => {
   function sample(count: number, character = CHARACTER) {
     let t = emptyTelemetry();
     for (let i = 0; i < count; i += 1) {
@@ -75,7 +75,7 @@ describe('§3 — Intent dağılımı %38 / %38 / %24', () => {
     return t;
   }
 
-  it('sabit taban korunur: alış ve satış payları %38\'in ALTINA inmez', () => {
+  it('sabit alış ve satış tabanları korunur', () => {
     // §3 "Sabit taban; dinamik havuz tarafından AZALTILMAZ."
     const shares = intentShares(sample(6000));
     expect(shares.buy).toBeGreaterThanOrEqual(INTENT_MIX.customerBuys - 0.02);
@@ -103,8 +103,8 @@ describe('§3 — Intent dağılımı %38 / %38 / %24', () => {
     const a = intentShares(sample(6000, { ...CHARACTER, dynamicTilt: 0.5 }));
     const b = intentShares(sample(6000, { ...CHARACTER, dynamicTilt: -0.5 }));
     // Eğim yön değiştirse de iki taban ayakta kalır.
-    expect(a.buy).toBeGreaterThanOrEqual(0.36);
-    expect(b.sell).toBeGreaterThanOrEqual(0.36);
+    expect(a.buy).toBeGreaterThanOrEqual(INTENT_MIX.customerBuys - 0.02);
+    expect(b.sell).toBeGreaterThanOrEqual(INTENT_MIX.customerSells - 0.02);
     // Ama havuz gerçekten iş görüyor: paylar aynı değil.
     expect(a.buy).not.toBeCloseTo(b.buy, 2);
   });
@@ -116,7 +116,7 @@ describe('§3 — Intent dağılımı %38 / %38 / %24', () => {
     expect(shares.appraisal).toBeGreaterThan(0);
 
     // §3 DEĞİŞMEZİ: ticaret dışı niyetlerin TOPLAMI dinamik havuzu aşamaz.
-    // Aşsaydı %38/%38 sabit tabandan çalınmış olurdu.
+    // Aşsaydı sabit alış/satış tabanından çalınmış olurdu.
     expect(shares.appraisal + shares.service).toBeLessThanOrEqual(
       INTENT_MIX.dynamic + INTENT_MIX.baseTolerance,
     );

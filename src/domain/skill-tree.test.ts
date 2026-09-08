@@ -56,15 +56,15 @@ describe('Tatlı Dil müşteri sabrı temeli', () => {
     expect(node?.effects[2]?.patienceLossTolerated).toBe(true);
   });
 
-  it('aceleci 2, genel müşteriler 3, VIP 4 sabırla başlar', () => {
+  it('erişilebilir dengede aceleci 3, genel müşteriler 4, VIP 5 sabırla başlar', () => {
     const patience = Object.fromEntries(ARCHETYPES.map(a => [a.id, a.patienceBand]));
-    expect(patience.urgentCash).toEqual([2, 2]);
-    expect(patience.investor).toEqual([3, 3]);
-    expect(patience.giftBuyer).toEqual([3, 3]);
-    expect(patience.weddingShopper).toEqual([3, 3]);
-    expect(patience.collector).toEqual([3, 3]);
-    expect(patience.informedSeller).toEqual([3, 3]);
-    expect(patience.opportunist).toEqual([3, 3]);
-    expect(patience.vip).toEqual([4, 4]);
+    expect(patience.urgentCash).toEqual([3, 3]);
+    expect(patience.investor).toEqual([4, 4]);
+    expect(patience.giftBuyer).toEqual([4, 4]);
+    expect(patience.weddingShopper).toEqual([4, 4]);
+    expect(patience.collector).toEqual([4, 4]);
+    expect(patience.informedSeller).toEqual([4, 4]);
+    expect(patience.opportunist).toEqual([4, 4]);
+    expect(patience.vip).toEqual([5, 5]);
   });
 });

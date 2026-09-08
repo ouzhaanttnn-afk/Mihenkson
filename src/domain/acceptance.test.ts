@@ -109,13 +109,12 @@ function economy(over: Partial<EconomyState> = {}): EconomyState {
 
 // ===========================================================================
 // §12.1
-// "Uzun örneklemde müşteri intent üretimi %38 alış + %38 satış sabit
-//  tabanını korur; %24 havuz yalnızca izin verilen dinamik nitelikleri
-//  etkiler."
+// "Uzun örneklemde müşteri intent üretimi erişilebilir ekonomi tabanını
+//  korur; sürpriz havuzu yalnızca izin verilen dinamik nitelikleri etkiler."
 // ===========================================================================
 
 describe('§12.1 — Sabit taban uzun örneklemde korunur', () => {
-  it('%38 / %38 taban korunur, havuz payı ~%24 kalır', () => {
+  it('alış/satış tabanı korunur, sürpriz havuzu %20 kalır', () => {
     let t = emptyTelemetry();
     for (let i = 0; i < 8_000; i += 1) {
       const roll = rollIntent(SEED, i, CHARACTER);

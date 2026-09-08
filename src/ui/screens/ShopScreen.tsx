@@ -27,7 +27,7 @@ import { getArchetype } from '@data/archetypes';
 import { getServiceType } from '@data/service-types';
 import { expectedCompletionDay, findQuote, overdueJobs, readyJobs } from '@domain/service';
 import { activeLine, canEnterStage, selectors, useGame } from '@state/gameStore';
-import { offerableStock } from '@domain/purchase';
+import { offerableStock, recommendedSalePrice } from '@domain/purchase';
 import {
   bullionUnitValue,
   marketReferenceBuy,
@@ -172,7 +172,12 @@ export function ShopScreen() {
     if (deal.purchase) {
       setOffer(purchaseStartingOffer(deal.purchase));
     } else if (ceiling > 0) {
-      setOffer(snapOffer(ceiling * 0.9, offerBounds.min, offerBounds.max, offerBounds.step));
+      setOffer(snapOffer(
+        ceiling * NEGOTIATION.openingOfferToCeiling,
+        offerBounds.min,
+        offerBounds.max,
+        offerBounds.step,
+      ));
     }
   }, [
     deal?.dealId,
@@ -1800,7 +1805,7 @@ function purchaseBounds(purchase: NonNullable<GameStateDeal>['purchase']) {
 function purchaseStartingOffer(purchase: NonNullable<GameStateDeal>['purchase']): Money {
   if (!purchase) return 0;
   const bounds = purchaseBounds(purchase);
-  return snapOffer(purchase.suggestedPrice, bounds.min, bounds.max, bounds.step);
+  return snapOffer(recommendedSalePrice(purchase), bounds.min, bounds.max, bounds.step);
 }
 
 /** Satışta ilişki etiketi: fiyat adil değerin ne kadar üstünde (GDD 23.12). */

@@ -1,6 +1,7 @@
 import { Rng, deriveSeed } from './rng';
 import type { GameDay, StoreState } from './types';
 import { weekdayLabel } from './calendar';
+import { INTENT_MIX } from './balance';
 
 /** Integer milligrams are the physical source of truth. TL is rounded only at payment. */
 export const toMg = (grams: number): number => Math.round(grams * 1000);
@@ -71,8 +72,14 @@ export function dailyTraffic(seed: number, day: number) {
     : { label: 'Yoğun', multiplier: 1.5 };
 }
 export function dailyIntentSplit(seed: number, day: number) {
-  const x = new Rng(deriveSeed(seed, 'dailyIntentSplit', day)).int(0, 10);
-  return { x, customerSells: (35 + x) / 100, customerBuys: (45 - x) / 100, surprise: .20 };
+  const dailyPoints = Math.round(INTENT_MIX.dailyAllocation * 100);
+  const x = new Rng(deriveSeed(seed, 'dailyIntentSplit', day)).int(0, dailyPoints);
+  return {
+    x,
+    customerSells: INTENT_MIX.customerSells + x / 100,
+    customerBuys: INTENT_MIX.customerBuys + (dailyPoints - x) / 100,
+    surprise: INTENT_MIX.dynamic,
+  };
 }
 export function dailyPurchaseMix(seed: number, day: number) {
   const y = new Rng(deriveSeed(seed, 'dailyPurchaseMix', day)).int(0, 15);

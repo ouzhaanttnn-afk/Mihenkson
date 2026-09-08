@@ -44,7 +44,8 @@ export const START = {
   safeLimit: 250_000,
   displaySlots: 8,
   backStockSlots: 16,
-  dailyOverhead: 1_200,
+  // Erken oyunda tek bir kaçan müşteri günün tamamını zarara çevirmesin.
+  dailyOverhead: 900,
   workshopCapacity: 2,
   reputation: 42,
   supplierTrust: 50,
@@ -253,17 +254,19 @@ export const MARKET_MEAN_REVERSION = {
 /**
  * Ekonomi Ara Düzeltmesi §3 — MÜŞTERİ INTENT DAĞILIMI.
  *
- * V5: %35/%35 taban + bağımsız günlük %10 dağılım + %20 sürpriz.
+ * Erişilebilir ekonomi: %40 müşteri alış tabanı + %32 müşteri satış tabanı,
+ * bağımsız günlük %8 dağılım ve %20 sürpriz. Böylece ortalama gün %44/%36
+ * olur; oyuncu daha sık stok satar ama stok toplama ihtiyacı kaybolmaz.
  * Dinamik havuzun mevcut iç ağırlıkları korunur; kota/rebalancing uygulanmaz.
  */
 export const INTENT_MIX = {
   /** Müşteri alış intenti — oyuncu müşteriye satar. */
-  customerBuys: 0.35,
+  customerBuys: 0.40,
   /** Müşteri satış intenti — müşteri oyuncuya satar. */
-  customerSells: 0.35,
+  customerSells: 0.32,
   /** Kontrollü dinamik/RNG havuzu. */
   dynamic: 0.20,
-  dailyAllocation: 0.10,
+  dailyAllocation: 0.08,
   /** Dinamik havuzun servise ayrılan payı. */
   dynamicServiceShare: 0.4,
   /**
@@ -310,7 +313,10 @@ export const PURCHASE = {
   exactMatchCeilingBonus: 0.02,
 
   /** Ödeme tavanı oranı bandı — spawn anında sabitlenir (GDD 34.2). */
-  ceilingRatioBand: [1.04, 1.34] as [number, number],
+  ceilingRatioBand: [1.08, 1.38] as [number, number],
+
+  /** Önerilen satış fiyatı maliyetin en az bu kadar üstünü hedefler. */
+  minimumSuggestedProfitMargin: 0.08,
 
   /** Mağaza kademesine göre paketteki azami kalem sayısı. */
   maxPackageLinesByTier: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 } as Record<number, number>,
@@ -328,7 +334,7 @@ export const PURCHASE = {
     /** Güven: ilişkiye değil rakama bakar; temkinli başlar. */
     trustFactor: 0.85,
     /** Ödeme tavanı: perakende priminin yalnız bu kadarını öder. */
-    ceilingCompression: 0.45,
+    ceilingCompression: 0.55,
   },
 } as const;
 
@@ -640,7 +646,10 @@ export const CONFIDENCE_THRESHOLD = {
  */
 export const NEGOTIATION = {
   /** Rezervasyon fiyatı ilişki/gerekçe ile en fazla bu kadar esneyebilir. */
-  maxReservationFlex: 0.10,
+  maxReservationFlex: 0.12,
+
+  /** Oyuncu mal alırken güvenli başlangıç teklifi / alış tavanı oranı. */
+  openingOfferToCeiling: 0.87,
 
   /** Kapanış skoru bileşen ağırlıkları (GDD 11.3). */
   weights: {
@@ -655,17 +664,17 @@ export const NEGOTIATION = {
 
   /** Karşı teklif marjı: müşteri rezervasyonunun üstüne bu oranı koyar. */
   counterMarginByState: {
-    OPEN: [0.11, 0.07] as [number, number],
-    HARDENING: [0.06, 0.04] as [number, number],
-    FINAL_OFFER: [0.02, 0.02] as [number, number],
+    OPEN: [0.08, 0.05] as [number, number],
+    HARDENING: [0.05, 0.03] as [number, number],
+    FINAL_OFFER: [0.015, 0.015] as [number, number],
   },
 
   /** Bu orandan düşük teklif "kötü teklif" sayılır ve sertleşmeyi tetikler. */
-  insultThreshold: 0.78,
+  insultThreshold: 0.74,
   /** Sertleşmeye geçiş için gereken kötü teklif sayısı. */
-  hardeningTrigger: 2,
+  hardeningTrigger: 3,
   /** FINAL_OFFER'a geçiş: sabır bu oranın altına düştüğünde. */
-  finalOfferPatienceRatio: 0.28,
+  finalOfferPatienceRatio: 0.22,
 
   /** Tur başına temel sabır maliyeti. */
   patiencePerRound: 1,

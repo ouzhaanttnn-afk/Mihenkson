@@ -375,6 +375,21 @@ export function purchaseCeiling(customer: Customer, fair: Money): Money {
   return Math.min(customer.budget, Math.round(fair * customer.purchaseCeilingRatio));
 }
 
+/**
+ * Oyuncuya gösterilen ilk satış fiyatı zarar tuzağı olmasın. Kanal önerisi
+ * daha yüksekse onu korur; düşükse maliyetin üstünde mütevazı bir kâr hedefi
+ * koyar. Bu yalnız öneridir: müşteri kabul etmeyebilir ve oyuncu fiyatı hâlâ
+ * istediği gibi değiştirebilir.
+ */
+export function recommendedSalePrice(
+  purchase: Pick<PurchaseSession, 'suggestedPrice' | 'packageCost'>,
+): Money {
+  const profitFloor = Math.round(
+    purchase.packageCost * (1 + PURCHASE.minimumSuggestedProfitMargin),
+  );
+  return roundMoney(Math.max(purchase.suggestedPrice, profitFloor));
+}
+
 export function packagePriceBand(lines: PackageLine[], items: Record<string, ItemInstance>, market: MarketState) {
   let min = 0, max = 0, reference = 0;
   for (const line of lines) {

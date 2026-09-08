@@ -77,8 +77,8 @@ export function spawnCustomer(
   // --- Niyet (Ekonomi Ara Düzeltmesi §3) ---
   //
   // Dağılım artık burada elle ağırlıklandırılmaz; §3'ün iki katmanlı havuzu
-  // intent.ts'te yaşar: %38 sabit alış tabanı + %38 sabit satış tabanı +
-  // %24 kontrollü dinamik havuz.
+  // intent.ts'te yaşar: kârlı satış fırsatını hafifçe öne alan sabit taban +
+  // kontrollü dinamik havuz.
   //
   // GDD 23.23'ün beş akışından uygulananlar:
   //   sell      → İncele → Değerle → Tez → Pazarlık        ✔
