@@ -50,11 +50,20 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(viewport).not.toContain('user-scalable=no');
   });
 
-  it('iPhone güvenli alanlarını açık renk şerit bırakmadan koyu kabukla boyar', () => {
+  it('iPhone güvenli alanlarını boş şerit yerine durum ve navigasyon yüzeylerine katar', () => {
     const shellCss = projectFile('src/ui/shell/AppShell.css');
 
     expect(shellCss).toMatch(
-      /\.device\s*\{[\s\S]*?background:\s*var\(--ink-900\);[\s\S]*?padding-top:\s*var\(--safe-top\);[\s\S]*?padding-bottom:\s*var\(--safe-bottom\);/,
+      /\.device\s*\{[\s\S]*?background:\s*var\(--ink-900\);[\s\S]*?padding:\s*0;/,
+    );
+    expect(shellCss).toMatch(
+      /\.statusStrip\s*\{[\s\S]*?height:\s*calc\(var\(--h-status-strip\) \+ var\(--safe-top\)\);[\s\S]*?padding:[\s\S]*?var\(--safe-top\)/,
+    );
+    expect(shellCss).toMatch(
+      /\.bottomNav\s*\{[\s\S]*?height:\s*calc\(var\(--h-bottom-nav\) \+ var\(--safe-bottom\)\);/,
+    );
+    expect(shellCss).toMatch(
+      /\.bottomNav\s*\{[\s\S]*?padding:[\s\S]*?calc\(5px \+ var\(--safe-bottom\)\)/,
     );
   });
 
