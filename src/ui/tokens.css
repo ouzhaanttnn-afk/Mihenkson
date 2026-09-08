@@ -274,6 +274,7 @@ body,
   overflow: hidden;
   overscroll-behavior: none;
   background: var(--ink-900);
+  touch-action: pan-x pan-y;
 }
 
 :root[data-native-platform='ios'] {

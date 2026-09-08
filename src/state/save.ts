@@ -64,6 +64,13 @@ export interface SaveFile {
   missedGuestCountToday?: number;
   /** Bugün personel reklam kirası izlendi mi — bkz. `closeDay` 5. parametresi. */
   personnelCostWaivedToday?: boolean;
+  /** Son günlük sponsor ödülünün alındığı oyun günü. */
+  sponsorRewardClaimedDay?: number | null;
+  rewardedDailyUses?: GameState['rewardedDailyUses'];
+  rewardedSupplyExpressReady?: boolean;
+  rewardedFreeShippingReady?: boolean;
+  rewardedCosmeticTrial?: GameState['rewardedCosmeticTrial'];
+  recallableGuest?: GameState['recallableGuest'];
   lastDayReport?: GameState['lastDayReport'];
   /** Yapısal mesajlar yeniden yerelleşir; eski kayıtlar düz string taşır. */
   customerMessage?: GameState['customerMessage'];
@@ -159,6 +166,12 @@ export function serialize(state: GameState): SaveFile {
     intentTelemetry: state.intentTelemetry,
     missedGuestCountToday: state.missedGuestCountToday,
     personnelCostWaivedToday: state.personnelCostWaivedToday,
+    sponsorRewardClaimedDay: state.sponsorRewardClaimedDay,
+    rewardedDailyUses: state.rewardedDailyUses,
+    rewardedSupplyExpressReady: state.rewardedSupplyExpressReady,
+    rewardedFreeShippingReady: state.rewardedFreeShippingReady,
+    rewardedCosmeticTrial: state.rewardedCosmeticTrial,
+    recallableGuest: state.recallableGuest,
     lastDayReport: state.lastDayReport,
     dayReportOpen: state.dayReportOpen,
     customerMessage: state.customerMessage,
@@ -216,6 +229,12 @@ export type LoadedState = Pick<
   | 'nextCustomerAtMinutes'
   | 'missedGuestCountToday'
   | 'personnelCostWaivedToday'
+  | 'sponsorRewardClaimedDay'
+  | 'rewardedDailyUses'
+  | 'rewardedSupplyExpressReady'
+  | 'rewardedFreeShippingReady'
+  | 'rewardedCosmeticTrial'
+  | 'recallableGuest'
   | 'lastDayReport'
   | 'dayReportOpen'
   | 'customerMessage'
@@ -280,6 +299,12 @@ export function deserialize(file: SaveFile): LoadedState {
     nextCustomerAtMinutes: save.nextCustomerAtMinutes ?? save.clockMinutes + 3,
     missedGuestCountToday: save.missedGuestCountToday ?? 0,
     personnelCostWaivedToday: save.personnelCostWaivedToday ?? false,
+    sponsorRewardClaimedDay: save.sponsorRewardClaimedDay ?? null,
+    rewardedDailyUses: save.rewardedDailyUses ?? {},
+    rewardedSupplyExpressReady: save.rewardedSupplyExpressReady ?? false,
+    rewardedFreeShippingReady: save.rewardedFreeShippingReady ?? false,
+    rewardedCosmeticTrial: save.rewardedCosmeticTrial ?? null,
+    recallableGuest: save.recallableGuest ?? null,
     lastDayReport: save.lastDayReport ?? null,
     dayReportOpen: !!save.dayReportOpen && !!save.lastDayReport,
     customerMessage: save.customerMessage ?? '',

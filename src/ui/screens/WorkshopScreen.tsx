@@ -20,7 +20,7 @@ import { activeJobs, inHouseLoad, overdueJobs, readyJobs } from '@domain/service
 import { getServiceType } from '@data/service-types';
 import { useGame } from '@state/gameStore';
 
-import { IconClock, IconServiceResale, IconWarning, IconWorkshop } from '@ui/icons';
+import { IconClock, IconServiceResale, IconVideo, IconWarning, IconWorkshop } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { NAV_ART, OUTSIDE_MASTER_ART, SERVICE_ART } from '@ui/assets';
 import { pct, tl } from '@ui/format';
@@ -173,7 +173,17 @@ export function WorkshopScreen() {
           ) : (
             <div className="rowList">
               {active.map((job) => (
-                <JobRow key={job.jobId} job={job} today={s.market.day} onDeliver={s.deliverJob} />
+                <JobRow
+                  key={job.jobId}
+                  job={job}
+                  today={s.market.day}
+                  onDeliver={s.deliverJob}
+                  onRush={s.requestWorkshopRush}
+                  rushDisabled={
+                    s.rewardedDailyUses.workshopRush === s.market.day ||
+                    s.rewardedAdPending !== null
+                  }
+                />
               ))}
             </div>
           )}
@@ -272,10 +282,14 @@ function JobRow({
   job,
   today,
   onDeliver,
+  onRush,
+  rushDisabled = false,
 }: {
   job: ServiceJob;
   today: number;
   onDeliver: (jobId: string) => void;
+  onRush?: (jobId: string) => void;
+  rushDisabled?: boolean;
 }) {
   const type = getServiceType(job.type);
   const isReady = job.result === 'success' || job.result === 'failed';
@@ -360,6 +374,17 @@ function JobRow({
             <IconClock size={12} />
             {daysToPromise === 0 ? t('Bugün teslim sözü var') : t('Yarın teslim sözü var')}
           </div>
+        )}
+        {job.result === 'pending' && onRush && (
+          <button
+            type="button"
+            className="miniBtn"
+            disabled={rushDisabled}
+            onClick={() => onRush(job.jobId)}
+          >
+            <IconVideo size={14} />{' '}
+            {rushDisabled ? t('Bugün kullanıldı') : t('Atölye Mesaisi · −1 gün')}
+          </button>
         )}
       </div>
 

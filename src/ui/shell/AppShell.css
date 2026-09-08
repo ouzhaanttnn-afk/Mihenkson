@@ -324,6 +324,22 @@
   overflow: hidden;
 }
 
+.profileChip__nameRow {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.profileChip__badge {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(215, 170, 74, 0.42));
+}
+
 /*
  * Ad, seviye satırıyla AYNI genişliği paylaşır ve taşarsa üç noktaya iner.
  * 24 karakterlik bir ad bile şeridi itemez: itmesi gereken yer yok.
@@ -337,6 +353,7 @@
  * Yani kırpma bir SABİT değil, gerçekten yer olmadığında olan bir şey.
  */
 .profileChip__name {
+  min-width: 0;
   max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -28,6 +28,7 @@ import { validQuantity } from '@domain/stock-pools';
 
 import {
   DAY,
+  NEGOTIATION,
   PURCHASE,
   SERVICE,
   START,
@@ -152,10 +153,13 @@ import {
 } from '@domain/appraisal';
 import { applyTierGrants, evaluateUpgrade, growthSnapshot } from '@domain/store-growth';
 import {
+  MARKET_CATALOG,
   defaultPlayerMarket,
   equipMarketProduct,
   lifestyleDailyExpense,
+  productById,
   purchaseMarketProduct,
+  type MarketEquipSlot,
   type PlayerMarketState,
 } from '@domain/marketplace';
 import {
@@ -208,6 +212,14 @@ import type {
 // ---------------------------------------------------------------------------
 
 export type RootTab = 'shop' | 'stock' | 'workshop' | 'market' | 'business';
+
+/** Günlük reklam ödülü enflasyona karşı sabit TL değil, dört gram HAS'a bağlıdır. */
+export function sponsorRewardAmount(market: MarketState): Money {
+  return Math.max(1, Math.round(market.goldSpot * 4));
+}
+
+/** Ücretsiz nakliyenin toptancı lotundaki görünür, sınırlı maliyet karşılığı. */
+export const REWARDED_SHIPPING_DISCOUNT = 0.02;
 
 /**
  * Oyuncuya gösterilen bir karar yüzeyi varken saatin neden durduğunu
@@ -314,6 +326,23 @@ export interface GameState {
    * `requestCustomerRush`).
    */
   rewardedAdPending: RewardKind | null;
+  /** Reklam karşılığı günlük kasa desteğinin son alındığı oyun günü. */
+  sponsorRewardClaimedDay: number | null;
+  /** Günlük sınırı olan ödüllü reklamların son kullanıldığı oyun günü. */
+  rewardedDailyUses: Partial<Record<RewardKind, number>>;
+  /** Bir sonraki toptancı alımında vade farkını kaldıran hazır hak. */
+  rewardedSupplyExpressReady: boolean;
+  /** Bir sonraki toptancı alımında küçük nakliye indirimini uygulayan hazır hak. */
+  rewardedFreeShippingReady: boolean;
+  /** Bir oyun günü geçerli kozmetik deneme ve geri dönüş bilgisi. */
+  rewardedCosmeticTrial: {
+    productId: string;
+    slot: MarketEquipSlot;
+    previousProductId?: string;
+    expiresDay: number;
+  } | null;
+  /** Anlaşmadan ayrılan ve reklamla bir kez geri çağrılabilen son müşteri. */
+  recallableGuest: { customer: Customer; items: ItemInstance[] } | null;
 
   /**
    * Günün karakteri — Addendum §3'ün %24'lük dinamik havuzu.
@@ -454,6 +483,18 @@ export interface GameState {
   triggerCustomerRush: () => void;
   /** Ödüllü reklamı gösterir; ödül kazanılırsa `triggerCustomerRush()`u çağırır. */
   requestCustomerRush: () => Promise<void>;
+  /** Günde bir kez, yaklaşık dört gramlık küçük ve ölçeklenen kasa desteği. */
+  requestSponsorReward: () => Promise<void>;
+  /** Pazarlıkta müşteri sabrının dörtte birini bir ziyaret için geri kazandırır. */
+  requestPatienceBoost: () => Promise<void>;
+  requestExpertHint: () => Promise<void>;
+  requestCosmeticTrial: (productId: string) => Promise<void>;
+  requestDailyCosmetic: () => Promise<void>;
+  requestSupplyExpress: () => Promise<void>;
+  requestWorkshopRush: (jobId: string) => Promise<void>;
+  requestCustomerRecall: () => Promise<void>;
+  requestExtraOffer: () => Promise<void>;
+  requestFreeShipping: () => Promise<void>;
   buyMarketProduct: (productId: string) => boolean;
   equipMarketProduct: (productId: string) => boolean;
 
@@ -621,6 +662,12 @@ export const useGame = create<GameState>((set, get) => {
     speed4xUnlocked: false,
     customerRushUntilMinutes: null,
     rewardedAdPending: null,
+    sponsorRewardClaimedDay: null,
+    rewardedDailyUses: {},
+    rewardedSupplyExpressReady: false,
+    rewardedFreeShippingReady: false,
+    rewardedCosmeticTrial: null,
+    recallableGuest: null,
     seenLessons: [],
     settingsOpen: false,
     profile: defaultProfile(),
@@ -901,6 +948,328 @@ export const useGame = create<GameState>((set, get) => {
       else pushToast(set, get, t('Reklam tamamlanmadı — akın başlamadı.'), 'negative');
     },
 
+    requestSponsorReward: async () => {
+      const before = get();
+      if (before.rewardedAdPending || before.sponsorRewardClaimedDay === before.market.day) return;
+      const requestedDay = before.market.day;
+      set({ rewardedAdPending: 'dailySponsor' });
+      const granted = await showRewardedAd('dailySponsor');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — kasa desteği alınmadı.'), 'negative');
+        return;
+      }
+
+      const s = get();
+      if (s.market.day !== requestedDay || s.sponsorRewardClaimedDay === requestedDay) return;
+      const amount = sponsorRewardAmount(s.market);
+      const txId = `sponsor_${requestedDay}`;
+      const outcome = applyTransaction(economyOf(s), {
+        txId,
+        dealId: txId,
+        day: requestedDay,
+        cashDelta: amount,
+        itemsIn: [],
+        itemsOut: [],
+        trustDelta: 0,
+        reputationDelta: 0,
+        xpDelta: 0,
+        label: t('Çarşı sponsor desteği'),
+      });
+      if (!outcome.applied) return;
+      set({ ...economyToState(outcome.state), sponsorRewardClaimedDay: requestedDay });
+      writeSave(get());
+      cue(set, get, 'coins');
+      pushToast(set, get, t('Çarşı desteği kasaya eklendi · {tutar}', { tutar: tl(amount) }), 'positive');
+    },
+
+    requestPatienceBoost: async () => {
+      const before = get();
+      const deal = before.activeDeal;
+      const customer = before.activeCustomer;
+      if (
+        before.rewardedAdPending || !deal || !customer || deal.stage !== 'negotiate' ||
+        deal.rewardedPatienceUsed || customer.patience >= customer.patienceMax
+      ) return;
+      const dealId = deal.dealId;
+      set({ rewardedAdPending: 'patienceBoost' });
+      const granted = await showRewardedAd('patienceBoost');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — sabır yenilenmedi.'), 'negative');
+        return;
+      }
+
+      const s = get();
+      if (s.activeDeal?.dealId !== dealId || !s.activeCustomer || s.activeDeal.rewardedPatienceUsed) return;
+      const restored = Math.max(6, Math.round(s.activeCustomer.patienceMax * 0.25));
+      set({
+        activeCustomer: {
+          ...s.activeCustomer,
+          patience: Math.min(s.activeCustomer.patienceMax, s.activeCustomer.patience + restored),
+        },
+        activeDeal: { ...s.activeDeal, rewardedPatienceUsed: true },
+      });
+      writeSave(get());
+      pushToast(set, get, t('Kahve molası müşterinin sabrını tazeledi.'), 'positive');
+    },
+
+    requestExpertHint: async () => {
+      const before = get();
+      const deal = before.activeDeal;
+      const line = deal ? activeLine(deal) : undefined;
+      if (
+        before.rewardedAdPending || !deal || !line || deal.rewardedExpertHintUsed ||
+        before.rewardedDailyUses.expertHint === before.market.day ||
+        !line.knowledge.some((field) => field.status !== 'verified')
+      ) return;
+      const dealId = deal.dealId;
+      const lineId = line.lineId;
+      set({ rewardedAdPending: 'expertHint' });
+      const granted = await showRewardedAd('expertHint');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — usta görüşü alınmadı.'), 'negative');
+        return;
+      }
+      const s = get();
+      const currentDeal = s.activeDeal;
+      const currentLine = currentDeal?.lines.find((item) => item.lineId === lineId);
+      if (!currentDeal || currentDeal.dealId !== dealId || !currentLine || currentDeal.rewardedExpertHintUsed) return;
+      const target = currentLine.knowledge.find((field) => field.status !== 'verified');
+      if (!target) return;
+      const knowledge = currentLine.knowledge.map((field) => field.field === target.field
+        ? { ...field, certainty: 1, status: 'verified' as const, testsApplied: [...field.testsApplied, 'rewarded-expert'] }
+        : field);
+      const refreshed = refreshLine(s, { ...currentLine, knowledge });
+      set({
+        activeDeal: {
+          ...currentDeal,
+          rewardedExpertHintUsed: true,
+          lines: currentDeal.lines.map((item) => item.lineId === lineId ? refreshed : item),
+        },
+        rewardedDailyUses: { ...s.rewardedDailyUses, expertHint: s.market.day },
+      });
+      writeSave(get());
+      pushToast(set, get, t('Usta bir belirsiz alanı doğruladı.'), 'positive');
+    },
+
+    requestExtraOffer: async () => {
+      const before = get();
+      const deal = before.activeDeal;
+      const line = deal ? activeLine(deal) : undefined;
+      if (
+        before.rewardedAdPending || !deal || !line || !before.activeCustomer ||
+        deal.stage !== 'negotiate' || deal.rewardedExtraOfferUsed || isTerminal(line.negotiation.state) ||
+        before.rewardedDailyUses.extraOffer === before.market.day
+      ) return;
+      const dealId = deal.dealId;
+      set({ rewardedAdPending: 'extraOffer' });
+      const granted = await showRewardedAd('extraOffer');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — ek teklif hakkı verilmedi.'), 'negative');
+        return;
+      }
+      const s = get();
+      if (s.activeDeal?.dealId !== dealId || !s.activeCustomer || s.activeDeal.rewardedExtraOfferUsed) return;
+      const extra = Math.max(2, NEGOTIATION.requestCounterPatienceCost + 1);
+      set({
+        activeCustomer: {
+          ...s.activeCustomer,
+          patience: Math.min(s.activeCustomer.patienceMax, s.activeCustomer.patience + extra),
+        },
+        activeDeal: { ...s.activeDeal, rewardedExtraOfferUsed: true },
+        rewardedDailyUses: { ...s.rewardedDailyUses, extraOffer: s.market.day },
+      });
+      writeSave(get());
+      pushToast(set, get, t('Müşteri bir ek teklif için masada kaldı.'), 'positive');
+    },
+
+    requestCosmeticTrial: async (productId) => {
+      const before = get();
+      const product = productById(productId);
+      if (
+        before.rewardedAdPending || before.rewardedCosmeticTrial || !product?.equipSlot ||
+        before.playerMarket.owned.includes(productId) ||
+        before.rewardedDailyUses.cosmeticTrial === before.market.day
+      ) return;
+      const requestedDay = before.market.day;
+      set({ rewardedAdPending: 'cosmeticTrial' });
+      const granted = await showRewardedAd('cosmeticTrial');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — kozmetik deneme açılmadı.'), 'negative');
+        return;
+      }
+      const s = get();
+      const current = productById(productId);
+      if (s.market.day !== requestedDay || s.rewardedCosmeticTrial || !current?.equipSlot) return;
+      const slot = current.equipSlot;
+      const previousProductId = s.playerMarket.equipped[slot];
+      set({
+        playerMarket: {
+          ...s.playerMarket,
+          equipped: { ...s.playerMarket.equipped, [slot]: productId },
+        },
+        rewardedCosmeticTrial: { productId, slot, previousProductId, expiresDay: requestedDay },
+        rewardedDailyUses: { ...s.rewardedDailyUses, cosmeticTrial: requestedDay },
+      });
+      writeSave(get());
+      pushToast(set, get, t('{ad} bugün denemeye açıldı.', { ad: t(current.name) }), 'positive');
+    },
+
+    requestDailyCosmetic: async () => {
+      const before = get();
+      if (
+        before.rewardedAdPending || before.rewardedCosmeticTrial ||
+        before.rewardedDailyUses.dailyCosmetic === before.market.day
+      ) return;
+      const candidates = MARKET_CATALOG.filter((product) =>
+        product.equipSlot && !before.playerMarket.owned.includes(product.id));
+      if (candidates.length === 0) return;
+      const requestedDay = before.market.day;
+      const productId = candidates[Math.abs((before.seed ^ (requestedDay * 2654435761)) >>> 0) % candidates.length]!.id;
+      set({ rewardedAdPending: 'dailyCosmetic' });
+      const granted = await showRewardedAd('dailyCosmetic');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — günün fırsatı açılmadı.'), 'negative');
+        return;
+      }
+      const s = get();
+      const product = productById(productId);
+      if (s.market.day !== requestedDay || s.rewardedCosmeticTrial || !product?.equipSlot) return;
+      const slot = product.equipSlot;
+      set({
+        playerMarket: { ...s.playerMarket, equipped: { ...s.playerMarket.equipped, [slot]: productId } },
+        rewardedCosmeticTrial: {
+          productId,
+          slot,
+          previousProductId: s.playerMarket.equipped[slot],
+          expiresDay: requestedDay,
+        },
+        rewardedDailyUses: { ...s.rewardedDailyUses, dailyCosmetic: requestedDay },
+      });
+      writeSave(get());
+      pushToast(set, get, t('Günün kozmetiği açıldı · {ad}', { ad: t(product.name) }), 'positive');
+    },
+
+    requestSupplyExpress: async () => {
+      const before = get();
+      if (
+        before.rewardedAdPending || before.rewardedSupplyExpressReady ||
+        before.rewardedDailyUses.supplyExpress === before.market.day
+      ) return;
+      const requestedDay = before.market.day;
+      set({ rewardedAdPending: 'supplyExpress' });
+      const granted = await showRewardedAd('supplyExpress');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — tedarik avantajı açılmadı.'), 'negative');
+        return;
+      }
+      const s = get();
+      if (s.market.day !== requestedDay) return;
+      set({
+        rewardedSupplyExpressReady: true,
+        rewardedDailyUses: { ...s.rewardedDailyUses, supplyExpress: requestedDay },
+      });
+      writeSave(get());
+      pushToast(set, get, t('Sıradaki toptancı alımında vade farkı alınmayacak.'), 'positive');
+    },
+
+    requestFreeShipping: async () => {
+      const before = get();
+      if (
+        before.rewardedAdPending || before.rewardedFreeShippingReady ||
+        before.rewardedDailyUses.freeShipping === before.market.day
+      ) return;
+      const requestedDay = before.market.day;
+      set({ rewardedAdPending: 'freeShipping' });
+      const granted = await showRewardedAd('freeShipping');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — ücretsiz nakliye açılmadı.'), 'negative');
+        return;
+      }
+      const s = get();
+      if (s.market.day !== requestedDay) return;
+      set({
+        rewardedFreeShippingReady: true,
+        rewardedDailyUses: { ...s.rewardedDailyUses, freeShipping: requestedDay },
+      });
+      writeSave(get());
+      pushToast(set, get, t('Sıradaki toptancı alımının nakliyesi ücretsiz.'), 'positive');
+    },
+
+    requestWorkshopRush: async (jobId) => {
+      const before = get();
+      const job = before.jobs.find((item) => item.jobId === jobId);
+      if (
+        before.rewardedAdPending || !job || job.result !== 'pending' || job.remainingDays <= 0 ||
+        before.rewardedDailyUses.workshopRush === before.market.day
+      ) return;
+      const requestedDay = before.market.day;
+      set({ rewardedAdPending: 'workshopRush' });
+      const granted = await showRewardedAd('workshopRush');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — atölye mesaisi başlamadı.'), 'negative');
+        return;
+      }
+      const s = get();
+      const current = s.jobs.find((item) => item.jobId === jobId);
+      if (s.market.day !== requestedDay || !current || current.result !== 'pending') return;
+      const remainingDays = Math.max(0, current.remainingDays - 1);
+      set({
+        jobs: s.jobs.map((item) => item.jobId === jobId ? {
+          ...item,
+          remainingDays,
+          expectedDay: Math.max(s.market.day, item.expectedDay - 1),
+          result: remainingDays === 0 ? item.predeterminedOutcome : item.result,
+        } : item),
+        rewardedDailyUses: { ...s.rewardedDailyUses, workshopRush: requestedDay },
+      });
+      writeSave(get());
+      pushToast(set, get, remainingDays === 0 ? t('Atölye mesaisi işi tamamladı.') : t('İşin kalan süresi bir gün azaldı.'), 'positive');
+    },
+
+    requestCustomerRecall: async () => {
+      const before = get();
+      if (
+        before.rewardedAdPending || before.activeDeal || !before.recallableGuest ||
+        before.queue.length >= queueCapacity(before.store) ||
+        before.rewardedDailyUses.customerRecall === before.market.day
+      ) return;
+      const requestedDay = before.market.day;
+      set({ rewardedAdPending: 'customerRecall' });
+      const granted = await showRewardedAd('customerRecall');
+      set({ rewardedAdPending: null });
+      if (!granted) {
+        pushToast(set, get, t('Reklam tamamlanmadı — müşteri geri dönmedi.'), 'negative');
+        return;
+      }
+      const s = get();
+      if (s.market.day !== requestedDay || !s.recallableGuest || s.queue.length >= queueCapacity(s.store)) return;
+      const guest = s.recallableGuest;
+      const customer = {
+        ...guest.customer,
+        patience: Math.max(2, Math.round(guest.customer.patienceMax * 0.35)),
+      };
+      set({
+        queue: [{ customer, items: guest.items }, ...s.queue],
+        recallableGuest: null,
+        // Geri çağrılan ziyaret yeni bir oturumdur. Sıra sayacını tüketmek,
+        // önceki reddedilmiş ziyaretin deal/transaction kimlikleriyle
+        // çakışmasını engeller ve çift mutabakat korumasını sağlam tutar.
+        spawnCounter: s.spawnCounter + 1,
+        rewardedDailyUses: { ...s.rewardedDailyUses, customerRecall: requestedDay },
+      });
+      writeSave(get());
+      pushToast(set, get, t('Son müşteri düşük sabırla kuyruğa döndü.'), 'positive');
+    },
+
     buyMarketProduct: (productId) => {
       const s = get();
       const outcome = purchaseMarketProduct(economyOf(s), s.playerMarket, productId, s.market.day);
@@ -915,12 +1284,21 @@ export const useGame = create<GameState>((set, get) => {
     },
 
     equipMarketProduct: (productId) => {
-      const next = equipMarketProduct(get().playerMarket, productId);
+      const s = get();
+      let marketState = s.playerMarket;
+      if (s.rewardedCosmeticTrial) {
+        const { slot, previousProductId } = s.rewardedCosmeticTrial;
+        const equipped = { ...marketState.equipped };
+        if (previousProductId) equipped[slot] = previousProductId;
+        else delete equipped[slot];
+        marketState = { ...marketState, equipped };
+      }
+      const next = equipMarketProduct(marketState, productId);
       if (!next) {
         pushToast(set, get, t('Bu ürün kullanılamıyor.'), 'negative');
         return false;
       }
-      set({ playerMarket: next });
+      set({ playerMarket: next, rewardedCosmeticTrial: null });
       writeSave(get());
       pushToast(set, get, t('Kozmetik görünüm uygulandı.'), 'positive');
       return true;
@@ -1824,6 +2202,21 @@ export const useGame = create<GameState>((set, get) => {
       // geçici bir sayı yapardı (GDD 10).
       const customers = commitVisit(s);
       const repDelta = visitReputationDelta(s);
+      const outcome = s.activeDeal && s.activeCustomer
+        ? visitOutcome(s.activeDeal, s.activeCustomer)
+        : null;
+      const canRecall = !!s.activeDeal && !!s.activeCustomer &&
+        (s.activeDeal.flow === 'trade' || s.activeDeal.flow === 'purchase') &&
+        !s.activeDeal.lines.some((line) => line.negotiation.state === 'ACCEPTED') &&
+        (outcome === 'rejected' || outcome === 'walkedOut');
+      const recallableGuest = canRecall
+        ? {
+            customer: s.activeCustomer!,
+            items: s.activeDeal!.flow === 'trade'
+              ? s.activeDeal!.lines.map((line) => s.items[line.itemId]).filter((item): item is ItemInstance => !!item)
+              : [],
+          }
+        : s.recallableGuest;
       set({
         customers,
         store: repDelta
@@ -1833,6 +2226,7 @@ export const useGame = create<GameState>((set, get) => {
         activeCustomer: null,
         customerMessage: '',
         lastReview: null,
+        recallableGuest,
       });
     },
 
@@ -1968,7 +2362,14 @@ export const useGame = create<GameState>((set, get) => {
 
       const units = lot.quantity;
       const amount = lot.total;
-      const terms = financeTerms(s.store, amount, s.market.day);
+      const shippingDiscount = s.rewardedFreeShippingReady
+        ? Math.round(amount * REWARDED_SHIPPING_DISCOUNT)
+        : 0;
+      const payableAmount = Math.max(1, amount - shippingDiscount);
+      const baseTerms = financeTerms(s.store, payableAmount, s.market.day);
+      const terms = s.rewardedSupplyExpressReady && baseTerms.financed > 0
+        ? { ...baseTerms, financeCost: 0, totalDue: baseTerms.financed }
+        : baseTerms;
 
       if (terms.blockedReason) {
         pushToast(set, get, terms.blockedReason, 'negative');
@@ -2005,7 +2406,7 @@ export const useGame = create<GameState>((set, get) => {
         id: `${probe.id}_${seq}_${i}`,
         // Vade farkı maliyet tabanına BİNER: finanse edilmiş malın gerçek
         // maliyeti daha yüksektir ve kâr hesabı bunu görmek zorundadır.
-        buyCost: (amount + terms.financeCost) / units,
+        buyCost: (payableAmount + terms.financeCost) / units,
         acquiredDay: s.market.day,
         location: 'backStock' as const,
       }));
@@ -2041,20 +2442,27 @@ export const useGame = create<GameState>((set, get) => {
             })
           : outcome.state.store.supplier;
 
-      const supplier = tradeTrustAfterPurchase(withInvoice, amount, creditLimit(s.store));
+      const supplier = tradeTrustAfterPurchase(withInvoice, payableAmount, creditLimit(s.store));
 
       const revalued = revalueInventory(
         outcome.state.inventory,
         outcome.state.items,
         thesisContext(get()),
       );
-      set(
-        economyToState({
+      set({
+        ...economyToState({
           ...outcome.state,
           store: { ...outcome.state.store, supplier },
           inventory: revalued,
         }),
-      );
+        // Peşin bir alımda vade farkı zaten doğmaz; oyuncunun izlediği
+        // reklamı boşa tüketme. Avantaj ancak gerçekten finanse edilen
+        // bir alımda kullanıldıysa kapanır (gün sonunda yine sıfırlanır).
+        rewardedSupplyExpressReady:
+          s.rewardedSupplyExpressReady && baseTerms.financed <= 0,
+        rewardedFreeShippingReady: false,
+      });
+      writeSave(get());
 
       pushToast(
         set,
@@ -2066,9 +2474,12 @@ export const useGame = create<GameState>((set, get) => {
               vade: fmt(terms.totalDue),
               gun: terms.dueDay,
             })
-          : t('{n} adet alındı · {pesin} peşin', { n: units, pesin: fmt(amount) }),
+          : t('{n} adet alındı · {pesin} peşin', { n: units, pesin: fmt(payableAmount) }),
         'info',
       );
+      if (shippingDiscount > 0) {
+        pushToast(set, get, t('Ücretsiz nakliye indirimi · {tutar}', { tutar: fmt(shippingDiscount) }), 'positive');
+      }
     },
 
     /** §7 "Kullanılan limit, geri ödeme ile serbestleşir." */
@@ -2422,6 +2833,15 @@ export const useGame = create<GameState>((set, get) => {
       );
       const overnightOutcome = resolveOvernight(position, market);
 
+      let playerMarket = s.playerMarket;
+      if (s.rewardedCosmeticTrial && s.rewardedCosmeticTrial.expiresDay < nextDay) {
+        const { slot, previousProductId } = s.rewardedCosmeticTrial;
+        const equipped = { ...playerMarket.equipped };
+        if (previousProductId) equipped[slot] = previousProductId;
+        else delete equipped[slot];
+        playerMarket = { ...playerMarket, equipped };
+      }
+
       const nextState = {
         ...economyToState({ ...closed, store, inventory }),
         ledger: { ...closed.ledger, realizedProfitToday: 0 },
@@ -2443,6 +2863,11 @@ export const useGame = create<GameState>((set, get) => {
         activeDeal: null,
         nextCustomerAtMinutes: DAY.openMinutes + 3,
         customerRushUntilMinutes: null,
+        playerMarket,
+        rewardedCosmeticTrial: null,
+        rewardedSupplyExpressReady: false,
+        rewardedFreeShippingReady: false,
+        recallableGuest: null,
       };
 
       // Gün değişimi ekrana uygulanmadan önce checkpoint'in gerçekten

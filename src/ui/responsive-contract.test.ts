@@ -40,14 +40,14 @@ function selectorColorVariable(css: string, selector: string): string {
 }
 
 describe('mobil kabuk sözleşmesi', () => {
-  it('tarayıcı yakınlaştırmasını kapatmaz', () => {
+  it('oyun kabuğunda iOS odak ve pinch yakınlaştırmasını kapatır', () => {
     const html = projectFile('index.html');
     const viewport = html.match(/<meta\s+name="viewport"\s+content="([^"]+)"/s)?.[1] ?? '';
 
     expect(viewport).toContain('width=device-width');
     expect(viewport).toContain('viewport-fit=cover');
-    expect(viewport).not.toContain('maximum-scale');
-    expect(viewport).not.toContain('user-scalable=no');
+    expect(viewport).toContain('maximum-scale=1.0');
+    expect(viewport).toContain('user-scalable=no');
   });
 
   it('native iPhone güvenli alanlarını ekstra üst ve alt banda dönüştürmez', () => {
@@ -82,6 +82,19 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(main).toContain('document.documentElement.dataset.nativePlatform');
   });
 
+  it('iOS sayı alanları odak yakınlaştırmasını tetiklemez ve tüm dükkân temaları görseldir', () => {
+    const workbenchCss = projectFile('src/ui/workbench/Workbench.css');
+    const shop = projectFile('src/ui/screens/ShopScreen.tsx');
+    const status = projectFile('src/ui/shell/StatusStrip.tsx');
+
+    expect(workbenchCss).toMatch(/input\.qtyStep__value\s*\{[\s\S]*?font-size:\s*16px;/);
+    for (const theme of ['bazaar', 'nocturne', 'ivory', 'deco', 'marble', 'goldenage']) {
+      expect(workbenchCss).toContain(`.workbench--theme_${theme}`);
+    }
+    expect(shop).toContain('shopBadge={s.playerMarket.equipped.shopBadge}');
+    expect(status).toContain('shopBadgeArt(shopBadge)');
+  });
+
   it('iOS hareket çubuğunu alt navigasyondan ayırır ve usta portresini karta sığdırır', () => {
     const shellCss = projectFile('src/ui/shell/AppShell.css');
     const screensCss = projectFile('src/ui/screens/Screens.css');
@@ -114,6 +127,16 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(shop).toContain('<h1 className="srOnly">');
     expect(shop).toContain('<section\n        className={`workbench');
     expect(market).toContain('<section className="marketCatalog"');
+  });
+
+  it('Market ilk sırada henüz satın alma yapmayan Yakında kategorisini gösterir', () => {
+    const market = projectFile('src/ui/screens/MarketPlaceholderScreen.tsx');
+
+    expect(market).toContain("id: 'offers'");
+    expect(market.indexOf("id: 'offers'")).toBeLessThan(market.indexOf('...MARKET_CATEGORIES'));
+    expect(market).toContain("useState<MarketTab>('offers')");
+    expect(market).toContain('category === \'offers\'');
+    expect(market).toContain('<button type="button" disabled>{t(\'Yakında\')}</button>');
   });
 
   it('saat rolünü ve profil düğmesindeki XP ilerleme adını korur', () => {
@@ -219,8 +242,8 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(shop).toMatch(
       /className="toolRailSlot"[\s\S]*?<ContextualToolRail[\s\S]*?<RushFab/,
     );
-    /* Kuyrukta ray bileşeni null olsa da dış slotun kalması asıl regresyon korumasıdır. */
-    expect(shop).toContain('if (s.queue.length > 0) return null;');
+    /* Boş/kuyruk durumunda ray günlük ödülü taşır; dış slot yüksekliği yine sabittir. */
+    expect(shop).toContain("id: 'dailySponsor'");
     expect(shellCss).toMatch(
       /\.toolRailSlot\s*\{[\s\S]*?flex:\s*0 0 var\(--h-tool-rail\);/,
     );

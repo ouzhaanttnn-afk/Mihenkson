@@ -26,7 +26,7 @@ import { toolsForLevel } from '@data/tools';
 import { getArchetype } from '@data/archetypes';
 import { getServiceType } from '@data/service-types';
 import { expectedCompletionDay, findQuote, overdueJobs, readyJobs } from '@domain/service';
-import { activeLine, canEnterStage, selectors, useGame } from '@state/gameStore';
+import { activeLine, canEnterStage, selectors, sponsorRewardAmount, useGame } from '@state/gameStore';
 import { offerableStock, recommendedSalePrice } from '@domain/purchase';
 import {
   bullionUnitValue,
@@ -94,12 +94,13 @@ import {
   IconStock,
   IconTouchstone,
   IconWarning,
+  IconVideo,
   IconWholesale,
   IconWorkshop,
   IconBusiness,
 } from '@ui/icons';
 import { Art } from '@ui/Art';
-import { customerArt, NAV_ART } from '@ui/assets';
+import { customerArt, NAV_ART, shopBadgeArt } from '@ui/assets';
 import { customerIntentLine } from '@ui/intent-line';
 import { queueCapacity } from '@domain/v5-rules';
 import { RETAIL_BULLION_CATALOG } from '@data/bullion';
@@ -220,6 +221,7 @@ export function ShopScreen() {
         onOpenSettings={s.openSettings}
         profile={s.profile}
         profileFrame={s.playerMarket.equipped.profileFrame}
+        shopBadge={s.playerMarket.equipped.shopBadge}
         onEditProfile={s.openProfile}
       />
 
@@ -665,6 +667,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
   const position = selectors.position(s);
   const metalShare = Math.round(position.metalShare * 100);
   const stockCount = s.inventory.length;
+  const equippedShopBadge = shopBadgeArt(s.playerMarket.equipped.shopBadge);
 
   return (
     <div className={`idle ${coaching ? 'idle--coaching' : ''} ${s.queue.length > 0 ? 'idle--hasQueue' : ''}`}>
@@ -704,16 +707,23 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
           <div className="idle__headText">
             <h2 className="idle__title">
               {shopDisplayName(s.profile.jewelerName, t(SHOP_SUFFIX), t(DEFAULT_JEWELER_NAME))}
-              {s.playerMarket.equipped.shopBadge && <span className="idle__badge" title={t('Market profil rozeti')}>◆</span>}
+              {equippedShopBadge && (
+                <span className="idle__badge" title={t('Market profil rozeti')}>
+                  <Art art={equippedShopBadge} size={22} decorative className="idle__badgeImg" fallback={null} />
+                </span>
+              )}
             </h2>
             <p className="idle__sub">
               {shopOverviewOpen
-                ? `${s.dayCharacter.label} · ${t('Gün {gun} · {haftaGunu} · Semt itibarı {itibar}', {
+                ? t('{karakter} · Gün {gun} · {haftaGunu} · Semt itibarı {itibar}', {
+                    karakter: t(s.dayCharacter.label),
                     gun: s.market.day,
                     haftaGunu: t(weekdayLabel(s.market.day)),
                     itibar: Math.round(s.store.reputation),
-                  })}`
-                : `${s.dayCharacter.label} · ${t('Finans özetini göster')}`}
+                  })
+                : t('{karakter} · Finans özetini göster', {
+                    karakter: t(s.dayCharacter.label),
+                  })}
             </p>
           </div>
           <span className={`shopOverview__chevron ${shopOverviewOpen ? 'shopOverview__chevron--open' : ''}`} aria-hidden="true">⌄</span>
@@ -953,12 +963,34 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
   const line = deal ? activeLine(deal) : undefined;
 
   if (!deal || !line) {
-    // Kuyruk doluyken boş araç rayının hiçbir eylemi yoktu; buna rağmen
-    // 56 px yer ayırıp kısa/safe-area'lı telefonlarda ilk müşteri kartını
-    // kesiyordu. Kuyruk kararın kendisidir. Müşteri karşılanınca aktif işlem
-    // rayı aynı fiziksel konumunda yeniden görünür.
-    if (s.queue.length > 0) return null;
-    return <ToolRail items={[]} idle emptyLabel={t("Müşteri karşılandığında araçlar burada")} />;
+    const sponsorUsed = s.sponsorRewardClaimedDay === s.market.day;
+    const recallUsed = s.rewardedDailyUses.customerRecall === s.market.day;
+    const items: RailItem[] = [{
+      id: 'dailySponsor',
+      label: t('Kasa Desteği'),
+      icon: <IconVideo size={19} />,
+      badge: sponsorUsed ? t('Alındı') : tl(sponsorRewardAmount(s.market)),
+      used: sponsorUsed,
+      disabled: sponsorUsed || s.rewardedAdPending !== null,
+      onPress: s.requestSponsorReward,
+    }];
+    if (s.recallableGuest) {
+      items.push({
+        id: 'customerRecall',
+        label: t('Geri Çağır'),
+        icon: <IconVideo size={19} />,
+        badge: t('Son müşteri'),
+        used: recallUsed,
+        disabled: recallUsed || s.queue.length >= queueCapacity(s.store) || s.rewardedAdPending !== null,
+        onPress: s.requestCustomerRecall,
+      });
+    }
+    return (
+      <ToolRail
+        idle
+        items={items}
+      />
+    );
   }
 
   const railItem = s.items[line.itemId];
@@ -978,28 +1010,47 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
     if (deal.stage === 'negotiate') {
       const session = line.negotiation;
       const terminal = isTerminal(session.state);
+      const items: RailItem[] = [
+        {
+          id: 'gesture',
+          label: t('Jest'),
+          icon: <IconGesture size={19} />,
+          used: session.gesturesUsed >= NEGOTIATION.maxEffectiveGestures,
+          onPress: () => s.negotiationMove({ kind: 'gesture', atRound: session.round }),
+        },
+        {
+          id: 'counter',
+          label: t('Karşı Teklif'),
+          icon: <IconCounter size={19} />,
+          used: session.state === 'FINAL_OFFER',
+          onPress: () => s.negotiationMove({ kind: 'requestCounter', atRound: session.round }),
+        },
+      ];
+      if (s.activeCustomer && s.activeCustomer.patience / Math.max(1, s.activeCustomer.patienceMax) <= 0.7) {
+        items.push({
+          id: 'patienceBoost',
+          label: t('Kahve Molası'),
+          icon: <IconVideo size={19} />,
+          badge: t('+sabır'),
+          used: !!deal.rewardedPatienceUsed,
+          disabled: !!deal.rewardedPatienceUsed || s.rewardedAdPending !== null,
+          onPress: s.requestPatienceBoost,
+        });
+      }
+      if (!deal.rewardedExtraOfferUsed && s.rewardedDailyUses.extraOffer !== s.market.day) {
+        items.push({
+          id: 'extraOffer',
+          label: t('Ek Teklif'),
+          icon: <IconVideo size={19} />,
+          badge: t('+1 hak'),
+          disabled: s.rewardedAdPending !== null,
+          onPress: s.requestExtraOffer,
+        });
+      }
       return (
         <ToolRail
           disabled={terminal}
-          items={[
-            {
-              id: 'gesture',
-              label: t('Jest'),
-              icon: <IconGesture size={19} />,
-              used: session.gesturesUsed >= NEGOTIATION.maxEffectiveGestures,
-              onPress: () => s.negotiationMove({ kind: 'gesture', atRound: session.round }),
-            },
-            {
-              id: 'counter',
-              label: t('Karşı Teklif'),
-              icon: <IconCounter size={19} />,
-              // Müşteri son sözünü söylediyse bir daha karşı teklif istemek
-              // anlamsız: cevap değişmez, yalnız sabır yakılır. Jestteki
-              // "tükendi" işaretiyle aynı desen.
-              used: session.state === 'FINAL_OFFER',
-              onPress: () => s.negotiationMove({ kind: 'requestCounter', atRound: session.round }),
-            },
-          ]}
+          items={items}
         />
       );
     }
@@ -1130,6 +1181,20 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           badge: tool.cost > 0 ? tl(tool.cost) : undefined,
           };
         });
+      if (
+        !deal.rewardedExpertHintUsed &&
+        s.rewardedDailyUses.expertHint !== s.market.day &&
+        line.knowledge.some((field) => field.status !== 'verified')
+      ) {
+        items.push({
+          id: 'expertHint',
+          label: t('Usta Görüşü'),
+          icon: <IconVideo size={19} />,
+          badge: t('1 ipucu'),
+          disabled: s.rewardedAdPending !== null,
+          onPress: s.requestExpertHint,
+        });
+      }
       return <ToolRail items={items} />;
     }
 
@@ -1213,6 +1278,29 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           onPress: () => s.negotiationMove({ kind: 'requestCounter', atRound: session.round }),
         },
       ];
+
+      if (s.activeCustomer && s.activeCustomer.patience / Math.max(1, s.activeCustomer.patienceMax) <= 0.7) {
+        items.push({
+          id: 'patienceBoost',
+          label: t('Kahve Molası'),
+          icon: <IconVideo size={19} />,
+          badge: t('+sabır'),
+          used: !!deal.rewardedPatienceUsed,
+          disabled: !!deal.rewardedPatienceUsed || s.rewardedAdPending !== null,
+          onPress: s.requestPatienceBoost,
+        });
+      }
+
+      if (!deal.rewardedExtraOfferUsed && s.rewardedDailyUses.extraOffer !== s.market.day) {
+        items.push({
+          id: 'extraOffer',
+          label: t('Ek Teklif'),
+          icon: <IconVideo size={19} />,
+          badge: t('+1 hak'),
+          disabled: s.rewardedAdPending !== null,
+          onPress: s.requestExtraOffer,
+        });
+      }
 
       // Toplu teklif yalnız en az 2 kalem yeterince değerlenmişse (GDD 23.13).
       const appraisedLines = deal.lines.filter((l) => l.band !== null).length;

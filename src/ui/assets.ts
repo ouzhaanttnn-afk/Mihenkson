@@ -220,6 +220,11 @@ export function marketArt(productId: string, category: MarketCategory): Art {
   return MARKET_ITEM_ART[productId] ?? MARKET_CATEGORY_ART[category];
 }
 
+/** Kullanılan profil rozeti oyun kabuğunda da katalogdaki gerçek görselini taşır. */
+export function shopBadgeArt(badgeId?: string): Art | undefined {
+  return badgeId ? MARKET_ITEM_ART[badgeId] : undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Pazarlık — manifest.realistic.gameplay
 // ---------------------------------------------------------------------------

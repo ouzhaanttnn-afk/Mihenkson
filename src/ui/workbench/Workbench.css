@@ -925,8 +925,32 @@
 
 .workbench--theme_ivory {
   background:
-    linear-gradient(180deg, rgba(102, 82, 52, 0.32), rgba(11, 14, 19, 0.88)),
-    url('/assets/realistic/backgrounds/shop-interior-liquid-v1.webp') center 42% / cover no-repeat;
+    linear-gradient(180deg, rgba(76, 60, 39, 0.28), rgba(11, 14, 19, 0.84)),
+    url('/assets/market/theme-ivory-v2.webp') center 42% / cover no-repeat;
+}
+
+.workbench--theme_bazaar {
+  background:
+    linear-gradient(180deg, rgba(25, 15, 9, 0.42), rgba(8, 10, 14, 0.9)),
+    url('/assets/market/theme-bazaar-v2.webp') center 42% / cover no-repeat;
+}
+
+.workbench--theme_deco {
+  background:
+    linear-gradient(180deg, rgba(12, 12, 16, 0.34), rgba(7, 9, 13, 0.9)),
+    url('/assets/market/theme-deco-v2.webp') center 42% / cover no-repeat;
+}
+
+.workbench--theme_marble {
+  background:
+    linear-gradient(180deg, rgba(24, 27, 33, 0.28), rgba(8, 11, 16, 0.88)),
+    url('/assets/market/theme-marble-v2.webp') center 42% / cover no-repeat;
+}
+
+.workbench--theme_goldenage {
+  background:
+    linear-gradient(180deg, rgba(66, 41, 8, 0.25), rgba(11, 9, 7, 0.86)),
+    url('/assets/market/theme-goldenage-v2.webp') center 42% / cover no-repeat;
 }
 
 .idle::-webkit-scrollbar {
@@ -1015,12 +1039,22 @@
 
 .idle__badge {
   display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
   margin-left: 7px;
   color: var(--brass-300);
   font-family: var(--font-ui);
   font-size: 12px;
   filter: drop-shadow(0 0 5px rgba(215, 170, 74, 0.55));
   vertical-align: middle;
+}
+
+.idle__badgeImg {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .shopOverview__toggle {
@@ -2448,6 +2482,8 @@
 input.qtyStep__value {
   width: 76px;
   min-height: 44px;
+  /* iOS, 16 px altındaki input'a odaklanınca tüm WKWebView'i yakınlaştırır. */
+  font-size: 16px;
   background: transparent;
   border: 1px solid var(--line-dark);
   border-radius: 6px;

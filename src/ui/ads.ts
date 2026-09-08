@@ -29,10 +29,10 @@
  * AD UNIT ID'LERİ — gerçek AdMob hesabından alınır, `.env`'den okunur (bkz.
  * `.env.example`, `src/vite-env.d.ts`). Bu ID'ler GİZLİ değildir (native
  * derlemede zaten APK/IPA içine gömülür, hesaba erişim yetkisi taşımaz);
- * `.env`'e taşınma sebebi ortam-özgü yapılandırma olmalarıdır. "4x hız" ve
- * "Dükkânı Canlandır" AYNI ödüllü reklam birimini paylaşır — hangi ödülün
- * verileceği reklam biriminin kendisinden değil, `showRewardedAd(kind)`in
- * çağrıldığı yerden gelir. Pazartesi açılış geçiş reklamı
+ * `.env`'e taşınma sebebi ortam-özgü yapılandırma olmalarıdır. Oyuncunun
+ * isteyerek başlattığı bütün ödüller AYNI ödüllü reklam birimini paylaşır —
+ * hangi ödülün verileceği reklam biriminin kendisinden değil,
+ * `showRewardedAd(kind)`in çağrıldığı yerden gelir. Pazartesi açılış geçiş reklamı
  * (`showInterstitialAd`) AYRI ve FARKLI TÜRDE bir reklam birimi kullanır
  * (bkz. aşağıdaki INTERSTITIAL bölümü) — rewarded birimle karıştırılmamalı.
  * ═══════════════════════════════════════════════════════════════════════════
@@ -47,7 +47,21 @@ import {
 } from '@capacitor-community/admob';
 
 /** Bir ödülün ne için verildiği — hangi oyun içi etkinin tetikleneceğini seçer. */
-export type RewardKind = 'speed4x' | 'customerRush' | 'personnelWaiver' | 'personnelTempUnlock';
+export type RewardKind =
+  | 'speed4x'
+  | 'customerRush'
+  | 'personnelWaiver'
+  | 'personnelTempUnlock'
+  | 'dailySponsor'
+  | 'patienceBoost'
+  | 'expertHint'
+  | 'cosmeticTrial'
+  | 'supplyExpress'
+  | 'workshopRush'
+  | 'customerRecall'
+  | 'extraOffer'
+  | 'freeShipping'
+  | 'dailyCosmetic';
 
 const REWARD_AD_UNIT: Record<'android' | 'ios', string | undefined> = {
   android: import.meta.env.VITE_ADMOB_REWARD_UNIT_ANDROID,

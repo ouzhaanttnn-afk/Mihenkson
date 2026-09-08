@@ -61,7 +61,7 @@ import {
   networkLoanOffer,
 } from '@domain/trade-network';
 import type { ItemInstance, TradeNetworkMember } from '@domain/types';
-import { selectors, useGame } from '@state/gameStore';
+import { REWARDED_SHIPPING_DISCOUNT, selectors, useGame } from '@state/gameStore';
 
 import {
   IconBusiness,
@@ -698,6 +698,39 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
         aria-labelledby="supplier-account-page-title"
         tabIndex={0}
       >
+        <div className="group">
+          <h2 className="group__title">{t('Ödüllü Tedarik Avantajları')}</h2>
+          <div className="group__body rewardedSupply">
+            <button
+              type="button"
+              className="miniBtn"
+              disabled={
+                s.rewardedSupplyExpressReady ||
+                s.rewardedDailyUses.supplyExpress === today ||
+                s.rewardedAdPending !== null
+              }
+              onClick={s.requestSupplyExpress}
+            >
+              <IconVideo size={15} />{' '}
+              {s.rewardedSupplyExpressReady ? t('Tedarik Ekspresi Hazır') : t('Tedarik Ekspresi')}
+            </button>
+            <button
+              type="button"
+              className="miniBtn"
+              disabled={
+                s.rewardedFreeShippingReady ||
+                s.rewardedDailyUses.freeShipping === today ||
+                s.rewardedAdPending !== null
+              }
+              onClick={s.requestFreeShipping}
+            >
+              <IconVideo size={15} />{' '}
+              {s.rewardedFreeShippingReady ? t('Ücretsiz Nakliye Hazır') : t('Ücretsiz Nakliye')}
+            </button>
+            <p>{t('Hazırlanan avantaj sıradaki toptancı alımında otomatik uygulanır.')}</p>
+          </div>
+        </div>
+
         {/* §7 — limit durumu */}
         <div className="group">
           <h2 className="group__title">{t('Limit ve vade')}</h2>
@@ -778,8 +811,15 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
   const lot = supplyOffer(probe, quantity, s.market, s.store);
   if (!lot) return null;
 
-  const terms = financeTerms(s.store, lot.total, today);
-  const expensive = lot.total >= Math.max(100_000, Math.round(s.store.cash * 0.2));
+  const shippingDiscount = s.rewardedFreeShippingReady
+    ? Math.round(lot.total * REWARDED_SHIPPING_DISCOUNT)
+    : 0;
+  const payable = Math.max(1, lot.total - shippingDiscount);
+  const baseTerms = financeTerms(s.store, payable, today);
+  const terms = s.rewardedSupplyExpressReady && baseTerms.financed > 0
+    ? { ...baseTerms, financeCost: 0, totalDue: baseTerms.financed }
+    : baseTerms;
+  const expensive = payable >= Math.max(100_000, Math.round(s.store.cash * 0.2));
 
   const buy = () => {
     if (expensive && !confirming) {
@@ -795,7 +835,7 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
     <div className="lotRow">
       <div className="lotRow__head">
         <span className="lotRow__name">{t(lot.displayName)}</span>
-        <span className="lotRow__price num">{tl(lot.total)}</span>
+        <span className="lotRow__price num">{tl(payable)}</span>
       </div>
 
       <div className="lotRow__terms">
@@ -805,6 +845,19 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
           n: lot.maxQuantity,
         })}
       </div>
+
+      {shippingDiscount > 0 && (
+        <div className="lotRow__terms statLine__value--positive">
+          {t('Ücretsiz nakliye · {tutar} indirim', { tutar: tl(shippingDiscount) })}
+        </div>
+      )}
+      {s.rewardedSupplyExpressReady && (
+        <div className="lotRow__terms statLine__value--positive">
+          {baseTerms.financed > 0
+            ? t('Tedarik Ekspresi · vade farkı yok')
+            : t('Tedarik Ekspresi hazır · ilk vadeli alımda uygulanır')}
+        </div>
+      )}
 
       <div className="lotRow__terms">
         {terms.financed > 0
@@ -847,7 +900,7 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
           disabled={!!terms.blockedReason}
         >
           {terms.blockedReason ??
-                (confirming ? t('{tutar} ödemeyi onayla', { tutar: tl(lot.total) }) : t('Al'))}
+                (confirming ? t('{tutar} ödemeyi onayla', { tutar: tl(payable) }) : t('Al'))}
         </button>
       </div>
       {confirming && (

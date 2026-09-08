@@ -996,4 +996,10 @@ export interface ActiveDeal {
   startedAtSec: number;
   /** Terminal settlement uygulandı mı — çift tap koruması (GDD 22.1). */
   settled: boolean;
+  /** Bu ziyaret için ödüllü sabır molası kullanıldı mı. */
+  rewardedPatienceUsed?: boolean;
+  /** Bu ziyaret için ödüllü usta görüşü kullanıldı mı. */
+  rewardedExpertHintUsed?: boolean;
+  /** Bu ziyaret için ödüllü ek teklif hakkı kullanıldı mı. */
+  rewardedExtraOfferUsed?: boolean;
 }

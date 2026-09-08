@@ -10,7 +10,7 @@ import { SPEED_STEPS, type SpeedStep } from '@domain/balance';
 import { weekdayLabel, weekdayShort } from '@domain/calendar';
 import { IconLock, IconPencil, IconSettings, BrandMark } from '@ui/icons';
 import { Art } from '@ui/Art';
-import { avatarArt, profileFrameArt } from '@ui/assets';
+import { avatarArt, profileFrameArt, shopBadgeArt } from '@ui/assets';
 import { clock } from '@ui/format';
 import { t } from '@i18n/index';
 import type { PlayerProfile } from '@domain/profile';
@@ -29,6 +29,7 @@ interface Props {
   /** Kuyumcunun adı ve portresi — yalnız görünüm. */
   profile: PlayerProfile;
   profileFrame?: string;
+  shopBadge?: string;
   onEditProfile: () => void;
 }
 
@@ -43,6 +44,7 @@ export function StatusStrip({
   onOpenSettings,
   profile,
   profileFrame,
+  shopBadge,
   onEditProfile,
 }: Props) {
   const xpRatio = Math.min(1, store.xp / Math.max(1, store.xpToNext));
@@ -50,6 +52,7 @@ export function StatusStrip({
     ad: profile.jewelerName,
   })}. ${t('XP')}: ${store.xp}/${store.xpToNext}`;
   const equippedFrame = profileFrameArt(profileFrame);
+  const equippedBadge = shopBadgeArt(shopBadge);
 
   return (
     <header className="statusStrip">
@@ -99,7 +102,12 @@ export function StatusStrip({
         </span>
 
         <span className="profileChip__text">
-          <span className="profileChip__name">{profile.jewelerName}</span>
+          <span className="profileChip__nameRow">
+            <span className="profileChip__name">{profile.jewelerName}</span>
+            {equippedBadge && (
+              <Art art={equippedBadge} size={18} decorative className="profileChip__badge" fallback={null} />
+            )}
+          </span>
           <span className="statusStrip__levelRow">
             <span className="statusStrip__levelNum">{t('Sv')} {store.level}</span>
             <span className="statusStrip__xp num">

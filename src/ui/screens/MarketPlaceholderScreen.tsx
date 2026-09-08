@@ -21,6 +21,18 @@ const PRODUCT_MARK: Record<MarketCategory, string> = {
   profile: '◆', frames: '◈', shop: '▣', decoration: '◇', collection: '♛', lifestyle: '✦',
 };
 
+type MarketTab = MarketCategory | 'offers';
+
+const MARKET_TABS: { id: MarketTab; label: string; description: string; comingSoon?: boolean }[] = [
+  {
+    id: 'offers',
+    label: 'Özel Paketler',
+    description: 'İsteğe bağlı oyun içi paketler ve sezonluk seçkiler',
+    comingSoon: true,
+  },
+  ...MARKET_CATEGORIES,
+];
+
 /**
  * ÜRÜNE ÖZEL İŞARET.
  *
@@ -59,7 +71,7 @@ function productMark(product: MarketProduct): string {
 
 export function MarketPlaceholderScreen() {
   const s = useGame();
-  const [category, setCategory] = useState<MarketCategory>('profile');
+  const [category, setCategory] = useState<MarketTab>('offers');
   const [pending, setPending] = useState<MarketProduct | null>(null);
   const [collectionOpen, setCollectionOpen] = useState(false);
   /*
@@ -77,7 +89,7 @@ export function MarketPlaceholderScreen() {
     Eşit fiyatta ad sırası devreye girer; aksi halde iki ürün her çizimde
     yer değiştirebilirdi.
   */
-  const products = MARKET_CATALOG.filter((product) => product.category === category)
+  const products = MARKET_CATALOG.filter((product) => category !== 'offers' && product.category === category)
     .slice()
     .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, 'tr'));
   const upkeep = lifestyleDailyExpense(s.playerMarket);
@@ -168,10 +180,11 @@ export function MarketPlaceholderScreen() {
 
       <div className="horizontalRailWrap marketCategoriesWrap">
         <nav className="marketCategories" aria-label={t('Market kategorileri')}>
-          {MARKET_CATEGORIES.map((item) => (
+          {MARKET_TABS.map((item) => (
             <button key={item.id} type="button" className={`marketCategory ${category === item.id ? 'marketCategory--active' : ''}`}
               onClick={() => setCategory(item.id)} aria-pressed={category === item.id}>
-              <span>{PRODUCT_MARK[item.id]}</span>{t(item.label)}
+              <span>{item.id === 'offers' ? '✦' : PRODUCT_MARK[item.id]}</span>{t(item.label)}
+              {item.comingSoon && <small>{t('Yakında')}</small>}
             </button>
           ))}
         </nav>
@@ -181,13 +194,38 @@ export function MarketPlaceholderScreen() {
       <section className="marketCatalog" aria-label={t('Market')}>
         <div className="marketCatalog__intro">
           <div>
-            <strong>{t(MARKET_CATEGORIES.find((item) => item.id === category)?.label ?? '')}</strong>
-            <p>{t(MARKET_CATEGORIES.find((item) => item.id === category)?.description ?? '')}</p>
+            <strong>{t(MARKET_TABS.find((item) => item.id === category)?.label ?? '')}</strong>
+            <p>{t(MARKET_TABS.find((item) => item.id === category)?.description ?? '')}</p>
           </div>
           {category === 'lifestyle' && <span>{t('Prestij verir · ticaret gücü vermez')}</span>}
         </div>
 
-        <div className="marketGrid">
+        {category === 'offers' ? (
+          <div className="marketComingSoon">
+            <span className="marketComingSoon__mark" aria-hidden="true">✦</span>
+            <span className="marketComingSoon__eyebrow">{t('Yakında')}</span>
+            <h2>{t('Bir hediye hazırlıyoruz')}</h2>
+            <p>{t('Oyun deneyimini renklendirecek isteğe bağlı özel paketler burada yer alacak.')}</p>
+            <div className="marketComingSoon__actions">
+              <button type="button" disabled>{t('Yakında')}</button>
+              <button
+                type="button"
+                className="marketComingSoon__reward"
+                disabled={
+                  s.rewardedCosmeticTrial !== null ||
+                  s.rewardedDailyUses.dailyCosmetic === s.market.day ||
+                  s.rewardedAdPending !== null
+                }
+                onClick={s.requestDailyCosmetic}
+              >
+                {s.rewardedDailyUses.dailyCosmetic === s.market.day
+                  ? t('Bugün denendi')
+                  : t('Günün Fırsatını Dene')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="marketGrid">
           {products.map((product) => {
             const owned = s.playerMarket.owned.includes(product.id);
             const equipped = product.equipSlot ? s.playerMarket.equipped[product.equipSlot] === product.id : false;
@@ -239,12 +277,27 @@ export function MarketPlaceholderScreen() {
                         {requiresServerClaim ? (unlocked ? t('Doğrulama bekliyor') : t('Hedef kilitli')) : !affordable && unlocked ? t('Nakit yetersiz') : unlocked ? t('Satın Al') : t('Kilitli')}
                       </button>
                     )}
+                    {!owned && product.equipSlot && (
+                      <button
+                        type="button"
+                        className="marketProduct__trial"
+                        disabled={
+                          s.rewardedCosmeticTrial !== null ||
+                          s.rewardedDailyUses.cosmeticTrial === s.market.day ||
+                          s.rewardedAdPending !== null
+                        }
+                        onClick={() => s.requestCosmeticTrial(product.id)}
+                      >
+                        {t('1 Gün Dene')}
+                      </button>
+                    )}
                   </div>
                 </div>
               </article>
             );
           })}
-        </div>
+          </div>
+        )}
       </section>
 
       {pending && (

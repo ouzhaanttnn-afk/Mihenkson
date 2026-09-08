@@ -73,8 +73,12 @@ for (const key of [
   check(new RegExp(`^${key}=ca-app-pub-\\d+\\/\\d+$`, 'm').test(productionEnv), `${key} production değerine sahip`);
 }
 
-check(!/user-scalable\s*=\s*no/i.test(indexHtml), 'Kullanıcı yakınlaştırması engellenmiyor');
-check(!/maximum-scale\s*=\s*1(?:\.0)?/i.test(indexHtml), 'Viewport maksimum yakınlaştırmayı kilitlemiyor');
+// Bu proje sabit portre oyun kabuğudur. iOS'ta çift dokunma/pinch sonrası
+// WebView'in büyüyüp o ölçekte kalması oynanışı bozduğu için kullanıcı kararıyla
+// sayfa yakınlaştırması kapalı tutulur; metin erişilebilirliği uygulama içindeki
+// 16 px taban ve ölçekli bileşenlerle korunur.
+check(/user-scalable\s*=\s*no/i.test(indexHtml), 'Oyun WebView yakınlaştırması kilitli');
+check(/maximum-scale\s*=\s*1(?:\.0)?/i.test(indexHtml), 'Viewport ölçeği sabit');
 check(/"orientation"\s*:\s*"portrait"/.test(webManifest), 'PWA portre yönünde');
 check(
   appAds.trim() === 'google.com, pub-4229088811556918, DIRECT, f08c47fec0942fa0',
