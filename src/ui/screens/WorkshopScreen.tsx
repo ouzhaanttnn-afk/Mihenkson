@@ -184,14 +184,14 @@ export function WorkshopScreen() {
           <h2 className="group__title">{t('Dış Usta')}</h2>
           <div className="group__body">
             {/*
-              GDD 23.18 Dış Usta ayrı bir alt görünüm. Portre 72 px: işi
+              GDD 23.18 Dış Usta ayrı bir alt görünüm. Portre 64 px: işi
               devrettiğin kişinin bir yüzü olması, "kapasite dışı" soyut
               bir satırı bir ilişkiye çeviriyor.
             */}
             <div className="masterLine">
               <Art
                 art={OUTSIDE_MASTER_ART}
-                size={72}
+                size={64}
                 className="masterLine__portrait art--portrait"
                 fallback={<IconServiceResale size={26} />}
               />

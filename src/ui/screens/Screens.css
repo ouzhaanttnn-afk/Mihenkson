@@ -1457,7 +1457,7 @@
   height: 96px;
 }
 
-/* Dış Usta portresi — 72 px, paketin portre bandının alt ucu. */
+/* Dış Usta portresi — kart kenarına değmeden yüz ve omuzları gösterir. */
 .masterLine {
   display: flex;
   align-items: center;
@@ -1469,8 +1469,11 @@
 
 .masterLine__portrait {
   flex: 0 0 auto;
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
+  padding: 3px;
+  object-fit: contain;
+  object-position: center;
   border: 1px solid var(--line-light-strong);
 }
 

@@ -270,7 +270,12 @@ body,
 
 :root[data-native-platform='ios'] {
   --chrome-top-inset: 0px;
-  --chrome-bottom-inset: 0px;
+  /*
+   * Home indicator etkileşim sırasında yeniden görünebilir. Tam 34 px'lik
+   * boş bant yerine en fazla 24 px'i alt menünün kendi yüzeyine katarız;
+   * etiket çubuğa değmez, ekranın altında ayrı bir şerit de oluşmaz.
+   */
+  --chrome-bottom-inset: min(var(--safe-bottom), 24px);
 }
 
 body {

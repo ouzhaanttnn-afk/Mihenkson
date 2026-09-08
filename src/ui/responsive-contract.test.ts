@@ -68,7 +68,7 @@ describe('mobil kabuk sözleşmesi', () => {
       /\.bottomNav\s*\{[\s\S]*?padding:[\s\S]*?calc\(5px \+ var\(--chrome-bottom-inset\)\)/,
     );
     expect(tokens).toMatch(
-      /:root\[data-native-platform='ios'\]\s*\{[\s\S]*?--chrome-top-inset:\s*0px;[\s\S]*?--chrome-bottom-inset:\s*0px;/,
+      /:root\[data-native-platform='ios'\]\s*\{[\s\S]*?--chrome-top-inset:\s*0px;[\s\S]*?--chrome-bottom-inset:\s*min\(var\(--safe-bottom\), 24px\);/,
     );
     expect(shellCss).toMatch(
       /:root\[data-native-platform='ios'\] \.statusStrip\s*\{[\s\S]*?height:\s*76px;/,
@@ -80,6 +80,20 @@ describe('mobil kabuk sözleşmesi', () => {
       /:root\[data-native-platform='ios'\] \.statusStrip__meta\s*\{[\s\S]*?width:\s*115px;/,
     );
     expect(main).toContain('document.documentElement.dataset.nativePlatform');
+  });
+
+  it('iOS hareket çubuğunu alt navigasyondan ayırır ve usta portresini karta sığdırır', () => {
+    const shellCss = projectFile('src/ui/shell/AppShell.css');
+    const screensCss = projectFile('src/ui/screens/Screens.css');
+    const workshop = projectFile('src/ui/screens/WorkshopScreen.tsx');
+
+    expect(shellCss).toMatch(
+      /\.bottomNav\s*\{[\s\S]*?calc\(5px \+ var\(--chrome-bottom-inset\)\)/,
+    );
+    expect(screensCss).toMatch(
+      /\.masterLine__portrait\s*\{[\s\S]*?width:\s*64px;[\s\S]*?height:\s*64px;[\s\S]*?padding:\s*3px;[\s\S]*?object-fit:\s*contain;/,
+    );
+    expect(workshop).toContain('size={64}');
   });
 
   it('müşteri stok seçiminde ürün assetini kullanır ve SVG yalnız yedektir', () => {
