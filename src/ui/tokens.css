@@ -141,6 +141,13 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+  /*
+   * Web/PWA sistem çubuklarını korur. Native iOS'ta SystemBars gizlidir ve
+   * kontroller notch çevresine özel yerleştiği için güvenli alan ayrıca
+   * şerit yüksekliğine eklenmez.
+   */
+  --chrome-top-inset: var(--safe-top);
+  --chrome-bottom-inset: var(--safe-bottom);
 
   /* ---- Dokunma hedefleri ---- */
   --touch-min: 44px;
@@ -259,6 +266,11 @@ body,
   overflow: hidden;
   overscroll-behavior: none;
   background: var(--ink-900);
+}
+
+:root[data-native-platform='ios'] {
+  --chrome-top-inset: 0px;
+  --chrome-bottom-inset: 0px;
 }
 
 body {

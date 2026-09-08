@@ -95,6 +95,8 @@ check(!phoneOrientationBlock.includes('Landscape'), 'iPhone bozuk yatay düzeni 
 check(!infoPlist.includes('UISupportedInterfaceOrientations~ipad'), 'iPhone-only pakette iPad yön beyanı yok');
 check(capacitor.includes("contentInset: 'never'"), 'iOS WebView ekran kenarlarına kadar uzanıyor');
 check(/<key>UIStatusBarHidden<\/key>\s*<true\/>/.test(infoPlist), 'iOS oyun durum çubuğunu gizliyor');
+check(/<key>UIViewControllerBasedStatusBarAppearance<\/key>\s*<true\/>/.test(infoPlist), 'iOS SystemBars denetimine izin veriyor');
+check(/SystemBars:[\s\S]*?hidden:\s*true/.test(capacitor), 'iOS durum ve hareket çubuklarını yerleşik yolla gizliyor');
 check(/<key>UIRequiresFullScreen<\/key>\s*<true\/>/.test(infoPlist), 'iOS gerçek tam ekran istiyor');
 check(sceneDelegate.includes('CAPBridgeViewController()'), 'iOS tam ekran köprü denetleyicisi hazır');
 check(infoPlist.includes('<key>ITSAppUsesNonExemptEncryption</key>'), 'Şifreleme/ihracat beyanı Info.plist içinde');

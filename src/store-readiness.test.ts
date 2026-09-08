@@ -37,8 +37,10 @@ describe('iOS mağaza paketi', () => {
     const sceneDelegate = read('ios/App/App/SceneDelegate.swift');
 
     expect(plist).toMatch(/<key>UIStatusBarHidden<\/key>\s*<true\/>/);
+    expect(plist).toMatch(/<key>UIViewControllerBasedStatusBarAppearance<\/key>\s*<true\/>/);
     expect(plist).toMatch(/<key>UIRequiresFullScreen<\/key>\s*<true\/>/);
     expect(capacitor).toContain("contentInset: 'never'");
+    expect(capacitor).toMatch(/SystemBars:[\s\S]*?hidden:\s*true/);
     expect(sceneDelegate).toContain('CAPBridgeViewController()');
   });
 

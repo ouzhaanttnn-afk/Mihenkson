@@ -50,21 +50,36 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(viewport).not.toContain('user-scalable=no');
   });
 
-  it('iPhone güvenli alanlarını boş şerit yerine durum ve navigasyon yüzeylerine katar', () => {
+  it('native iPhone güvenli alanlarını ekstra üst ve alt banda dönüştürmez', () => {
     const shellCss = projectFile('src/ui/shell/AppShell.css');
+    const tokens = projectFile('src/ui/tokens.css');
+    const main = projectFile('src/main.tsx');
 
     expect(shellCss).toMatch(
       /\.device\s*\{[\s\S]*?background:\s*var\(--ink-900\);[\s\S]*?padding:\s*0;/,
     );
     expect(shellCss).toMatch(
-      /\.statusStrip\s*\{[\s\S]*?height:\s*calc\(var\(--h-status-strip\) \+ var\(--safe-top\)\);[\s\S]*?padding:[\s\S]*?var\(--safe-top\)/,
+      /\.statusStrip\s*\{[\s\S]*?height:\s*calc\(var\(--h-status-strip\) \+ var\(--chrome-top-inset\)\);[\s\S]*?padding:[\s\S]*?var\(--chrome-top-inset\)/,
     );
     expect(shellCss).toMatch(
-      /\.bottomNav\s*\{[\s\S]*?height:\s*calc\(var\(--h-bottom-nav\) \+ var\(--safe-bottom\)\);/,
+      /\.bottomNav\s*\{[\s\S]*?height:\s*calc\(var\(--h-bottom-nav\) \+ var\(--chrome-bottom-inset\)\);/,
     );
     expect(shellCss).toMatch(
-      /\.bottomNav\s*\{[\s\S]*?padding:[\s\S]*?calc\(5px \+ var\(--safe-bottom\)\)/,
+      /\.bottomNav\s*\{[\s\S]*?padding:[\s\S]*?calc\(5px \+ var\(--chrome-bottom-inset\)\)/,
     );
+    expect(tokens).toMatch(
+      /:root\[data-native-platform='ios'\]\s*\{[\s\S]*?--chrome-top-inset:\s*0px;[\s\S]*?--chrome-bottom-inset:\s*0px;/,
+    );
+    expect(shellCss).toMatch(
+      /:root\[data-native-platform='ios'\] \.statusStrip\s*\{[\s\S]*?height:\s*76px;/,
+    );
+    expect(shellCss).toMatch(
+      /:root\[data-native-platform='ios'\] \.profileChip\s*\{[\s\S]*?max-width:\s*116px;/,
+    );
+    expect(shellCss).toMatch(
+      /:root\[data-native-platform='ios'\] \.statusStrip__meta\s*\{[\s\S]*?width:\s*115px;/,
+    );
+    expect(main).toContain('document.documentElement.dataset.nativePlatform');
   });
 
   it('müşteri stok seçiminde ürün assetini kullanır ve SVG yalnız yedektir', () => {

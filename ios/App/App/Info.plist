@@ -59,7 +59,7 @@
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
+	<true/>
 	<!-- Oyun gerçek tam ekran çalışır; saat/TestFlight dönüş şeridi gösterilmez. -->
 	<key>UIStatusBarHidden</key>
 	<true/>

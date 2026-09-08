@@ -11,6 +11,13 @@ const config: CapacitorConfig = {
     // katar, ayrı üst/alt boşluk üretmez.
     contentInset: 'never',
   },
+  plugins: {
+    SystemBars: {
+      // Capacitor 8'in yerleşik yolu hem durum çubuğunu hem de home
+      // indicator'ı gizler; özel UIViewController alt sınıfı gerektirmez.
+      hidden: true,
+    },
+  },
 };
 
 export default config;

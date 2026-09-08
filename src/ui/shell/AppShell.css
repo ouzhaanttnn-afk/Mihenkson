@@ -116,14 +116,14 @@
  * "Gün 1"in iki satıra kırılma sınırı orası.
  */
 .statusStrip {
-  flex: 0 0 calc(var(--h-status-strip) + var(--safe-top));
-  height: calc(var(--h-status-strip) + var(--safe-top));
+  flex: 0 0 calc(var(--h-status-strip) + var(--chrome-top-inset));
+  height: calc(var(--h-status-strip) + var(--chrome-top-inset));
   display: flex;
   align-items: center;
   /* Ayarlar hız grubuyla aynı kümeyi paylaşır; profil adı için alan korunur. */
   gap: 6px;
   padding:
-    var(--safe-top)
+    var(--chrome-top-inset)
     calc(12px + var(--safe-right))
     0
     calc(12px + var(--safe-left));
@@ -1117,8 +1117,8 @@
 /* ------------------------------------------------------------------ */
 
 .bottomNav {
-  flex: 0 0 calc(var(--h-bottom-nav) + var(--safe-bottom));
-  height: calc(var(--h-bottom-nav) + var(--safe-bottom));
+  flex: 0 0 calc(var(--h-bottom-nav) + var(--chrome-bottom-inset));
+  height: calc(var(--h-bottom-nav) + var(--chrome-bottom-inset));
   display: flex;
   align-items: stretch;
   background: var(--ink-800);
@@ -1184,7 +1184,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(var(--h-status-strip) + var(--h-market-strip) + 1px + var(--sp-3) + var(--safe-top));
+  top: calc(var(--h-status-strip) + var(--h-market-strip) + 1px + var(--sp-3) + var(--chrome-top-inset));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1833,6 +1833,52 @@
     min-height: 26px;
     background: color-mix(in srgb, var(--ink-600) 62%, transparent);
   }
+
+  /*
+   * iOS uygulamasında durum çubuğu gizli, WebView gerçek tam ekrandır.
+   * Başlığı 76 px'te tutup avatarı sol üst lobda; profil metni ile sağdaki
+   * saat/hız kümesini Dynamic Island'ın alt çizgisinde konumlandırırız.
+   * Böylece 59 px'lik boş bant yoktur, fakat merkezdeki fiziksel kesite de
+   * okunur metin gönderilmez.
+   */
+  :root[data-native-platform='ios'] .statusStrip {
+    flex-basis: 76px;
+    height: 76px;
+    align-items: flex-end;
+    padding-top: 0;
+    padding-bottom: 2px;
+  }
+
+  :root[data-native-platform='ios'] .profileChip {
+    flex: 0 1 116px;
+    max-width: 116px;
+    height: 72px;
+  }
+
+  :root[data-native-platform='ios'] .profileChip__text {
+    padding-top: 26px;
+  }
+
+  :root[data-native-platform='ios'] .statusStrip__meta {
+    width: 115px;
+    max-width: 115px;
+    justify-content: flex-end;
+    padding-bottom: 3px;
+  }
+
+  :root[data-native-platform='ios'] .speed {
+    width: 115px;
+    justify-content: space-between;
+  }
+
+  :root[data-native-platform='ios'] .speed__step {
+    min-width: 22px;
+    padding-inline: 3px;
+  }
+
+  :root[data-native-platform='ios'] .speed__settings {
+    width: 24px;
+  }
 }
 
 @media (max-width: 340px) {
@@ -1861,7 +1907,7 @@
   padding:
     5px
     calc(4px + var(--safe-right))
-    calc(5px + var(--safe-bottom))
+    calc(5px + var(--chrome-bottom-inset))
     calc(4px + var(--safe-left));
   background: linear-gradient(180deg, rgba(27, 22, 35, 0.96), rgba(12, 16, 22, 1));
 }
