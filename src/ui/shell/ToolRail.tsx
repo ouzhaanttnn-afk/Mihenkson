@@ -88,7 +88,7 @@ export function ToolRail({ items, disabled = false, emptyLabel, idle = false }: 
             aria-pressed={item.selected}
           >
             {item.badge && <span className="tool__badge num">{item.badge}</span>}
-            {item.icon}
+            <span className="tool__icon" aria-hidden="true">{item.icon}</span>
             <span className="tool__label">{item.label}</span>
           </button>
         ))

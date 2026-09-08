@@ -256,6 +256,13 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(shellCss).toMatch(
       /\.toolRailSlot > \.toolRail\s*\{[\s\S]*?width:\s*calc\(100% - 64px\);/,
     );
+    expect(shellCss).toMatch(
+      /\.toolRail--idle \.tool\s*\{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:\s*24px minmax\(0, 1fr\);/,
+    );
+    expect(shellCss).toMatch(
+      /\.toolRail--idle \.tool__badge\s*\{[\s\S]*?position:\s*static;/,
+    );
+    expect(shop).toContain('<ToolRail\n        idle');
   });
 
   it('gerçek iPhone portresinde pazarlık kararlarını kaydırmadan gösterir', () => {

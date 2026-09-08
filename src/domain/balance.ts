@@ -321,8 +321,11 @@ export const PURCHASE = {
   /** Tam isabetli kalem başına tavan primi. */
   exactMatchCeilingBonus: 0.02,
 
-  /** Ödeme tavanı oranı bandı — spawn anında sabitlenir (GDD 34.2). */
-  ceilingRatioBand: [1.08, 1.38] as [number, number],
+  /** Ödeme tavanı oranı bandı — satış müşterisi önceki betadan hafifçe toleranslıdır. */
+  ceilingRatioBand: [1.11, 1.41] as [number, number],
+
+  /** Bozdurma müşterisinin alt sınırında küçük erişilebilirlik payı. */
+  sellerReservationRelief: 0.02,
 
   /**
    * Sarrafiye için güvenli başlangıç kârı. Hedef bandın alt sınırıyla aynı:
@@ -684,7 +687,7 @@ export const NEGOTIATION = {
   /** Bu orandan düşük teklif "kötü teklif" sayılır ve sertleşmeyi tetikler. */
   insultThreshold: 0.74,
   /** Sertleşmeye geçiş için gereken kötü teklif sayısı. */
-  hardeningTrigger: 3,
+  hardeningTrigger: 4,
   /** FINAL_OFFER'a geçiş: sabır bu oranın altına düştüğünde. */
   finalOfferPatienceRatio: 0.22,
 
