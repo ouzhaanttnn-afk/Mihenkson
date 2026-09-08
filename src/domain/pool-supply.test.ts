@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useGame } from '@state/gameStore';
-import { deserialize, serialize } from '@state/save';
+import { deserialize, migrate, serialize } from '@state/save';
 import { createMarketForDay } from './market';
+import { customerPriceBand } from './customer-pricing';
+import { PURCHASE } from './balance';
 import { applyTransaction, createLedger, costBasisForUnits } from './settlement';
 import { maxPoolSupplyQuantity, poolSupplyQuote, poolSupplyItem, POOL_SUPPLY, validPoolSupplyQuantity } from './pool-supply';
 import { hasQuote, maxHasBuyMg, tradeHas } from './has-account';
@@ -26,6 +28,36 @@ describe('cash-only three-family pooled counter', () => {
       'ata_gold',
       'investment_bangle_22k_10',
     ]);
+  });
+  it.each(POOL_SUPPLY.map(p => p.templateId))('%s tedariki normal müşteri bandında kârlı satılabilir', templateId => {
+    const s = useGame.getState();
+    const quote = poolSupplyQuote(templateId, 1, s.market, s.store)!;
+    const band = customerPriceBand(poolSupplyItem(templateId), s.market, 'shopSells')!;
+
+    expect(quote.unitPrice * (1 + PURCHASE.minimumSuggestedProfitMargin)).toBeLessThanOrEqual(
+      band.max + 1,
+    );
+  });
+  it('eski Hızlı Stok zarar tuzağını bir kez tedarikçi iadesiyle düzeltir', () => {
+    useGame.getState().buyPoolStock('gram_gold_1', 3);
+    const file = serialize(useGame.getState());
+    const position = file.inventory[0]!;
+    const item = file.items[position.itemId]!;
+    const legacyCost = position.costBasis * 1.2;
+    const legacy = {
+      ...file,
+      version: 2,
+      inventory: [{ ...position, costBasis: legacyCost, averageCostPerUnit: legacyCost / position.quantity }],
+      items: { ...file.items, [position.itemId]: { ...item, buyCost: legacyCost / position.quantity } },
+    };
+
+    const migrated = migrate(legacy);
+    const fixed = migrated.inventory[0]!;
+    const band = customerPriceBand(migrated.items[fixed.itemId]!, migrated.market!, 'shopSells')!;
+    expect(fixed.costBasis / fixed.quantity * (1 + PURCHASE.minimumSuggestedProfitMargin))
+      .toBeLessThanOrEqual(band.max + 1);
+    expect(migrated.store.cash).toBeCloseTo(file.store.cash + legacyCost - fixed.costBasis, 8);
+    expect(migrate(migrated)).toEqual(migrated);
   });
   it.each([.1, 1, 2.5, 7, 40, 135, 135.2])('buys %s grams into the one pool and pays the quoted total', qty => {
     const s = useGame.getState();

@@ -315,8 +315,11 @@ export const PURCHASE = {
   /** Ödeme tavanı oranı bandı — spawn anında sabitlenir (GDD 34.2). */
   ceilingRatioBand: [1.08, 1.38] as [number, number],
 
-  /** Önerilen satış fiyatı maliyetin en az bu kadar üstünü hedefler. */
-  minimumSuggestedProfitMargin: 0.08,
+  /**
+   * Sarrafiye için güvenli başlangıç kârı. Hedef bandın alt sınırıyla aynı:
+   * müşteri pazarlığı hâlâ pay bırakır ama ilk teklif erişilemez %8'e kaçmaz.
+   */
+  minimumSuggestedProfitMargin: 0.015,
 
   /** Mağaza kademesine göre paketteki azami kalem sayısı. */
   maxPackageLinesByTier: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 } as Record<number, number>,

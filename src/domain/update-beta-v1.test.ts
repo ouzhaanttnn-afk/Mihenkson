@@ -36,9 +36,9 @@ describe('Beta Update v1', () => {
     }
   });
 
-  it('varsayılan satış önerisi en az %8 kâr hedefler', () => {
+  it('varsayılan sarrafiye satış önerisi erişilebilir %1,5 kâr hedefler', () => {
     const purchase = { suggestedPrice: 100_000, packageCost: 110_000 };
-    expect(recommendedSalePrice(purchase)).toBe(118_800);
+    expect(recommendedSalePrice(purchase)).toBe(111_650);
     expect(recommendedSalePrice(purchase)).toBeGreaterThanOrEqual(
       Math.round(purchase.packageCost * (1 + PURCHASE.minimumSuggestedProfitMargin)),
     );

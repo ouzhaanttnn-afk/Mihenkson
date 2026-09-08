@@ -1,6 +1,8 @@
 import { spawnItem } from './item-spawn';
 import { bullionMeta } from '@data/bullion';
 import { bullionUnitValue, priceForChannel } from './channels';
+import { customerPriceBand } from './customer-pricing';
+import { PURCHASE } from './balance';
 import { poolForTemplate } from './stock-pools';
 import type { ItemInstance, MarketState, StoreState } from './types';
 
@@ -25,9 +27,43 @@ export function validPoolSupplyQuantity(templateId: string, quantity: number): b
 export function poolSupplyQuote(templateId: string, quantity: number, market: MarketState, store: StoreState) {
   if (!validPoolSupplyQuantity(templateId, quantity)) return null;
   const item = spawnItem(0, 0, templateId);
+  const baseUnitValue = bullionUnitValue(item, market);
   const quote = priceForChannel({ item, quantity, market, channel: 'wholesaler', side: 'shopBuys',
-    baseUnitValue: bullionUnitValue(item, market), relationship: store.supplier.trust });
-  return Number.isFinite(quote.totalPrice) && quote.totalPrice > 0 ? quote : null;
+    baseUnitValue, relationship: store.supplier.trust });
+
+  /*
+   * Hızlı Stok, oyuncuya satılabilir mal kuran perakende tedarik sözleşmesidir;
+   * kötü bir küçük-lot toptancı fiyatını aynen geçirmek onboarding'i zarar
+   * tuzağına çeviriyordu. Ölçüm örneği: müşteri bandı 4.224–4.324 ₺ iken
+   * tezgâh 4.510 ₺ maliyet yazıyor, dolayısıyla hiçbir kârlı teklif kabul
+   * edilemiyordu. Tedarik maliyetini, normal müşteri satış bandının üst
+   * ucunda en az hedef taban marjı bırakacak şekilde sınırlarız.
+   *
+   * Bu risksiz arbitraj değildir: çıkış yalnız eşleşen perakende müşterisi
+   * geldiğinde vardır; geri toptan satış hâlâ zarar yazar ve piyasa/elde
+   * bekleme riski sürer.
+   */
+  const retailBand = customerPriceBand(item, market, 'shopSells');
+  const maxSustainableUnitCost = retailBand
+    ? retailBand.max / (1 + PURCHASE.minimumSuggestedProfitMargin)
+    : quote.unitPrice;
+  const unitPrice = Math.min(quote.unitPrice, maxSustainableUnitCost);
+  const totalPrice = Math.round(unitPrice * quantity);
+  if (!Number.isFinite(totalPrice) || totalPrice <= 0) return null;
+  if (unitPrice === quote.unitPrice) return quote;
+
+  const spreadRatio = (baseUnitValue - unitPrice) / Math.max(1, baseUnitValue);
+  return {
+    ...quote,
+    unitPrice,
+    totalPrice,
+    spreadRatio,
+    priceImpact: 0,
+    breakdown: { product: 0, volume: 0, channel: spreadRatio, regime: 0, volatility: 0, relationship: 0 },
+    // Mevcut yerelleştirilmiş kanal gerekçesini koru; denge sınırı
+    // oyuncuya yeni ve çevrilmemiş bir teknik metin sızdırmasın.
+    rationale: quote.rationale,
+  };
 }
 /** Counter sells standard wholesale metal, not the customer's randomized appraisal object. */
 export function poolSupplyItem(templateId: string): ItemInstance {

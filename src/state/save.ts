@@ -38,6 +38,8 @@ import {
 } from '@domain/skill-tree';
 import { getArchetype } from '@data/archetypes';
 import { PURCHASE } from '@domain/balance';
+import { packageCost } from '@domain/purchase';
+import { poolSupplyQuote } from '@domain/pool-supply';
 import { TIER_BY_ID } from '@data/store-tiers';
 import type { CustomerRegistry } from '@domain/customer-memory';
 import type {
@@ -50,7 +52,7 @@ import type {
 } from '@domain/types';
 
 /** Kayıt formatı sürümü. Artırıldığında migrate() bir adım daha kazanır. */
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface SaveFile {
   dayReportOpen?: boolean;
@@ -303,6 +305,36 @@ export function migrate(file: SaveFile): SaveFile {
     throw new Error(`Kayıt sürümü desteklenmiyor: ${file.version}`);
   }
   const pooled = consolidatePools(file.inventory, file.items);
+  const market = isMarketSnapshot(file.market)
+    ? normalizeMarketSnapshot(file.market, file.clockMinutes)
+    : rebuildMarket(file.seed, file.day, file.clockMinutes);
+
+  /*
+   * v3: Eski Hızlı Stok fiyatı bazı sarrafiyeleri müşterinin normal
+   * perakende tavanından daha pahalıya veriyordu. Oyuncu ne kadar doğru
+   * pazarlık yaparsa yapsın zarar etmeden satamıyordu. Kaynağı kesin olarak
+   * `poolbuy_` olan eski pozisyonlarda maliyeti yeni satılabilir seviyeye
+   * indirip farkı tedarikçi iadesi olarak nakde ekleriz. Sürüm kapısı bu
+   * telafinin yalnız bir kez uygulanmasını sağlar.
+   */
+  let supplyRebate = 0;
+  const items = { ...pooled.items };
+  const inventory = pooled.inventory.map(position => {
+    if (file.version >= 3 || !position.itemId.startsWith('poolbuy_') || !position.poolId) {
+      return position;
+    }
+    const item = items[position.itemId];
+    if (!item || position.quantity <= 0) return position;
+    const quote = poolSupplyQuote(item.templateId, 1, market, file.store);
+    if (!quote) return position;
+    const oldUnitCost = position.averageCostPerUnit ?? position.costBasis / position.quantity;
+    if (oldUnitCost <= quote.unitPrice) return position;
+
+    const costBasis = quote.unitPrice * position.quantity;
+    supplyRebate += position.costBasis - costBasis;
+    items[position.itemId] = { ...item, buyCost: quote.unitPrice };
+    return { ...position, costBasis, averageCostPerUnit: quote.unitPrice };
+  });
   const normalizeDemand = (d: CustomerDemand | null): CustomerDemand | null => {
     if (!d || d.poolId || d.targetInventoryItemId || !d.templateId) return d;
     const poolId = poolForTemplate(d.templateId);
@@ -324,11 +356,17 @@ export function migrate(file: SaveFile): SaveFile {
     for (const line of activeDeal.purchase.lines) combined.set(line.itemId, (combined.get(line.itemId) ?? 0) + line.quantity);
     activeDeal.purchase.lines = [...combined].map(([itemId, quantity]) => ({ itemId, quantity }));
     activeDeal.purchase.units = activeDeal.purchase.lines.reduce((sum, line) => sum + line.quantity, 0);
+    // Normal eski pazarlığın sabitlenmiş maliyetini değiştirme. Yalnız
+    // bu geçişte gerçekten tedarikçi iadesi alan paketi yeni maliyete bağla.
+    if (supplyRebate > 0) {
+      activeDeal.purchase.packageCost = packageCost(activeDeal.purchase.lines, inventory);
+    }
   }
-  return { ...file, version: SAVE_VERSION, inventory: pooled.inventory, items: pooled.items,
+  return { ...file, version: SAVE_VERSION, inventory, items,
     store: { ...file.store,
       // Denge yamaları mevcut oyuncuya da ulaşır. Günlük gider yalnız mağaza
       // kademesinden türediği için kayıt içindeki eski değeri güvenle yenileriz.
+      cash: file.store.cash + supplyRebate,
       dailyOverhead: TIER_BY_ID.get(file.store.storeTier)?.grants.dailyOverhead ?? file.store.dailyOverhead,
       personnelCount: file.store.personnelCount ?? 0, personnelTempUnlockTier: file.store.personnelTempUnlockTier ?? 0, personnelTempUnlockUntilDay: file.store.personnelTempUnlockUntilDay ?? 0, hasBalanceMg: file.store.hasBalanceMg ?? 0, hasCostBasis: file.store.hasCostBasis ?? 0 },
     activeDeal, activeCustomer: file.activeCustomer ? { ...file.activeCustomer, demand: normalizeDemand(file.activeCustomer.demand) } : null,
