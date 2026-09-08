@@ -31,6 +31,18 @@ describe('iOS mağaza paketi', () => {
     expect(plist).not.toContain('UISupportedInterfaceOrientations~ipad');
   });
 
+  it('native iPhone kabuğu oyunu sistem çubukları arasına sıkıştırmaz', () => {
+    const plist = read('ios/App/App/Info.plist');
+    const capacitor = read('capacitor.config.ts');
+    const sceneDelegate = read('ios/App/App/SceneDelegate.swift');
+
+    expect(plist).toMatch(/<key>UIStatusBarHidden<\/key>\s*<true\/>/);
+    expect(plist).toMatch(/<key>UIRequiresFullScreen<\/key>\s*<true\/>/);
+    expect(capacitor).toContain("contentInset: 'never'");
+    expect(sceneDelegate).toContain('FullScreenBridgeViewController()');
+    expect(sceneDelegate).toContain('prefersHomeIndicatorAutoHidden');
+  });
+
   it('muaf olmayan şifreleme kullanmadığını pakette açıklar', () => {
     const plist = read('ios/App/App/Info.plist');
     expect(plist).toMatch(/<key>ITSAppUsesNonExemptEncryption<\/key>\s*<false\/>/);

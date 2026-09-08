@@ -60,8 +60,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<!-- Oyun gerçek tam ekran çalışır; saat/TestFlight dönüş şeridi gösterilmez. -->
+	<key>UIStatusBarHidden</key>
+	<true/>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 
 	<!-- Gerçek AdMob iOS App ID (bkz. src/ui/ads.ts) -->
 	<key>GADIsAdManagerApp</key>

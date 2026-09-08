@@ -27,6 +27,7 @@ function pngInfo(relativePath) {
 const capacitor = read('capacitor.config.ts');
 const xcodeProject = read('ios/App/App.xcodeproj/project.pbxproj');
 const infoPlist = read('ios/App/App/Info.plist');
+const sceneDelegate = read('ios/App/App/SceneDelegate.swift');
 const androidStrings = read('android/app/src/main/res/values/strings.xml');
 const productionEnv = read('.env.production');
 const indexHtml = read('index.html');
@@ -92,6 +93,14 @@ const phoneOrientationBlock = infoPlist.match(
 check(phoneOrientationBlock.includes('UIInterfaceOrientationPortrait'), 'iPhone portre yönünü destekliyor');
 check(!phoneOrientationBlock.includes('Landscape'), 'iPhone bozuk yatay düzeni ilan etmiyor');
 check(!infoPlist.includes('UISupportedInterfaceOrientations~ipad'), 'iPhone-only pakette iPad yön beyanı yok');
+check(capacitor.includes("contentInset: 'never'"), 'iOS WebView ekran kenarlarına kadar uzanıyor');
+check(/<key>UIStatusBarHidden<\/key>\s*<true\/>/.test(infoPlist), 'iOS oyun durum çubuğunu gizliyor');
+check(/<key>UIRequiresFullScreen<\/key>\s*<true\/>/.test(infoPlist), 'iOS gerçek tam ekran istiyor');
+check(
+  sceneDelegate.includes('FullScreenBridgeViewController()')
+    && sceneDelegate.includes('prefersHomeIndicatorAutoHidden'),
+  'iOS home indicator oyun sırasında otomatik gizleniyor',
+);
 check(infoPlist.includes('<key>ITSAppUsesNonExemptEncryption</key>'), 'Şifreleme/ihracat beyanı Info.plist içinde');
 const englishInfoStrings = read('ios/App/App/en.lproj/InfoPlist.strings');
 const turkishInfoStrings = read('ios/App/App/tr.lproj/InfoPlist.strings');
