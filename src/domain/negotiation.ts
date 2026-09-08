@@ -162,7 +162,10 @@ export function effectiveReservation(ctx: NegotiationContext, session: Negotiati
   // tavanı yükseltir. İşaret bu yüzden yöne bağlıdır.
   const sign = dirSign(ctx);
   const base = sign === 1 ? customer.reservationPrice : purchaseThresholdBase(ctx);
-  const raw = base * a.closeThreshold * (1 - sign * flex);
+  const accessibilityFactor = sign === 1
+    ? 1 - NEGOTIATION.customerEase.sellerFloorRelief
+    : 1 + NEGOTIATION.customerEase.buyerCeilingBoost;
+  const raw = base * a.closeThreshold * (1 - sign * flex) * accessibilityFactor;
 
   const threshold = scaleToFair(raw, ctx);
   return Math.round(ctx.economicBand ? clamp(threshold, ctx.economicBand.min, ctx.economicBand.max) : threshold);

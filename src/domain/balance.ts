@@ -321,11 +321,8 @@ export const PURCHASE = {
   /** Tam isabetli kalem başına tavan primi. */
   exactMatchCeilingBonus: 0.02,
 
-  /** Ödeme tavanı oranı bandı — satış müşterisi önceki betadan hafifçe toleranslıdır. */
-  ceilingRatioBand: [1.11, 1.41] as [number, number],
-
-  /** Bozdurma müşterisinin alt sınırında küçük erişilebilirlik payı. */
-  sellerReservationRelief: 0.02,
+  /** Ödeme tavanı oranı bandı — spawn anında sabitlenir (GDD 34.2). */
+  ceilingRatioBand: [1.08, 1.38] as [number, number],
 
   /**
    * Sarrafiye için güvenli başlangıç kârı. Hedef bandın alt sınırıyla aynı:
@@ -662,6 +659,15 @@ export const CONFIDENCE_THRESHOLD = {
 export const NEGOTIATION = {
   /** Rezervasyon fiyatı ilişki/gerekçe ile en fazla bu kadar esneyebilir. */
   maxReservationFlex: 0.12,
+
+  /**
+   * Beta erişilebilirlik payı. Etkin eşikte uygulanır; böylece güncellemeden
+   * önce kaydedilmiş kuyruk/aktif müşteriler de hemen aynı ayarı alır.
+   */
+  customerEase: {
+    sellerFloorRelief: 0.02,
+    buyerCeilingBoost: 0.03,
+  },
 
   /** Oyuncu mal alırken güvenli başlangıç teklifi / alış tavanı oranı. */
   openingOfferToCeiling: 0.87,

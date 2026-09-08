@@ -72,8 +72,11 @@ describe('Beta Update v1', () => {
     expect(INTENT_MIX.dayProfiles.buyback.customerSells).toBeGreaterThan(0.50);
     expect(INTENT_MIX.dayProfiles.sales.customerSells).toBeGreaterThanOrEqual(0.20);
     expect(NEGOTIATION.insultThreshold).toBeGreaterThan(0.70);
-    expect(PURCHASE.ceilingRatioBand).toEqual([1.11, 1.41]);
-    expect(PURCHASE.sellerReservationRelief).toBe(0.02);
+    expect(PURCHASE.ceilingRatioBand).toEqual([1.08, 1.38]);
+    expect(NEGOTIATION.customerEase).toEqual({
+      sellerFloorRelief: 0.02,
+      buyerCeilingBoost: 0.03,
+    });
     expect(NEGOTIATION.hardeningTrigger).toBe(4);
   });
 });

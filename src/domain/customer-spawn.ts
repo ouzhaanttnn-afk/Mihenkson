@@ -184,11 +184,7 @@ export function spawnCustomer(
   const baseRatio = rng.band(archetype.reservationRatioBand);
   const knowledgeAdjust = ((knowledge - 50) / 50) * 0.05; // ±5 puan
   const urgencyAdjust = -((urgency - 50) / 50) * 0.04; // Acil müşteri daha düşüğe razı
-  const reservationRatio = clamp(
-    baseRatio + knowledgeAdjust + urgencyAdjust - PURCHASE.sellerReservationRelief,
-    0.7,
-    1.08,
-  );
+  const reservationRatio = clamp(baseRatio + knowledgeAdjust + urgencyAdjust, 0.7, 1.08);
   const reservationPrice = roundMoney(items.reduce((sum, item) => {
     const band = customerPriceBand(item, market, 'shopBuys');
     // Reuse the existing personality-derived reservation ratio, no new random roll.
@@ -230,7 +226,7 @@ export function spawnCustomer(
     status,
     budget,
     reservationPrice,
-    purchaseCeilingRatio: clamp(purchaseCeilingRatio, 0.95, 1.48),
+    purchaseCeilingRatio: clamp(purchaseCeilingRatio, 0.95, 1.45),
     demand,
     patience: patienceMax,
     // Yeni müşteride mağaza güveni semt itibarından türer (GDD 10.1).
