@@ -59,7 +59,9 @@
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<true/>
+	<false/>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
 
 	<!-- Gerçek AdMob iOS App ID (bkz. src/ui/ads.ts) -->
 	<key>GADIsAdManagerApp</key>

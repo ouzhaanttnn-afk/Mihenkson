@@ -1615,7 +1615,17 @@ export const useGame = create<GameState>((set, get) => {
     },
 
     submitOffer: (amount) => {
-      get().negotiationMove({ kind: 'offer', amount, atRound: 0 });
+      const deal = get().activeDeal;
+      const line = deal ? activeLine(deal) : undefined;
+      if (!line || isTerminal(line.negotiation.state)) return;
+      // Hamle gerçek oturum turuyla damgalanır. Sabit `0`, ikinci ve sonraki
+      // teklifleri ilk tur hamlesi gibi kaydediyor; kayıt geri yükleme ve
+      // çift dokunma korumasında pazarlığın ilerlememesine yol açıyordu.
+      get().negotiationMove({
+        kind: 'offer',
+        amount,
+        atRound: line.negotiation.round,
+      });
     },
 
     // -----------------------------------------------------------------------
@@ -1713,6 +1723,9 @@ export const useGame = create<GameState>((set, get) => {
         });
         return;
       }
+      // UI yeni tur çizilmeden önce art arda gelen ikinci dokunuş eski tur
+      // kimliğini taşır. Onu tamamen yok say; aynı işlem iki kez ilerlemesin.
+      if (move.atRound !== line.negotiation.round) return;
 
       const options = line.thesisOptions;
       const isPurchase = deal.flow === 'purchase' && !!deal.purchase;

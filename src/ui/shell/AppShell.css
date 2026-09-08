@@ -10,13 +10,23 @@
  * yapısal olarak zorlanır — ana CTA hiçbir cihazda scroll altında kalamaz.
  */
 
+.deviceFrame {
+  width: 100%;
+  height: 100dvh;
+  min-height: 100svh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--ink-900);
+}
+
 .device {
   /* Mobil cihazda tam ekran; masaüstünde ortalanmış portrait çerçeve. */
   position: relative;
   width: 100%;
   max-width: 430px;
   min-width: 320px;
-  height: 100dvh;
+  height: 100%;
+  min-height: 0;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -114,6 +124,76 @@
   background: var(--ink-800);
   color: var(--text-dark-1);
   border-bottom: 1px solid var(--line-dark);
+}
+
+/* Kodla ilerleyen açılış yüzeyi; arka plan dosyasının içinde bar/metin yok. */
+.launchScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  background: var(--ink-900);
+  opacity: 1;
+  transition: opacity 400ms var(--ease-standard);
+}
+
+.launchScreen--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.launchScreen__image,
+.launchScreen__shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.launchScreen__image {
+  object-fit: cover;
+  object-position: center;
+}
+
+.launchScreen__shade {
+  background: linear-gradient(180deg, transparent 54%, rgba(11, 15, 20, 0.18) 68%, rgba(11, 15, 20, 0.92) 100%);
+}
+
+.launchScreen__progress {
+  position: absolute;
+  right: max(24px, var(--safe-right));
+  bottom: max(44px, calc(var(--safe-bottom) + 22px));
+  left: max(24px, var(--safe-left));
+  color: var(--text-dark-1);
+}
+
+.launchScreen__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+.launchScreen__track {
+  height: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(232, 199, 120, 0.55);
+  border-radius: 999px;
+  background: rgba(11, 15, 20, 0.58);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.38);
+}
+
+.launchScreen__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--brass-700), var(--brass-300), #fff1b7);
+  box-shadow: 0 0 14px rgba(232, 199, 120, 0.6);
+  transition: width 100ms linear;
 }
 
 /* Geniş görünümde sarmalayıcı kutu üretmez; mevcut dört parçalı sıra korunur. */
@@ -762,7 +842,8 @@
 }
 
 .toolRailSlot > .toolRail {
-  width: 100%;
+  /* Canlandır için gerçek, örtüşmeyen bir sağ sütun bırak. */
+  width: calc(100% - 64px);
   height: 100%;
   min-height: 0;
   flex: 1 1 auto;
@@ -780,9 +861,8 @@
    * oyuncunun en çok dokunduğu yüzeyde. 4 px dolgu butonları 46 px'e
    * çıkarır ve rayın kendi yüksekliğine dokunmaz.
    */
-  /* Sağdaki Canlandır denetiminin sabit yuvası; araçlar onun altına girmez. */
-  padding: 4px 72px 4px var(--sp-3);
-  scroll-padding-right: 72px;
+  padding: 4px var(--sp-2) 4px var(--sp-3);
+  scroll-padding-right: var(--sp-2);
   background: var(--ink-600);
   border-top: 1px solid var(--line-dark);
   border-bottom: 1px solid var(--ink-900);
@@ -2167,8 +2247,9 @@
   right: 8px;
   /* 56 px ray içinde ikişer piksel güvenli boşluk. */
   top: 2px;
-  width: 52px;
-  height: 52px;
+  /* 52 px'lik kısa rayda da üst/alt ikişer piksel içeride kalır. */
+  width: min(52px, calc(var(--h-tool-rail) - 4px));
+  height: min(52px, calc(var(--h-tool-rail) - 4px));
   border-radius: var(--r-pill);
   pointer-events: auto;
 
@@ -2302,8 +2383,8 @@
   }
 
   .toolRail {
-    padding-right: 66px;
-    scroll-padding-right: 66px;
+    padding-right: var(--sp-2);
+    scroll-padding-right: var(--sp-2);
   }
 
   .rushFab,

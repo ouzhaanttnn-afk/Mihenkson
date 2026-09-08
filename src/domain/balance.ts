@@ -640,7 +640,7 @@ export const CONFIDENCE_THRESHOLD = {
  */
 export const NEGOTIATION = {
   /** Rezervasyon fiyatı ilişki/gerekçe ile en fazla bu kadar esneyebilir. */
-  maxReservationFlex: 0.08,
+  maxReservationFlex: 0.10,
 
   /** Kapanış skoru bileşen ağırlıkları (GDD 11.3). */
   weights: {
@@ -655,13 +655,13 @@ export const NEGOTIATION = {
 
   /** Karşı teklif marjı: müşteri rezervasyonunun üstüne bu oranı koyar. */
   counterMarginByState: {
-    OPEN: [0.14, 0.09] as [number, number],
+    OPEN: [0.11, 0.07] as [number, number],
     HARDENING: [0.06, 0.04] as [number, number],
     FINAL_OFFER: [0.02, 0.02] as [number, number],
   },
 
   /** Bu orandan düşük teklif "kötü teklif" sayılır ve sertleşmeyi tetikler. */
-  insultThreshold: 0.82,
+  insultThreshold: 0.78,
   /** Sertleşmeye geçiş için gereken kötü teklif sayısı. */
   hardeningTrigger: 2,
   /** FINAL_OFFER'a geçiş: sabır bu oranın altına düştüğünde. */

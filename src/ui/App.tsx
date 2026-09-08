@@ -10,7 +10,7 @@
  */
 
 import { syncDocumentLanguage, t } from '@i18n/index';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useGame } from '@state/gameStore';
 import { BottomNav } from '@ui/shell/BottomNav';
@@ -22,6 +22,7 @@ import { MarketPlaceholderScreen } from '@ui/screens/MarketPlaceholderScreen';
 import { ProfileDialog } from '@ui/shell/ProfileDialog';
 import { SettingsDialog } from '@ui/shell/SettingsDialog';
 import { DayCloseDialog } from '@ui/shell/DayCloseDialog';
+import { AppLoadingScreen } from '@ui/shell/AppLoadingScreen';
 import { overdueJobs, readyJobs } from '@domain/service';
 import { playSound, preloadAudio, unlockAudio, type SoundId } from '@ui/audio';
 import { playHaptic, stopHaptics } from '@ui/haptics';
@@ -35,6 +36,8 @@ import '@ui/screens/Screens.css';
 const TOAST_LIFETIME_MS = 4000;
 
 export function App() {
+  const [launching, setLaunching] = useState(true);
+  const finishLaunch = useCallback(() => setLaunching(false), []);
   const tab = useGame((s) => s.tab);
   const setTab = useGame((s) => s.setTab);
   const toasts = useGame((s) => s.toasts);
@@ -273,6 +276,7 @@ export function App() {
           </div>
         )}
       </div>
+      {launching ? <AppLoadingScreen onComplete={finishLaunch} /> : null}
     </div>
   );
 }

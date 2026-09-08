@@ -393,7 +393,7 @@ describe('GDD 11.4 / 34.3 — Deterministik pazarlık', () => {
     const maxTrustCtx = { ...ctx, customer: { ...ctx.customer, trust: 100, urgency: 100 }, reputation: 100 };
     const flexed = effectiveReservation(maxTrustCtx, session);
 
-    // maxReservationFlex = %8 → en fazla %8 esneme.
+    // maxReservationFlex = %10 → en fazla %10 esneme.
     expect(flexed).toBeGreaterThanOrEqual(Math.round(base * 0.9));
   });
 });

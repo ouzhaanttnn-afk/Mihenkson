@@ -481,6 +481,7 @@ export function ShopScreen() {
 
 function QuickStockSheet({ onClose }: { onClose: () => void }) {
   const cash = useGame((s) => s.store.cash);
+  const sourcingForCustomer = useGame((s) => s.activeDeal?.flow === 'purchase');
   const { dialogRef, initialFocusRef } = useModalSurface(onClose);
 
   return (
@@ -498,11 +499,18 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
         <header className="quickStockSheet__head">
           <span>
             <span className="quickStockSheet__eyebrow">{t('Hızlı Stok')}</span>
-            <h2 id="quick-stock-title">{t('İlk Sarrafiyeni Al')}</h2>
+            <h2 id="quick-stock-title">
+              {sourcingForCustomer ? t('Müşteri İçin Stok Temin Et') : t('İlk Sarrafiyeni Al')}
+            </h2>
           </span>
           <button ref={initialFocusRef} type="button" className="quickStockSheet__close" onClick={onClose} aria-label={t('Hızlı stok ekranını kapat')}>×</button>
         </header>
-        <p className="quickStockSheet__intro">{t('Dükkan ekranından ayrılmadan satılabilir sarrafiye oluştur. Kullanılabilir nakit:')} <strong>{tl(cash)}</strong></p>
+        <p className="quickStockSheet__intro">
+          {sourcingForCustomer
+            ? t('Talebe uygun ürünü al; Kapat dediğinde aynı müşteriye döneceksin. Kullanılabilir nakit:')
+            : t('Dükkan ekranından ayrılmadan satılabilir sarrafiye oluştur. Kullanılabilir nakit:')}{' '}
+          <strong>{tl(cash)}</strong>
+        </p>
         <div className="quickStockSheet__scroll">
           <BullionCatalog />
         </div>
@@ -1533,7 +1541,11 @@ function ShopDock({
                 }
               : {
                   label: t('Teklifi Gönder'),
-                  onPress: () => s.submitOffer(offer),
+                  onPress: () => s.negotiationMove({
+                    kind: 'offer',
+                    amount: offer,
+                    atRound: session.round,
+                  }),
                   disabled: !canAfford || offer <= 0,
                   disabledReason: offer <= 0
                     ? t('Teklif tutarı sıfırdan büyük olmalı.')
@@ -1630,14 +1642,17 @@ function PurchaseDock({
     // önerisi + maliyet özeti, eskiden "Paket" ekranında duran bilgiydi —
     // şimdi burada, hazır olduğu an gösteriliyor.
     case 'stockPick': {
-      const count = purchase.units;
       const ready = purchase.fulfilment !== 'none';
+      const matchingStock = offerableStock(purchase.demand, s.inventory, s.items);
+      const needsSupply = !ready;
       return (
         <DecisionDock
-          summaryLabel={count === 0 ? t('Seçim') : ready ? t('Kanal önerisi') : t('Seçim')}
+          summaryLabel={needsSupply ? t('Stok gerekli') : t('Kanal önerisi')}
           summaryValue={
-            count === 0 ? (
-              t('Henüz ürün seçilmedi')
+            needsSupply ? (
+              matchingStock.length === 0
+                ? t('Talebe uygun ürün stokta yok')
+                : fulfilmentText(purchase, purchase.demand)
             ) : ready ? (
               <>
                 {tl(purchase.suggestedPrice)}
@@ -1650,12 +1665,14 @@ function PurchaseDock({
             )
           }
           primary={{
-            label: t('Pazarlığa Geç'),
-            onPress: () => {
-              setOffer(purchaseStartingOffer(purchase));
-              s.setStage('negotiate');
-            },
-            disabled: !ready,
+            label: needsSupply ? t('Ürünü Temin Et') : t('Pazarlığa Geç'),
+            onPress: needsSupply
+              ? s.openStockCatalog
+              : () => {
+                  setOffer(purchaseStartingOffer(purchase));
+                  s.setStage('negotiate');
+                },
+            disabled: false,
           }}
           secondary={[{ label: t('Müşteriyi Gönder'), onPress: s.finishDeal, danger: true }]}
         />
@@ -1705,7 +1722,11 @@ function PurchaseDock({
             onPress: () =>
               isFinal && counter !== null
                 ? s.negotiationMove({ kind: 'acceptCounter', atRound: session.round })
-                : s.submitOffer(offer),
+                : s.negotiationMove({
+                    kind: 'offer',
+                    amount: offer,
+                    atRound: session.round,
+                  }),
             disabled: isTerminal(session.state) || offer <= 0,
             icon: <IconSend size={18} />,
           }}

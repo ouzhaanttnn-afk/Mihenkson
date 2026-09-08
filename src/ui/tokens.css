@@ -250,13 +250,20 @@
 html,
 body,
 #root {
+  width: 100%;
+  min-width: 320px;
   height: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--ink-900);
 }
 
 body {
+  position: fixed;
+  inset: 0;
   background: var(--ink-900);
   color: var(--text-light-1);
   font-family: var(--font-ui);
@@ -265,6 +272,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overscroll-behavior: none;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 

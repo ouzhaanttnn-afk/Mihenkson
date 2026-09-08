@@ -121,7 +121,7 @@ export function StockPickStage({
             <IconWarning size={16} />
             <strong>{t('Stokta sunulacak ürün yok.')}</strong>{' '}
             {t(
-              'Bu müşteriye verecek malınız bulunmuyor; talebi karşılayamadan gitmesi normaldir.',
+              'Ürünü Temin Et ile uygun stoğu alıp aynı müşteriye dönebilirsiniz.',
             )}
           </span>
         </p>

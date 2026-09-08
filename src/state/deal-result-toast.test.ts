@@ -297,3 +297,43 @@ describe('çoklu ürün pazarlığı', () => {
     expect(useGame.getState().activeDeal?.stage).toBe('result');
   });
 });
+
+describe('Beta v1 · teklif turu bütünlüğü', () => {
+  it('submitOffer hamleyi aktif pazarlığın gerçek turuyla damgalar', () => {
+    satanMusteriyiKarsila();
+    const before = useGame.getState();
+    const deal = before.activeDeal;
+    if (!deal) throw new Error('aktif pazarlık kurulamadı');
+
+    useGame.setState({
+      activeDeal: {
+        ...deal,
+        lines: deal.lines.map((line) =>
+          line.lineId === deal.activeLineId
+            ? { ...line, negotiation: { ...line.negotiation, round: 3 } }
+            : line,
+        ),
+      },
+    });
+
+    useGame.getState().submitOffer(1);
+    const move = useGame.getState().activeDeal?.lines[0]?.negotiation.moveHistory.at(-1);
+    expect(move?.atRound).toBe(3);
+  });
+
+  it('aynı düğmenin gecikmiş ikinci dokunuşu pazarlığı tekrar ilerletmez', () => {
+    satanMusteriyiKarsila();
+    const first = useGame.getState().activeDeal?.lines[0];
+    if (!first) throw new Error('aktif pazarlık kurulamadı');
+
+    useGame.getState().negotiationMove({ kind: 'offer', amount: 1, atRound: first.negotiation.round });
+    const afterFirst = useGame.getState().activeDeal?.lines[0]?.negotiation;
+    if (!afterFirst) throw new Error('ilk teklif işlenmedi');
+
+    useGame.getState().negotiationMove({ kind: 'offer', amount: 1, atRound: first.negotiation.round });
+    const afterStaleTap = useGame.getState().activeDeal?.lines[0]?.negotiation;
+
+    expect(afterStaleTap?.round).toBe(afterFirst.round);
+    expect(afterStaleTap?.moveHistory).toHaveLength(afterFirst.moveHistory.length);
+  });
+});

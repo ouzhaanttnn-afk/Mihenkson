@@ -78,7 +78,7 @@ const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
 
 describe('Sarrafiyede pazarlık payı gerçek makasa oturur', () => {
   const BULLION = ['gram_gold_1', 'gram_gold_5', 'gram_gold_10', 'quarter_gold',
-    'half_gold', 'full_gold', 'republic_gold', 'ata_gold'];
+    'half_gold', 'republic_gold', 'ata_gold'];
 
   it('en agresif oyuncu bile sarrafiyede %5\'ten fazla brüt marj çıkaramaz', () => {
     for (const id of BULLION) {
@@ -103,7 +103,7 @@ describe('Sarrafiyede pazarlık payı gerçek makasa oturur', () => {
     const spot = spotFor(market, 'gold');
     const store = makeStore();
 
-    for (const id of ['gram_gold_1', 'gram_gold_5', 'full_gold', 'ata_gold']) {
+    for (const id of ['gram_gold_1', 'gram_gold_5', 'republic_gold', 'ata_gold']) {
       const meta = bullionMeta(id)!;
       const fair = meta.unitWeightGrams * meta.unitPurity * spot * (1 + meta.premiumRatio);
       const buy = mean(bestBuyRatio(id));

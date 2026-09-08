@@ -176,6 +176,9 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(shellCss).toMatch(
       /\.toolRailSlot > \.rushFabAnchor\s*\{[\s\S]*?position:\s*absolute;/,
     );
+    expect(shellCss).toMatch(
+      /\.toolRailSlot > \.toolRail\s*\{[\s\S]*?width:\s*calc\(100% - 64px\);/,
+    );
   });
 
   it('gerçek iPhone portresinde pazarlık kararlarını kaydırmadan gösterir', () => {
