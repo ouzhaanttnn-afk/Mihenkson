@@ -96,11 +96,7 @@ check(!infoPlist.includes('UISupportedInterfaceOrientations~ipad'), 'iPhone-only
 check(capacitor.includes("contentInset: 'never'"), 'iOS WebView ekran kenarlarına kadar uzanıyor');
 check(/<key>UIStatusBarHidden<\/key>\s*<true\/>/.test(infoPlist), 'iOS oyun durum çubuğunu gizliyor');
 check(/<key>UIRequiresFullScreen<\/key>\s*<true\/>/.test(infoPlist), 'iOS gerçek tam ekran istiyor');
-check(
-  sceneDelegate.includes('FullScreenBridgeViewController()')
-    && sceneDelegate.includes('prefersHomeIndicatorAutoHidden'),
-  'iOS home indicator oyun sırasında otomatik gizleniyor',
-);
+check(sceneDelegate.includes('CAPBridgeViewController()'), 'iOS tam ekran köprü denetleyicisi hazır');
 check(infoPlist.includes('<key>ITSAppUsesNonExemptEncryption</key>'), 'Şifreleme/ihracat beyanı Info.plist içinde');
 const englishInfoStrings = read('ios/App/App/en.lproj/InfoPlist.strings');
 const turkishInfoStrings = read('ios/App/App/tr.lproj/InfoPlist.strings');

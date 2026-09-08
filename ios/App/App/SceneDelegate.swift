@@ -1,14 +1,6 @@
 import UIKit
 import Capacitor
 
-final class FullScreenBridgeViewController: CAPBridgeViewController {
-    // Tam ekran oyunlarda iOS'un altındaki ayrı sistem bandı görünmesin;
-    // home indicator gerektiğinde dokunuşla geri gelir.
-    override var prefersHomeIndicatorAutoHidden: Bool {
-        return true
-    }
-}
-
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
@@ -16,7 +8,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let shellColor = UIColor(red: 11.0 / 255.0, green: 15.0 / 255.0, blue: 20.0 / 255.0, alpha: 1.0)
-        let bridgeViewController = FullScreenBridgeViewController()
+        let bridgeViewController = CAPBridgeViewController()
         bridgeViewController.view.backgroundColor = shellColor
 
         window = UIWindow(windowScene: windowScene)
