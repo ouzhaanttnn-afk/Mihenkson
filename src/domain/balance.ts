@@ -665,8 +665,8 @@ export const NEGOTIATION = {
    * önce kaydedilmiş kuyruk/aktif müşteriler de hemen aynı ayarı alır.
    */
   customerEase: {
-    sellerFloorRelief: 0.02,
-    buyerCeilingBoost: 0.03,
+    sellerFloorRelief: 0.04,
+    buyerCeilingBoost: 0.05,
   },
 
   /** Oyuncu mal alırken güvenli başlangıç teklifi / alış tavanı oranı. */
@@ -693,7 +693,7 @@ export const NEGOTIATION = {
   /** Bu orandan düşük teklif "kötü teklif" sayılır ve sertleşmeyi tetikler. */
   insultThreshold: 0.74,
   /** Sertleşmeye geçiş için gereken kötü teklif sayısı. */
-  hardeningTrigger: 4,
+  hardeningTrigger: 5,
   /** FINAL_OFFER'a geçiş: sabır bu oranın altına düştüğünde. */
   finalOfferPatienceRatio: 0.22,
 
