@@ -195,7 +195,7 @@ export function MarketPlaceholderScreen() {
             const affordable = s.store.cash >= marketPurchaseCashRequirement(product, s.playerMarket, s.store);
             const requiresServerClaim = Boolean(product.serverClaim);
             return (
-              <article key={product.id} className={`marketProduct marketProduct--${product.tier} ${!unlocked ? 'marketProduct--locked' : ''}`}>
+              <article key={product.id} className={`marketProduct marketProduct--${product.category} marketProduct--${product.tier} ${!unlocked ? 'marketProduct--locked' : ''}`}>
                 {/*
                   C4 — İÇ ASSET KİMLİĞİ EKRANA BASILIYORDU.
 

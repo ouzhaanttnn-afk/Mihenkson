@@ -3,8 +3,9 @@
  *
  * TEK KAYNAK: asset paketindeki `assets/manifest.json`. Buradaki her yol o
  * dosyada ilan edilmiş bir varlığa karşılık gelir; uydurulmuş yol yoktur.
- * v6.1, kaynak pakette karşılığı olmayan ürün ailelerini aynı şeffaf katalog
- * diliyle üretilmiş oyun-özel cutout'larla tamamlar.
+ * v7, Market'teki 47 ürünü ayrı bir görsel kimlikle sunar; ürün kartları
+ * kategori yedeğini yalnız gelecekte eklenecek, henüz görseli olmayan içerik
+ * için kullanır.
  *
  * NEDEN .webp: kaynak paket 1254–1672 px şeffaf PNG'lerden oluşuyor ve 58
  * dosya toplam 101 MB. Telefonda oynanacak bir oyunda bu ağırlık taşınmaz.
@@ -162,20 +163,54 @@ export function profileFrameArt(frameId?: string): Art | undefined {
   return frameId ? PROFILE_FRAME_ART[frameId] : undefined;
 }
 
-/** Şahsi hedeflerde ürünün ne olduğunu doğrudan gösteren görsel eşlemesi. */
+/**
+ * Market'teki HER ürün için ayrı görsel eşlemesi. Burada aynı dosyayı iki
+ * ürüne bağlamıyoruz: oyuncu kartın yazısını okumadan ürünü tanıyabilmeli.
+ */
 const MARKET_ITEM_ART: Record<string, Art> = {
   ...PROFILE_FRAME_ART,
+  badge_first_5kg_has: art('market/badge-first-5kg-v2.png', 'İlk 5 kilogram HAS başarı rozeti'),
+  badge_founder: art('market/badge-founder-v2.png', 'Kurucu kuyumcu rozeti'),
+  badge_master: art('market/profile-badge.png', 'Usta sarraf profil rozeti'),
+  badge_apprentice: art('market/badge-apprentice-v2.png', 'Çırak kuyumcu rozeti'),
+  badge_touchstone: art('market/badge-touchstone-v2.png', 'Mihenk ustası rozeti'),
+  badge_guild: art('market/badge-guild-v2.png', 'Çarşı reisi lonca rozeti'),
+  badge_legend: art('market/badge-legend-v2.png', 'Efsane sarraf rozeti'),
+
+  theme_bazaar: art('market/theme-bazaar-v2.png', 'Kapalıçarşı klasik kuyumcu dükkânı'),
+  theme_nocturne: art('realistic/backgrounds/shop-interior-liquid-v1.png', 'Gece ametisti kuyumcu dükkânı'),
+  theme_ivory: art('market/theme-ivory-v2.png', 'Fildişi saray kuyumcu dükkânı'),
+  theme_deco: art('market/theme-deco-v2.png', 'Art Deco pirinç kuyumcu dükkânı'),
+  theme_marble: art('market/theme-marble-v2.png', 'Mermer ve cam kuyumcu dükkânı'),
+  theme_goldenage: art('market/theme-goldenage-v2.png', 'Altın Çağ kuyumcu sarayı'),
+
+  decor_tea: art('market/decor-tea-v2.png', 'Geleneksel çay ocağı takımı'),
+  decor_velvet: art('market/decor-velvet-v2.png', 'Koyu kadife tezgâh örtüsü'),
+  decor_scale: art('market/decor-scale-v2.png', 'Usta kuyumcu terazisi'),
+  decor_safe: art('market/decor-safe-v2.png', 'Prestij kuyumcu kasası'),
+  decor_carpet: art('market/decor-carpet-v2.png', 'İpek Hereke halısı'),
+  decor_chandelier: art('market/decor-chandelier-v2.png', 'Kristal kuyumcu avizesi'),
+  decor_walnut: art('market/decor-walnut-v2.png', 'Ceviz vitrin takımı'),
+  decor_vault: art('market/decor-vault-v2.png', 'Zırhlı çelik kasa dairesi'),
+
+  collection_tesbih: art('market/collection-tesbih-v2.png', 'Kehribar tesbih koleksiyonu'),
+  collection_coins: art('products/collector-coin.png', 'Osmanlı sikke koleksiyonu'),
+  collection_scales: art('market/collection-scales-v2.png', 'Antika terazi arşivi'),
+  collection_gems: art('market/collection-gems-v2.png', 'Nadir taş arşivi'),
+  collection_seals: art('market/collection-seals-v2.png', 'Mühür yüzük kabinesi'),
+  collection_imperial: art('market/collection-cabinet.png', 'Saray işçiliği arşiv dolabı'),
+
   life_watch: art('market/luxury-watch.png', 'İsviçre mekanik saati'),
   life_sedan: art('market/prestige-automobile.png', 'Premium otomobil'),
-  life_sportscar: art('market/prestige-automobile.png', 'Prestij otomobili'),
-  life_apartment: art('market/waterfront-property.png', 'Şehir rezidansı'),
+  life_sportscar: art('market/life-sportscar-v2.png', 'Ametist spor otomobil'),
+  life_apartment: art('market/life-apartment-v2.png', 'Boğaz manzaralı şehir rezidansı'),
   life_villa: art('market/waterfront-property.png', 'Boğaz villası'),
-  life_mansion: art('market/waterfront-property.png', 'Tarihî yalı'),
-  life_boat: art('market/luxury-yacht.png', 'Motoryat'),
+  life_mansion: art('market/life-mansion-v2.png', 'Tarihî Boğaz yalısı'),
+  life_boat: art('market/life-boat-v2.png', 'Özel motoryat'),
   life_yacht: art('market/luxury-yacht.png', 'Lüks yat'),
   life_horse: art('market/thoroughbred-horse.png', 'Safkan at'),
   life_art: art('market/art-collection.png', 'Sanat koleksiyonu'),
-  life_helicopter: art('market/private-aircraft.png', 'Özel hava aracı'),
+  life_helicopter: art('market/life-helicopter-v2.png', 'VIP helikopter'),
   life_jet: art('market/private-aircraft.png', 'Özel jet'),
   life_island: art('market/private-island.png', 'Özel ada'),
 };

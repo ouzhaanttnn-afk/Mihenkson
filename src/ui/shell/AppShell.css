@@ -268,18 +268,25 @@
   object-fit: contain;
   border-radius: inherit;
   clip-path: circle(49% at 50% 50%);
+  position: relative;
+  z-index: 1;
 }
 
 .profileChip__avatar--framed {
   border-color: transparent;
 }
 
+.profileChip__avatar--framed .profileChip__img {
+  width: 42px;
+  height: 42px;
+}
+
 .profileChip__frame {
   position: absolute;
   z-index: 2;
-  inset: -6px;
-  width: 64px;
-  height: 64px;
+  inset: 0;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.48));

@@ -131,6 +131,13 @@ describe('market çerçeve görselleri', () => {
   });
 });
 
+describe('market ürün görselleri', () => {
+  it('47 ürünün tamamı kendine özel bir asset kullanır', () => {
+    const sources = MARKET_CATALOG.map((product) => marketArt(product.id, product.category).src);
+    expect(new Set(sources).size).toBe(MARKET_CATALOG.length);
+  });
+});
+
 describe('portre eşlemesi', () => {
   it('aynı isim her zaman aynı portreyi verir', () => {
     expect(customerArt('Zeynep Hanım').src).toBe(customerArt('Zeynep Hanım').src);
