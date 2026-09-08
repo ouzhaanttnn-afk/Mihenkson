@@ -1,5 +1,5 @@
 {
-  "version": "6.0.0",
+  "version": "6.1.0",
   "brand": { "mark": "logo/mihenk-mark.svg" },
   "backgrounds": { "stoneNoise": "backgrounds/stone-noise.svg" },
   "scenes": {
@@ -11,7 +11,15 @@
   "products": [
     { "id": "filigree-bracelet", "file": "products/filigree-bracelet.png", "alt": "22 ayar telkari altın bilezik" },
     { "id": "signet-ring", "file": "products/signet-ring.png", "alt": "Geometrik yüzlü altın şövalye yüzüğü" },
-    { "id": "rope-chain", "file": "products/rope-chain.png", "alt": "22 ayar altın burgu zincir" }
+    { "id": "rope-chain", "file": "products/rope-chain.png", "alt": "22 ayar altın burgu zincir" },
+    { "id": "gold-hoop-earrings", "file": "products/gold-hoop-earrings.png", "alt": "14 ayar altın halka küpe çifti" },
+    { "id": "gold-pendant-necklace", "file": "products/gold-pendant-necklace.png", "alt": "Altın taşlı zarif kolye" },
+    { "id": "gold-solitaire-ring", "file": "products/gold-solitaire-ring.png", "alt": "18 ayar altın tektaş yüzük" },
+    { "id": "silver-curb-chain", "file": "products/silver-curb-chain.png", "alt": "925 ayar gümüş zincir" },
+    { "id": "silver-zircon-ring", "file": "products/silver-zircon-ring.png", "alt": "Zirkon taşlı 925 ayar gümüş yüzük" },
+    { "id": "silver-keepsake-box", "file": "products/silver-keepsake-box.png", "alt": "İşlemeli antika gümüş kutu" },
+    { "id": "vintage-amethyst-brooch", "file": "products/vintage-amethyst-brooch.png", "alt": "Ametist taşlı vintage altın broş" },
+    { "id": "collector-coin", "file": "products/collector-coin.png", "alt": "Kabartma desenli koleksiyon altın sikkesi" }
   ],
   "gold": [
     { "id": "gram-gold", "file": "gold/gram-gold.png", "alt": "Bir gramlık külçe altın" },

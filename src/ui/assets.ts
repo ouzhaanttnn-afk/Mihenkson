@@ -3,6 +3,8 @@
  *
  * TEK KAYNAK: asset paketindeki `assets/manifest.json`. Buradaki her yol o
  * dosyada ilan edilmiş bir varlığa karşılık gelir; uydurulmuş yol yoktur.
+ * v6.1, kaynak pakette karşılığı olmayan ürün ailelerini aynı şeffaf katalog
+ * diliyle üretilmiş oyun-özel cutout'larla tamamlar.
  *
  * NEDEN .webp: kaynak paket 1254–1672 px şeffaf PNG'lerden oluşuyor ve 58
  * dosya toplam 101 MB. Telefonda oynanacak bir oyunda bu ağırlık taşınmaz.
@@ -94,21 +96,36 @@ const BULLION_ART: Record<string, Art> = {
   ),
 };
 
+/** Şablona özel ürünler: aynı silueti paylaşsalar da malzeme ve taş ayrımı korunur. */
+const TEMPLATE_ART: Record<string, Art> = {
+  necklace_14k: art('products/gold-pendant-necklace.png', '14 ayar altın kolye'),
+  necklace_18k: art('products/gold-pendant-necklace.png', '18 ayar altın kolye'),
+  earring_14k: art('products/gold-hoop-earrings.png', '14 ayar altın halka küpe'),
+  silver_chain: art('products/silver-curb-chain.png', '925 ayar gümüş zincir'),
+  silver_ring: art('products/silver-zircon-ring.png', 'Zirkon taşlı gümüş yüzük'),
+  silver_object: art('products/silver-keepsake-box.png', 'İşlemeli antika gümüş kutu'),
+  stone_ring_entry: art('products/gold-solitaire-ring.png', 'Taşlı altın yüzük'),
+  stone_ring_premium: art('products/gold-solitaire-ring.png', '18 ayar altın tektaş yüzük'),
+  vintage_brooch: art('products/vintage-amethyst-brooch.png', 'Ametist taşlı vintage altın broş'),
+  collector_coin: art('products/collector-coin.png', 'Kabartma desenli koleksiyon altın sikkesi'),
+};
+
 /**
- * İşçilikli ürünler siluete göre eşlenir: pakette üç adet gerçekçi takı
- * cutout'u var. Karşılığı olmayan siluetler (küpe, broş, obje, madalyon)
- * bilinçli olarak SVG siluetinde kalır — yanlış bir ürünün fotoğrafını
- * göstermek, çizimden daha kötü bilgi verir.
+ * Genel işçilikli ürün yedeği. Önce yukarıdaki şablona özel fotoğraf aranır;
+ * böylece gümüş yüzük altın şövalye yüzüğü, kolye de zincir gibi görünmez.
  */
 const CRAFTED_ART: Partial<Record<Silhouette, Art>> = {
   ring: art('products/signet-ring.png', 'Altın yüzük'),
   chain: art('products/rope-chain.png', 'Altın burgu zincir'),
-  necklace: art('products/rope-chain.png', 'Altın kolye'),
+  necklace: art('products/gold-pendant-necklace.png', 'Altın kolye'),
+  earring: art('products/gold-hoop-earrings.png', 'Altın halka küpe'),
   bracelet: art('products/filigree-bracelet.png', 'Altın telkari bilezik'),
+  object: art('products/silver-keepsake-box.png', 'İşlemeli gümüş obje'),
+  brooch: art('products/vintage-amethyst-brooch.png', 'Vintage altın broş'),
 };
 
 export function productArt(templateId: string, silhouette: Silhouette): Art | undefined {
-  return BULLION_ART[templateId] ?? CRAFTED_ART[silhouette];
+  return BULLION_ART[templateId] ?? TEMPLATE_ART[templateId] ?? CRAFTED_ART[silhouette];
 }
 
 // ---------------------------------------------------------------------------

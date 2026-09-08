@@ -30,6 +30,7 @@ import {
   productArt,
 } from '@ui/assets';
 import type { Art } from '@ui/assets';
+import { ITEM_TEMPLATES } from '@data/item-templates';
 
 const publicDir = fileURLToPath(new URL('../../public/assets/', import.meta.url));
 
@@ -83,9 +84,9 @@ function collect(): Art[] {
     expect(found, `${templateId} için ürün görseli bulunamadı`).toBeDefined();
     all.push(found!);
   }
-  for (const silhouette of ['ring', 'chain', 'necklace', 'bracelet'] as const) {
-    const found = productArt('crafted_unknown', silhouette);
-    expect(found, `${silhouette} için ürün görseli bulunamadı`).toBeDefined();
+  for (const template of ITEM_TEMPLATES) {
+    const found = productArt(template.id, template.silhouette);
+    expect(found, `${template.id} için ürün görseli bulunamadı`).toBeDefined();
     all.push(found!);
   }
   return all;

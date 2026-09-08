@@ -96,10 +96,9 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--r-card);
-  background:
-    radial-gradient(70% 60% at 50% 40%, rgba(196, 141, 43, 0.12) 0%, transparent 70%),
-    var(--ink-900);
-  border: 1px solid var(--line-dark);
+  background: var(--surface-product);
+  border: 1px solid var(--line-product);
+  box-shadow: var(--sh-product);
   color: var(--brass-400);
   position: relative;
   overflow: hidden;
@@ -140,6 +139,7 @@
   font-weight: var(--fw-semibold);
   color: var(--text-dark-1);
   line-height: var(--lh-tight);
+  letter-spacing: 0.01em;
   margin-bottom: 2px;
 }
 
@@ -1935,14 +1935,19 @@
   width: 94px;
   height: 94px;
   border-radius: var(--r-card);
-  background:
-    radial-gradient(70% 60% at 50% 40%, rgba(196, 141, 43, 0.12) 0%, transparent 70%),
-    var(--ink-900);
-  border: 1px solid var(--line-dark);
+  background: var(--surface-product);
+  border: 1px solid var(--line-product);
+  box-shadow: var(--sh-product);
   color: var(--brass-400);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.svc__silhouette .art {
+  width: 88%;
+  height: 88%;
 }
 
 .svc__heroBody {
@@ -1960,6 +1965,7 @@
   font-weight: var(--fw-semibold);
   color: var(--text-dark-1);
   line-height: var(--lh-tight);
+  letter-spacing: 0.01em;
 }
 
 .svc__meta {
@@ -2459,6 +2465,11 @@ input.qtyStep__value {
   display: grid;
   place-items: center;
   color: var(--text-dark-3);
+  padding: 3px;
+  border: 1px solid var(--line-product);
+  border-radius: 11px;
+  background: var(--surface-product);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .pickRow__image {
@@ -2724,8 +2735,22 @@ input.qtyStep__value {
 
 .apr__introIcon {
   flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  padding: 2px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-product);
+  border-radius: 11px;
+  background: var(--surface-product);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
   color: var(--brass-400);
   display: inline-flex;
+}
+
+.apr__introIcon .art {
+  width: 100%;
+  height: 100%;
 }
 
 .apr__introText {
@@ -3002,7 +3027,7 @@ input.qtyStep__value {
 }
 
 /* ------------------------------------------------------------------ */
-/* GERÇEKÇİ GÖRSEL YUVALARI (asset paketi v6.0.0)                      */
+/* GERÇEKÇİ GÖRSEL YUVALARI (asset paketi v6.1.0)                      */
 /* ------------------------------------------------------------------ */
 
 /*
@@ -3251,7 +3276,13 @@ input.qtyStep__value {
     padding: 4px var(--sp-2);
   }
 
-  .appraisalInspect .apr__introIcon svg {
+  .appraisalInspect .apr__introIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .appraisalInspect .apr__introIcon svg,
+  .appraisalInspect .apr__introIcon .art {
     width: 28px;
     height: 28px;
   }

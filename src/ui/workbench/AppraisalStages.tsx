@@ -19,6 +19,8 @@ import { t } from '@i18n/index';
 import { STANCES, feeBounds, reportedRange, suggestedFee } from '@domain/appraisal';
 import { getTemplate } from '@data/item-templates';
 import { IconLoupe, IconWarning, ProductSilhouette } from '@ui/icons';
+import { Art } from '@ui/Art';
+import { productArt } from '@ui/assets';
 import { tl, tlRange } from '@ui/format';
 import type {
   AppraisalSession,
@@ -45,7 +47,13 @@ export function AppraisalIntro({ item }: { item: ItemInstance }) {
   return (
     <div className="apr__intro">
       <span className="apr__introIcon">
-        <ProductSilhouette kind={template.silhouette} size={34} />
+        <Art
+          art={productArt(item.templateId, template.silhouette)}
+          size={40}
+          alt={t(item.displayName)}
+          className="art--onDark"
+          fallback={<ProductSilhouette kind={template.silhouette} size={28} />}
+        />
       </span>
       <span className="apr__introText">
         Müşteri bu ürünü <strong>{t('satmıyor')}</strong>; ne ettiğini soruyor. Ölçtüğün kadarını

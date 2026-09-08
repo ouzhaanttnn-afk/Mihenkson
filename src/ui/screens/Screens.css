@@ -1430,7 +1430,7 @@
 .quickStockSheet .qtyStep__btn { color: var(--brass-300); }
 
 /* ------------------------------------------------------------------ */
-/* GERÇEKÇİ GÖRSEL YUVALARI (asset paketi v6.0.0)                      */
+/* GERÇEKÇİ GÖRSEL YUVALARI (asset paketi v6.1.0)                      */
 /* ------------------------------------------------------------------ */
 
 /*
@@ -1443,6 +1443,9 @@
   height: 64px;
   overflow: hidden;
   padding: 3px;
+  border: 1px solid var(--line-product);
+  background: var(--surface-product);
+  box-shadow: var(--sh-product);
 }
 
 .row__thumb .art {

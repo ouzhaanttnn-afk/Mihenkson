@@ -169,10 +169,18 @@
   --inset-dark: inset 0 1px 0 rgba(242, 236, 222, 0.04);
 
   /* ---- Kompozit yüzeyler ---- */
-  --surface-workbench: linear-gradient(180deg, var(--ink-700) 0%, var(--ink-800) 62%, var(--ink-900) 100%);
+  --surface-workbench:
+    radial-gradient(125% 88% at 100% -12%, rgba(93, 58, 146, 0.18) 0%, transparent 48%),
+    radial-gradient(90% 70% at -14% 105%, rgba(196, 141, 43, 0.07) 0%, transparent 52%),
+    linear-gradient(180deg, var(--ink-700) 0%, var(--ink-800) 62%, var(--ink-900) 100%);
   --surface-brass: linear-gradient(180deg, var(--brass-400) 0%, var(--brass-500) 52%, var(--brass-600) 100%);
-  --surface-glass: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012));
+  --surface-glass: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(93, 58, 146, 0.025) 58%, rgba(255, 255, 255, 0.01));
   --surface-glass-strong: rgba(10, 15, 22, 0.9);
+  --surface-product:
+    radial-gradient(72% 62% at 50% 38%, rgba(232, 199, 120, 0.12) 0%, transparent 72%),
+    linear-gradient(155deg, rgba(53, 32, 81, 0.18), rgba(11, 15, 20, 0.96) 64%);
+  --line-product: rgba(215, 170, 74, 0.3);
+  --sh-product: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 10px 24px rgba(0, 0, 0, 0.2);
   --line-glass: rgba(215, 170, 74, 0.28);
   --sh-glass: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 12px 30px rgba(0, 0, 0, 0.2);
   --hairline-brass: linear-gradient(

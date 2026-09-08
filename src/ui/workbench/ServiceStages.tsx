@@ -19,6 +19,8 @@ import { CONDITION_LABEL, SERVICE } from '@domain/balance';
 import { conditionValueGain, expectedCompletionDay, findQuote } from '@domain/service';
 import { getServiceType } from '@data/service-types';
 import { getTemplate } from '@data/item-templates';
+import { Art } from '@ui/Art';
+import { productArt } from '@ui/assets';
 import {
   IconClock,
   IconServiceResale,
@@ -47,7 +49,13 @@ export function DiagnoseStage({ item, service }: { item: ItemInstance; service: 
     <div className="svc">
       <div className="svc__hero">
         <span className="svc__silhouette">
-          <ProductSilhouette kind={template.silhouette} size={78} />
+          <Art
+            art={productArt(item.templateId, template.silhouette)}
+            size={82}
+            alt={t(item.displayName)}
+            className="art--onDark"
+            fallback={<ProductSilhouette kind={template.silhouette} size={64} />}
+          />
         </span>
         <div className="svc__heroBody">
           <h2 className="svc__title">{t(item.displayName)}</h2>
