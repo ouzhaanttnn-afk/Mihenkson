@@ -1,5 +1,5 @@
 {
-  "version": "6.1.0",
+  "version": "6.2.0",
   "brand": { "mark": "logo/mihenk-mark.svg" },
   "backgrounds": { "stoneNoise": "backgrounds/stone-noise.svg" },
   "scenes": {
@@ -26,6 +26,21 @@
     { "id": "quarter-gold", "file": "gold/quarter-gold.png", "alt": "Çeyrek altın" },
     { "id": "half-gold", "file": "gold/half-gold.png", "alt": "Yarım altın" },
     { "id": "full-gold", "file": "gold/full-gold.png", "alt": "Tam altın" }
+  ],
+  "market": [
+    { "id": "profile-badge", "file": "market/profile-badge.png", "alt": "Mor mine ve altın profil rozeti" },
+    { "id": "avatar-frame", "file": "market/avatar-frame.png", "alt": "Ametist ve altın avatar çerçevesi" },
+    { "id": "shop-interior", "file": "realistic/backgrounds/shop-interior-liquid-v1.png", "alt": "Premium kuyumcu dükkânı" },
+    { "id": "decoration-vignette", "file": "market/decoration-vignette.png", "alt": "Kuyumcu dükkânı dekorasyon seçkisi" },
+    { "id": "collection-cabinet", "file": "market/collection-cabinet.png", "alt": "Ceviz koleksiyon vitrini" },
+    { "id": "luxury-watch", "file": "market/luxury-watch.png", "alt": "İsviçre mekanik saati" },
+    { "id": "prestige-automobile", "file": "market/prestige-automobile.png", "alt": "Premium otomobil" },
+    { "id": "waterfront-property", "file": "market/waterfront-property.png", "alt": "Boğaz kıyısı prestij mülkü" },
+    { "id": "luxury-yacht", "file": "market/luxury-yacht.png", "alt": "Lüks yat" },
+    { "id": "thoroughbred-horse", "file": "market/thoroughbred-horse.png", "alt": "Safkan at" },
+    { "id": "art-collection", "file": "market/art-collection.png", "alt": "Sanat koleksiyonu" },
+    { "id": "private-aircraft", "file": "market/private-aircraft.png", "alt": "Özel hava aracı" },
+    { "id": "private-island", "file": "market/private-island.png", "alt": "Özel ada" }
   ],
   "realistic": {
     "tools": [

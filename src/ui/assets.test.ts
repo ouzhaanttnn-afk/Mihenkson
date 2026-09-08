@@ -26,11 +26,13 @@ import {
   TOOL_ART,
   customerArt,
   merchantArt,
+  marketArt,
   offerTier,
   productArt,
 } from '@ui/assets';
 import type { Art } from '@ui/assets';
 import { ITEM_TEMPLATES } from '@data/item-templates';
+import { MARKET_CATALOG } from '@domain/marketplace';
 
 const publicDir = fileURLToPath(new URL('../../public/assets/', import.meta.url));
 
@@ -39,7 +41,7 @@ const manifest = JSON.parse(readFileSync(`${publicDir}manifest.json`, 'utf8'));
 
 /** manifest.json'da ilan edilmiş tüm dosya yolları (uzantı .png). */
 const declared = new Set<string>();
-for (const entry of [...manifest.products, ...manifest.gold]) declared.add(entry.file);
+for (const entry of [...manifest.products, ...manifest.gold, ...manifest.market]) declared.add(entry.file);
 for (const group of Object.values(manifest.realistic) as { file: string }[][]) {
   for (const entry of group) declared.add(entry.file);
 }
@@ -88,6 +90,9 @@ function collect(): Art[] {
     const found = productArt(template.id, template.silhouette);
     expect(found, `${template.id} için ürün görseli bulunamadı`).toBeDefined();
     all.push(found!);
+  }
+  for (const product of MARKET_CATALOG) {
+    all.push(marketArt(product.id, product.category));
   }
   return all;
 }

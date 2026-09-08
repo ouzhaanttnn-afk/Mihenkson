@@ -11,6 +11,8 @@ import {
   type MarketProduct,
 } from '@domain/marketplace';
 import { useGame } from '@state/gameStore';
+import { Art } from '@ui/Art';
+import { marketArt } from '@ui/assets';
 import { IconCash, IconCollection, IconLock, IconMarket } from '@ui/icons';
 import { tl } from '@ui/format';
 import { useModalSurface } from '@ui/useModalSurface';
@@ -24,7 +26,8 @@ const PRODUCT_MARK: Record<MarketCategory, string> = {
  *
  * Katalog 19'dan 47 ürüne çıkınca kategori işareti yetmez oldu: 13 şahsi
  * ürünün hepsi aynı `✦` ile çiziliyordu, kartlar birbirinden ayrışmıyordu.
- * Gerçek görseller gelene kadar her ürüne kendi simgesi veriliyor.
+ * Gerçek görsel yüklenemezse kart boş veya kırık kalmasın diye her ürüne
+ * kendi anlamlı yedek simgesi veriliyor.
  *
  * Tabloda olmayan ürün KATEGORİ işaretine düşer — yeni ürün eklendiğinde
  * kart boş çizilmez, yalnız daha az ayırt edici olur.
@@ -142,7 +145,14 @@ export function MarketPlaceholderScreen() {
                   : false;
                 return (
                   <li key={id}>
-                    <span className="marketOwned__mark" aria-hidden="true">{productMark(product)}</span>
+                    <span className="marketOwned__mark" aria-hidden="true">
+                      <Art
+                        art={marketArt(product.id, product.category)}
+                        size={28}
+                        decorative
+                        fallback={<span>{productMark(product)}</span>}
+                      />
+                    </span>
                     <span className="marketOwned__name">{t(product.name)}</span>
                     {slotta && <span className="marketOwned__badge">{t('Kullanılıyor')}</span>}
                     {product.dailyUpkeep ? (
@@ -200,7 +210,15 @@ export function MarketPlaceholderScreen() {
 
                   Satır bilgi taşımıyor, yalnız iç kimliği sızdırıyordu.
                 */}
-                <div className="marketProduct__visual" aria-hidden="true"><span>{productMark(product)}</span></div>
+                <div className="marketProduct__visual" aria-hidden="true">
+                  <Art
+                    art={marketArt(product.id, product.category)}
+                    size={78}
+                    decorative
+                    className="marketProduct__image"
+                    fallback={<span>{productMark(product)}</span>}
+                  />
+                </div>
                 <div className="marketProduct__body">
                   <div className="marketProduct__topline"><span>{t(tierLabel(product))}</span>{product.dailyUpkeep ? <em>{t('+{tutar}/gün', { tutar: tl(product.dailyUpkeep) })}</em> : null}</div>
                   <h2>{t(product.name)}</h2>

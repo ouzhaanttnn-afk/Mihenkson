@@ -23,6 +23,7 @@
  */
 
 import { localizeCustomerName, t } from '@i18n/index';
+import type { MarketCategory } from '@domain/marketplace';
 import type { Silhouette } from '@ui/icons';
 
 /** Paket içindeki göreli yol → uygulama URL'i. Vite `base: './'` ile uyumlu. */
@@ -126,6 +127,46 @@ const CRAFTED_ART: Partial<Record<Silhouette, Art>> = {
 
 export function productArt(templateId: string, silhouette: Silhouette): Art | undefined {
   return BULLION_ART[templateId] ?? TEMPLATE_ART[templateId] ?? CRAFTED_ART[silhouette];
+}
+
+// ---------------------------------------------------------------------------
+// Market vitrini — manifest.market
+// ---------------------------------------------------------------------------
+
+/**
+ * Katalogdaki 47 ürünü aynı görsel aile içinde tutan kategori yedekleri.
+ * Profil, çerçeve, dükkân, dekorasyon ve koleksiyon ürünleri kendi aile
+ * görselini paylaşır; yaşam ürünleri aşağıda nesne türüne göre ayrılır.
+ */
+const MARKET_CATEGORY_ART: Record<MarketCategory, Art> = {
+  profile: art('market/profile-badge.png', 'Mor mine ve altın profil rozeti'),
+  frames: art('market/avatar-frame.png', 'Ametist ve altın avatar çerçevesi'),
+  shop: art('realistic/backgrounds/shop-interior-liquid-v1.png', 'Premium kuyumcu dükkânı'),
+  decoration: art('market/decoration-vignette.png', 'Kuyumcu dükkânı dekorasyon seçkisi'),
+  collection: art('market/collection-cabinet.png', 'Ceviz koleksiyon vitrini'),
+  lifestyle: art('market/luxury-watch.png', 'Prestij yaşam ürünü'),
+};
+
+/** Şahsi hedeflerde ürünün ne olduğunu doğrudan gösteren görsel eşlemesi. */
+const MARKET_ITEM_ART: Record<string, Art> = {
+  life_watch: art('market/luxury-watch.png', 'İsviçre mekanik saati'),
+  life_sedan: art('market/prestige-automobile.png', 'Premium otomobil'),
+  life_sportscar: art('market/prestige-automobile.png', 'Prestij otomobili'),
+  life_apartment: art('market/waterfront-property.png', 'Şehir rezidansı'),
+  life_villa: art('market/waterfront-property.png', 'Boğaz villası'),
+  life_mansion: art('market/waterfront-property.png', 'Tarihî yalı'),
+  life_boat: art('market/luxury-yacht.png', 'Motoryat'),
+  life_yacht: art('market/luxury-yacht.png', 'Lüks yat'),
+  life_horse: art('market/thoroughbred-horse.png', 'Safkan at'),
+  life_art: art('market/art-collection.png', 'Sanat koleksiyonu'),
+  life_helicopter: art('market/private-aircraft.png', 'Özel hava aracı'),
+  life_jet: art('market/private-aircraft.png', 'Özel jet'),
+  life_island: art('market/private-island.png', 'Özel ada'),
+};
+
+/** Yeni ürünler kategori görseline düşer; Market hiçbir zaman boş kalmaz. */
+export function marketArt(productId: string, category: MarketCategory): Art {
+  return MARKET_ITEM_ART[productId] ?? MARKET_CATEGORY_ART[category];
 }
 
 // ---------------------------------------------------------------------------
