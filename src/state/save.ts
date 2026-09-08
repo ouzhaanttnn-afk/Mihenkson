@@ -38,6 +38,7 @@ import {
 } from '@domain/skill-tree';
 import { getArchetype } from '@data/archetypes';
 import { PURCHASE } from '@domain/balance';
+import { TIER_BY_ID } from '@data/store-tiers';
 import type { CustomerRegistry } from '@domain/customer-memory';
 import type {
   InventoryPosition,
@@ -325,7 +326,11 @@ export function migrate(file: SaveFile): SaveFile {
     activeDeal.purchase.units = activeDeal.purchase.lines.reduce((sum, line) => sum + line.quantity, 0);
   }
   return { ...file, version: SAVE_VERSION, inventory: pooled.inventory, items: pooled.items,
-    store: { ...file.store, personnelCount: file.store.personnelCount ?? 0, personnelTempUnlockTier: file.store.personnelTempUnlockTier ?? 0, personnelTempUnlockUntilDay: file.store.personnelTempUnlockUntilDay ?? 0, hasBalanceMg: file.store.hasBalanceMg ?? 0, hasCostBasis: file.store.hasCostBasis ?? 0 },
+    store: { ...file.store,
+      // Denge yamaları mevcut oyuncuya da ulaşır. Günlük gider yalnız mağaza
+      // kademesinden türediği için kayıt içindeki eski değeri güvenle yenileriz.
+      dailyOverhead: TIER_BY_ID.get(file.store.storeTier)?.grants.dailyOverhead ?? file.store.dailyOverhead,
+      personnelCount: file.store.personnelCount ?? 0, personnelTempUnlockTier: file.store.personnelTempUnlockTier ?? 0, personnelTempUnlockUntilDay: file.store.personnelTempUnlockUntilDay ?? 0, hasBalanceMg: file.store.hasBalanceMg ?? 0, hasCostBasis: file.store.hasCostBasis ?? 0 },
     activeDeal, activeCustomer: file.activeCustomer ? { ...file.activeCustomer, demand: normalizeDemand(file.activeCustomer.demand) } : null,
     queue: file.queue?.map(entry => ({ ...entry, customer: { ...entry.customer, demand: normalizeDemand(entry.customer.demand) } })) };
 }

@@ -15,6 +15,7 @@ import { createMarketForDay, stepMarketIntraday } from '@domain/market';
 import { createLedger } from '@domain/settlement';
 import { emptyTelemetry } from '@domain/intent';
 import { START } from '@domain/balance';
+import { tierDef } from '@data/store-tiers';
 import type { GameState } from './gameStore';
 import type { MarketState, StoreState } from '@domain/types';
 
@@ -117,6 +118,15 @@ describe('ESKİ KAYITLAR BOZULMAZ', () => {
     expect(back.store.xp).toBe(340);
     expect(back.store.reputation).toBe(61);
     expect(back.store.supplier.trust).toBe(73);
+  });
+
+  it('eski kaydın günlük giderini güncel mağaza kademesi dengesine taşır', () => {
+    const file = legacySave();
+    file.store.dailyOverhead = 99_999;
+
+    const back = deserialize(file);
+
+    expect(back.store.dailyOverhead).toBe(tierDef(file.store.storeTier).grants.dailyOverhead);
   });
 
   it('bozuk profil taşıyan kayıt çökertmez, ilerlemeyi de bozmaz', () => {

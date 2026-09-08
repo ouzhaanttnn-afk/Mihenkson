@@ -795,9 +795,10 @@ describe('§11 — Kaydet/yükle tutarlı geri yükler', () => {
 
   it('kaydet → yükle → kaydet aynı dosyayı verir (idempotent)', () => {
     const once = serialize(fullState());
+    const migrated = migrate(once);
     const loaded = deserialize(once);
     const twice = serialize({ ...(fullState() as object), ...loaded } as never);
-    expect(twice.store).toMatchObject(once.store);
+    expect(twice.store).toMatchObject(migrated.store);
     expect(twice.inventory.reduce((sum, p) => sum + p.costBasis, 0)).toBe(once.inventory.reduce((sum, p) => sum + p.costBasis, 0));
     expect(deserialize(twice).inventory).toEqual(twice.inventory);
     expect(twice.network).toEqual(once.network);

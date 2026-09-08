@@ -68,7 +68,7 @@ export const STORE_TIERS: StoreTierDef[] = [
     unlocks: ['Temel al-sat', 'Terazi ve mihenk', 'Vitrin 8 · arka stok 16', 'Tek seferde 2 kalem'],
     investment: 0,
     requires: null,
-    grants: { displaySlots: 8, backStockSlots: 16, workshopCapacity: 2, dailyOverhead: 1_200 },
+    grants: { displaySlots: 8, backStockSlots: 16, workshopCapacity: 2, dailyOverhead: 900 },
     inScope: true,
   },
   {
@@ -92,7 +92,7 @@ export const STORE_TIERS: StoreTierDef[] = [
       closedDeals: 18,
       knownCustomers: 6,
     },
-    grants: { displaySlots: 14, backStockSlots: 28, workshopCapacity: 3, dailyOverhead: 2_100 },
+    grants: { displaySlots: 14, backStockSlots: 28, workshopCapacity: 3, dailyOverhead: 1_800 },
     inScope: true,
   },
   {
@@ -114,7 +114,7 @@ export const STORE_TIERS: StoreTierDef[] = [
       closedDeals: 70,
       knownCustomers: 20,
     },
-    grants: { displaySlots: 22, backStockSlots: 44, workshopCapacity: 4, dailyOverhead: 4_400 },
+    grants: { displaySlots: 22, backStockSlots: 44, workshopCapacity: 4, dailyOverhead: 3_800 },
     inScope: true,
   },
   {
@@ -131,7 +131,7 @@ export const STORE_TIERS: StoreTierDef[] = [
       closedDeals: 180,
       knownCustomers: 45,
     },
-    grants: { displaySlots: 32, backStockSlots: 70, workshopCapacity: 6, dailyOverhead: 9_200 },
+    grants: { displaySlots: 32, backStockSlots: 70, workshopCapacity: 6, dailyOverhead: 8_000 },
     inScope: true,
   },
   {
@@ -141,7 +141,7 @@ export const STORE_TIERS: StoreTierDef[] = [
     unlocks: ['İkinci şube', 'Bölgesel hedefler'],
     investment: 0,
     requires: null,
-    grants: { displaySlots: 32, backStockSlots: 70, workshopCapacity: 6, dailyOverhead: 9_200 },
+    grants: { displaySlots: 32, backStockSlots: 70, workshopCapacity: 6, dailyOverhead: 8_000 },
     // GDD 19.3 — post-1.0 büyüme katmanı. Tanımlı ama açılmaz.
     inScope: false,
   },
