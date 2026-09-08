@@ -30,7 +30,14 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  background: var(--stone-100);
+  /*
+   * Safe-area dolguları `.device` üzerinde yaşar. Bu yüzey taş rengindeyken
+   * Dynamic Island'ın üstü ve home indicator'ın altı iki krem şerit gibi
+   * görünüyordu. Ekranların kendi `.page` / workbench yüzeyleri zaten kendi
+   * rengini boyar; cihaz kabuğu yalnız notch ve alt güvenli alanı koyu
+   * çerçeveyle birleştirir.
+   */
+  background: var(--ink-900);
   overflow: hidden;
   /* Notch / Dynamic Island ve home indicator alanı (GDD 23.5). */
   padding-top: var(--safe-top);

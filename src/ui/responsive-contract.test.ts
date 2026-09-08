@@ -50,6 +50,22 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(viewport).not.toContain('user-scalable=no');
   });
 
+  it('iPhone güvenli alanlarını açık renk şerit bırakmadan koyu kabukla boyar', () => {
+    const shellCss = projectFile('src/ui/shell/AppShell.css');
+
+    expect(shellCss).toMatch(
+      /\.device\s*\{[\s\S]*?background:\s*var\(--ink-900\);[\s\S]*?padding-top:\s*var\(--safe-top\);[\s\S]*?padding-bottom:\s*var\(--safe-bottom\);/,
+    );
+  });
+
+  it('müşteri stok seçiminde ürün assetini kullanır ve SVG yalnız yedektir', () => {
+    const purchase = projectFile('src/ui/workbench/PurchaseStages.tsx');
+
+    expect(purchase).toContain("import { Art } from '@ui/Art'");
+    expect(purchase).toContain('art={productArt(item.templateId, template.silhouette)}');
+    expect(purchase).toContain('fallback={<ProductSilhouette');
+  });
+
   it('tek ana landmark ve dükkan başlığı üretir', () => {
     const app = projectFile('src/ui/App.tsx');
     const shop = projectFile('src/ui/screens/ShopScreen.tsx');

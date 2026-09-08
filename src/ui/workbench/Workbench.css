@@ -2453,10 +2453,17 @@ input.qtyStep__value {
 }
 
 .pickRow__art {
-  flex: 0 0 34px;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   color: var(--text-dark-3);
+}
+
+.pickRow__image {
+  width: 42px;
+  height: 42px;
 }
 
 .pickRow__body {

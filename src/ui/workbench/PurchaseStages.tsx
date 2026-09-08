@@ -31,6 +31,8 @@ import {
   type DemandOutcome,
 } from '@domain/purchase';
 import { getTemplate } from '@data/item-templates';
+import { Art } from '@ui/Art';
+import { productArt } from '@ui/assets';
 import { IconPackage, IconWarning, ProductSilhouette } from '@ui/icons';
 import { tl } from '@ui/format';
 import type {
@@ -131,6 +133,7 @@ export function StockPickStage({
             const match = matchDemand(demand, item);
             const qty = picked.get(item.id) ?? 0;
             const isOn = qty > 0;
+            const template = getTemplate(item.templateId);
             // Sarrafiye adetle satılır; işçilikli ürün tektir.
             const stackable = position.quantity > 1;
 
@@ -144,9 +147,12 @@ export function StockPickStage({
                     aria-pressed={isOn}
                   >
                     <span className="pickRow__art">
-                      <ProductSilhouette
-                        kind={getTemplate(item.templateId).silhouette}
-                        size={30}
+                      <Art
+                        art={productArt(item.templateId, template.silhouette)}
+                        size={42}
+                        className="art--onDark pickRow__image"
+                        alt={item.displayName}
+                        fallback={<ProductSilhouette kind={template.silhouette} size={30} />}
                       />
                     </span>
                     <span className="pickRow__body">
