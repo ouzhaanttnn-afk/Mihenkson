@@ -708,12 +708,12 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
             </h2>
             <p className="idle__sub">
               {shopOverviewOpen
-                ? t('Gün {gun} · {haftaGunu} · Semt itibarı {itibar}', {
+                ? `${s.dayCharacter.label} · ${t('Gün {gun} · {haftaGunu} · Semt itibarı {itibar}', {
                     gun: s.market.day,
                     haftaGunu: t(weekdayLabel(s.market.day)),
                     itibar: Math.round(s.store.reputation),
-                  })
-                : t('Dükkan ve finans özetini göster')}
+                  })}`
+                : `${s.dayCharacter.label} · ${t('Finans özetini göster')}`}
             </p>
           </div>
           <span className={`shopOverview__chevron ${shopOverviewOpen ? 'shopOverview__chevron--open' : ''}`} aria-hidden="true">⌄</span>

@@ -12,11 +12,11 @@ import {
   intentShares,
   recordIntent,
   rollIntent,
-  tradeBalance,
 } from './intent';
 import { createMarketForDay } from './market';
 import { spawnCustomer } from './customer-spawn';
 import { spawnItem } from './item-spawn';
+import { dailyIntentSplit } from './v5-rules';
 import {
   channelForDemand,
   fulfilmentOf,
@@ -76,10 +76,10 @@ describe('§3 — erişilebilir intent dağılımı', () => {
   }
 
   it('sabit alış ve satış tabanları korunur', () => {
-    // §3 "Sabit taban; dinamik havuz tarafından AZALTILMAZ."
+    const split = dailyIntentSplit(SEED, CHARACTER.day);
     const shares = intentShares(sample(6000));
-    expect(shares.buy).toBeGreaterThanOrEqual(INTENT_MIX.customerBuys - 0.02);
-    expect(shares.sell).toBeGreaterThanOrEqual(INTENT_MIX.customerSells - 0.02);
+    expect(shares.buy).toBeGreaterThanOrEqual(split.customerBuys - 0.02);
+    expect(shares.sell).toBeGreaterThanOrEqual(split.customerSells - 0.02);
   });
 
   it('dinamik havuz toplamın yaklaşık %24\'ü kadardır', () => {
@@ -87,15 +87,15 @@ describe('§3 — erişilebilir intent dağılımı', () => {
     expect(t.fromDynamicPool / t.total).toBeCloseTo(INTENT_MIX.dynamic, 1);
   });
 
-  it('§3 — dinamik havuz TEK YÖNE yığılamaz: fiili alış-satış dengesi korunur', () => {
-    // Eğimin en uç değeriyle bile denge 1'den fazla uzaklaşamaz.
+  it('§3 — dinamik havuz günlük ana yön paylarını azaltamaz', () => {
     const extreme = { ...CHARACTER, dynamicTilt: INTENT_MIX.maxDynamicTilt };
     const reverse = { ...CHARACTER, dynamicTilt: -INTENT_MIX.maxDynamicTilt };
+    const split = dailyIntentSplit(SEED, CHARACTER.day);
 
     for (const c of [extreme, reverse]) {
-      const balance = tradeBalance(sample(6000, c));
-      expect(balance).toBeGreaterThan(.35 / .65 - .03);
-      expect(balance).toBeLessThan(.65 / .35 + .03);
+      const shares = intentShares(sample(6000, c));
+      expect(shares.buy).toBeGreaterThanOrEqual(split.customerBuys - 0.02);
+      expect(shares.sell).toBeGreaterThanOrEqual(split.customerSells - 0.02);
     }
   });
 
@@ -103,8 +103,9 @@ describe('§3 — erişilebilir intent dağılımı', () => {
     const a = intentShares(sample(6000, { ...CHARACTER, dynamicTilt: 0.5 }));
     const b = intentShares(sample(6000, { ...CHARACTER, dynamicTilt: -0.5 }));
     // Eğim yön değiştirse de iki taban ayakta kalır.
-    expect(a.buy).toBeGreaterThanOrEqual(INTENT_MIX.customerBuys - 0.02);
-    expect(b.sell).toBeGreaterThanOrEqual(INTENT_MIX.customerSells - 0.02);
+    const split = dailyIntentSplit(SEED, CHARACTER.day);
+    expect(a.buy).toBeGreaterThanOrEqual(split.customerBuys - 0.02);
+    expect(b.sell).toBeGreaterThanOrEqual(split.customerSells - 0.02);
     // Ama havuz gerçekten iş görüyor: paylar aynı değil.
     expect(a.buy).not.toBeCloseTo(b.buy, 2);
   });

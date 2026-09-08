@@ -33,6 +33,7 @@ import { channelForDemand, packageFairValue, quotePackage } from './purchase';
 import { quoteLiquidation, financeTerms, creditLimit, supplyOffer } from './wholesaler';
 import { networkLiquidationOffer, networkLoanOffer, spawnNetwork } from './trade-network';
 import { measurePosition, resolveOvernight } from './overnight';
+import { dailyIntentSplit } from './v5-rules';
 import {
   applyTransaction,
   closeDay,
@@ -121,9 +122,10 @@ describe('§12.1 — Sabit taban uzun örneklemde korunur', () => {
       t = recordIntent(t, roll.intent, roll.fromDynamicPool);
     }
     const shares = intentShares(t);
+    const split = dailyIntentSplit(SEED, CHARACTER.day);
 
-    expect(shares.buy).toBeGreaterThanOrEqual(INTENT_MIX.customerBuys - 0.02);
-    expect(shares.sell).toBeGreaterThanOrEqual(INTENT_MIX.customerSells - 0.02);
+    expect(shares.buy).toBeGreaterThanOrEqual(split.customerBuys - 0.02);
+    expect(shares.sell).toBeGreaterThanOrEqual(split.customerSells - 0.02);
     expect(t.fromDynamicPool / t.total).toBeCloseTo(INTENT_MIX.dynamic, 1);
 
     const alarm = intentAlarm(t);
@@ -609,7 +611,7 @@ describe('§11 — Dinamik havuz sapması alarm üretir', () => {
     // Elle bozulmuş bir telemetri: alış payı tabanın çok altında.
     const bozuk = {
       total: 1_000,
-      counts: { buy: 200, sell: 500, service: 300, appraisal: 0 },
+      counts: { buy: 100, sell: 600, service: 300, appraisal: 0 },
       fromDynamicPool: 240,
     };
     const alarm = intentAlarm(bozuk);

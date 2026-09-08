@@ -1,6 +1,6 @@
 import { Rng, deriveSeed } from './rng';
 import type { GameDay, StoreState } from './types';
-import { weekdayLabel } from './calendar';
+import { weekdayLabel, weekdayOf } from './calendar';
 import { INTENT_MIX } from './balance';
 
 /** Integer milligrams are the physical source of truth. TL is rounded only at payment. */
@@ -71,15 +71,28 @@ export function dailyTraffic(seed: number, day: number) {
     : roll < .90 ? { label: 'Hareketli', multiplier: 1.25 }
     : { label: 'Yoğun', multiplier: 1.5 };
 }
-export function dailyIntentSplit(seed: number, day: number) {
-  const dailyPoints = Math.round(INTENT_MIX.dailyAllocation * 100);
-  const x = new Rng(deriveSeed(seed, 'dailyIntentSplit', day)).int(0, dailyPoints);
-  return {
-    x,
-    customerSells: INTENT_MIX.customerSells + x / 100,
-    customerBuys: INTENT_MIX.customerBuys + (dailyPoints - x) / 100,
-    surprise: INTENT_MIX.dynamic,
-  };
+export type TradeDayKind = 'sales' | 'buyback' | 'hybrid' | 'planning';
+
+/**
+ * Oyuncunun haftayı okuyabilmesi için sabit tezgâh ritmi.
+ * Pzt/Sal/Per/Cmt satış, Çar hibrit, Cum bozdurma, Paz planlamadır.
+ */
+export function tradeDayKind(day: number): TradeDayKind {
+  const weekday = weekdayOf(day);
+  if (weekday === 6) return 'planning';
+  if (weekday === 4) return 'buyback';
+  if (weekday === 2) return 'hybrid';
+  return 'sales';
+}
+
+export function dailyIntentSplit(_seed: number, day: number) {
+  const kind = tradeDayKind(day);
+  const profile = kind === 'buyback'
+    ? INTENT_MIX.dayProfiles.buyback
+    : kind === 'hybrid' || kind === 'planning'
+      ? INTENT_MIX.dayProfiles.hybrid
+      : INTENT_MIX.dayProfiles.sales;
+  return { kind, ...profile, surprise: INTENT_MIX.dynamic };
 }
 export function dailyPurchaseMix(seed: number, day: number) {
   const y = new Rng(deriveSeed(seed, 'dailyPurchaseMix', day)).int(0, 15);

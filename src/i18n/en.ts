@@ -1659,6 +1659,11 @@ export const EN: Record<string, string> = {
   'Alıcı ağırlıklı gün': 'Buyer-heavy day',
   'Satıcı ağırlıklı gün': 'Seller-heavy day',
   'Olağan gün': 'Ordinary day',
+  'Bugün genellikle satış günü': 'Today is mostly a sales day',
+  'Bugün genellikle alış günü': 'Today is mostly a buying day',
+  'Bugün alış ve satış dengeli': 'Buying and selling are balanced today',
+  'Bugün planlama günü': 'Today is a planning day',
+  'Finans özetini göster': 'Show financial summary',
   'Ölçülen niyet oranı beklenen tabanın altında; kısa örneklem sapabilir. Telafi müşterisi üretilmez.':
     'The measured intent mix is below the expected floor; a short sample can drift. No make-up customer is generated.',
   'Alış-satış dengesi bandın dışında ({oran}).': 'The buy/sell balance is outside the band ({oran}).',

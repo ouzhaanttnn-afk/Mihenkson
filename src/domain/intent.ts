@@ -13,20 +13,20 @@
  *   MÜŞTERİNİN fiilidir, dükkânın değil.
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * Erişilebilir ekonomi: %40 müşteri alış / %32 müşteri satış tabanı, günlük
- * bağımsız zarla dağıtılan %8 ve %20 mevcut sürpriz havuzu. Bunlar ağırlıktır;
- * kota veya catch-up değildir.
+ * Haftalık erişilebilir ekonomi: dört satış ağırlıklı gün, bir bozdurma
+ * günü ve bir hibrit gün. %20 mevcut sürpriz havuzu ayrıca korunur. Bunlar
+ * ağırlıktır; kota veya catch-up değildir.
  *
  * DEĞİŞMEZ (§3): "Dinamik havuzun tamamını tek yöne yığarak fiili alış-satış
  * dengesini SÜREKLİ biçimde bozmak yasaktır; sapmalar kontrollü, sınırlı ve
  * telemetriyle izlenebilir olmalıdır."
- * Bu yüzden dinamik havuzun yön eğimi `maxDynamicTilt` ile kelepçelidir ve
- * eğimin işareti gün karakterinden türer — art arda aynı yöne yığılamaz.
+ * Bu yüzden dinamik havuzun yön eğimi `maxDynamicTilt` ile kelepçelidir;
+ * haftalık ana yön ise oyuncuya açıkça gösterilen tezgâh ritminden gelir.
  */
 
 import { t } from '@i18n/index';
 import { INTENT_MIX } from './balance';
-import { dailyIntentSplit, dailyTraffic } from './v5-rules';
+import { dailyIntentSplit, dailyTraffic, tradeDayKind, type TradeDayKind } from './v5-rules';
 import { Rng, deriveSeed } from './rng';
 import type { CustomerIntent, GameDay, MarketState } from './types';
 
@@ -78,8 +78,6 @@ export function dayCharacter(rootSeed: number, day: GameDay, market: MarketState
   const volumeScale = clamp(rng.range(0.75, 1.35) + stress * 0.1, 0.5, 1.8);
   const qualityTilt = clamp(rng.range(-1, 1) - stress * 0.2, -1, 1);
   const urgencyTilt = clamp(rng.range(-1, 1) + stress * 0.35, -1, 1);
-  const tempo = clamp(rng.range(0.8, 1.25) - stress * 0.1, 0.6, 1.5);
-
   // §3 kelepçesi: eğim asla havuzun tamamını tek yöne yığamaz.
   const dynamicTilt = clamp(rng.range(-1, 1), -1, 1) * INTENT_MIX.maxDynamicTilt;
 
@@ -92,7 +90,7 @@ export function dayCharacter(rootSeed: number, day: GameDay, market: MarketState
     urgencyTilt,
     tempo: 1 / dailyTraffic(rootSeed, day).multiplier,
     dynamicTilt,
-    label: characterLabel(bulkOrderChance, bullionBias, tempo, dynamicTilt),
+    label: characterLabel(tradeDayKind(day)),
   };
 }
 
@@ -221,11 +219,11 @@ export function intentAlarm(tel: IntentTelemetry): IntentAlarm {
   // Örneklem hatası payı: küçük pencerede taban biraz altına inebilir.
   const tolerance = INTENT_MIX.baseTolerance;
   const baseIntact =
-    shares.buy >= INTENT_MIX.customerBuys - tolerance &&
-    shares.sell >= INTENT_MIX.customerSells - tolerance;
+    shares.buy >= INTENT_MIX.minimumTradeShare - tolerance &&
+    shares.sell >= INTENT_MIX.minimumTradeShare - tolerance;
 
   const balanced =
-    balance >= .35 / .65 - tolerance && balance <= .65 / .35 + tolerance;
+    balance >= .20 / .65 - tolerance && balance <= .65 / .20 + tolerance;
 
   let warning: string | null = null;
   if (sampled && !baseIntact) {
@@ -237,13 +235,11 @@ export function intentAlarm(tel: IntentTelemetry): IntentAlarm {
   return { sampled, baseIntact, balanced, balance, warning };
 }
 
-function characterLabel(bulk: number, bullion: number, tempo: number, tilt: number): string {
-  if (bulk >= 0.22) return t('Toplu sipariş günü');
-  if (tempo <= 0.85) return t('Yoğun gün');
-  if (bullion >= 0.72) return t('Sarrafiye günü');
-  if (tilt >= 0.2) return t('Alıcı ağırlıklı gün');
-  if (tilt <= -0.2) return t('Satıcı ağırlıklı gün');
-  return t('Olağan gün');
+function characterLabel(kind: TradeDayKind): string {
+  if (kind === 'sales') return t('Bugün genellikle satış günü');
+  if (kind === 'buyback') return t('Bugün genellikle alış günü');
+  if (kind === 'hybrid') return t('Bugün alış ve satış dengeli');
+  return t('Bugün planlama günü');
 }
 
 function clamp(n: number, lo: number, hi: number): number {

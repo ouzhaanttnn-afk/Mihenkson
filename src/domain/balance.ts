@@ -254,19 +254,28 @@ export const MARKET_MEAN_REVERSION = {
 /**
  * Ekonomi Ara Düzeltmesi §3 — MÜŞTERİ INTENT DAĞILIMI.
  *
- * Erişilebilir ekonomi: %40 müşteri alış tabanı + %32 müşteri satış tabanı,
- * bağımsız günlük %8 dağılım ve %20 sürpriz. Böylece ortalama gün %44/%36
- * olur; oyuncu daha sık stok satar ama stok toplama ihtiyacı kaybolmaz.
- * Dinamik havuzun mevcut iç ağırlıkları korunur; kota/rebalancing uygulanmaz.
+ * Haftalık tezgâh ritmi: dört satış ağırlıklı gün, bir bozdurma günü, bir
+ * hibrit gün ve kapalı pazar. %20 sürpriz havuzu ayrı kalır. Oyuncu genel
+ * olarak stok satabilir; bozdurma günü ise yeniden stok toplamayı ve nakit
+ * yönetimini oyunda tutar.
  */
 export const INTENT_MIX = {
-  /** Müşteri alış intenti — oyuncu müşteriye satar. */
-  customerBuys: 0.40,
-  /** Müşteri satış intenti — müşteri oyuncuya satar. */
-  customerSells: 0.32,
+  /** Açık haftanın ortalaması: müşteri alır, oyuncu satar. */
+  customerBuys: 61 / 120,
+  /** Açık haftanın ortalaması: müşteri bozdurur, oyuncu alır. */
+  customerSells: 35 / 120,
   /** Kontrollü dinamik/RNG havuzu. */
   dynamic: 0.20,
-  dailyAllocation: 0.08,
+  /** Her yönlü günde ticaret yönlerinden birinin asgari payı. */
+  minimumTradeShare: 0.20,
+  dayProfiles: {
+    /** Pazartesi, salı, perşembe ve cumartesi. */
+    sales: { customerBuys: 0.60, customerSells: 0.20 },
+    /** Cuma: sarrafiyesini nakde çevirmek isteyen müşteri yoğunluğu. */
+    buyback: { customerBuys: 0.25, customerSells: 0.55 },
+    /** Çarşamba: iki taraf da eşit. */
+    hybrid: { customerBuys: 0.40, customerSells: 0.40 },
+  },
   /** Dinamik havuzun servise ayrılan payı. */
   dynamicServiceShare: 0.4,
   /**
@@ -916,7 +925,7 @@ export const DAY = {
   openMinutes: 9 * 60,
   closeMinutes: 19 * 60,
   /** Gerçek saniye başına ilerleyen oyun dakikası (1x hızda). */
-  minutesPerRealSecond: 1.2,
+  minutesPerRealSecond: 1.6,
   /** Müşteri geliş aralığı (oyun dakikası). PLAYTEST. */
   customerIntervalMinutes: [12, 26] as [number, number],
 } as const;

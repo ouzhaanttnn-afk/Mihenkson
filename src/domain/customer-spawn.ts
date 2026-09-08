@@ -101,9 +101,9 @@ export function spawnCustomer(
       ağırlıklı (B4 + B3 — showcase-weight). `pickWeighted` tam olarak `pick` kadar, yani BİR
       çekim harcar: tohum zinciri aynen korunur (GDD 28.3).
 
-      Toplam ilgi (`SHOWCASE_TARGET_CHANCE`) DEĞİŞMEDİ — yalnız ürünler
-      arasında nasıl bölüşüldüğü değişti. Vitrini doldurmanın bedeli hâlâ
-      aynı; artık taze ve yüksek ayarlı mal payın büyüğünü alıyor.
+      Toplam ilgi (`SHOWCASE_TARGET_CHANCE`) haftalık işçilikli ürün
+      giriş-çıkış dengesine bağlıdır; burada yalnız ürünler arasında nasıl
+      bölüşüldüğü belirlenir. Taze ve yüksek ayarlı mal payın büyüğünü alır.
     */
     if (display.length && showcaseRng.chance(SHOWCASE_TARGET_CHANCE)) {
       const target = showcaseRng.pickWeighted(

@@ -49,7 +49,7 @@ describe('B5 · vitrin slot seyrelmesi', () => {
 
     expect(bes).toBeLessThan(bir);
     expect(sekiz).toBeLessThan(bes);
-    expect(bes).toBeCloseTo(0.04, 10);
+    expect(bes).toBeCloseTo(SHOWCASE_TARGET_CHANCE / 5, 10);
   });
 
   it('toplam ilgi sabit kalır — bölüşülür, yaratılmaz', () => {

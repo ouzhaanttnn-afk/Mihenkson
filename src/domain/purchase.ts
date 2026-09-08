@@ -410,19 +410,25 @@ export function showcaseStock(inventory: InventoryPosition[], items: Record<stri
  * (customer-spawn · `showcaseRng.chance`). Vitrin dolduruldukça bu pay ürünler
  * ARASINDA BÖLÜŞÜLÜR — hedef tek tek seçildiği için (`showcaseRng.pick`).
  */
-export const SHOWCASE_TARGET_CHANCE = 0.20;
+/*
+ * Haftalık satış günleri sarrafiye alıcısını artırırken işçilikli ürünü
+ * yanlışlıkla kolaylaştırmasın. Ortalama müşteri-satış yönü × işçilikli
+ * ürün payı ile vitrin çıkışı yeniden eşitlenir; böylece işçilikli ürünün
+ * eski haftalık alış/satış dengesi korunur.
+ */
+export const SHOWCASE_TARGET_CHANCE = 0.155;
 
 /**
  * B5 — vitrine bir ürün daha koymanın görünmeyen bedeli.
  *
- * Vitrinde n ürün varsa toplam ilgi (%20) aralarında bölüşülür; oyuncu bunu
+ * Vitrinde n ürün varsa toplam ilgi (%15,5) aralarında bölüşülür; oyuncu bunu
  * hiçbir yerden göremediği için vitrini doldurmanın bir bedeli olduğunu
  * bilmiyordu. Sayı burada türetiliyor ki ekranda yazan oran spawn kuralıyla
  * aynı yerden gelsin; sabit değişirse ekran da onunla değişir.
  *
  * DÖNEN DEĞER ORTALAMADIR. Hedef seçimi B3/B4 ile AĞIRLIKLANDI
  * (`showcase-weight`): taze ve yüksek ayarlı mal payın büyüğünü alır. Ama
- * toplam sabit olduğu için ürün başına ORTALAMA hâlâ tam olarak `%20 / n`'dir
+ * toplam sabit olduğu için ürün başına ORTALAMA hâlâ tam olarak `%15,5 / n`'dir
  * — ağırlıklar payı yeniden dağıtır, büyütmez. Arayüz de "ortalama" der.
  */
 export function showcaseTargetChancePerItem(displayCount: number): number {
