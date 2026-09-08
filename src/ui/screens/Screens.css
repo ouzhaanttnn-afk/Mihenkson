@@ -1853,7 +1853,8 @@
 }
 
 .marketProduct--locked .marketProduct__image {
-  filter: grayscale(0.55) brightness(0.72) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.38));
+  opacity: 0.78;
+  filter: brightness(0.8) saturate(0.82) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.38));
 }
 
 .marketProduct__body {

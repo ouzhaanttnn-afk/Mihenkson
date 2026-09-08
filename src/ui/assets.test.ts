@@ -21,6 +21,7 @@ import {
   NAV_ART,
   OFFER_TIER_ART,
   OUTSIDE_MASTER_ART,
+  PROFILE_FRAME_ART,
   OUTSIDE_MASTER_ART as MASTER,
   SERVICE_ART,
   TOOL_ART,
@@ -118,6 +119,15 @@ describe('asset kayıt defteri', () => {
 
   it('yollar göreli üretilir (Capacitor/WebView paketlemesi)', () => {
     for (const a of all) expect(a.src.startsWith('./assets/')).toBe(true);
+  });
+});
+
+describe('market çerçeve görselleri', () => {
+  it('her çerçeve ürünü kendine özel bir asset kullanır', () => {
+    const frames = MARKET_CATALOG.filter((product) => product.category === 'frames');
+    const sources = frames.map((product) => marketArt(product.id, product.category).src);
+    expect(Object.keys(PROFILE_FRAME_ART)).toHaveLength(frames.length);
+    expect(new Set(sources).size).toBe(frames.length);
   });
 });
 

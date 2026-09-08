@@ -258,7 +258,7 @@
   background: linear-gradient(160deg, var(--ink-600), var(--ink-900));
   border: 1px solid var(--brass-700);
   color: var(--brass-500);
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Brief: avatar bileşenlerinde object-fit: contain. */
@@ -266,6 +266,23 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border-radius: inherit;
+  clip-path: circle(49% at 50% 50%);
+}
+
+.profileChip__avatar--framed {
+  border-color: transparent;
+}
+
+.profileChip__frame {
+  position: absolute;
+  z-index: 2;
+  inset: -6px;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.48));
 }
 
 /*
@@ -287,6 +304,7 @@
   background: var(--surface-brass);
   color: var(--ink-900);
   border: 1px solid var(--ink-800);
+  z-index: 3;
 }
 
 .profileChip__text {
@@ -390,21 +408,6 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1;
-}
-
-.profileChip__avatar--frame_brass {
-  border: 2px solid var(--brass-300);
-  box-shadow: 0 0 0 2px var(--brass-700), 0 0 12px rgba(215, 170, 74, 0.38);
-}
-
-.profileChip__avatar--frame_amethyst {
-  border: 2px solid var(--amethyst-300);
-  box-shadow: 0 0 0 2px var(--brass-500), 0 0 14px rgba(140, 109, 204, 0.55);
-}
-
-.profileChip__avatar--frame_crown {
-  border: 2px solid #f2d27d;
-  box-shadow: 0 0 0 2px var(--amethyst-500), 0 0 18px rgba(242, 210, 125, 0.62);
 }
 
 .statusStrip__weekday {

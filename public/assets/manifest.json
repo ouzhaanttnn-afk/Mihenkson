@@ -1,5 +1,5 @@
 {
-  "version": "6.2.0",
+  "version": "6.3.0",
   "brand": { "mark": "logo/mihenk-mark.svg" },
   "backgrounds": { "stoneNoise": "backgrounds/stone-noise.svg" },
   "scenes": {
@@ -30,6 +30,12 @@
   "market": [
     { "id": "profile-badge", "file": "market/profile-badge.png", "alt": "Mor mine ve altın profil rozeti" },
     { "id": "avatar-frame", "file": "market/avatar-frame.png", "alt": "Ametist ve altın avatar çerçevesi" },
+    { "id": "frame-telkari-v2", "file": "market/frame-telkari-v2.png", "alt": "Gümüş telkari avatar çerçevesi" },
+    { "id": "frame-brass-v2", "file": "market/frame-brass-v2.png", "alt": "Pirinç avatar çerçevesi" },
+    { "id": "frame-crown-v2", "file": "market/frame-crown-v2.png", "alt": "Hanedan avatar çerçevesi" },
+    { "id": "frame-enamel-v2", "file": "market/frame-enamel-v2.png", "alt": "Mine işi avatar çerçevesi" },
+    { "id": "frame-nacre-v2", "file": "market/frame-nacre-v2.png", "alt": "Sedef kakma avatar çerçevesi" },
+    { "id": "frame-diamond-v2", "file": "market/frame-diamond-v2.png", "alt": "Pırlanta avatar çerçevesi" },
     { "id": "shop-interior", "file": "realistic/backgrounds/shop-interior-liquid-v1.png", "alt": "Premium kuyumcu dükkânı" },
     { "id": "decoration-vignette", "file": "market/decoration-vignette.png", "alt": "Kuyumcu dükkânı dekorasyon seçkisi" },
     { "id": "collection-cabinet", "file": "market/collection-cabinet.png", "alt": "Ceviz koleksiyon vitrini" },

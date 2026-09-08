@@ -10,7 +10,7 @@ import { SPEED_STEPS, type SpeedStep } from '@domain/balance';
 import { weekdayLabel, weekdayShort } from '@domain/calendar';
 import { IconLock, IconPencil, IconSettings, BrandMark } from '@ui/icons';
 import { Art } from '@ui/Art';
-import { avatarArt } from '@ui/assets';
+import { avatarArt, profileFrameArt } from '@ui/assets';
 import { clock } from '@ui/format';
 import { t } from '@i18n/index';
 import type { PlayerProfile } from '@domain/profile';
@@ -49,6 +49,7 @@ export function StatusStrip({
   const profileAriaLabel = `${t('Profili düzenle — {ad}', {
     ad: profile.jewelerName,
   })}. ${t('XP')}: ${store.xp}/${store.xpToNext}`;
+  const equippedFrame = profileFrameArt(profileFrame);
 
   return (
     <header className="statusStrip">
@@ -75,7 +76,7 @@ export function StatusStrip({
         onClick={onEditProfile}
         aria-label={profileAriaLabel}
       >
-        <span className={`profileChip__avatar ${profileFrame ? `profileChip__avatar--${profileFrame}` : ''}`}>
+        <span className={`profileChip__avatar ${equippedFrame ? 'profileChip__avatar--framed' : ''}`}>
           <Art
             art={avatarArt(profile.avatarId)}
             size={52}
@@ -83,6 +84,15 @@ export function StatusStrip({
             className="profileChip__img"
             fallback={<BrandMark size={20} />}
           />
+          {equippedFrame && (
+            <Art
+              art={equippedFrame}
+              size={64}
+              decorative
+              className="profileChip__frame"
+              fallback={null}
+            />
+          )}
           <span className="profileChip__pencil" aria-hidden="true">
             <IconPencil size={9} />
           </span>

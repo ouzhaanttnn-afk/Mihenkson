@@ -147,8 +147,24 @@ const MARKET_CATEGORY_ART: Record<MarketCategory, Art> = {
   lifestyle: art('market/luxury-watch.png', 'Prestij yaşam ürünü'),
 };
 
+/** Avatar üstünde de kullanılan, ürün adına özel gerçek çerçeveler. */
+export const PROFILE_FRAME_ART: Record<string, Art> = {
+  frame_telkari: art('market/frame-telkari-v2.png', 'Gümüş telkari avatar çerçevesi'),
+  frame_brass: art('market/frame-brass-v2.png', 'Pirinç avatar çerçevesi'),
+  frame_amethyst: art('market/avatar-frame.png', 'Ametist avatar çerçevesi'),
+  frame_crown: art('market/frame-crown-v2.png', 'Hanedan avatar çerçevesi'),
+  frame_enamel: art('market/frame-enamel-v2.png', 'Mine işi avatar çerçevesi'),
+  frame_nacre: art('market/frame-nacre-v2.png', 'Sedef kakma avatar çerçevesi'),
+  frame_diamond: art('market/frame-diamond-v2.png', 'Pırlanta avatar çerçevesi'),
+};
+
+export function profileFrameArt(frameId?: string): Art | undefined {
+  return frameId ? PROFILE_FRAME_ART[frameId] : undefined;
+}
+
 /** Şahsi hedeflerde ürünün ne olduğunu doğrudan gösteren görsel eşlemesi. */
 const MARKET_ITEM_ART: Record<string, Art> = {
+  ...PROFILE_FRAME_ART,
   life_watch: art('market/luxury-watch.png', 'İsviçre mekanik saati'),
   life_sedan: art('market/prestige-automobile.png', 'Premium otomobil'),
   life_sportscar: art('market/prestige-automobile.png', 'Prestij otomobili'),
