@@ -284,9 +284,11 @@
 .profileChip__frame {
   position: absolute;
   z-index: 2;
-  inset: 0;
-  width: 52px;
-  height: 52px;
+  /* Çerçevenin iç açıklığı 42 px portreyi tam sarsın; yalnızca 2 px dışarı
+   * taşarak üst şeridin yüksekliğini veya yanındaki metni etkilemez. */
+  inset: -2px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.48));

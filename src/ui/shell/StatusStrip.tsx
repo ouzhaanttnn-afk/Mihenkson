@@ -87,7 +87,7 @@ export function StatusStrip({
           {equippedFrame && (
             <Art
               art={equippedFrame}
-              size={52}
+              size={56}
               decorative
               className="profileChip__frame"
               fallback={null}
