@@ -1803,12 +1803,12 @@
 .simpleOffer__presets button:disabled { opacity: .5; cursor: default; }
 .simpleOffer__metrics { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 5px; padding: 4px 0; }
 .simpleOffer__metrics div { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.simpleOffer__priceEdit { min-width: 0; min-height: 56px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; padding: 5px; background: #eee6f5; border: 1px solid #9d80b4; border-radius: var(--r-sm); cursor: pointer; text-align: center; box-shadow: 0 1px 2px #35204418; }
-.simpleOffer__priceEdit:active { background: #e0cfee; }
+.simpleOffer__priceEdit { min-width: 0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 3px; padding: 0; background: transparent; border: 0; border-radius: var(--r-sm); cursor: pointer; text-align: left; }
+.simpleOffer__priceEdit:active > span { background: #4c286b; }
 .simpleOffer__priceEdit:focus-visible { outline: 2px solid #643b85; outline-offset: 2px; }
 .simpleOffer__metrics > div { justify-content: center; }
 .simpleOffer__metrics span { color: var(--text-light-2); font-size: 11px; }
-.simpleOffer__priceEdit > span { color: #542d72; font-weight: var(--fw-semibold); line-height: 1.2; }
+.simpleOffer__priceEdit > span { max-width: 100%; padding: 3px 7px; border-radius: 999px; background: #643b85; color: #fff; font-weight: var(--fw-semibold); line-height: 1.2; text-align: center; }
 .simpleOffer__metrics strong { color: var(--text-light-1); font-size: var(--fs-caption); overflow-wrap: anywhere; }
 .simpleOffer__metrics strong.impact__value--negative { color: var(--negative); }
 .simpleOffer__metrics strong.impact__value--positive { color: var(--positive); }
@@ -1840,8 +1840,8 @@
   .simpleOffer { gap: 0; }
   .simpleOffer__presets button { min-height: 44px; }
   .simpleOffer__metrics { padding: 0; }
-  .simpleOffer__priceEdit { min-height: 44px; padding: 2px; gap: 2px; }
-  .simpleOffer__priceEdit > span { font-size: 10px; line-height: 1.1; }
+  .simpleOffer__priceEdit { min-height: 44px; gap: 2px; }
+  .simpleOffer__priceEdit > span { padding: 2px 5px; font-size: 10px; line-height: 1.1; }
   .simpleOffer__priceEdit > strong { font-size: 12px; line-height: 1.15; }
   .simpleOffer__hint { margin-top: 0; }
   .simpleCounter { order: -2; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3px 6px; padding: 6px 8px; }
