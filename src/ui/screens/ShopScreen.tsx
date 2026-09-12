@@ -758,9 +758,9 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         </button>
 
         {shopOverviewOpen ? <div className="shopOverview__details" id="shop-overview-details">
-          <button type="button" className="shopTalentButton" onClick={() => s.setShopTalentTreeOpen(true)}>
+          <button type="button" className="shopTalentButton" disabled>
             <span><IconBusiness size={18} /> {t('Yetenek Ağacı')}</span>
-            <small>Ayar %{Math.round(s.skillProgress.assayAccuracyRank === 0 ? 60 : 60 + s.skillProgress.assayAccuracyRank * 10)} · Tatlı Dil {s.skillProgress.tatliDilLevel}/3</small>
+            <small>{t('Yakında')}</small>
             <span aria-hidden="true">›</span>
           </button>
 

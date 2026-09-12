@@ -8,7 +8,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let shellColor = UIColor(red: 11.0 / 255.0, green: 15.0 / 255.0, blue: 20.0 / 255.0, alpha: 1.0)
-        let bridgeViewController = CAPBridgeViewController()
+        let bridgeViewController = MihenkBridgeViewController()
         bridgeViewController.view.backgroundColor = shellColor
 
         window = UIWindow(windowScene: windowScene)

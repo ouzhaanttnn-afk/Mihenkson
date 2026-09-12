@@ -13,6 +13,7 @@ import { Art } from '@ui/Art';
 import { avatarArt, profileFrameArt, shopBadgeArt } from '@ui/assets';
 import { clock } from '@ui/format';
 import { t } from '@i18n/index';
+import { usePremium } from '@ui/premium';
 import type { PlayerProfile } from '@domain/profile';
 import type { MarketState, StoreState } from '@domain/types';
 
@@ -177,6 +178,7 @@ function SpeedControl({
   onUnlock: () => void;
   onOpenSettings: () => void;
 }) {
+  const premium = usePremium((s) => s.active && s.known);
   return (
     <div className="speed" role="group" aria-label={t('Oyun hızı')}>
       {SPEED_STEPS.map((step) => {
@@ -184,9 +186,9 @@ function SpeedControl({
         const isActive = speed === step;
         const waiting = isLocked && adPending;
         const label = waiting
-          ? t('Reklam yükleniyor…')
+          ? t(premium ? 'İşlem sürüyor…' : 'Reklam yükleniyor…')
           : isLocked
-            ? t('{n}x hızı reklamla aç', { n: step })
+            ? t(premium ? '{n}x hızı reklamsız aç' : '{n}x hızı reklamla aç', { n: step })
             : t('{n}x hız', { n: step });
 
         return (

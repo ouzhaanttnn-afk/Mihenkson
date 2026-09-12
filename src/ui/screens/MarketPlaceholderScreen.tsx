@@ -16,6 +16,7 @@ import { marketArt } from '@ui/assets';
 import { IconCash, IconCollection, IconLock, IconMarket } from '@ui/icons';
 import { tl } from '@ui/format';
 import { useModalSurface } from '@ui/useModalSurface';
+import { PremiumOffer } from './PremiumOffer';
 
 const PRODUCT_MARK: Record<MarketCategory, string> = {
   profile: '◆', frames: '◈', shop: '▣', decoration: '◇', collection: '♛', lifestyle: '✦',
@@ -28,7 +29,7 @@ const MARKET_TABS: { id: MarketTab; label: string; description: string; comingSo
     id: 'offers',
     label: 'Özel Paketler',
     description: 'İsteğe bağlı oyun içi paketler ve sezonluk seçkiler',
-    comingSoon: true,
+    comingSoon: false,
   },
   ...MARKET_CATEGORIES,
 ];
@@ -202,12 +203,8 @@ export function MarketPlaceholderScreen() {
 
         {category === 'offers' ? (
           <div className="marketComingSoon">
-            <span className="marketComingSoon__mark" aria-hidden="true">✦</span>
-            <span className="marketComingSoon__eyebrow">{t('Yakında')}</span>
-            <h2>{t('Bir hediye hazırlıyoruz')}</h2>
-            <p>{t('Oyun deneyimini renklendirecek isteğe bağlı özel paketler burada yer alacak.')}</p>
+            <PremiumOffer />
             <div className="marketComingSoon__actions">
-              <button type="button" disabled>{t('Yakında')}</button>
               <button
                 type="button"
                 className="marketComingSoon__reward"

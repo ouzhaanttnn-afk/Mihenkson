@@ -102,7 +102,7 @@ check(/<key>UIStatusBarHidden<\/key>\s*<true\/>/.test(infoPlist), 'iOS oyun duru
 check(/<key>UIViewControllerBasedStatusBarAppearance<\/key>\s*<true\/>/.test(infoPlist), 'iOS SystemBars denetimine izin veriyor');
 check(/SystemBars:[\s\S]*?hidden:\s*true/.test(capacitor), 'iOS durum ve hareket çubuklarını yerleşik yolla gizliyor');
 check(/<key>UIRequiresFullScreen<\/key>\s*<true\/>/.test(infoPlist), 'iOS gerçek tam ekran istiyor');
-check(sceneDelegate.includes('CAPBridgeViewController()'), 'iOS tam ekran köprü denetleyicisi hazır');
+check(sceneDelegate.includes('MihenkBridgeViewController()') && read('ios/App/App/PremiumPlugin.swift').includes('class MihenkBridgeViewController: CAPBridgeViewController'), 'iOS tam ekran ve Premium köprü denetleyicisi hazır');
 check(infoPlist.includes('<key>ITSAppUsesNonExemptEncryption</key>'), 'Şifreleme/ihracat beyanı Info.plist içinde');
 const englishInfoStrings = read('ios/App/App/en.lproj/InfoPlist.strings');
 const turkishInfoStrings = read('ios/App/App/tr.lproj/InfoPlist.strings');

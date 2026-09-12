@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   isNativePlatform: vi.fn(),
   getPlatform: vi.fn(),
+  premiumEntitlement: vi.fn(),
   adMob: {
     initialize: vi.fn(),
     requestConsentInfo: vi.fn(),
@@ -15,6 +16,7 @@ const mocks = vi.hoisted(() => ({
     addListener: vi.fn(),
   },
 }));
+vi.mock('./premium', () => ({ premiumEntitlement: mocks.premiumEntitlement }));
 
 vi.mock('@capacitor/core', () => ({
   Capacitor: {
@@ -54,6 +56,7 @@ async function subject() {
 
 beforeEach(() => {
   vi.resetModules();
+  mocks.premiumEntitlement.mockReset().mockResolvedValue(false);
   mocks.isNativePlatform.mockReset().mockReturnValue(true);
   mocks.getPlatform.mockReset().mockReturnValue('ios');
   for (const fn of Object.values(mocks.adMob)) fn.mockReset();
@@ -63,6 +66,23 @@ beforeEach(() => {
 });
 
 describe('AdMob gizlilik tercihleri', () => {
+  it('Premium tüm ödülleri SDK başlatmadan verir ve zorunlu reklamı kaldırır', async () => {
+    mocks.premiumEntitlement.mockResolvedValue(true);
+    const { showRewardedAd, showInterstitialAd } = await subject();
+    const kinds = ['speed4x', 'customerRush', 'personnelWaiver', 'personnelTempUnlock', 'dailySponsor', 'patienceBoost', 'expertHint', 'cosmeticTrial', 'supplyExpress', 'workshopRush', 'customerRecall', 'extraOffer', 'freeShipping', 'dailyCosmetic'] as const;
+    for (const kind of kinds) await expect(showRewardedAd(kind)).resolves.toBe(true);
+    await showInterstitialAd();
+    expect(mocks.adMob.initialize).not.toHaveBeenCalled();
+    expect(mocks.adMob.showRewardVideoAd).not.toHaveBeenCalled();
+    expect(mocks.adMob.showInterstitial).not.toHaveBeenCalled();
+  });
+  it('Premium bilinmiyorsa ne reklam gösterir ne bedava ödül uydurur', async () => {
+    mocks.premiumEntitlement.mockResolvedValue(null);
+    const { showRewardedAd, showInterstitialAd } = await subject();
+    await expect(showRewardedAd('dailySponsor')).resolves.toBe(false);
+    await showInterstitialAd();
+    expect(mocks.adMob.initialize).not.toHaveBeenCalled();
+  });
   it('native olmayan platformda SDK çağırmadan unavailable döner', async () => {
     mocks.isNativePlatform.mockReturnValue(false);
     const { showAdPrivacyOptions } = await subject();

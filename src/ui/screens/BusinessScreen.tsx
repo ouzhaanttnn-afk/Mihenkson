@@ -14,6 +14,7 @@ import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { useEffect, useState } from 'react';
 import { customerDensity } from '@domain/customer-traffic';
+import { usePremium } from '@ui/premium';
 import {
   PERSONNEL_MONTHLY,
   PERSONNEL_SALARIES,
@@ -139,6 +140,7 @@ export function BusinessScreen() {
 // ---------------------------------------------------------------------------
 
 function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
+  const premium = usePremium((s) => s.active && s.known);
   const s = useGame();
   const [pendingPersonnel, setPendingPersonnel] = useState<number | null>(null);
   const [personnelOpen, setPersonnelOpen] = useState(false);
@@ -299,14 +301,14 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                         className="chip personnelChoice__unlock"
                         disabled={s.rewardedAdPending === 'personnelTempUnlock'}
                         onClick={() => s.requestPersonnelTempUnlock(count)}
-                        title={t('Reklam izle, {gun} gün boyunca ücretsiz aç', {
+                        title={t(premium ? 'Premium ile {gun} gün ücretsiz aç' : 'Reklam izle, {gun} gün boyunca ücretsiz aç', {
                           gun: PERSONNEL_TEMP_UNLOCK_DAYS,
                         })}
                       >
                         <IconVideo size={11} />{' '}
                         {s.rewardedAdPending === 'personnelTempUnlock'
-                          ? t('Reklam yükleniyor…')
-                          : t('Reklamla {gun} gün aç', { gun: PERSONNEL_TEMP_UNLOCK_DAYS })}
+                          ? t(premium ? 'İşlem sürüyor…' : 'Reklam yükleniyor…')
+                          : t(premium ? 'Premium ile {gun} gün aç' : 'Reklamla {gun} gün aç', { gun: PERSONNEL_TEMP_UNLOCK_DAYS })}
                       </button>
                     )}
                   </div>
@@ -320,7 +322,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             */}
             {personnelTempUnlockActive(s.store, s.market.day) && (
               <p className="personnelWaiver">
-                {t('{n} personel reklamla açık — {gun} gün kaldı.', {
+                {t('{n} personel geçici açık — {gun} gün kaldı.', {
                   n: personnelTempUnlockTier(s.store),
                   gun: s.store.personnelTempUnlockUntilDay! - s.market.day + 1,
                 })}
@@ -345,7 +347,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             {personnelCount(s.store) > 0 && (
               <p className="personnelWaiver">
                 {s.personnelCostWaivedToday ? (
-                  t('Bugünkü personel gideri ({tutar}) reklamla ücretsizleşti.', {
+                  t('Bugünkü personel gideri ({tutar}) ücretsizleşti.', {
                     tutar: tl(personnelDaily(s.store)),
                   })
                 ) : (
@@ -359,8 +361,8 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                     >
                       <IconVideo size={14} />{' '}
                       {s.rewardedAdPending === 'personnelWaiver'
-                        ? t('Reklam yükleniyor…')
-                        : t('Reklam izle, bugün ücretsiz olsun')}
+                        ? t(premium ? 'İşlem sürüyor…' : 'Reklam yükleniyor…')
+                        : t(premium ? 'Premium: bugün ücretsiz olsun' : 'Reklam izle, bugün ücretsiz olsun')}
                     </button>
                   </>
                 )}

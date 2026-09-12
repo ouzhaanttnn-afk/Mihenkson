@@ -39,6 +39,7 @@
  */
 
 import { Capacitor } from '@capacitor/core';
+import { premiumEntitlement } from './premium';
 import {
   AdMob,
   InterstitialAdPluginEvents,
@@ -164,6 +165,10 @@ export function adPrivacyOptionsSupported(): boolean {
  * uydurmaz.
  */
 export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
+  const premium = await premiumEntitlement();
+  // Existing game actions still enforce eligibility, cooldowns and daily caps.
+  if (premium === true) return true;
+  if (premium === null) return false;
   if (!Capacitor.isNativePlatform()) {
     console.info(`[ads] Ödüllü reklam (${kind}) yalnız native (iOS/Android) derlemede çalışır; web/dev ortamında atlanıyor.`);
     return false;
@@ -176,6 +181,9 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
   try {
     if (!(await ensureInitialized()).canRequestAds) return false;
     await AdMob.prepareRewardVideoAd({ adId: unitId });
+    // A purchase may have completed while the ad was loading.
+    const latest = await premiumEntitlement();
+    if (latest !== false) return latest === true;
   } catch (err) {
     console.warn('[ads] Reklam yüklenemedi:', err);
     return false;
@@ -217,6 +225,7 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
  * `gameStore.ts` bu fonksiyonu `await` ETMEDEN çağırır (fire-and-forget).
  */
 export async function showInterstitialAd(): Promise<void> {
+  if (await premiumEntitlement() !== false) return;
   if (!Capacitor.isNativePlatform()) return;
 
   const platform = platformOf();
@@ -226,6 +235,7 @@ export async function showInterstitialAd(): Promise<void> {
   try {
     if (!(await ensureInitialized()).canRequestAds) return;
     await AdMob.prepareInterstitial({ adId: unitId });
+    if (await premiumEntitlement() !== false) return;
   } catch (err) {
     console.warn('[ads] Geçiş reklamı yüklenemedi:', err);
     return;

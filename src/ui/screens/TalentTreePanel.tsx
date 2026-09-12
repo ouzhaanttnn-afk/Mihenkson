@@ -15,6 +15,7 @@ export function TalentTreePanel() {
 
   return (
     <div className="talentTree" aria-label={t('Yetenek ağacı')}>
+      <p className="talentTree__note"><strong>{t('Yakında')}</strong> · {t('Bu sürümde yetenek puanı kazanımı ve kademe açma kapalıdır. Mevcut temel etkiler aşağıda gösterilir.')}</p>
       <article className="talentNode talentNode--active">
         <span className="talentNode__icon" aria-hidden="true"><IconTouchstone size={24} /></span>
         <div className="talentNode__body">
@@ -57,7 +58,6 @@ export function TalentTreePanel() {
         </div>
       </article>
 
-      <p className="talentTree__note">{t('Yetenek puanı ve kademe açma kuralları tanımlanana kadar bu ekran ilerlemeyi güvenli biçimde yalnız gösterir.')}</p>
     </div>
   );
 }

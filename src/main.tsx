@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Capacitor } from '@capacitor/core';
 
 import { App } from '@ui/App';
+import { initializePremium } from '@ui/premium';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root bulunamadı');
@@ -14,6 +15,7 @@ if (Capacitor.isNativePlatform()) {
   document.documentElement.dataset.nativePlatform = Capacitor.getPlatform();
 }
 
+initializePremium();
 createRoot(root).render(
   <StrictMode>
     <App />

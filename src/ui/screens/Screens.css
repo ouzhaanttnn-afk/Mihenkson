@@ -1842,6 +1842,21 @@
   gap: var(--sp-2);
 }
 
+.premiumOffer { width: 100%; max-width: 440px; min-width: 0; }
+.premiumOffer__seal { display: block; color: #f4cf73; font-size: 32px; }
+.premiumOffer__eyebrow { color: #e4c77d; font-size: 11px; letter-spacing: .14em; }
+.premiumOffer ul { padding-left: 20px; text-align: left; color: var(--text-dark-2); font-size: 13px; line-height: 1.55; }
+.premiumOffer li + li { margin-top: 6px; }
+.premiumOffer__price { display: flex; flex-wrap: wrap; gap: 5px 10px; align-items: baseline; justify-content: center; margin: 16px 0; }
+.premiumOffer__price strong { color: #f4cf73; font-size: 26px; }
+.premiumOffer__price span { color: var(--text-dark-2); font-size: 12px; }
+.marketComingSoon .premiumOffer p { margin: 10px auto; color: var(--text-dark-2); }
+.marketComingSoon .premiumOffer .cta { width: 100%; color: #211706; background: linear-gradient(180deg, #f4cf73, #bd871e); padding: 12px; }
+.marketComingSoon .premiumOffer button:disabled { opacity: .55; cursor: default; }
+.premiumOffer__links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.premiumOffer__links button { padding: 8px 12px; white-space: normal; max-width: 100%; }
+.premiumOffer__status:empty { display: none; }
+
 .marketComingSoon .marketComingSoon__reward {
   border-color: rgba(215, 170, 74, 0.58);
   color: #211706;
@@ -2128,7 +2143,7 @@
 .talentLevel b { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, 0.05); }
 .talentLevel--earned { color: var(--text-dark-1); }
 .talentLevel--earned b { background: var(--brass-500); color: #171006; }
-.talentTree__note { margin: 0; color: var(--text-dark-3); font-size: var(--fs-micro); line-height: 1.45; }
+.talentTree__note { margin: 0; color: var(--text-dark-2); font-size: var(--fs-caption); line-height: 1.45; }
 
 .talentTreeScrim {
   position: fixed;
