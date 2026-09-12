@@ -96,6 +96,17 @@ export function OfferControl({
           {unitLabel && <span className="offer__unit num">{unitLabel}</span>}
         </span>
 
+        <details className="offer__compactSummary">
+          <summary>
+            <strong className="num">{tlBare(normalizedValue)} {currencySymbol()}</strong>
+            {impacts[0] && <small>{impacts[0].label} <span className={`impact__value--${impacts[0].tone}`}>{impacts[0].value}</span></small>}
+          </summary>
+          <div className="offer__compactDetails">
+            {unitLabel && <p>{unitLabel}</p>}
+            {impacts.map(impact => <p key={impact.label}>{impact.label}: <strong className={`impact__value--${impact.tone}`}>{impact.value}</strong></p>)}
+          </div>
+        </details>
+
         <button
           type="button"
           className="offer__nudge"

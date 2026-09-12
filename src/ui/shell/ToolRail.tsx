@@ -69,6 +69,7 @@ export function ToolRail({ items, disabled = false, emptyLabel, idle = false }: 
             type="button"
             className={[
               'tool',
+              item.badge ? 'tool--badged' : '',
               item.used ? 'tool--used' : '',
               item.selected ? 'tool--selected' : '',
               item.locked ? 'tool--locked' : '',

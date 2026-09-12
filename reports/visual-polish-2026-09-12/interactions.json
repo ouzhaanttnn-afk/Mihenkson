@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "Badge purchase and equip",
+    "Frame purchase and equip",
+    "Theme purchase and equip",
+    "Cosmetics survive reload and appear on shop",
+    "Compact tutorial opens and closes",
+    "Native secondary header clears Dynamic Island"
+  ]
+}

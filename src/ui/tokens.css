@@ -316,6 +316,13 @@ button:disabled {
   cursor: default;
 }
 
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--brass-400);
+  outline-offset: 2px;
+}
+
+button { touch-action: manipulation; }
+
 /* Görsel başlığa ihtiyaç duymayan oyun yüzeyleri için erişilebilir metin. */
 .srOnly {
   position: absolute !important;

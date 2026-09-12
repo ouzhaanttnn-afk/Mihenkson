@@ -277,8 +277,8 @@
 }
 
 .profileChip__avatar--framed .profileChip__img {
-  width: 42px;
-  height: 42px;
+  width: 80%;
+  height: 80%;
 }
 
 .profileChip__frame {
@@ -286,9 +286,10 @@
   z-index: 2;
   /* Çerçevenin iç açıklığı 42 px portreyi tam sarsın; yalnızca 2 px dışarı
    * taşarak üst şeridin yüksekliğini veya yanındaki metni etkilemez. */
-  inset: -2px;
-  width: 56px;
-  height: 56px;
+  inset: -5%;
+  width: 110%;
+  height: 110%;
+  max-width: none;
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.48));
@@ -987,6 +988,27 @@
   color: var(--brass-500);
 }
 
+/* Cost and patience are data, not decorations over the tool illustration. */
+.tool--badged {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 5px;
+  row-gap: 1px;
+  align-content: center;
+  text-align: left;
+}
+.tool--badged .tool__icon { grid-column: 1; grid-row: 1 / 3; }
+.tool--badged .tool__icon :is(svg, .art) { width: 22px; height: 22px; }
+.tool--badged .tool__badge {
+  position: static;
+  grid-column: 2;
+  color: var(--brass-300);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.tool--badged .tool__label { grid-column: 2; white-space: nowrap; line-height: 1.2; }
+
 /*
  * Boş dükkândaki reklam ödülleri hem tutar hem de eylem adı taşır. Rozeti
  * ikonun üstüne bindirmek yerine dar iPhone rayında iki satırlı mini karta
@@ -1278,10 +1300,10 @@
 }
 
 .toast {
-  pointer-events: auto;
+  pointer-events: none;
   max-width: 100%;
   padding: var(--sp-2) var(--sp-4);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-md);
   background: var(--ink-800);
   color: var(--text-dark-1);
   font-size: var(--fs-caption);
@@ -1289,7 +1311,15 @@
   border: 1px solid var(--line-dark-strong);
   box-shadow: 0 6px 20px rgba(8, 11, 15, 0.4);
   text-align: center;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  animation: screenEnter var(--t-fast) var(--ease-decel) both;
 }
+
+.toast__symbol { flex: 0 0 22px; font-size: 17px; }
+.toast--positive .toast__symbol { color: var(--positive-soft); }
+.toast--negative .toast__symbol { color: var(--negative-on-dark); }
 
 .toast--positive {
   border-color: rgba(78, 158, 82, 0.5);
@@ -1339,6 +1369,43 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 1px;
+}
+
+.coach__compact { display: none; }
+@media (orientation: portrait) and (max-height: 620px) {
+  .coach { position: relative; z-index: 6; padding-block: 0; }
+  .coach__body { display: none; }
+  .coach__compact { display: block; flex: 1; min-width: 0; }
+  .coach__compact summary {
+    min-height: var(--touch-min);
+    align-content: center;
+    color: var(--brass-300);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    cursor: pointer;
+  }
+  .coach__expanded {
+    position: absolute;
+    bottom: 100%;
+    left: var(--sp-2);
+    right: var(--sp-2);
+    padding: var(--sp-3);
+    max-height: 40dvh;
+    overflow-y: auto;
+    border: 1px solid var(--brass-500);
+    border-radius: var(--r-md);
+    background: var(--ink-800);
+    color: var(--text-dark-1);
+    box-shadow: var(--sh-sheet);
+    font-size: var(--fs-caption);
+  }
+  .coach__expanded p { margin: 0; line-height: var(--lh-relaxed); }
+  .coach__expanded button { min-height: var(--touch-min); color: var(--brass-300); }
+  :root:not([data-native-platform='ios']) .statusStrip {
+    height: calc(56px + var(--chrome-top-inset));
+    flex-basis: calc(56px + var(--chrome-top-inset));
+  }
+  .statusStrip .profileChip { height: 52px; }
 }
 
 .coach__title {
@@ -1499,7 +1566,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--gutter);
+  padding: max(var(--gutter), var(--safe-top)) var(--gutter) max(var(--gutter), var(--safe-bottom));
   background: rgba(8, 11, 15, 0.66);
   backdrop-filter: blur(2px);
 }
@@ -2058,14 +2125,14 @@
   z-index: 60;
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: max(20px, var(--safe-top)) 20px max(20px, var(--safe-bottom));
   background: #080d13c4;
   backdrop-filter: blur(4px);
 }
 
 .settingsBox {
   width: min(360px, 100%);
-  max-height: calc(100dvh - 60px);
+  max-height: min(100%, calc(100dvh - max(40px, var(--safe-top)) - max(20px, var(--safe-bottom))));
   overflow: hidden;
   display: flex;
   flex-direction: column;

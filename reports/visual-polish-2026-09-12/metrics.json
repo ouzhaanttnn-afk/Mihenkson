@@ -1,0 +1,182 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "tab": "shop",
+    "viewport": [
+      320,
+      568
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "tab": "stock",
+    "viewport": [
+      320,
+      568
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "tab": "workshop",
+    "viewport": [
+      320,
+      568
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "tab": "market",
+    "viewport": [
+      320,
+      568
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "tab": "business",
+    "viewport": [
+      320,
+      568
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "tab": "shop",
+    "viewport": [
+      390,
+      844
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "tab": "stock",
+    "viewport": [
+      390,
+      844
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "tab": "workshop",
+    "viewport": [
+      390,
+      844
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "tab": "market",
+    "viewport": [
+      390,
+      844
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "tab": "business",
+    "viewport": [
+      390,
+      844
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "tab": "shop",
+    "viewport": [
+      430,
+      932
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "tab": "stock",
+    "viewport": [
+      430,
+      932
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "tab": "workshop",
+    "viewport": [
+      430,
+      932
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "tab": "market",
+    "viewport": [
+      430,
+      932
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "tab": "business",
+    "viewport": [
+      430,
+      932
+    ],
+    "rootOverflow": false,
+    "brokenImages": [],
+    "outliers": []
+  }
+]

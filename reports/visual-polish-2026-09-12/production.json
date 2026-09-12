@@ -1,0 +1,18 @@
+[
+  {
+    "engine": "Chrome",
+    "build": "production",
+    "onboarding": true,
+    "navigation": 5,
+    "saveReload": true,
+    "errors": []
+  },
+  {
+    "engine": "WebKit",
+    "build": "production",
+    "onboarding": true,
+    "navigation": 5,
+    "saveReload": true,
+    "errors": []
+  }
+]

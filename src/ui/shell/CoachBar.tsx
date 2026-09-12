@@ -34,6 +34,13 @@ interface Props {
 export function CoachBar({ lesson, showSkip, onDismiss, onSkipAll, queuePriority = false }: Props) {
   return (
     <aside className={`coach ${queuePriority ? 'coach--queuePriority' : ''}`} role="note" aria-label={t('Öğretim ipucu')}>
+      <details className="coach__compact" key={lesson.title}>
+        <summary>{t(lesson.title)}</summary>
+        <div className="coach__expanded">
+          <p>{t(lesson.body)}</p>
+          {showSkip && <button type="button" onClick={onSkipAll}>{t('Öğretimi kapat')}</button>}
+        </div>
+      </details>
       <div className="coach__body">
         <span className="coach__title">{t(lesson.title)}</span>
         <span className="coach__text">{t(lesson.body)}</span>

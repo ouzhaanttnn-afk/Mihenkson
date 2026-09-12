@@ -233,7 +233,7 @@ export function MarketPlaceholderScreen() {
             const affordable = s.store.cash >= marketPurchaseCashRequirement(product, s.playerMarket, s.store);
             const requiresServerClaim = Boolean(product.serverClaim);
             return (
-              <article key={product.id} className={`marketProduct marketProduct--${product.category} marketProduct--${product.tier} ${!unlocked ? 'marketProduct--locked' : ''}`}>
+              <article key={product.id} className={`marketProduct marketProduct--${product.category} marketProduct--${product.tier} ${!unlocked ? 'marketProduct--locked' : ''} ${equipped ? 'marketProduct--equipped' : ''}`}>
                 {/*
                   C4 — İÇ ASSET KİMLİĞİ EKRANA BASILIYORDU.
 
@@ -277,7 +277,7 @@ export function MarketPlaceholderScreen() {
                         {requiresServerClaim ? (unlocked ? t('Doğrulama bekliyor') : t('Hedef kilitli')) : !affordable && unlocked ? t('Nakit yetersiz') : unlocked ? t('Satın Al') : t('Kilitli')}
                       </button>
                     )}
-                    {!owned && product.equipSlot && (
+                    {!owned && product.equipSlot && !requiresServerClaim && (
                       <button
                         type="button"
                         className="marketProduct__trial"

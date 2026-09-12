@@ -267,10 +267,11 @@ export function App() {
           Sıradakiler kaybolmaz, öndekiler düştükçe görünürler.
         */}
         {toasts.length > 0 && (
-          <div className="toastLayer">
+          <div className="toastLayer" role="status" aria-live="polite" aria-atomic="false">
             {toasts.slice(0, 2).map((toast) => (
               <div key={toast.id} className={`toast toast--${toast.tone}`}>
-                {toast.text}
+                <span className="toast__symbol" aria-hidden="true">{toast.tone === 'positive' ? '✓' : toast.tone === 'negative' ? '!' : 'i'}</span>
+                <span>{toast.text}</span>
               </div>
             ))}
           </div>

@@ -1,0 +1,458 @@
+{
+  "results": [
+    {
+      "name": "320-inspect",
+      "viewport": [
+        320,
+        568
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 5,
+        "y": 5.5,
+        "width": 44,
+        "height": 44,
+        "right": 49,
+        "bottom": 49.5
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 177,
+        "width": 320,
+        "height": 89.625,
+        "right": 320,
+        "bottom": 266.625
+      }
+    },
+    {
+      "name": "320-negotiate",
+      "viewport": [
+        320,
+        568
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 5,
+        "y": 5.5,
+        "width": 44,
+        "height": 44,
+        "right": 49,
+        "bottom": 49.5
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 177,
+        "width": 320,
+        "height": 97,
+        "right": 320,
+        "bottom": 274
+      }
+    },
+    {
+      "name": "320-trade-result",
+      "viewport": [
+        320,
+        568
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 5,
+        "y": 5.5,
+        "width": 44,
+        "height": 44,
+        "right": 49,
+        "bottom": 49.5
+      },
+      "success": "🤝Ticaret başarılıAnlaşma tamamlandı",
+      "successVisible": true,
+      "workbench": {
+        "x": 0,
+        "y": 177,
+        "width": 320,
+        "height": 179,
+        "right": 320,
+        "bottom": 356
+      }
+    },
+    {
+      "name": "390-inspect",
+      "viewport": [
+        390,
+        844
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 10.203125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 60.796875
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 199,
+        "width": 390,
+        "height": 312.34375,
+        "right": 390,
+        "bottom": 511.34375
+      }
+    },
+    {
+      "name": "390-negotiate",
+      "viewport": [
+        390,
+        844
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 10.203125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 60.796875
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 199,
+        "width": 390,
+        "height": 302.875,
+        "right": 390,
+        "bottom": 501.875
+      }
+    },
+    {
+      "name": "390-trade-result",
+      "viewport": [
+        390,
+        844
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 10.203125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 60.796875
+      },
+      "success": "🤝Ticaret başarılıAnlaşma tamamlandı",
+      "successVisible": true,
+      "workbench": {
+        "x": 0,
+        "y": 199,
+        "width": 390,
+        "height": 396.984375,
+        "right": 390,
+        "bottom": 595.984375
+      }
+    },
+    {
+      "name": "430-inspect",
+      "viewport": [
+        430,
+        932
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 10.203125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 60.796875
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 199,
+        "width": 430,
+        "height": 414.734375,
+        "right": 430,
+        "bottom": 613.734375
+      }
+    },
+    {
+      "name": "430-negotiate",
+      "viewport": [
+        430,
+        932
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 10.203125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 60.796875
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 199,
+        "width": 430,
+        "height": 392.890625,
+        "right": 430,
+        "bottom": 591.890625
+      }
+    },
+    {
+      "name": "430-trade-result",
+      "viewport": [
+        430,
+        932
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 10.203125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 60.796875
+      },
+      "success": "🤝Ticaret başarılıAnlaşma tamamlandı",
+      "successVisible": true,
+      "workbench": {
+        "x": 0,
+        "y": 199,
+        "width": 430,
+        "height": 485,
+        "right": 430,
+        "bottom": 684
+      }
+    },
+    {
+      "name": "393-native-inspect",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 11.703125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 62.296875
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 203,
+        "width": 393,
+        "height": 292.359375,
+        "right": 393,
+        "bottom": 495.359375
+      }
+    },
+    {
+      "name": "393-native-profile",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 11.703125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 62.296875
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 203,
+        "width": 393,
+        "height": 292.359375,
+        "right": 393,
+        "bottom": 495.359375
+      }
+    },
+    {
+      "name": "393-native-settings",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": {
+        "x": 6.703125,
+        "y": 11.703125,
+        "width": 50.59375,
+        "height": 50.59375,
+        "right": 57.296875,
+        "bottom": 62.296875
+      },
+      "success": null,
+      "successVisible": null,
+      "workbench": {
+        "x": 0,
+        "y": 203,
+        "width": 393,
+        "height": 292.359375,
+        "right": 393,
+        "bottom": 495.359375
+      }
+    },
+    {
+      "name": "market-Profil",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": null,
+      "success": null,
+      "successVisible": null,
+      "workbench": null
+    },
+    {
+      "name": "market-Çerçeveler",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": null,
+      "success": null,
+      "successVisible": null,
+      "workbench": null
+    },
+    {
+      "name": "market-Dükkan",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": null,
+      "success": null,
+      "successVisible": null,
+      "workbench": null
+    },
+    {
+      "name": "market-Dekorasyon",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": null,
+      "success": null,
+      "successVisible": null,
+      "workbench": null
+    },
+    {
+      "name": "market-Koleksiyon",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": null,
+      "success": null,
+      "successVisible": null,
+      "workbench": null
+    },
+    {
+      "name": "large-text-workshop",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": null,
+      "success": null,
+      "successVisible": null,
+      "workbench": null
+    },
+    {
+      "name": "large-text-market",
+      "viewport": [
+        393,
+        852
+      ],
+      "rootOverflow": false,
+      "toolOverlaps": [],
+      "ctas": [],
+      "brokenImages": [],
+      "frame": null,
+      "success": null,
+      "successVisible": null,
+      "workbench": null
+    }
+  ],
+  "errors": []
+}
