@@ -50,6 +50,7 @@ function expectTickPaused(): void {
   const after = useGame.getState();
   expect(after.market.clockMinutes).toBe(before.market.clockMinutes);
   expect(after.market.day).toBe(before.market.day);
+  expect(after.market).toEqual(before.market);
   expect(after.queue).toEqual(before.queue);
   expect(after.missedGuestCountToday).toBe(before.missedGuestCountToday);
 }

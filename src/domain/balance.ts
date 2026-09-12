@@ -201,6 +201,14 @@ export const MARKET_REGIME: Record<
 export const MARKET_DAILY_CAP = 0.03;
 
 /**
+ * Sakin/normal piyasada altının gün içi hareketi %20 daha belirgin.
+ * Volatil/şok rejimleri zaten hareketli; ayrıca büyütülmez. MarketState.volatility
+ * değişmez: makas, müşteri pazarlığı ve risk puanları ayrıca zorlaşmaz.
+ * Günlük açılış, olay şokları ve güvenlik tavanı bu çarpana dahil değildir.
+ */
+export const MARKET_GOLD_MOVEMENT_SCALE = 1.2;
+
+/**
  * TL cinsinden kotasyonların küçük nominal eğilimi. İşlem günü başına oranlar
  * pasif beklemeyi zenginlik makinesine çevirmeyecek kadar düşük; buna karşın
  * gram altının uzun vadede sürekli aşağı sürüklenmesini önler.

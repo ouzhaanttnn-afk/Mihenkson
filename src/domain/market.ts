@@ -15,6 +15,7 @@ import {
   MARKET_BASE,
   MARKET_COMPOSITION,
   MARKET_DAILY_CAP,
+  MARKET_GOLD_MOVEMENT_SCALE,
   MARKET_MEAN_REVERSION,
   MARKET_NOMINAL_DRIFT,
   MARKET_REGIME,
@@ -389,7 +390,10 @@ export function stepMarketIntraday(market: MarketState, newClockMinutes: number)
   for (let stepIndex = lastApplied + 1; stepIndex <= targetStep; stepIndex += 1) {
     const rng = new Rng(deriveSeed(market.seed, `market/intraday/${market.day}`, stepIndex));
     const nudge = (rng.next() - 0.5) * 2 * stepScale + market.trend * stepScale * 0.35;
-    goldSpot = softBoundedPrice(goldSpot * (1 + nudge), open.goldSpot);
+    goldSpot = softBoundedPrice(
+      goldSpot * (1 + nudge * goldMovementScale(market.regime)),
+      open.goldSpot,
+    );
     silverSpot = softBoundedPrice(
       silverSpot * (1 + nudge * rng.range(0.9, 1.4)),
       open.silverSpot,
@@ -421,6 +425,11 @@ export function stepMarketIntraday(market: MarketState, newClockMinutes: number)
 }
 
 type Spots = { goldSpot: number; silverSpot: number; fxIndex: number };
+
+/** Normal günleri canlandır; zaten riskli rejimlere ikinci bir şok ekleme. */
+function goldMovementScale(regime: MarketState['regime']): number {
+  return regime === 'calm' || regime === 'normal' ? MARKET_GOLD_MOVEMENT_SCALE : 1;
+}
 
 function priceForAsset(id: MarketAsset['id'], spots: Spots): number {
   switch (id) {
