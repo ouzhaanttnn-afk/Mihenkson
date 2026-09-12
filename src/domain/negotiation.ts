@@ -365,6 +365,13 @@ function handleOffer(
   // Fiyat hassasiyeti yüksek müşteride sabır daha hızlı erir.
   const highProfitPressure = ratio < 0.95 && customer.priceSensitivity >= 70;
   let patienceCost = NEGOTIATION.patiencePerRound + (highProfitPressure ? 1 : 0);
+  // İlk ciddi teklif bir öğrenme turudur. Hakaret eşiğinin üstündeki ilk
+  // rakam, fiyat hassasiyeti yüksek müşteride bile tek sabır yakar; sonraki
+  // düşük teklifler yine tam bedelini öder. Böylece oyun yumuşar ama aynı
+  // rakamı zorlamanın ve aşırı düşük teklifin riski kaybolmaz.
+  if (session.offerHistory.length === 0 && !isInsulting) {
+    patienceCost = NEGOTIATION.patiencePerRound;
+  }
   // Tatlı Dil 3 yalnız makul pazarlık alanını korur. Hakaret seviyesindeki
   // teklif bedelsizleşmez; kârlı ama hâlâ ciddi teklif bir puan daha az yakar.
   if (ctx.patienceLossTolerated && !isInsulting && highProfitPressure) {
@@ -635,7 +642,10 @@ function handleRequestCounter(
 ): { session: NegotiationSession; response: NegotiationResponse } {
   const { customer } = ctx;
   const threshold = effectiveReservation(ctx, session);
-  const patienceCost = NEGOTIATION.requestCounterPatienceCost;
+  // İlk kez fiyat sormak oyuncuya pazarlığın yönünü öğretir ve ücretsizdir.
+  // Aynı bilgiyi tekrar istemek ise eskisi gibi sabır tüketir.
+  const alreadyRequested = session.moveHistory.some((past) => past.kind === 'requestCounter');
+  const patienceCost = alreadyRequested ? NEGOTIATION.requestCounterPatienceCost : 0;
   const patienceAfter = customer.patience - patienceCost;
   const patienceRatioAfter = patienceAfter / Math.max(1, customer.patienceMax);
 
@@ -715,7 +725,7 @@ function handleRequestCounter(
               tutar: { kind: 'money', value: counter },
             }),
       counterOffer: counter,
-      patienceDelta: -patienceCost,
+      patienceDelta: patienceCost === 0 ? 0 : -patienceCost,
       trustDelta: 0,
       suspicionDelta: 0,
       wasRepeatOffer: false,

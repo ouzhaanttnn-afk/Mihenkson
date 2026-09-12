@@ -44,6 +44,8 @@ interface Props {
    * bir "ortalama birim fiyat" yanlış yönlendirir.
    */
   unitLabel?: string | null;
+  /** Oyuncunun kârı sıfırlanmadan verebileceği sınır; müşteri eşiği değildir. */
+  profitBoundary?: Money | null;
 }
 
 /**
@@ -68,8 +70,12 @@ export function OfferControl({
   impacts,
   disabled,
   unitLabel,
+  profitBoundary,
 }: Props) {
   const normalizedValue = snapOffer(value, min, max, step);
+  const boundaryPercent = profitBoundary === null || profitBoundary === undefined || max <= min
+    ? null
+    : Math.max(0, Math.min(100, ((profitBoundary - min) / (max - min)) * 100));
 
   return (
     <div className="offer">
@@ -101,17 +107,33 @@ export function OfferControl({
         </button>
       </div>
 
-      <input
-        type="range"
-        className="offer__slider"
-        min={min}
-        max={max}
-        step={step}
-        value={normalizedValue}
-        onChange={(e) => onChange(snapOffer(Number(e.target.value), min, max, step))}
-        disabled={disabled}
-        aria-label={t('Teklif tutarı')}
-      />
+      <div className="offer__track">
+        <input
+          type="range"
+          className="offer__slider"
+          min={min}
+          max={max}
+          step={step}
+          value={normalizedValue}
+          onChange={(e) => onChange(snapOffer(Number(e.target.value), min, max, step))}
+          disabled={disabled}
+          aria-label={t('Teklif tutarı')}
+        />
+        {boundaryPercent !== null && (
+          <span
+            className="offer__profitMarker"
+            style={{ left: `${boundaryPercent}%` }}
+            title={t('Kâr sınırı')}
+            aria-hidden="true"
+          />
+        )}
+      </div>
+
+      {boundaryPercent !== null && (
+        <div className="offer__profitLegend">
+          <span>{t('Kâr sınırı')}</span>
+        </div>
+      )}
 
       {impacts.length > 0 && (
         <div className="impacts">

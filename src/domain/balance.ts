@@ -665,8 +665,8 @@ export const NEGOTIATION = {
    * önce kaydedilmiş kuyruk/aktif müşteriler de hemen aynı ayarı alır.
    */
   customerEase: {
-    sellerFloorRelief: 0.04,
-    buyerCeilingBoost: 0.05,
+    sellerFloorRelief: 0.06,
+    buyerCeilingBoost: 0.07,
   },
 
   /** Oyuncu mal alırken güvenli başlangıç teklifi / alış tavanı oranı. */

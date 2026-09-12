@@ -74,8 +74,8 @@ describe('Beta Update v1', () => {
     expect(NEGOTIATION.insultThreshold).toBeGreaterThan(0.70);
     expect(PURCHASE.ceilingRatioBand).toEqual([1.08, 1.38]);
     expect(NEGOTIATION.customerEase).toEqual({
-      sellerFloorRelief: 0.04,
-      buyerCeilingBoost: 0.05,
+      sellerFloorRelief: 0.06,
+      buyerCeilingBoost: 0.07,
     });
     expect(NEGOTIATION.hardeningTrigger).toBe(5);
   });

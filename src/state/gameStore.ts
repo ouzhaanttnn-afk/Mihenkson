@@ -3066,13 +3066,19 @@ function settleLine(
 
   const accepted = line.negotiation.state === 'ACCEPTED';
   const price = line.negotiation.settledPrice ?? 0;
+  // Red durumunda mutabakat fiyatı doğal olarak sıfırdır; fakat vaka özeti
+  // oyuncunun gerçekten gönderdiği son teklifi bilmelidir. Aksi halde
+  // müşteri yürüyüp gitse bile özet yanlış biçimde "İşlemi reddettiniz" der.
+  const reviewPrice = accepted
+    ? price
+    : line.negotiation.offerHistory[line.negotiation.offerHistory.length - 1] ?? 0;
 
   // --- Vaka özeti (GDD 22.3) — işlem kapandıktan SONRA üretilir ---
   const review = buildCaseReview({
     item,
     market: s.market,
     band,
-    price,
+    price: reviewPrice,
     accepted,
     testsUsed: line.testResults.map((r) => r.toolId),
     selectedThesis: line.selectedThesis,

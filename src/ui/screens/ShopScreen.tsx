@@ -56,7 +56,7 @@ import { getStance } from '@domain/appraisal';
 import { CONFIDENCE_LABEL } from '@domain/valuation';
 import { InspectStage } from '@ui/workbench/InspectStage';
 import { NegotiateStage } from '@ui/workbench/NegotiateStage';
-import { ResultStage } from '@ui/workbench/ResultStage';
+import { ResultStage, TradeSuccessBanner } from '@ui/workbench/ResultStage';
 import { ThesisStage } from '@ui/workbench/ThesisStage';
 import {
   DiagnoseStage,
@@ -345,8 +345,27 @@ export function ShopScreen() {
                   line.negotiation.finalOffer ?? offer,
                 )}
               />
-            ) : stage === 'result' && s.lastReview ? (
-              <ResultStage review={s.lastReview} accepted={line.negotiation.state === 'ACCEPTED'} />
+            ) : stage === 'result' ? (
+              line.negotiation.state === 'ACCEPTED' ? (
+                <div className="result">
+                  <TradeSuccessBanner />
+                  <span className="result__badge result__badge--good">{t('İyi karar')}</span>
+                  <h2 className="result__headline">
+                    {t('Satıldı · {tutar}', { tutar: tl(line.negotiation.settledPrice ?? 0) })}
+                  </h2>
+                  <p className="result__note">
+                    {t('Kâr')}: {' '}
+                    <strong className="num">
+                      {tlSigned((line.negotiation.settledPrice ?? 0) - deal.purchase.packageCost)}
+                    </strong>
+                  </p>
+                </div>
+              ) : (
+                <div className="result">
+                  <span className="result__badge result__badge--neutral">{t('İşlem kapanmadı')}</span>
+                  <h2 className="result__headline">{t('Satış olmadı')}</h2>
+                </div>
+              )
             ) : (
               <StockPickStage
                 purchase={deal.purchase}
@@ -1022,6 +1041,9 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           id: 'counter',
           label: t('Karşı Teklif'),
           icon: <IconCounter size={19} />,
+          badge: session.moveHistory.some((move) => move.kind === 'requestCounter')
+            ? t('-1 sabır')
+            : t('0 sabır'),
           used: session.state === 'FINAL_OFFER',
           onPress: () => s.negotiationMove({ kind: 'requestCounter', atRound: session.round }),
         },
@@ -1273,6 +1295,9 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           id: 'counter',
           label: t('Karşı Teklif'),
           icon: <IconCounter size={19} />,
+          badge: session.moveHistory.some((move) => move.kind === 'requestCounter')
+            ? t('-1 sabır')
+            : t('0 sabır'),
           // Bkz. yukarısı: son teklifte karşı teklif istemek yalnız sabır yakar.
           used: session.state === 'FINAL_OFFER',
           onPress: () => s.negotiationMove({ kind: 'requestCounter', atRound: session.round }),
@@ -1670,6 +1695,7 @@ function ShopDock({
               onChange={setOffer}
               impacts={impacts}
               disabled={isTerminal(session.state)}
+              profitBoundary={ceiling}
               unitLabel={(() => {
                 const item = s.items[line.itemId];
                 return item ? offerUnitLabel([item], [1], offer) : null;
@@ -1847,6 +1873,7 @@ function PurchaseDock({
                 step={bounds.step}
                 impacts={impacts}
                 disabled={isTerminal(session.state)}
+                profitBoundary={purchase.packageCost}
                 unitLabel={offerUnitLabel(
                   purchase.lines.map((l) => s.items[l.itemId]).filter(Boolean) as ItemInstance[],
                   purchase.lines.filter((l) => s.items[l.itemId]).map((l) => l.quantity),

@@ -239,16 +239,16 @@ export const MOVE_ART: Record<string, Art | undefined> = {
 
 /** Teklif seviyesi rozetleri. */
 export const OFFER_TIER_ART = {
-  measured: art('realistic/gameplay/offer-tiers/measured.png', 'Ölçülü teklif'),
-  reasonable: art('realistic/gameplay/offer-tiers/reasonable.png', 'Makul teklif'),
+  measured: art('realistic/gameplay/offer-tiers/measured.png', 'Sert teklif'),
+  reasonable: art('realistic/gameplay/offer-tiers/reasonable.png', 'Dengeli teklif'),
   generous: art('realistic/gameplay/offer-tiers/generous.png', 'Cömert teklif'),
 } as const;
 
 export type OfferTier = keyof typeof OFFER_TIER_ART;
 
 export const OFFER_TIER_LABEL: Record<OfferTier, string> = {
-  measured: 'Ölçülü',
-  reasonable: 'Makul',
+  measured: 'Sert',
+  reasonable: 'Dengeli',
   generous: 'Cömert',
 };
 

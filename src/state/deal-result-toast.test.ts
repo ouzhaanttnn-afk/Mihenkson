@@ -257,6 +257,27 @@ describe('satış balonu', () => {
 
     expect(balonlar()).toContain('Satış yapılmadı');
   });
+
+  it('müşteri düşük teklif yüzünden ayrılınca oyuncuyu reddetmiş gibi göstermez', () => {
+    satanMusteriyiKarsila();
+    const first = useGame.getState().activeDeal?.lines[0];
+    if (!first) throw new Error('aktif pazarlık kurulamadı');
+
+    // Sabır bitene kadar düşük ama sıfır olmayan yeni teklifler gönder.
+    for (let i = 0; i < 12; i += 1) {
+      const state = useGame.getState();
+      const line = state.activeDeal?.lines[0];
+      if (!line || line.negotiation.state === 'REJECTED') break;
+      state.negotiationMove({
+        kind: 'offer',
+        amount: 1_000 + i,
+        atRound: line.negotiation.round,
+      });
+    }
+
+    expect(useGame.getState().lastReview?.keyDecisionPoint)
+      .toBe('Teklifiniz müşterinin kabul sınırının altında kaldı.');
+  });
 });
 
 describe('çoklu ürün pazarlığı', () => {

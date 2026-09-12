@@ -28,9 +28,23 @@ interface Props {
   accepted: boolean;
 }
 
+export function TradeSuccessBanner() {
+  return (
+    <div className="result__tradeSuccess" role="status" aria-live="polite">
+      <span className="result__handshake" aria-hidden="true">🤝</span>
+      <span className="result__successCopy">
+        <strong>{t('Ticaret başarılı')}</strong>
+        <span>{t('Anlaşma tamamlandı')}</span>
+      </span>
+    </div>
+  );
+}
+
 export function ResultStage({ review, accepted }: Props) {
   return (
     <div className="result">
+      {accepted && <TradeSuccessBanner />}
+
       <span className={`result__badge result__badge--${review.tone}`}>
         {accepted ? t(BADGE_TEXT[review.tone]) : t('İşlem kapanmadı')}
       </span>

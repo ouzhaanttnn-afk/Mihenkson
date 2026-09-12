@@ -156,13 +156,34 @@ describe('A8 · karşı teklif bütçesi', () => {
     expect(spamCounters(yetenekli).rounds).toBeGreaterThan(spamCounters(yeteneksiz).rounds);
   });
 
-  it('her tur sabırdan tam olarak sabit bedeli düşer', () => {
+  it('ilk karşı teklif ücretsiz, tekrarları sabır bedellidir', () => {
     let customer = customerWith(8);
-    const session = createSession('l', 'i');
-    const out = applyMove(session, contextFor(customer), { kind: 'requestCounter', atRound: 0 });
+    let session = createSession('l', 'i');
+    const first = applyMove(session, contextFor(customer), { kind: 'requestCounter', atRound: 0 });
+
+    expect(first.response.patienceDelta).toBe(0);
+    session = first.session;
+
+    const out = applyMove(session, contextFor(customer), {
+      kind: 'requestCounter',
+      atRound: session.round,
+    });
 
     expect(out.response.patienceDelta).toBe(-NEGOTIATION.requestCounterPatienceCost);
     customer = { ...customer, patience: customer.patience + out.response.patienceDelta };
     expect(customer.patience).toBe(8 - NEGOTIATION.requestCounterPatienceCost);
+  });
+
+  it('ilk ciddi teklif fiyat hassasiyeti yüksek müşteride yalnız bir sabır yakar', () => {
+    const customer = { ...customerWith(4), priceSensitivity: 90 };
+    const session = createSession('l', 'i');
+    const out = applyMove(session, contextFor(customer), {
+      kind: 'offer',
+      amount: 80_000,
+      atRound: 0,
+    });
+
+    expect(out.response.state).not.toBe('ACCEPTED');
+    expect(out.response.patienceDelta).toBe(-NEGOTIATION.patiencePerRound);
   });
 });
