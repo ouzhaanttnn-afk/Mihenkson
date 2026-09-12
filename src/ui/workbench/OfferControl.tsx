@@ -93,15 +93,15 @@ export function OfferControl({
           </button>)}
         </div>}
         <div className="simpleOffer__metrics" aria-live="polite">
-          <button type="button" className="simpleOffer__priceEdit" aria-label={manual ? t('Hazır tekliflere dön') : t('Kendim ayarlayayım')} aria-expanded={manual} aria-controls={controlId} onClick={() => setManual(!manual)}>
-            <span>{t('Teklifin')} <span aria-hidden="true">{manual ? '▴' : '▾'}</span></span><strong className="num">{tlBare(normalizedValue)} {currencySymbol()}</strong>
+          <button type="button" className="simpleOffer__priceEdit" aria-label={manual ? t('Hazır tekliflere dön') : t('Fiyatı kendin ayarla')} aria-expanded={manual} aria-controls={controlId} onClick={() => setManual(current => !current)}>
+            <span>{manual ? t('Hazır tekliflere dön') : t('Fiyatı kendin ayarla')}</span><strong className="num">{tlBare(normalizedValue)} {currencySymbol()}</strong>
           </button>
           <div><span>{guidance.direction === 'buy' ? t('Tahmini kazanç') : t('Satış kârı')}</span><strong className={`num impact__value--${impacts[0]?.tone ?? 'neutral'}`}>{impacts[0]?.value ?? '—'}</strong></div>
           <div><span>{t('Sonraki nakit')}</span><strong className={`num ${cashAfter < 0 ? 'impact__value--negative' : ''}`}>{tlBare(cashAfter)} {currencySymbol()}</strong></div>
         </div>
-        {manual && <div id={controlId} className="simpleOffer__manual">
-          <OfferControl value={value} min={min} max={max} step={step} onChange={onChange} impacts={[]} disabled={disabled} profitBoundary={profitBoundary} unitLabel={unitLabel} />
-        </div>}
+        <div id={controlId} className="simpleOffer__manual" hidden={!manual}>
+          {manual && <OfferControl value={value} min={min} max={max} step={step} onChange={onChange} impacts={[]} disabled={disabled} profitBoundary={profitBoundary} unitLabel={unitLabel} />}
+        </div>
         {!manual && <span className="simpleOffer__hint">{t('Kabul garantisi değildir.')}</span>}
       </div>
     );

@@ -25,6 +25,10 @@ describe('simple trade receipts and controls', () => {
     const html = renderToStaticMarkup(createElement(OfferControl, { value: 900, min: 100, max: 1500, step: 50,
       profitBoundary: 1000, impacts: [], onChange: () => {}, guidance: { direction: 'buy', anchor: 900, cash: 10 } }));
     expect(html.match(/disabled=""/g)).toHaveLength(3);
-    expect(html).toContain('Kendim ayarlayayım');expect(html).toContain('Sonraki nakit');
+    expect(html).toContain('Fiyatı kendin ayarla');expect(html).toContain('Sonraki nakit');
+    // Not only a screen-reader label: the action must be visible on the button.
+    expect(html).toContain('<span>Fiyatı kendin ayarla</span>');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('class="simpleOffer__manual" hidden=""');
   });
 });

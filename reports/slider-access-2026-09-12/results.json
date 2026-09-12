@@ -1,0 +1,684 @@
+[
+  {
+    "engine": "chrome",
+    "name": "320-buy-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.086 ₺Tahmini kazanç+11.157 ₺ kârSonraki nakit820.914 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "320-buy-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "320-buy-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "320-buy-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 448.5,
+      "bottom": 494.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "chrome",
+    "name": "320-sell-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.350 ₺Satış kârı+4.350 ₺ kârSonraki nakit1.034.350 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "320-sell-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "320-sell-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "320-sell-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 448.5,
+      "bottom": 494.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "chrome",
+    "name": "390-buy-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 726,
+      "bottom": 772,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.086 ₺Tahmini kazanç+11.157 ₺ kârSonraki nakit820.914 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "390-buy-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 726,
+      "bottom": 772,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "390-buy-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 726,
+      "bottom": 772,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "390-buy-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 704.5,
+      "bottom": 750.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "chrome",
+    "name": "390-sell-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 726,
+      "bottom": 772,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.350 ₺Satış kârı+4.350 ₺ kârSonraki nakit1.034.350 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "390-sell-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 726,
+      "bottom": 772,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "390-sell-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 726,
+      "bottom": 772,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "390-sell-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 704.5,
+      "bottom": 750.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "chrome",
+    "name": "430-buy-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.086 ₺Tahmini kazanç+11.157 ₺ kârSonraki nakit820.914 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "430-buy-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "430-buy-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "430-buy-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 793.5,
+      "bottom": 839.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "chrome",
+    "name": "430-sell-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.350 ₺Satış kârı+4.350 ₺ kârSonraki nakit1.034.350 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "430-sell-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "430-sell-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "430-sell-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 793.5,
+      "bottom": 839.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "chrome",
+    "name": "insufficient-cash",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 791.703125,
+      "bottom": 837.703125,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla165.486 ₺Tahmini kazanç+24.757 ₺ kârSonraki nakit165.476 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "loss-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 793.5,
+      "bottom": 839.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "chrome",
+    "name": "native-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 710,
+      "bottom": 756,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla39.650 ₺Satış kârı+9.650 ₺ kârSonraki nakit1.039.650 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "english-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 710,
+      "bottom": 756,
+      "visible": true
+    },
+    "text": "Set your own price39,650 ₺Sale profit+9,650 ₺ profitCash after deal1,039,650 ₺"
+  },
+  {
+    "engine": "chrome",
+    "name": "large-text-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 710,
+      "bottom": 756,
+      "visible": true
+    },
+    "text": "Set your own price39,650 ₺Sale profit+9,650 ₺ profitCash after deal1,039,650 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "320-buy-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.086 ₺Tahmini kazanç+11.157 ₺ kârSonraki nakit820.914 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "320-buy-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "320-buy-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "320-buy-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 448.5,
+      "bottom": 494.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "webkit",
+    "name": "320-sell-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.350 ₺Satış kârı+4.350 ₺ kârSonraki nakit1.034.350 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "320-sell-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "320-sell-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 458,
+      "bottom": 504,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "320-sell-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 448.5,
+      "bottom": 494.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "webkit",
+    "name": "390-buy-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 725.984375,
+      "bottom": 771.984375,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.086 ₺Tahmini kazanç+11.157 ₺ kârSonraki nakit820.914 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "390-buy-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 725.984375,
+      "bottom": 771.984375,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "390-buy-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 725.984375,
+      "bottom": 771.984375,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "390-buy-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 704.484375,
+      "bottom": 750.484375,
+      "visible": true
+    }
+  },
+  {
+    "engine": "webkit",
+    "name": "390-sell-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 725.984375,
+      "bottom": 771.984375,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.350 ₺Satış kârı+4.350 ₺ kârSonraki nakit1.034.350 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "390-sell-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 725.984375,
+      "bottom": 771.984375,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "390-sell-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 725.984375,
+      "bottom": 771.984375,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "390-sell-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 704.484375,
+      "bottom": 750.484375,
+      "visible": true
+    }
+  },
+  {
+    "engine": "webkit",
+    "name": "430-buy-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.086 ₺Tahmini kazanç+11.157 ₺ kârSonraki nakit820.914 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "430-buy-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "430-buy-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla179.186 ₺Tahmini kazanç+11.057 ₺ kârSonraki nakit820.814 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "430-buy-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 793.5,
+      "bottom": 839.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "webkit",
+    "name": "430-sell-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.350 ₺Satış kârı+4.350 ₺ kârSonraki nakit1.034.350 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "430-sell-manual",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Hazır tekliflere dön34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "430-sell-counter",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 816,
+      "bottom": 862,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla34.400 ₺Satış kârı+4.400 ₺ kârSonraki nakit1.034.400 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "430-sell-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 793.5,
+      "bottom": 839.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "webkit",
+    "name": "insufficient-cash",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 791.703125,
+      "bottom": 837.703125,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla165.486 ₺Tahmini kazanç+24.757 ₺ kârSonraki nakit165.476 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "loss-receipt",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 793.5,
+      "bottom": 839.5,
+      "visible": true
+    }
+  },
+  {
+    "engine": "webkit",
+    "name": "native-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 710,
+      "bottom": 756,
+      "visible": true
+    },
+    "text": "Fiyatı kendin ayarla39.650 ₺Satış kârı+9.650 ₺ kârSonraki nakit1.039.650 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "english-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 710,
+      "bottom": 756,
+      "visible": true
+    },
+    "text": "Set your own price39,650 ₺Sale profit+9,650 ₺ profitCash after deal1,039,650 ₺"
+  },
+  {
+    "engine": "webkit",
+    "name": "large-text-presets",
+    "overflow": false,
+    "broken": [],
+    "cta": {
+      "y": 710,
+      "bottom": 756,
+      "visible": true
+    },
+    "text": "Set your own price39,650 ₺Sale profit+9,650 ₺ profitCash after deal1,039,650 ₺"
+  }
+]

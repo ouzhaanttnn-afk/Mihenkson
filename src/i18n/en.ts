@@ -32,6 +32,7 @@ export const EN: Record<string, string> = {
   'Sonraki nakit': 'Cash after deal',
   'Hazır tekliflere dön': 'Back to presets',
   'Kendim ayarlayayım': 'Set my own price',
+  'Fiyatı kendin ayarla': 'Set your own price',
   'Bu teklifi kabul et': 'Accept this offer',
   'Analiz ve piyasa detayları': 'Analysis and market details',
   'Ticaret tamamlandı': 'Trade completed',
