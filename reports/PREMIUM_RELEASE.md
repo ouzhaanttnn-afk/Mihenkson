@@ -10,14 +10,17 @@
 
 ## Verification
 
-- 1099 automated tests passed before final documentation/edge-state changes.
+- Final local suite: 71 files / 1102 tests passed, TypeScript check passed. Includes real reward-bridge tests for duplicate taps, save/reload daily caps and unknown ownership.
 - Production build passed; Chrome/WebKit at 320/390/430 px: 6 Premium page scenarios, no horizontal overflow/JS errors, minimum 44 px purchase target, unavailable web checkout disabled.
-- iOS native compilation must pass the separate unsigned verification workflow before TestFlight dispatch.
+- Native iOS simulator compilation passed on macOS for implementation commit `1db5b30915c421ff651ace71b80f687706d3a263`: https://github.com/ouzhaanttnn-afk/Mihenkson/actions/runs/34698105399 (success). No upload step exists in this workflow. Follow-up changes are tests and policy/report text only.
+- Production navigation/onboarding/save-reload smoke tests passed in Chrome and WebKit.
 - Real StoreKit purchase/cancel/restore/refund/pending and offline relaunch require sandbox device testing. Browser mocks do not prove payment processing.
 
 ## Blocking account requirement
 
 App Store Connect Business currently shows Paid Apps Agreement = New and requires updating legal entity information before signing. Account holder must complete accurate legal, banking and tax requirements. Do not claim purchases are live; do not submit this package to TestFlight while the store product is untestable.
+
+Apple product localization, availability and review notes were saved. First-IAP review screenshot and app-review submission remain pending; no public release or TestFlight upload was dispatched. The GitHub token lacked workflow-write scope; the unsigned verification workflow was created through the authorized signed-in browser session, and normal code push succeeded afterward.
 
 ## On-device acceptance checklist
 

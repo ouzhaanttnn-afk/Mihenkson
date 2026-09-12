@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 function projectFile(path: string): string {
-  return readFileSync(fileURLToPath(new URL(`../../${path}`, import.meta.url)), 'utf8');
+  return readFileSync(fileURLToPath(new URL(`../../${path}`, import.meta.url)), 'utf8').replace(/\r\n/g, '\n');
 }
 
 function relativeLuminance(hex: string): number {
