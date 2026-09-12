@@ -17,6 +17,9 @@ import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { tlBare, pct } from '@ui/format';
 import { currencySymbol } from '@i18n/currency';
+import { useId, useState } from 'react';
+import { offerPresets, snapOffer, type PresetInput } from './offer-presets';
+export { snapOffer } from './offer-presets';
 import type { Money } from '@domain/types';
 
 export interface OfferImpact {
@@ -46,21 +49,13 @@ interface Props {
   unitLabel?: string | null;
   /** Oyuncunun kârı sıfırlanmadan verebileceği sınır; müşteri eşiği değildir. */
   profitBoundary?: Money | null;
+  guidance?: { direction: PresetInput['direction']; anchor: Money; cash: Money };
 }
 
 /**
  * HTML range adımını min değerine göre uygular. Böylece ekranda yazan teklif
  * ile tarayıcının gerçekte göndereceği slider değeri hiçbir zaman ayrışmaz.
  */
-export function snapOffer(value: Money, min: Money, max: Money, step: Money): Money {
-  const safeStep = Math.max(1, Math.round(step));
-  const safeMin = Math.round(min);
-  const safeMax = Math.max(safeMin, Math.round(max));
-  const lastStep = safeMin + Math.floor((safeMax - safeMin) / safeStep) * safeStep;
-  const clamped = Math.min(lastStep, Math.max(safeMin, Math.round(value)));
-  return safeMin + Math.round((clamped - safeMin) / safeStep) * safeStep;
-}
-
 export function OfferControl({
   value,
   min,
@@ -71,11 +66,46 @@ export function OfferControl({
   disabled,
   unitLabel,
   profitBoundary,
+  guidance,
 }: Props) {
+  const [manual, setManual] = useState(false);
+  const controlId = useId();
   const normalizedValue = snapOffer(value, min, max, step);
   const boundaryPercent = profitBoundary === null || profitBoundary === undefined || max <= min
     ? null
     : Math.max(0, Math.min(100, ((profitBoundary - min) / (max - min)) * 100));
+
+  if (guidance) {
+    const presets = offerPresets({ ...guidance, boundary: profitBoundary ?? 0, min, max, step });
+    const selectedPreset = presets.find(p => p.id === 'balanced' && p.value === normalizedValue)
+      ?? presets.find(p => p.value === normalizedValue);
+    const cashAfter = guidance.cash + (guidance.direction === 'buy' ? -normalizedValue : normalizedValue);
+    const labels = { deal: t('Anlaşma odaklı'), balanced: t('Dengeli'), profit: t('Kâr odaklı') };
+    return (
+      <div className="simpleOffer">
+        {!manual && presets.length > 0 && <div className="simpleOffer__presets" role="group" aria-label={t('Teklif tarzı')}>
+          {presets.map(preset => <button type="button" key={preset.id}
+            aria-pressed={selectedPreset?.id === preset.id}
+            disabled={disabled || (guidance.direction === 'buy' && preset.value > guidance.cash)}
+            title={guidance.direction === 'buy' && preset.value > guidance.cash ? t('Nakit yetersiz') : t('Kabul garantisi değildir.')}
+            onClick={() => onChange(preset.value)}>
+            <span>{labels[preset.id]}</span><strong className="num">{tlBare(preset.value)} {currencySymbol()}</strong>
+          </button>)}
+        </div>}
+        <div className="simpleOffer__metrics" aria-live="polite">
+          <button type="button" className="simpleOffer__priceEdit" aria-label={manual ? t('Hazır tekliflere dön') : t('Kendim ayarlayayım')} aria-expanded={manual} aria-controls={controlId} onClick={() => setManual(!manual)}>
+            <span>{t('Teklifin')} <span aria-hidden="true">{manual ? '▴' : '▾'}</span></span><strong className="num">{tlBare(normalizedValue)} {currencySymbol()}</strong>
+          </button>
+          <div><span>{guidance.direction === 'buy' ? t('Tahmini kazanç') : t('Satış kârı')}</span><strong className={`num impact__value--${impacts[0]?.tone ?? 'neutral'}`}>{impacts[0]?.value ?? '—'}</strong></div>
+          <div><span>{t('Sonraki nakit')}</span><strong className={`num ${cashAfter < 0 ? 'impact__value--negative' : ''}`}>{tlBare(cashAfter)} {currencySymbol()}</strong></div>
+        </div>
+        {manual && <div id={controlId} className="simpleOffer__manual">
+          <OfferControl value={value} min={min} max={max} step={step} onChange={onChange} impacts={[]} disabled={disabled} profitBoundary={profitBoundary} unitLabel={unitLabel} />
+        </div>}
+        {!manual && <span className="simpleOffer__hint">{t('Kabul garantisi değildir.')}</span>}
+      </div>
+    );
+  }
 
   return (
     <div className="offer">

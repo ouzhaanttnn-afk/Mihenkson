@@ -46,6 +46,7 @@ const MOVE_ICON: Record<string, typeof IconReason> = {
 };
 
 interface Props {
+  counterAction?: { onAccept: () => void; profit: Money; cashAfter: Money; estimated: boolean; disabled: boolean };
   /** Oyuncunun kendi vitrin stoğu: tarihî maliyet ile güncel metal ayrı. */
   saleAccounting?: { acquisitionCost: Money; metalValue: Money };
   session: NegotiationSession;
@@ -104,6 +105,7 @@ export function NegotiateStage({
   liquidityAfter,
   reference,
   saleAccounting,
+  counterAction,
 }: Props) {
   const active = selectedThesis
     ? thesisOptions.find((o) => o.channel === selectedThesis)
@@ -196,14 +198,27 @@ export function NegotiateStage({
       </div>
 
       {counter !== null && (
-        <div className={`counterRow ${isFinal ? 'counterRow--final' : ''}`}>
+        <div className={`counterRow simpleCounter ${isFinal ? 'counterRow--final' : ''}`}>
           <span className="counterRow__label">
             {isFinal ? t('Son teklifi') : t('Karşı teklifi')}
           </span>
           <span className="counterRow__value num">{tl(counter)}</span>
+          {counterAction && <>
+            <span className={`simpleCounter__profit ${counterAction.profit < 0 ? 'simpleCounter__profit--loss' : ''}`}>
+              {counterAction.estimated ? t('Tahmini kazanç') : t('Satış kârı')}: {tlSigned(counterAction.profit)}
+              {' · '}{t('Sonraki nakit')}: {tl(counterAction.cashAfter)}
+            </span>
+            {!isFinal && <button type="button" className="simpleCounter__accept" aria-label={t('Bu teklifi kabul et')} onClick={counterAction.onAccept} disabled={counterAction.disabled}>
+              {counterAction.disabled ? t('Nakit yetersiz') : t('Bu teklifi kabul et')}
+              <small className="simpleCounter__compactGain">{counterAction.estimated ? t('Tahmini') : t('Kâr')}: {tlSigned(counterAction.profit)}</small>
+            </button>}
+          </>}
         </div>
       )}
 
+      <details className="tradeAnalysis">
+      <summary>{t('Analiz ve piyasa detayları')}</summary>
+      <div className="tradeAnalysis__body">
       {active && (
         <div className="contextRow">
           <span className="contextRow__key">{t('Seçili tez')}</span>
@@ -424,6 +439,8 @@ export function NegotiateStage({
           )}
         </div>
       )}
+      </div>
+      </details>
     </div>
   );
 }

@@ -9,7 +9,7 @@
  */
 
 import { t } from '@i18n/index';
-import { tlSigned } from '@ui/format';
+import { tl, tlSigned } from '@ui/format';
 import type { CaseReview } from '@domain/deal-review';
 
 /*
@@ -26,24 +26,48 @@ const BADGE_TEXT: Record<CaseReview['tone'], string> = {
 interface Props {
   review: CaseReview;
   accepted: boolean;
+  paid?: number;
+  estimatedGain?: number;
 }
 
-export function TradeSuccessBanner() {
+export function TradeSuccessBanner({ profitable = true }: { profitable?: boolean }) {
   return (
-    <div className="result__tradeSuccess" role="status" aria-live="polite">
+    <div className={`result__tradeSuccess ${profitable ? '' : 'result__tradeSuccess--neutral'}`} role="status" aria-live="polite">
       <span className="result__handshake" aria-hidden="true">🤝</span>
       <span className="result__successCopy">
-        <strong>{t('Ticaret başarılı')}</strong>
+        <strong>{profitable ? t('Ticaret başarılı') : t('Ticaret tamamlandı')}</strong>
         <span>{t('Anlaşma tamamlandı')}</span>
       </span>
     </div>
   );
 }
 
-export function ResultStage({ review, accepted }: Props) {
+export function SaleResult({ price, cost }: { price: number; cost: number }) {
+  const profit = price - cost;
+  return <div className="result">
+    <TradeSuccessBanner profitable={profit >= 0} />
+    <dl className="tradeReceipt">
+      <div><dt>{t('Satış tutarı')}</dt><dd className="num">{tl(price)}</dd></div>
+      <div><dt>{t('Toplam maliyet')}</dt><dd className="num">{tl(cost)}</dd></div>
+      <div className={profit < 0 ? 'tradeReceipt__loss' : 'tradeReceipt__gain'}><dt>{t('Net kâr / zarar')}</dt><dd className="num">{tlSigned(profit)}</dd></div>
+    </dl>
+  </div>;
+}
+
+export function ResultStage({ review, accepted, paid, estimatedGain }: Props) {
   return (
     <div className="result">
-      {accepted && <TradeSuccessBanner />}
+      {accepted && <TradeSuccessBanner profitable={review.tone !== 'bad'} />}
+
+      {accepted && paid !== undefined && <dl className="tradeReceipt">
+        <div><dt>{t('Ödenen tutar')}</dt><dd className="num">{tl(paid)}</dd></div>
+        {estimatedGain !== undefined && <div><dt>{t('Tahmini kazanç')}</dt><dd className="num">{tlSigned(estimatedGain)}</dd></div>}
+        <p>{t('Ürün stoğa girdi. Kâr, ürün satıldığında gerçekleşir.')}</p>
+      </dl>}
+
+      <details className="tradeAnalysis tradeAnalysis--result">
+      <summary>{t('İşlem değerlendirmesi')}</summary>
+      <div className="tradeAnalysis__body">
 
       <span className={`result__badge result__badge--${review.tone}`}>
         {accepted ? t(BADGE_TEXT[review.tone]) : t('İşlem kapanmadı')}
@@ -75,6 +99,8 @@ export function ResultStage({ review, accepted }: Props) {
       {review.alternativeChannelNote && (
         <p className="result__note">{review.alternativeChannelNote}</p>
       )}
+      </div>
+      </details>
     </div>
   );
 }
