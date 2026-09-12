@@ -74,9 +74,25 @@ jobs:
           PROFILE_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
           PROFILE_PLIST_PATH="$RUNNER_TEMP/build_pp.plist"
           KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          set -euo pipefail
 
-          printf '%s' "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
-          printf '%s' "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+          CLEAN_CERTIFICATE_BASE64="$(printf '%s' "$BUILD_CERTIFICATE_BASE64" | tr -d '[:space:]')"
+          CLEAN_PROVISION_PROFILE_BASE64="$(printf '%s' "$BUILD_PROVISION_PROFILE_BASE64" | tr -d '[:space:]')"
+
+          if ! printf '%s' "$CLEAN_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"; then
+            echo "Failed to decode BUILD_CERTIFICATE_BASE64. Please re-upload the certificate .p12 as Base64."
+            exit 1
+          fi
+
+          if ! printf '%s' "$CLEAN_PROVISION_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"; then
+            echo "Failed to decode BUILD_PROVISION_PROFILE_BASE64."
+            exit 1
+          fi
+
+          if ! openssl pkcs12 -in "$CERTIFICATE_PATH" -passin "pass:$P12_PASSWORD" -info -noout >/dev/null 2>&1; then
+            echo "Imported certificate is not a valid PKCS#12 file or password is incorrect."
+            exit 1
+          fi
 
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
