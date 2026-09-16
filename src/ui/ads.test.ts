@@ -130,3 +130,123 @@ describe('AdMob gizlilik tercihleri', () => {
     warning.mockRestore();
   });
 });
+
+describe('AdMob rewarded reklam altyapısı ve yaşam döngüsü', () => {
+  it('initializeAds native ortamda SDK başlatır ve consent uygunsa preload tetikler', async () => {
+    mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED', true));
+    mocks.adMob.prepareRewardVideoAd.mockResolvedValue({ adUnitId: 'test' });
+    const { initializeAds } = await subject();
+
+    await initializeAds();
+    expect(mocks.adMob.initialize).toHaveBeenCalledOnce();
+    expect(mocks.adMob.requestConsentInfo).toHaveBeenCalledOnce();
+    expect(mocks.adMob.prepareRewardVideoAd).toHaveBeenCalledOnce();
+  });
+
+  it('preloadRewardedAd reklamı yükler ve isRewardedAdReady durumunu günceller', async () => {
+    mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED', true));
+    mocks.adMob.prepareRewardVideoAd.mockResolvedValue({ adUnitId: 'test' });
+    const { preloadRewardedAd, isRewardedAdReady } = await subject();
+
+    expect(isRewardedAdReady()).toBe(false);
+    const success = await preloadRewardedAd();
+    expect(success).toBe(true);
+    expect(isRewardedAdReady()).toBe(true);
+    expect(mocks.adMob.prepareRewardVideoAd).toHaveBeenCalledOnce();
+  });
+
+  it('reklam hazır değilse showRewardVideoAd ÇAĞIRMAZ, hata loglar ve false döner', async () => {
+    mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED', true));
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { showRewardedAd, isRewardedAdReady } = await subject();
+
+    expect(isRewardedAdReady()).toBe(false);
+    const result = await showRewardedAd('customerRush');
+    expect(result).toBe(false);
+    expect(mocks.adMob.showRewardVideoAd).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(
+      '[ADMOB][REWARDED][SHOW_ERROR]',
+      expect.objectContaining({ message: expect.stringContaining('Not Ready') }),
+    );
+    consoleError.mockRestore();
+  });
+
+  it('reklam hazırsa gösterir, Rewarded olayı tetiklenince ödülü verir ve yeni preload başlatır', async () => {
+    mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED', true));
+    mocks.adMob.prepareRewardVideoAd.mockResolvedValue({ adUnitId: 'test' });
+
+    let rewardedCallback: ((item: any) => void) | null = null;
+    let dismissedCallback: (() => void) | null = null;
+
+    mocks.adMob.addListener.mockImplementation((event: string, callback: any) => {
+      if (event === 'rewarded') rewardedCallback = callback;
+      if (event === 'rewardedDismissed') dismissedCallback = callback;
+      return Promise.resolve({ remove: vi.fn() });
+    });
+
+    mocks.adMob.showRewardVideoAd.mockImplementation(async () => {
+      // Simüle: Kullanıcı reklamı izledi, önce Rewarded sonra Dismissed geldi
+      rewardedCallback?.({ type: 'reward', amount: 1 });
+      dismissedCallback?.();
+      return { type: 'reward', amount: 1 };
+    });
+
+    const { preloadRewardedAd, showRewardedAd } = await subject();
+    await preloadRewardedAd();
+    expect(mocks.adMob.prepareRewardVideoAd).toHaveBeenCalledTimes(1);
+
+    const rewarded = await showRewardedAd('speed4x');
+    expect(rewarded).toBe(true);
+    expect(mocks.adMob.showRewardVideoAd).toHaveBeenCalledOnce();
+    // Dismiss sonrası otomatik sonraki preload tetiklenmiş olmalı
+    expect(mocks.adMob.prepareRewardVideoAd).toHaveBeenCalledTimes(2);
+  });
+
+  it('reklam yarıda kapatılırsa (Rewarded tetiklenmeden) ödül vermez', async () => {
+    mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED', true));
+    mocks.adMob.prepareRewardVideoAd.mockResolvedValue({ adUnitId: 'test' });
+
+    let dismissedCallback: (() => void) | null = null;
+    mocks.adMob.addListener.mockImplementation((event: string, callback: any) => {
+      if (event === 'rewardedDismissed') dismissedCallback = callback;
+      return Promise.resolve({ remove: vi.fn() });
+    });
+
+    mocks.adMob.showRewardVideoAd.mockImplementation(async () => {
+      // Rewarded tetiklenmeden doğrudan kapatıldı
+      dismissedCallback?.();
+      return {} as any;
+    });
+
+    const { preloadRewardedAd, showRewardedAd } = await subject();
+    await preloadRewardedAd();
+
+    const rewarded = await showRewardedAd('speed4x');
+    expect(rewarded).toBe(false);
+  });
+
+  it('hata sınıflandırıcı AdMob hata kategorilerini doğru tespit eder', async () => {
+    const { classifyAdMobError } = await subject();
+
+    expect(classifyAdMobError({ code: 3, message: 'No fill' })).toBe('no fill');
+    expect(classifyAdMobError({ message: 'No inventory for ad unit' })).toBe('no fill');
+    expect(classifyAdMobError({ message: 'Reward Video is Not Ready Yet' })).toBe('ad not ready');
+    expect(classifyAdMobError({ code: 1, message: 'Invalid Request' })).toBe('invalid ad unit');
+    expect(classifyAdMobError({ message: 'Cannot use AdMob ad unit ID with Ad Manager' })).toBe('invalid ad unit');
+    expect(classifyAdMobError({ message: 'Consent not obtained' })).toBe('consent/UMP problemi');
+    expect(classifyAdMobError({ code: 2, message: 'Network connection failed' })).toBe('network problemi');
+    expect(classifyAdMobError({ message: 'Ad failed to present full screen content' })).toBe('presentation error');
+    expect(classifyAdMobError({ message: 'AdMob initialize failed' })).toBe('initialization failure');
+  });
+
+  it('test modu açıldığında resmi Google test ad unit ID kullanılır', async () => {
+    const { setAdMobTestMode, isAdMobTestMode, getRewardedAdUnitId, TEST_AD_UNITS } = await subject();
+
+    setAdMobTestMode(true);
+    expect(isAdMobTestMode()).toBe(true);
+    expect(getRewardedAdUnitId()).toBe(TEST_AD_UNITS.rewarded.ios);
+
+    setAdMobTestMode(false);
+    expect(isAdMobTestMode()).toBe(false);
+  });
+});

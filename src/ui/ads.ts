@@ -45,6 +45,7 @@ import {
   InterstitialAdPluginEvents,
   RewardAdPluginEvents,
   type AdMobRewardItem,
+  type AdMobError,
 } from '@capacitor-community/admob';
 
 /** Bir ödülün ne için verildiği — hangi oyun içi etkinin tetikleneceğini seçer. */
@@ -64,29 +65,179 @@ export type RewardKind =
   | 'freeShipping'
   | 'dailyCosmetic';
 
-const REWARD_AD_UNIT: Record<'android' | 'ios', string | undefined> = {
-  android: import.meta.env.VITE_ADMOB_REWARD_UNIT_ANDROID,
-  ios: import.meta.env.VITE_ADMOB_REWARD_UNIT_IOS,
-};
+/** Google'ın resmi test reklam birimi kimlikleri */
+export const TEST_AD_UNITS = {
+  rewarded: {
+    ios: 'ca-app-pub-3940256099942544/1712485313',
+    android: 'ca-app-pub-3940256099942544/5224354917',
+  },
+  interstitial: {
+    ios: 'ca-app-pub-3940256099942544/4411468910',
+    android: 'ca-app-pub-3940256099942544/1033173712',
+  },
+} as const;
 
-/**
- * Pazartesi açılış geçiş reklamı — GDD dışı, kullanıcı isteği: "pazardan
- * pazartesiye geçtiğimizde reklam verecez zorunlu reklam gibi". OYUNCU
- * BAŞLATMIYOR; hafta açılışında OTOMATİK gösterilir. Bu yüzden rewarded
- * DEĞİL, interstitial (geçiş reklamı) formatı kullanılıyor — AdMob'un
- * rewarded kuralları "oyuncu kendi başlatır, vazgeçebilir" der; otomatik/
- * zorunlu göstermek o formatı ihlal eder ve hesap askıya alınma riski
- * taşır. Interstitial'da bu kısıtlama yok: Google'ın kendi kapatma (X)
- * kontrolü reklamın üstünde durur, biz ayrıca bir "atla" UI'ı eklemiyoruz.
- */
-const DAY_OPEN_AD_UNIT: Record<'android' | 'ios', string | undefined> = {
-  android: import.meta.env.VITE_ADMOB_DAY_OPEN_UNIT_ANDROID,
-  ios: import.meta.env.VITE_ADMOB_DAY_OPEN_UNIT_IOS,
-};
+/** Production ortamından (.env) gelen reklam birimi kimlikleri */
+export const PROD_AD_UNITS = {
+  rewarded: {
+    android: import.meta.env.VITE_ADMOB_REWARD_UNIT_ANDROID || 'ca-app-pub-4229088811556918/3366498503',
+    ios: import.meta.env.VITE_ADMOB_REWARD_UNIT_IOS || 'ca-app-pub-4229088811556918/9671167921',
+  },
+  dayOpen: {
+    android: import.meta.env.VITE_ADMOB_DAY_OPEN_UNIT_ANDROID || 'ca-app-pub-4229088811556918/7681148035',
+    ios: import.meta.env.VITE_ADMOB_DAY_OPEN_UNIT_IOS || 'ca-app-pub-4229088811556918/7939178650',
+  },
+} as const;
+
+let testModeActive = import.meta.env.DEV || import.meta.env.VITE_ADMOB_TEST_MODE === 'true';
+
+export function setAdMobTestMode(enabled: boolean): void {
+  testModeActive = enabled;
+  console.info(`[ADMOB][CONFIG] Test ad mode set to: ${enabled}`);
+  resetRewardedAdState();
+}
+
+export function isAdMobTestMode(): boolean {
+  return testModeActive;
+}
+
+if (typeof window !== 'undefined') {
+  (window as any).__setAdMobTestMode = setAdMobTestMode;
+  (window as any).__isAdMobTestMode = isAdMobTestMode;
+}
 
 function platformOf(): 'android' | 'ios' | null {
   const platform = Capacitor.getPlatform();
   return platform === 'android' || platform === 'ios' ? platform : null;
+}
+
+export function getRewardedAdUnitId(): string | null {
+  const platform = platformOf();
+  if (!platform) return null;
+  if (testModeActive) {
+    return TEST_AD_UNITS.rewarded[platform];
+  }
+  return PROD_AD_UNITS.rewarded[platform] || null;
+}
+
+export function getDayOpenAdUnitId(): string | null {
+  const platform = platformOf();
+  if (!platform) return null;
+  if (testModeActive) {
+    return TEST_AD_UNITS.interstitial[platform];
+  }
+  return PROD_AD_UNITS.dayOpen[platform] || null;
+}
+
+export type AdMobErrorCategory =
+  | 'no fill'
+  | 'ad not ready'
+  | 'invalid ad unit'
+  | 'initialization failure'
+  | 'consent/UMP problemi'
+  | 'network problemi'
+  | 'presentation error'
+  | 'unknown';
+
+export function classifyAdMobError(error: any): AdMobErrorCategory {
+  if (!error) return 'unknown';
+
+  const code = typeof error === 'object' && error !== null && 'code' in error ? Number(error.code) : null;
+  const message = String(error?.message || error?.errorDescription || error || '').toLowerCase();
+
+  if (
+    message.includes('not ready') ||
+    message.includes('no ad prepared') ||
+    message.includes('not loaded') ||
+    message.includes('ad_not_ready')
+  ) {
+    return 'ad not ready';
+  }
+
+  if (
+    message.includes('consent') ||
+    message.includes('ump') ||
+    message.includes('privacy') ||
+    message.includes('canrequestads')
+  ) {
+    return 'consent/UMP problemi';
+  }
+
+  if (
+    message.includes('initialize') ||
+    message.includes('init') ||
+    message.includes('sdk')
+  ) {
+    return 'initialization failure';
+  }
+
+  if (
+    code === 1 ||
+    message.includes('invalid ad unit') ||
+    message.includes('invalid request') ||
+    message.includes('adunitid') ||
+    message.includes('malformed') ||
+    message.includes('cannot use admob ad unit')
+  ) {
+    return 'invalid ad unit';
+  }
+
+  if (
+    code === 2 ||
+    message.includes('network') ||
+    message.includes('timeout') ||
+    message.includes('connection') ||
+    message.includes('offline') ||
+    message.includes('unreachable')
+  ) {
+    return 'network problemi';
+  }
+
+  if (
+    code === 3 ||
+    message.includes('no fill') ||
+    message.includes('no inventory') ||
+    message.includes('no ad config') ||
+    message.includes('no matching ads') ||
+    message.includes('request completed without an ad')
+  ) {
+    return 'no fill';
+  }
+
+  if (
+    message.includes('presentation') ||
+    message.includes('failed to show') ||
+    message.includes('present') ||
+    message.includes('already showing')
+  ) {
+    return 'presentation error';
+  }
+
+  return 'unknown';
+}
+
+export function logAdLoadError(error: any): void {
+  console.error('[ADMOB][REWARDED][LOAD_ERROR]', error);
+  const category = classifyAdMobError(error);
+  console.error(`[ADMOB][REWARDED][LOAD_ERROR][CATEGORY: ${category}]`, {
+    category,
+    code: error?.code,
+    message: error?.message || String(error),
+    adUnitId: getRewardedAdUnitId(),
+    testMode: testModeActive,
+  });
+}
+
+export function logAdShowError(error: any): void {
+  console.error('[ADMOB][REWARDED][SHOW_ERROR]', error);
+  const category = classifyAdMobError(error);
+  console.error(`[ADMOB][REWARDED][SHOW_ERROR][CATEGORY: ${category}]`, {
+    category,
+    code: error?.code,
+    message: error?.message || String(error),
+    adUnitId: getRewardedAdUnitId(),
+    testMode: testModeActive,
+  });
 }
 
 type PrivacyOptionsRequirement = 'UNKNOWN' | 'REQUIRED' | 'NOT_REQUIRED';
@@ -107,18 +258,27 @@ let initPromise: Promise<AdConsentGate> | null = null;
 function ensureInitialized(): Promise<AdConsentGate> {
   if (!initPromise) {
     initPromise = (async () => {
-      await AdMob.initialize();
+      try {
+        console.info('[ADMOB][INIT] Initializing Google Mobile Ads SDK...');
+        await AdMob.initialize({
+          initializeForTesting: testModeActive,
+        });
+        console.info('[ADMOB][INIT] AdMob initialized.');
+      } catch (initErr) {
+        console.error('[ADMOB][INIT_ERROR]', initErr);
+        const cat = classifyAdMobError(initErr);
+        console.error(`[ADMOB][INIT_ERROR][CATEGORY: ${cat}]`, initErr);
+        throw initErr;
+      }
 
       let consent = await AdMob.requestConsentInfo();
-      if (
-        !consent.canRequestAds &&
-        consent.isConsentFormAvailable
-      ) {
+      if (!consent?.canRequestAds && consent?.isConsentFormAvailable) {
+        console.info('[ADMOB][CONSENT] Consent form available, presenting to user...');
         consent = await AdMob.showConsentForm();
       }
       return {
-        canRequestAds: consent.canRequestAds,
-        privacyOptionsRequirement: consent.privacyOptionsRequirementStatus,
+        canRequestAds: Boolean(consent?.canRequestAds),
+        privacyOptionsRequirement: consent?.privacyOptionsRequirementStatus ?? 'UNKNOWN',
       };
     })().catch((error) => {
       // Ağ/UMP hatasında daha sonraki kullanıcı eylemi yeniden deneyebilsin.
@@ -127,6 +287,23 @@ function ensureInitialized(): Promise<AdConsentGate> {
     });
   }
   return initPromise;
+}
+
+/** Uygulama başlangıcında (main.tsx) çağrılır; SDK ve ilk preload'u tetikler. */
+export async function initializeAds(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) {
+    console.info('[ADMOB][INIT] Not a native platform, skipping AdMob initialization.');
+    return;
+  }
+  try {
+    const consent = await ensureInitialized();
+    console.info('[ADMOB][INIT] Initialization complete. canRequestAds:', consent.canRequestAds);
+    if (consent.canRequestAds) {
+      await preloadRewardedAd();
+    }
+  } catch (error) {
+    console.error('[ADMOB][INIT_ERROR] initializeAds failed:', error);
+  }
 }
 
 export type AdPrivacyOptionsResult = 'shown' | 'not-required' | 'unavailable' | 'failed';
@@ -143,8 +320,6 @@ export async function showAdPrivacyOptions(): Promise<AdPrivacyOptionsResult> {
       return 'not-required';
     }
     await AdMob.showPrivacyOptionsForm();
-    // Form sonrasında izin durumu değişmiş olabilir; bir sonraki reklamın
-    // güncel `canRequestAds` kararını yeniden almasını sağla.
     initPromise = null;
     return 'shown';
   } catch (error) {
@@ -157,6 +332,74 @@ export function adPrivacyOptionsSupported(): boolean {
   return Capacitor.isNativePlatform();
 }
 
+// ─── REWARDED AD PRELOAD & LIFECYCLE STATE ────────────────────────────────────
+
+let isRewardedAdLoaded = false;
+let isRewardedAdLoading = false;
+let rewardedLoadPromise: Promise<boolean> | null = null;
+let loadedAdUnitId: string | null = null;
+
+export function isRewardedAdReady(): boolean {
+  return isRewardedAdLoaded;
+}
+
+function resetRewardedAdState(): void {
+  isRewardedAdLoaded = false;
+  isRewardedAdLoading = false;
+  rewardedLoadPromise = null;
+  loadedAdUnitId = null;
+}
+
+/**
+ * Rewarded reklamı önceden belleğe yükler (preload).
+ * Show çağrısından önce çağrılmalı veya uygulama açılışında / reklam bitiminde tetiklenmelidir.
+ */
+export async function preloadRewardedAd(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return false;
+  if (await premiumEntitlement() === true) return false;
+
+  const unitId = getRewardedAdUnitId();
+  if (!unitId) {
+    const error = new Error('No rewarded ad unit ID available for current platform');
+    logAdLoadError(error);
+    return false;
+  }
+
+  if (isRewardedAdLoaded && loadedAdUnitId === unitId) {
+    console.info(`[ADMOB][REWARDED] Ad already preloaded and ready (Unit: ${unitId}).`);
+    return true;
+  }
+
+  if (isRewardedAdLoading && rewardedLoadPromise) {
+    return rewardedLoadPromise;
+  }
+
+  isRewardedAdLoading = true;
+  rewardedLoadPromise = (async () => {
+    try {
+      if (!(await ensureInitialized()).canRequestAds) return false;
+
+      console.info(`[ADMOB][REWARDED] Preloading ad (Unit: ${unitId}, TestMode: ${testModeActive})...`);
+      await AdMob.prepareRewardVideoAd({ adId: unitId });
+      isRewardedAdLoaded = true;
+      loadedAdUnitId = unitId;
+      isRewardedAdLoading = false;
+      console.info(`[ADMOB][REWARDED] Preload successful (Unit: ${unitId}).`);
+      return true;
+    } catch (error: any) {
+      isRewardedAdLoaded = false;
+      loadedAdUnitId = null;
+      isRewardedAdLoading = false;
+      logAdLoadError(error);
+      return false;
+    } finally {
+      rewardedLoadPromise = null;
+    }
+  })();
+
+  return rewardedLoadPromise;
+}
+
 /**
  * Ödüllü reklamı gösterir, oyuncu ödülü GERÇEKTEN kazandıysa `true` döner.
  *
@@ -166,7 +409,6 @@ export function adPrivacyOptionsSupported(): boolean {
  */
 export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
   const premium = await premiumEntitlement();
-  // Existing game actions still enforce eligibility, cooldowns and daily caps.
   if (premium === true) return true;
   if (premium === null) return false;
   if (!Capacitor.isNativePlatform()) {
@@ -174,43 +416,68 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
     return false;
   }
 
-  const platform = platformOf();
-  const unitId = platform ? REWARD_AD_UNIT[platform] : null;
-  if (!unitId) return false;
+  // 1. Eğer halihazırda bir yükleme sürüyorsa kısa bir süre tamamlanmasını bekle
+  if (!isRewardedAdLoaded && isRewardedAdLoading && rewardedLoadPromise) {
+    console.info('[ADMOB][REWARDED] Preload in progress, waiting briefly...');
+    await Promise.race([
+      rewardedLoadPromise,
+      new Promise((resolve) => setTimeout(resolve, 3500)),
+    ]);
+  }
 
-  try {
-    if (!(await ensureInitialized()).canRequestAds) return false;
-    await AdMob.prepareRewardVideoAd({ adId: unitId });
-    // A purchase may have completed while the ad was loading.
-    const latest = await premiumEntitlement();
-    if (latest !== false) return latest === true;
-  } catch (err) {
-    console.warn('[ads] Reklam yüklenemedi:', err);
+  // 2. REKLAM HENÜZ YÜKLENMEDİYSE SHOW() ÇAĞIRMA!
+  if (!isRewardedAdLoaded) {
+    const notReadyErr = new Error('Reward Video is Not Ready Yet');
+    logAdShowError(notReadyErr);
+    // Bir sonraki denemeye hazır olsun diye arka planda preload başlat
+    void preloadRewardedAd();
     return false;
   }
+
+  // Yüklü reklam tüketiliyor
+  isRewardedAdLoaded = false;
+  loadedAdUnitId = null;
 
   return new Promise<boolean>((resolve) => {
     let rewarded = false;
     let settled = false;
     const handles: Promise<{ remove: () => void }>[] = [];
 
+    const cleanup = () => {
+      for (const h of handles) {
+        h.then((handle) => handle.remove()).catch(() => {});
+      }
+    };
+
     const finish = (result: boolean) => {
       if (settled) return;
       settled = true;
+      cleanup();
+      // Reklam kapandıktan sonra bir sonraki rewarded reklamı otomatik preload et
+      void preloadRewardedAd();
       resolve(result);
-      // Dinleyiciler sonraki gösterimlerde birikmesin diye temizlenir.
-      for (const h of handles) h.then((handle) => handle.remove());
     };
 
     handles.push(
-      AdMob.addListener(RewardAdPluginEvents.Rewarded, (_reward: AdMobRewardItem) => {
+      AdMob.addListener(RewardAdPluginEvents.Rewarded, (reward: AdMobRewardItem) => {
+        console.info('[ADMOB][REWARDED] User earned reward:', reward);
         rewarded = true;
       }),
-      AdMob.addListener(RewardAdPluginEvents.Dismissed, () => finish(rewarded)),
-      AdMob.addListener(RewardAdPluginEvents.FailedToShow, () => finish(false)),
+      AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
+        console.info(`[ADMOB][REWARDED] Ad dismissed. User rewarded: ${rewarded}`);
+        // Reklam başarıyla TAMAMLANDIĞINDA ödülü ver; yarıda kapatıldıysa ödül verme
+        finish(rewarded);
+      }),
+      AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error: AdMobError) => {
+        logAdShowError(error);
+        finish(false);
+      }),
     );
 
-    AdMob.showRewardVideoAd().catch(() => finish(false));
+    AdMob.showRewardVideoAd().catch((error: any) => {
+      logAdShowError(error);
+      finish(false);
+    });
   });
 }
 
@@ -228,8 +495,7 @@ export async function showInterstitialAd(): Promise<void> {
   if (await premiumEntitlement() !== false) return;
   if (!Capacitor.isNativePlatform()) return;
 
-  const platform = platformOf();
-  const unitId = platform ? DAY_OPEN_AD_UNIT[platform] : null;
+  const unitId = getDayOpenAdUnitId();
   if (!unitId) return;
 
   try {

@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 
 import { App } from '@ui/App';
 import { initializePremium } from '@ui/premium';
+import { initializeAds } from '@ui/ads';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root bulunamadı');
@@ -16,6 +17,7 @@ if (Capacitor.isNativePlatform()) {
 }
 
 initializePremium();
+void initializeAds();
 createRoot(root).render(
   <StrictMode>
     <App />

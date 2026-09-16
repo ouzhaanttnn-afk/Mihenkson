@@ -69,8 +69,6 @@
 	<true/>
 
 	<!-- Gerçek AdMob iOS App ID (bkz. src/ui/ads.ts) -->
-	<key>GADIsAdManagerApp</key>
-	<true/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-4229088811556918~3768104554</string>
 	<key>SKAdNetworkItems</key>
