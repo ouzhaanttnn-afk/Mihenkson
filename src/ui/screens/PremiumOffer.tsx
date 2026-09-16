@@ -27,7 +27,7 @@ export function PremiumOffer() {
       </ul>
       <div className="premiumOffer__price">
         {active && known ? <strong>{t('Premium aktif')}</strong> : <>
-          <strong>{product?.displayPrice ?? '—'}</strong>
+          <strong>{product?.displayPrice ?? '299,00 ₺'}</strong>
           <span>{t('Tek seferlik · Abonelik değil')}</span>
         </>}
       </div>
