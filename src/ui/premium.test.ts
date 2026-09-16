@@ -73,4 +73,52 @@ describe('Premium: Apple entitlement only', () => {
     mocks.bridge.purchase.mockRejectedValue(new Error('verification failed')); await p.buyPremium();
     expect(p.usePremium.getState()).toMatchObject({ busy: false, active: false, message: 'failed' });
   });
+  it('tracks productLoading and productError flags accurately on failure', async () => {
+    const p = await import('./premium');
+    mocks.bridge.getProduct.mockRejectedValue(new Error('Store down'));
+    await p.loadPremiumProduct();
+    expect(p.usePremium.getState()).toMatchObject({
+      product: null,
+      productLoading: false,
+      productError: true,
+    });
+    // Purchase cannot be triggered without a valid product
+    await p.buyPremium();
+    expect(mocks.bridge.purchase).not.toHaveBeenCalled();
+  });
+});
+
+describe('PremiumOffer review-safe UI contract', () => {
+  it('enforces all App Store review requirements on PremiumOffer and Market', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const premiumOfferCode = fs.readFileSync(path.resolve(__dirname, 'screens/PremiumOffer.tsx'), 'utf-8');
+    const marketScreenCode = fs.readFileSync(path.resolve(__dirname, 'screens/MarketPlaceholderScreen.tsx'), 'utf-8');
+
+    // 1. product null iken sabit fallback fiyat (örn. '299,00 ₺') görünmemeli
+    expect(premiumOfferCode).not.toContain("'299,00 ₺'");
+    expect(premiumOfferCode).not.toContain('"299,00 ₺"');
+    expect(premiumOfferCode).not.toContain("product?.displayPrice ??");
+
+    // 2. product null iken purchase CTA disabled olmalı
+    expect(premiumOfferCode).toContain('!product?.canPurchase');
+    expect(premiumOfferCode).toContain('cta--disabled');
+
+    // 3. product geldiyse App Store fiyatı görünmeli
+    expect(premiumOfferCode).toContain('product.displayPrice');
+    expect(premiumOfferCode).toContain('{fiyat} ile Satın Al');
+
+    // 4. ürün yükleme hatasında tek retry mesajı görünmeli
+    expect(premiumOfferCode).toContain('App Store bağlantısı kurulamadı.');
+    expect(premiumOfferCode).toContain('Tekrar Dene');
+
+    // 5. restore butonu görünmeye devam etmeli
+    expect(premiumOfferCode).toContain('Satın Alımları Geri Yükle');
+    expect(premiumOfferCode).toContain('premiumOffer__restore');
+
+    // 6. "Günün Fırsatını Dene" Premium kartında / offers sekmesinde görünmemeli
+    const offersBlock = marketScreenCode.match(/category === 'offers'\s*\?\s*\([\s\S]*?\)\s*:\s*\(/)?.[0] ?? '';
+    expect(offersBlock).not.toContain('Günün Fırsatını Dene');
+    expect(offersBlock).not.toContain('requestDailyCosmetic');
+  });
 });

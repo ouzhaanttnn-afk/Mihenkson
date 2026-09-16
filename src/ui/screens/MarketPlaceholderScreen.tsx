@@ -204,25 +204,10 @@ export function MarketPlaceholderScreen() {
         {category === 'offers' ? (
           <div className="marketComingSoon">
             <PremiumOffer />
-            <div className="marketComingSoon__actions">
-              <button
-                type="button"
-                className="marketComingSoon__reward"
-                disabled={
-                  s.rewardedCosmeticTrial !== null ||
-                  s.rewardedDailyUses.dailyCosmetic === s.market.day ||
-                  s.rewardedAdPending !== null
-                }
-                onClick={s.requestDailyCosmetic}
-              >
-                {s.rewardedDailyUses.dailyCosmetic === s.market.day
-                  ? t('Bugün denendi')
-                  : t('Günün Fırsatını Dene')}
-              </button>
-            </div>
           </div>
         ) : (
-          <div className="marketGrid">
+          <>
+            <div className="marketGrid">
           {products.map((product) => {
             const owned = s.playerMarket.owned.includes(product.id);
             const equipped = product.equipSlot ? s.playerMarket.equipped[product.equipSlot] === product.id : false;
@@ -294,6 +279,23 @@ export function MarketPlaceholderScreen() {
             );
           })}
           </div>
+          <div className="marketCatalog__footerAction">
+            <button
+              type="button"
+              className="marketComingSoon__reward"
+              disabled={
+                s.rewardedCosmeticTrial !== null ||
+                s.rewardedDailyUses.dailyCosmetic === s.market.day ||
+                s.rewardedAdPending !== null
+              }
+              onClick={s.requestDailyCosmetic}
+            >
+              {s.rewardedDailyUses.dailyCosmetic === s.market.day
+                ? t('Bugün denendi')
+                : t('Günün Fırsatını Dene')}
+            </button>
+          </div>
+        </>
         )}
       </section>
 

@@ -16,8 +16,22 @@ export const premiumSupported = () => Capacitor.isNativePlatform() && Capacitor.
 type Message = 'idle' | 'loading' | 'purchased' | 'pending' | 'cancelled' | 'restored' | 'notFound' | 'failed';
 // Deliberately NOT persisted: a game save or localStorage cannot confer ownership.
 export const usePremium = create<{
-  active: boolean; known: boolean; product: Product | null; busy: boolean; message: Message;
-}>(() => ({ active: false, known: false, product: null, busy: false, message: 'idle' }));
+  active: boolean;
+  known: boolean;
+  product: Product | null;
+  productLoading: boolean;
+  productError: boolean;
+  busy: boolean;
+  message: Message;
+}>(() => ({
+  active: false,
+  known: false,
+  product: null,
+  productLoading: false,
+  productError: false,
+  busy: false,
+  message: 'idle',
+}));
 
 function accept(value: Entitlement) {
   if (typeof value.active !== 'boolean') throw new Error('Invalid entitlement');
@@ -43,11 +57,14 @@ export async function premiumEntitlement(): Promise<boolean | null> {
 
 export async function loadPremiumProduct(): Promise<void> {
   if (!premiumSupported()) return;
+  usePremium.setState({ productLoading: true, productError: false });
   try {
     const product = await bounded(native.getProduct());
     if (product.id !== PREMIUM_PRODUCT_ID || !product.displayPrice) throw new Error('Invalid product');
-    usePremium.setState({ product });
-  } catch { usePremium.setState({ product: null }); }
+    usePremium.setState({ product, productLoading: false, productError: false });
+  } catch {
+    usePremium.setState({ product: null, productLoading: false, productError: true });
+  }
 }
 
 let initialized = false;

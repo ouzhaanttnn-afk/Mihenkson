@@ -11,37 +11,97 @@ const MESSAGES = {
 } as const;
 
 export function PremiumOffer() {
-  const { active, known, product, busy, message } = usePremium();
+  const { active, known, product, productLoading, productError, busy, message } = usePremium();
   const supported = premiumSupported();
   useEffect(() => { initializePremium(); void loadPremiumProduct(); }, []);
+
+  const showActionStatus = !productError && (
+    message === 'purchased' || message === 'restored' || message === 'pending' || (message === 'failed' && busy === false)
+  );
+
   return (
     <article className="premiumOffer" aria-labelledby="premium-title">
       <span className="premiumOffer__seal" aria-hidden="true">✦</span>
       <div className="premiumOffer__eyebrow">MIHENK PREMIUM</div>
-      <h2 id="premium-title">{t('Reklamsız kuyumculuk')}</h2>
-      <p>{t('Bir kez satın al, kalıcı olarak reklamsız oyna.')}</p>
-      <ul>
-        <li>{t('Zorunlu reklamlar tamamen kalkar.')}</li>
-        <li>{t('Ödülleri reklam izlemeden, ilgili düğmeye dokunarak alırsın.')}</li>
-        <li>{t('Mevcut günlük haklar ve bekleme süreleri korunur.')}</li>
+      <h2 id="premium-title">{t('Reklamsız Kuyumculuk')}</h2>
+      <p className="premiumOffer__subtitle">{t('Bir kez satın al, kalıcı olarak reklamsız oyna.')}</p>
+
+      <ul className="premiumOffer__benefits">
+        <li>{t('Zorunlu reklamlar kalkar.')}</li>
+        <li>{t('Ödülleri reklam izlemeden alırsın.')}</li>
       </ul>
+
       <div className="premiumOffer__price">
-        {active && known ? <strong>{t('Premium aktif')}</strong> : <>
-          <strong>{product?.displayPrice ?? '299,00 ₺'}</strong>
-          <span>{t('Tek seferlik · Abonelik değil')}</span>
-        </>}
+        {active && known ? (
+          <strong>{t('Premium aktif')}</strong>
+        ) : product ? (
+          <>
+            <strong>{product.displayPrice}</strong>
+            <span>{t('Tek seferlik · Abonelik değil')}</span>
+          </>
+        ) : productError ? (
+          <div className="premiumOffer__errorBlock">
+            <span className="premiumOffer__errorText">{t('App Store bağlantısı kurulamadı.')}</span>
+            <button
+              type="button"
+              className="premiumOffer__retry"
+              disabled={busy}
+              onClick={() => { initializePremium(); void loadPremiumProduct(); }}
+            >
+              {t('Tekrar Dene')}
+            </button>
+          </div>
+        ) : productLoading || (!product && !productError) ? (
+          <div className="premiumOffer__loadingBlock">
+            <span className="premiumOffer__loadingText">{t('App Store’a bağlanılıyor…')}</span>
+            <span>{t('Tek seferlik · Abonelik değil')}</span>
+          </div>
+        ) : null}
       </div>
-      <button type="button" className="cta" disabled={!supported || !known || active || busy || !product?.canPurchase} onClick={() => void buyPremium()}>
-        {busy ? t('İşlem sürüyor…') : active && known ? t('Premium aktif') : t('Premium Satın Al')}
+
+      <button
+        type="button"
+        className={`cta ${!product || !product.canPurchase ? 'cta--disabled' : ''}`}
+        disabled={!supported || !known || active || busy || !product?.canPurchase}
+        onClick={() => void buyPremium()}
+      >
+        {busy
+          ? t('İşlem sürüyor…')
+          : active && known
+          ? t('Premium aktif')
+          : product
+          ? t('{fiyat} ile Satın Al', { fiyat: product.displayPrice })
+          : t('Premium Satın Al')}
       </button>
-      <p className="premiumOffer__notice">
-        {!supported ? t('Satın alma iOS uygulamasında kullanılabilir.') : !product ? t('App Store fiyatı şu anda alınamıyor. Tekrar deneyebilirsin.') : t('Gerçek para ile satın alınır; oyun içi nakit kullanılmaz.')}
+
+      <p className="premiumOffer__caption">
+        {t('Mevcut günlük haklar ve bekleme süreleri korunur.')}
       </p>
-      {supported && <div className="premiumOffer__links">
-        <button type="button" disabled={busy} onClick={() => void restorePremium()}>{t('Satın Alımları Geri Yükle')}</button>
-        {(!product || !known) && <button type="button" disabled={busy} onClick={() => { initializePremium(); void loadPremiumProduct(); }}>{t('Tekrar Dene')}</button>}
-      </div>}
-      <p className="premiumOffer__status" role="status">{t(MESSAGES[message])}</p>
+
+      {!supported && (
+        <p className="premiumOffer__notice">
+          {t('Satın alma iOS uygulamasında kullanılabilir.')}
+        </p>
+      )}
+
+      {supported && (
+        <div className="premiumOffer__links">
+          <button
+            type="button"
+            className="premiumOffer__restore"
+            disabled={busy}
+            onClick={() => void restorePremium()}
+          >
+            {t('Satın Alımları Geri Yükle')}
+          </button>
+        </div>
+      )}
+
+      {showActionStatus && (
+        <p className="premiumOffer__status" role="status">
+          {t(MESSAGES[message])}
+        </p>
+      )}
     </article>
   );
 }
