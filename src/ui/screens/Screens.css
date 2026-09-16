@@ -641,7 +641,7 @@
 }
 
 .deliveryResult--failed { border-left-color: var(--negative); }
-.deliveryResult__head { display: flex; justify-content: space-between; gap: var(--sp-3); }
+.deliveryResult__head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
 .deliveryResult__head h2 { font-size: var(--fs-body); margin: 2px 0; }
 .deliveryResult__head p,
 .deliveryResult__message { color: var(--text-light-3); font-size: var(--fs-caption); }
