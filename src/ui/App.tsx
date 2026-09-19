@@ -24,6 +24,7 @@ import { MarketPlaceholderScreen } from '@ui/screens/MarketPlaceholderScreen';
 import { ProfileDialog } from '@ui/shell/ProfileDialog';
 import { SettingsDialog } from '@ui/shell/SettingsDialog';
 import { RecallDialog } from '@ui/shell/RecallDialog';
+import { RankingDialog } from '@ui/shell/RankingDialog';
 import { DayCloseDialog } from '@ui/shell/DayCloseDialog';
 import { AppLoadingScreen } from '@ui/shell/AppLoadingScreen';
 import { overdueJobs, readyJobs } from '@domain/service';
@@ -63,6 +64,7 @@ export function App() {
   const profile = useGame((s) => s.profile);
   const profileOpen = useGame((s) => s.profileOpen);
   const settingsOpen = useGame((s) => s.settingsOpen);
+  const rankingOpen = useGame((s) => s.rankingOpen);
   const profileSetupDone = useGame((s) => s.profileSetupDone);
   const completeProfileSetup = useGame((s) => s.completeProfileSetup);
   const closeProfile = useGame((s) => s.closeProfile);
@@ -294,6 +296,8 @@ export function App() {
           />
         ) : settingsOpen ? (
           <SettingsDialog />
+        ) : rankingOpen ? (
+          <RankingDialog />
         ) : null}
 
         {/*

@@ -1,5 +1,23 @@
 # MIHENK v1.1.0 — sonuç ve yayın kapıları
 
+## Son yerel ek paket — 19 Eylül 2026
+
+Bu bölüm aşağıdaki eski doğrulama/yayın durumundan önceliklidir. Yeni değişiklikler henüz commit/push edilmedi; Vercel veya Apple'a yüklenmedi.
+
+- Dükkanın piyasa şeridine aylık sıralama kupası ve erişilebilir modal eklendi. Modal açıkken oyun saati durur.
+- Müşteri için stok alırken mevcut satılabilir stok düşülerek eksik miktar önerilir; satın alma otomatik yapılmaz. Eski birebir SKU talepleri başka ürünle değiştirilmez.
+- Sarrafiye stok değeri, tam pozisyonun tek seferde toptancıya satış teklifini kullanır; parça parça satışın farklı olabileceği belirtilir. Ekonomi formülleri değişmedi.
+- Reklam hazırlanması, uygun reklam bulunmaması, ağ/izin hatası ve erken kapatma ayrı mesajlarla açıklanır. Gerçek ödül callback şartı korunur.
+- Web Premium kartı App Store'a sonsuz bağlanıyormuş gibi görünmez. Ayarlara sürüm, native build bilgisi ve kısa yenilik listesi eklendi.
+- React kontrolünde mevcut state/manager yapıları korundu; sürüm sorgusuna unmount temizliği eklendi.
+- Game Center ID doğrulaması, kullanıcıya skor görünürlüğü açıklaması ve [kurulum rehberi](GAME_CENTER_SETUP.md) eklendi. Gerçek ID haritası hâlâ boş; canlı sıralama etkin değil.
+
+Doğrulama: TypeScript geçti; 1.035 çeviri anahtarının tamamı karşılandı; 5 bağımsız release hazırlık testi ve 77 statik release kontrolü geçti. Yeni UX/reklam testleri eklendi fakat Vitest çalıştırılamadı. `npm run build` TypeScript aşamasını geçip Vite config yüklemesinde esbuild'in üst dizin erişim engeline takıldı. Tam web build, yeni ekranların tarayıcı testi ve signed iOS archive başarılı sayılmaz. Aşağıdaki eski test başarıları bu ek paketin doğrulaması değildir.
+
+Ek paketin ana dosyaları: `stock-guidance.ts`, `StockScreen.tsx`, `ShopScreen.tsx`, `ads.ts`, `ad-feedback.ts`, `gameStore.ts`, `PremiumOffer.tsx`, `ReleaseInfo.tsx`, `SettingsDialog.tsx`, `RankingDialog.tsx`, `MonthlyLeaderboard.tsx`, `App.tsx`, `update110.css`, `en.ts`, `prepare-release.mjs` ve bunların testleri.
+
+Omni kullanımı: bu ek paket oturumunda 0 çağrı; tasarruf miktarı ölçülmedi.
+
 ## Durum
 
 Çalışma `mihenk-v1.1.0` dalında. İlk classic tabanının ardından, kullanıcının ekran görüntüsündeki gerçek TestFlight **1.0.3 (21)** sürümünün başarılı GitHub workflow kaydı doğrulandı: `8ec41bb9f5d4f57a5588e08a570a57db7b9026ec`. Bu commit'in tüm main geliştirmeleri merge edildi. Premium StoreKit, gerçek fiyatlandırma, reklam preload/UMP düzeltmeleri, altın hareketleri, ticaret sonuçları ve premium ikon pipeline'ı korundu. `main` ve classic dalına yazılmadı.

@@ -39,6 +39,7 @@
  */
 
 import { setAdAudioPaused } from './audio';
+import { setRewardedFeedback, type RewardedFeedback } from './ad-feedback';
 import { Capacitor } from '@capacitor/core';
 import { premiumEntitlement } from './premium';
 import {
@@ -229,6 +230,13 @@ export function logAdLoadError(error: any): void {
   });
 }
 
+function adFailureReason(error: unknown): RewardedFeedback {
+  const category = classifyAdMobError(error);
+  return category === 'no fill' ? 'unavailable'
+    : category === 'network problemi' ? 'network'
+    : category === 'consent/UMP problemi' ? 'consent' : 'failed';
+}
+
 export function logAdShowError(error: any): void {
   console.error('[ADMOB][REWARDED][SHOW_ERROR]', error);
   const category = classifyAdMobError(error);
@@ -343,6 +351,7 @@ let isRewardedAdLoaded = false;
 let isRewardedAdLoading = false;
 let rewardedLoadPromise: Promise<boolean> | null = null;
 let loadedAdUnitId: string | null = null;
+let lastLoadFailure: RewardedFeedback = null;
 
 export function isRewardedAdReady(): boolean {
   return isRewardedAdLoaded;
@@ -353,6 +362,7 @@ function resetRewardedAdState(): void {
   isRewardedAdLoading = false;
   rewardedLoadPromise = null;
   loadedAdUnitId = null;
+  lastLoadFailure = null;
 }
 
 /**
@@ -386,6 +396,7 @@ export async function preloadRewardedAd(): Promise<boolean> {
 
       console.info(`[ADMOB][REWARDED] Preloading ad (Unit: ${unitId}, TestMode: ${testModeActive})...`);
       await AdMob.prepareRewardVideoAd({ adId: unitId });
+      lastLoadFailure = null;
       isRewardedAdLoaded = true;
       loadedAdUnitId = unitId;
       isRewardedAdLoading = false;
@@ -396,6 +407,7 @@ export async function preloadRewardedAd(): Promise<boolean> {
       loadedAdUnitId = null;
       isRewardedAdLoading = false;
       logAdLoadError(error);
+      lastLoadFailure = adFailureReason(error);
       return false;
     } finally {
       isRewardedAdLoading = false;
@@ -416,15 +428,16 @@ export async function preloadRewardedAd(): Promise<boolean> {
 async function presentRewardedAd(kind: RewardKind): Promise<boolean> {
   const premium = await premiumEntitlement();
   if (premium === true) return true;
-  if (premium === null) return false;
+  if (premium === null) { setRewardedFeedback('premium-unknown'); return false; }
   if (!Capacitor.isNativePlatform()) {
+    setRewardedFeedback('web');
     console.info(`[ads] Ödüllü reklam (${kind}) yalnız native (iOS/Android) derlemede çalışır; web/dev ortamında atlanıyor.`);
     return false;
   }
 
   // A cached creative never bypasses current UMP permission.
-  try { if (!(await ensureInitialized()).canRequestAds) return false; }
-  catch (error) { logAdShowError(error); return false; }
+  try { if (!(await ensureInitialized()).canRequestAds) { setRewardedFeedback('consent'); return false; } }
+  catch (error) { setRewardedFeedback(adFailureReason(error)); logAdShowError(error); return false; }
 
   // 1. Eğer halihazırda bir yükleme sürüyorsa kısa bir süre tamamlanmasını bekle
   if (!isRewardedAdLoaded && isRewardedAdLoading && rewardedLoadPromise) {
@@ -437,6 +450,7 @@ async function presentRewardedAd(kind: RewardKind): Promise<boolean> {
 
   // 2. REKLAM HENÜZ YÜKLENMEDİYSE SHOW() ÇAĞIRMA!
   if (!isRewardedAdLoaded) {
+    setRewardedFeedback(isRewardedAdLoading ? 'loading' : lastLoadFailure ?? 'loading');
     const notReadyErr = new Error('Reward Video is Not Ready Yet');
     logAdShowError(notReadyErr);
     // Bir sonraki denemeye hazır olsun diye arka planda preload başlat
@@ -476,15 +490,17 @@ async function presentRewardedAd(kind: RewardKind): Promise<boolean> {
       AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
         console.info(`[ADMOB][REWARDED] Ad dismissed. User rewarded: ${rewarded}`);
         // Reklam başarıyla TAMAMLANDIĞINDA ödülü ver; yarıda kapatıldıysa ödül verme
+        if (!rewarded) setRewardedFeedback('cancelled');
         finish(rewarded);
       }),
       AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error: AdMobError) => {
+        setRewardedFeedback(adFailureReason(error));
         logAdShowError(error);
         finish(false);
       }),
     );
 
-    Promise.all(handles).then(() => AdMob.showRewardVideoAd()).catch(error => { logAdShowError(error); finish(false); });
+    Promise.all(handles).then(() => AdMob.showRewardVideoAd()).catch(error => { setRewardedFeedback(adFailureReason(error)); logAdShowError(error); finish(false); });
   });
 }
 
@@ -546,9 +562,11 @@ export function interstitialAllowed(now = Date.now()): boolean {
 
 export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
   if (adBusy) return false;
+  setRewardedFeedback(null);
   adBusy = true;
   setAdAudioPaused(true);
   try { return await presentRewardedAd(kind); }
+  catch (error) { setRewardedFeedback(adFailureReason(error)); return false; }
   finally {
     rewardedEndedAt = Date.now();
     adBusy = false;

@@ -127,6 +127,7 @@ import type {
   WorkbenchStage,
 } from '@domain/types';
 import { TalentTreePanel } from './TalentTreePanel';
+import { RankingButton } from '@ui/shell/RankingDialog';
 
 const TOOL_ICON: Record<string, typeof IconScale> = {
   scale: IconScale,
@@ -225,7 +226,10 @@ export function ShopScreen() {
         onEditProfile={s.openProfile}
       />
 
-      <MarketStrip market={s.market} cash={s.store.cash} onOpenMarket={() => s.setTab('business')} />
+      <div className="shopMarketRow">
+        <MarketStrip market={s.market} cash={s.store.cash} onOpenMarket={() => s.setTab('business')} />
+        <RankingButton />
+      </div>
 
 
 
@@ -547,7 +551,7 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
           <strong>{tl(cash)}</strong>
         </p>
         <div className="quickStockSheet__scroll">
-          <BullionCatalog />
+          <BullionCatalog forCustomer />
         </div>
         {/*
           C3 — düğme yapmadığı şeyi vaat etmemeli. Alım satır satır "Al" ile

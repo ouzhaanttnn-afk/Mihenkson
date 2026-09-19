@@ -14,3 +14,9 @@ test('invalid, ambiguous or missing configuration fails early', () => {
     assert.throws(() => gameCenterConfigured(source));
   }
 });
+test('two months cannot accidentally share one classic scoreboard', () => {
+  assert.throws(() => gameCenterConfigured('const MONTHLY_LEADERBOARD_IDS = { "2026-10": "test.board", "2026-11": "test.board" };'));
+});
+test('whitespace IDs cannot silently enable an unusable season', () => {
+  assert.throws(() => gameCenterConfigured('const MONTHLY_LEADERBOARD_IDS = { "2026-10": " test.board " };'));
+});

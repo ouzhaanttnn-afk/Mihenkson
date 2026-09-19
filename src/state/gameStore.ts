@@ -180,6 +180,7 @@ import {
 } from './save';
 import type { SoundId } from '@ui/audio';
 import { showInterstitialAd, showRewardedAd, type RewardKind } from '@ui/ads';
+import { rewardedFailureMessage } from '@ui/ad-feedback';
 import type {
   ActiveDeal,
   AppraisalSession,
@@ -382,6 +383,9 @@ export interface GameState {
   /** Dükkan içindeki yetenek ağacı modalı (yalnız arayüz durumu). */
   shopTalentTreeOpen: boolean;
   setShopTalentTreeOpen: (open: boolean) => void;
+  /** Transient UI only; never saved with player progress. */
+  rankingOpen: boolean;
+  setRankingOpen: (open: boolean) => void;
   setPersonnelCount: (count: number) => void;
   /** Bugünkü personel giderini ödüllü reklamla ücretsizleştirir. */
   requestPersonnelAdWaiver: () => Promise<void>;
@@ -706,6 +710,7 @@ export const useGame = create<GameState>((set, get) => {
     dayCloseIssue: null,
     stockCatalogOpen: false,
     shopTalentTreeOpen: false,
+    rankingOpen: false,
     nextCustomerAtMinutes: DAY.openMinutes + 3,
 
     jobs: [],
@@ -745,15 +750,17 @@ export const useGame = create<GameState>((set, get) => {
             dayCloseIssue: null,
             stockCatalogOpen: false,
             shopTalentTreeOpen: false,
+            rankingOpen: false,
           };
         }
-        return s.tab === tab ? { tabHomeSignal: s.tabHomeSignal + 1 } : { tab };
+        return s.tab === tab ? { tabHomeSignal: s.tabHomeSignal + 1, rankingOpen: false } : { tab, rankingOpen: false };
       }),
     // Ana Dükkan'daki hızlı alım, oyuncuyu bağlamından koparmadan sheet açar.
     // Stok ekranındaki aynı katalog kendi açılır tezgâhı olarak yaşamaya devam eder.
     openStockCatalog: () => set({ stockCatalogOpen: true }),
     setStockCatalogOpen: (stockCatalogOpen) => set({ stockCatalogOpen }),
     setShopTalentTreeOpen: (shopTalentTreeOpen) => set({ shopTalentTreeOpen }),
+    setRankingOpen: (rankingOpen) => set({ rankingOpen }),
     setPersonnelCount: (count) => {
       const s = get();
       if (!canSetPersonnel(s.store, count, s.market.day)) return;
@@ -773,7 +780,7 @@ export const useGame = create<GameState>((set, get) => {
         pushToast(set, get, t('Bugünkü personel gideri ücretsizleşti.'), 'positive');
         writeSave(get());
       } else {
-        pushToast(set, get, t('Reklam tamamlanmadı — personel gideri ücretsizleşmedi.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — personel gideri ücretsizleşmedi.')), 'negative');
       }
     },
 
@@ -795,7 +802,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('personnelTempUnlock');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — personel açılmadı.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — personel açılmadı.')), 'negative');
         return;
       }
       const store2 = get().store;
@@ -861,7 +868,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('speed4x');
       set({ rewardedAdPending: null });
       if (granted) get().unlock4x();
-      else pushToast(set, get, t('Reklam tamamlanmadı — 4x hız açılmadı.'), 'negative');
+      else pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — 4x hız açılmadı.')), 'negative');
     },
 
     // --- GDD 25 · öğretim ---
@@ -956,7 +963,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('customerRush');
       set({ rewardedAdPending: null });
       if (granted) get().triggerCustomerRush();
-      else pushToast(set, get, t('Reklam tamamlanmadı — akın başlamadı.'), 'negative');
+      else pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — akın başlamadı.')), 'negative');
     },
 
     // Compatibility entry point: reward opportunities instead of direct cash.
@@ -975,7 +982,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('patienceBoost');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — sabır yenilenmedi.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — sabır yenilenmedi.')), 'negative');
         return;
       }
 
@@ -1008,7 +1015,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('expertHint');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — usta görüşü alınmadı.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — usta görüşü alınmadı.')), 'negative');
         return;
       }
       const s = get();
@@ -1047,7 +1054,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('extraOffer');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — ek teklif hakkı verilmedi.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — ek teklif hakkı verilmedi.')), 'negative');
         return;
       }
       const s = get();
@@ -1078,7 +1085,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('cosmeticTrial');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — kozmetik deneme açılmadı.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — kozmetik deneme açılmadı.')), 'negative');
         return;
       }
       const s = get();
@@ -1113,7 +1120,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('dailyCosmetic');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — günün fırsatı açılmadı.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — günün fırsatı açılmadı.')), 'negative');
         return;
       }
       const s = get();
@@ -1145,7 +1152,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('supplyExpress');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — tedarik avantajı açılmadı.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — tedarik avantajı açılmadı.')), 'negative');
         return;
       }
       const s = get();
@@ -1169,7 +1176,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('freeShipping');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — ücretsiz nakliye açılmadı.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — ücretsiz nakliye açılmadı.')), 'negative');
         return;
       }
       const s = get();
@@ -1194,7 +1201,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('workshopRush');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — atölye mesaisi başlamadı.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — atölye mesaisi başlamadı.')), 'negative');
         return;
       }
       const s = get();
@@ -1236,7 +1243,7 @@ export const useGame = create<GameState>((set, get) => {
       const granted = await showRewardedAd('customerRecall');
       set({ rewardedAdPending: null });
       if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — müşteri geri dönmedi.'), 'negative');
+        pushToast(set, get, rewardedFailureMessage(t('Reklam tamamlanmadı — müşteri geri dönmedi.')), 'negative');
         return;
       }
       const s = get();
@@ -3840,7 +3847,7 @@ export function clockPauseReason(s: GameState): ClockPauseReason | null {
   if (s.settingsOpen) return 'settings';
   if (s.dayCloseConfirmOpen || s.dayReportOpen) return 'day-close';
   if (s.stockCatalogOpen) return 'quick-stock';
-  if (s.shopTalentTreeOpen) return 'shop-modal';
+  if (s.shopTalentTreeOpen || s.rankingOpen) return 'shop-modal';
   if (s.rewardedAdPending !== null) return 'rewarded-ad';
   if (s.activeDeal !== null || s.recallableGuest !== null) return 'customer-deal';
   if (nextLesson(coachContextOf(s), s.seenLessons) !== null) return 'onboarding';

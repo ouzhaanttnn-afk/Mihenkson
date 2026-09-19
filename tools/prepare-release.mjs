@@ -11,6 +11,7 @@ export function gameCenterConfigured(source) {
       let value = node.initializer;
       while (value && (ts.isAsExpression(value) || ts.isParenthesizedExpression(value))) value = value.expression;
       if (!value || !ts.isObjectLiteralExpression(value)) throw new Error('Leaderboard IDs must be an explicit month-to-ID object.');
+      const identifiers = new Set();
       entries = value.properties.map(property => {
         if (!ts.isPropertyAssignment(property) || !ts.isStringLiteral(property.name) || !ts.isStringLiteral(property.initializer)) {
           throw new Error('Leaderboard month and ID must be literal strings.');
@@ -18,6 +19,12 @@ export function gameCenterConfigured(source) {
         if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(property.name.text) || !property.initializer.text.trim()) {
           throw new Error('Invalid leaderboard month or empty identifier.');
         }
+        const identifier = property.initializer.text;
+        if (identifier !== identifier.trim() || identifier.length > 100 || !/^[A-Za-z0-9._-]+$/.test(identifier)) {
+          throw new Error('Invalid leaderboard identifier.');
+        }
+        if (identifiers.has(identifier)) throw new Error('Each calendar month needs a different leaderboard ID.');
+        identifiers.add(identifier);
         return property.name.text;
       });
       if (new Set(entries).size !== entries.length) throw new Error('Duplicate leaderboard month.');

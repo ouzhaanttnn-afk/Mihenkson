@@ -190,6 +190,30 @@ describe('1.1 reklam tamamlanması ve geçiş koruması', () => {
 });
 
 describe('AdMob rewarded reklam altyapısı ve yaşam döngüsü', () => {
+  it('no fill is not reported as the player abandoning an ad', async () => {
+    mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED'));
+    mocks.adMob.prepareRewardVideoAd.mockRejectedValue({ code: 3, message: 'No fill' });
+    const api = await subject();
+    await expect(api.preloadRewardedAd()).resolves.toBe(false);
+    await expect(api.showRewardedAd('speed4x')).resolves.toBe(false);
+    const { rewardedFailureMessage } = await import('./ad-feedback');
+    expect(rewardedFailureMessage('fallback')).toContain('uygun reklam bulunamadı');
+    expect(mocks.adMob.showRewardVideoAd).not.toHaveBeenCalled();
+  });
+  it('web explains native-only rewards without pretending an ad was watched', async () => {
+    mocks.isNativePlatform.mockReturnValue(false);
+    const api = await subject();
+    await expect(api.showRewardedAd('speed4x')).resolves.toBe(false);
+    const { rewardedFailureMessage } = await import('./ad-feedback');
+    expect(rewardedFailureMessage('fallback')).toContain('mobil uygulamada');
+  });
+  it('unprepared creative reports preparation, never cancellation', async () => {
+    mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED'));
+    const api = await subject();
+    await expect(api.showRewardedAd('speed4x')).resolves.toBe(false);
+    const { rewardedFailureMessage } = await import('./ad-feedback');
+    expect(rewardedFailureMessage('fallback')).toContain('hazırlanıyor');
+  });
   it('initializeAds native ortamda SDK başlatır ve consent uygunsa preload tetikler', async () => {
     mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED', true));
     mocks.adMob.prepareRewardVideoAd.mockResolvedValue({ adUnitId: 'test' });

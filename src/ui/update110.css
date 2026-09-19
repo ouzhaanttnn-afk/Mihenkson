@@ -1,4 +1,18 @@
 /* Compact additions built on the existing Mihenk tokens. */
+.offerRow__suggestion { margin:0 0 6px; font-size:12px; color:var(--brass-300); overflow-wrap:anywhere; }
+.releaseInfo { font-size:13px; line-height:1.5; }
+.releaseInfo summary { overflow-wrap:anywhere; }
+.releaseInfo ul { padding-left:20px; }
+.shopMarketRow { display:flex; flex:0 0 auto; min-width:0; width:100%; background:var(--ink-700); }
+.shopMarketRow > .marketStrip { flex:1 1 0; width:0; min-width:0; }
+.rankingButton { flex:0 0 44px; width:44px; min-height:44px; display:grid; place-items:center; border:0; border-left:1px solid var(--line-dark); border-bottom:1px solid var(--line-dark); background:var(--ink-800); color:var(--brass-300); cursor:pointer; }
+.rankingButton:focus-visible { outline:2px solid var(--brass-400); outline-offset:-3px; }
+.rankingButton:active { background:var(--ink-600); }
+.rankingDialog__top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.rankingDialog__top h2 { margin:0; font-size:var(--fs-subtitle); }
+.rankingDialog__close { flex:0 0 44px; min-height:44px; background:transparent; color:inherit; border:1px solid var(--line-light); border-radius:var(--r-sm); font-size:24px; cursor:pointer; }
+.rankingDialog .monthlyRanking { margin:0; }
+.rankingDialog .monthlyRanking > h2 { display:none; }
 .quantityControl { display:grid; grid-template-columns:40px minmax(60px,1fr) 40px auto; gap:4px; align-items:center; width:100%; min-width:0; }
 .quantityControl button, .quantityControl input { min-height:44px; min-width:0; border:1px solid var(--line-dark-strong); border-radius:var(--r-sm); background:var(--ink-700); color:var(--text-dark-1); font:inherit; text-align:center; padding:4px 8px; }
 .quantityControl input { width:100%; font-size:16px; }

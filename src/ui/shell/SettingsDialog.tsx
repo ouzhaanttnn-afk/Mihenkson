@@ -21,6 +21,7 @@ import { adPrivacyOptionsSupported, showAdPrivacyOptions } from '@ui/ads';
 
 import { useModalSurface } from '@ui/useModalSurface';
 import { useGame } from '@state/gameStore';
+import { ReleaseInfo } from './ReleaseInfo';
 
 const PRIVACY_URL = {
   tr: 'https://alpersonmihenk-chi.vercel.app/privacy.html',
@@ -309,6 +310,7 @@ export function SettingsDialog() {
           <span className="settingsRow__badge">{t('Yerel')}</span>
         </div>
 
+        <ReleaseInfo />
         <details className="settingsPrivacy"><summary>{t('Gizlilik ve destek')}</summary>
         <div className="settingsRow settingsRow--static">
           <span className="settingsRow__copy">
