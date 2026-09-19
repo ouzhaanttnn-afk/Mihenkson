@@ -19,6 +19,10 @@ senin yerine atamaz. Sırayla:
 - [x] Google AdMob (ödüllü reklam) eklendi — `@capacitor-community/admob`,
       `Info.plist`'e `GADApplicationIdentifier`/`SKAdNetworkItems`/
       `NSUserTrackingUsageDescription` işlendi (bkz. `src/ui/ads.ts`)
+- [x] Firebase iOS kaydı `com.mihenkaynak.app` ile eşleştirildi;
+      `GoogleService-Info.plist` ve IDFA içermeyen Firebase Analytics Core
+      Xcode hedefine bağlandı. Otomatik kullanım olayları yalnız yeni iOS
+      build'inde başlar; önce App Store Connect gizlilik beyanı güncellenmeli.
 - [x] `GADApplicationIdentifier` gerçek AdMob iOS App ID'si
       (`ca-app-pub-4229088811556918~3768104554`) — kullanıcının AdMob
       hesabından alındı, `isTesting` kaldırıldı (bkz. `src/ui/ads.ts`)

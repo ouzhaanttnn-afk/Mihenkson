@@ -13,6 +13,24 @@ function plistArray(plist: string, key: string): string {
 }
 
 describe('iOS mağaza paketi', () => {
+  it('Firebase iOS yapılandırmasını doğru bundle ID ile Analytics Core olarak bağlar', () => {
+    const project = read('ios/App/App.xcodeproj/project.pbxproj');
+    const config = read('ios/App/App/GoogleService-Info.plist');
+    const appDelegate = read('ios/App/App/AppDelegate.swift');
+    const info = read('ios/App/App/Info.plist');
+
+    expect(config).toContain('<string>com.mihenkaynak.app</string>');
+    expect(config).toContain('<string>alpertosunk</string>');
+    expect(config).toContain('<string>1:449725695983:ios:2f4aba2bb55a2561b1981a</string>');
+    expect(project).toContain('GoogleService-Info.plist in Resources');
+    expect(project).toContain('productName = FirebaseAnalyticsCore;');
+    expect(project).not.toContain('productName = FirebaseAnalytics;');
+    expect(project).toContain('version = 12.19.2;');
+    expect((project.match(/"-ObjC"/g) ?? []).length).toBe(2);
+    expect(appDelegate).toContain('FirebaseApp.configure()');
+    expect(info).toMatch(/<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS<\/key>\s*<false\/>/);
+  });
+
   it('dikey ürün kararıyla iPhone-only hedeflenir', () => {
     const project = read('ios/App/App.xcodeproj/project.pbxproj');
     const families = [...project.matchAll(/TARGETED_DEVICE_FAMILY = ([^;]+);/g)]
@@ -93,6 +111,8 @@ describe('yayınlanan yasal ve destek sayfaları', () => {
     ]) {
       expect(privacy, `gizlilik metninde eksik: ${required}`).toContain(required);
     }
+    expect(privacy).toContain('Firebase Analytics');
+    expect(read('public/privacy-en.html')).toContain('Firebase Analytics');
   });
 
   it('uygulama doğru HTTPS gizlilik ve destek adreslerini sunar', () => {

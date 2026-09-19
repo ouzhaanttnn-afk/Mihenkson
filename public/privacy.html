@@ -25,17 +25,18 @@
       <p class="eyebrow">Yasal bilgiler</p>
       <h1>Gizlilik Politikası</h1>
       <p class="lede">
-        Bu politika MİHENKAYNAK mobil oyununun yerel kayıt ve Google AdMob
-        reklamları kapsamında verileri nasıl işlediğini açıklar.
+        Bu politika MİHENKAYNAK mobil oyununun yerel kayıt, Google AdMob
+        reklamları ve Firebase Analytics kapsamında verileri nasıl işlediğini açıklar.
       </p>
-      <p class="updated">Son güncelleme: 12 Eylül 2026 · Geliştirici: Nostoscomp</p>
+      <p class="updated">Son güncelleme: 19 Eylül 2026 · Geliştirici: Nostoscomp</p>
 
       <div class="summary">
         <strong>Kısa özet:</strong> Oyun ilerlemeniz cihazınızda tutulur ve
         geliştiriciye ait bir sunucuya gönderilmez. Uygulamadaki isteğe bağlı
         ödüllü reklamlar ve hafta açılışındaki geçiş reklamları Google AdMob
         tarafından sağlanır; Google Mobile Ads SDK reklam sunmak, güvenlik ve
-        performans için aşağıda açıklanan verileri işleyebilir.
+        performans için aşağıda açıklanan verileri işleyebilir. iOS uygulaması
+        Firebase Analytics ile genel kullanım istatistikleri de toplar.
       </div>
 
       <h2>1. Yerel oyun verileri</h2>
@@ -46,8 +47,8 @@
         silmeniz ya da uygulama verilerini temizlemeniz bu kaydı silebilir.
       </p>
       <p>
-        Uygulamanın kendi kodu konum, kamera, mikrofon veya kişi listenize erişmez;
-        kendi analitik ya da çökme raporlama hizmetini kullanmaz.
+        Uygulamanın kendi kodu konum, kamera, mikrofon veya kişi listenize erişmez.
+        Oyun kaydınız Firebase'e gönderilmez; ayrı bir çökme raporlama hizmeti yoktur.
       </p>
 
       <h2>2. Google AdMob reklamları</h2>
@@ -85,7 +86,21 @@
         inceleyebilirsiniz.
       </p>
 
-      <h2>3. ATT ve reklam tercihi</h2>
+      <h2>3. Firebase Analytics</h2>
+      <p>
+        iOS uygulamasındaki Google Firebase Analytics, uygulama açılışı ve oturum
+        gibi kullanım olaylarını; uygulama sürümü, cihaz/işletim sistemi bilgisi,
+        yaklaşık bölge ve uygulama örneği kimliği gibi teknik verileri işleyebilir.
+        Bu veriler kullanım eğilimlerini anlamak ve oyunu iyileştirmek için Google'a
+        gönderilir. Dükkân adınız, nakit, stok veya oyun kayıt dosyanız analitiğe
+        özel olay olarak gönderilmez. Firebase Analytics Core kullanılır; bu
+        entegrasyon reklam kimliği (IDFA) toplama yeteneği içermez ve ayrı bir
+        Crashlytics kurulumu yoktur.
+        <a href="https://firebase.google.com/support/privacy" rel="external">Firebase gizlilik bilgileri</a>
+        hakkında daha fazla bilgi edinebilirsiniz.
+      </p>
+
+      <h2>4. ATT ve reklam tercihi</h2>
       <p>
         iOS'ta, reklam kimliğinin uygulamalar ve web siteleri arasında izleme için
         kullanılmasından önce App Tracking Transparency (ATT) izni sorulur. İzni
@@ -98,23 +113,23 @@
         gösterebilir. Onay vermemek oyunun temel özelliklerini engellemez.
       </p>
 
-      <h2>4. Paylaşım ve saklama</h2>
+      <h2>5. Paylaşım ve saklama</h2>
       <p>
-        Geliştirici yerel oyun kaydınıza erişmez ve bu kaydı satmaz. AdMob
-        verilerinin paylaşımı ve saklama süreleri Google'ın politikaları ve
+        Geliştirici yerel oyun kaydınıza erişmez ve bu kaydı satmaz. AdMob ve
+        Firebase Analytics verilerinin paylaşımı ve saklama süreleri Google'ın politikaları ve
         kullanıcının bölgesel reklam/onay tercihleri tarafından yönetilir.
       </p>
 
-      <h2>5. Çocukların gizliliği</h2>
+      <h2>6. Çocukların gizliliği</h2>
       <p>
         Uygulama genel kitleye yönelik bir simülasyon oyunudur ve kullanıcıdan yaş,
         ad, e-posta ya da hesap bilgisi istemez. Bir ebeveyn veya vasi gizlilikle
         ilgili bir sorun olduğunu düşünüyorsa aşağıdaki adresten bize ulaşabilir.
       </p>
 
-      <h2>6. Değişiklikler ve iletişim</h2>
+      <h2>7. Değişiklikler ve iletişim</h2>
       <p>
-        Bulut kayıt, hesap, yeni bir reklam sağlayıcısı veya analitik eklenirse bu
+        Bulut kayıt, hesap, yeni bir reklam sağlayıcısı veya yeni veri işleme eklenirse bu
         politika ve mağaza gizlilik beyanları güncellenir. Sorular ve veri talepleri
         için <a href="mailto:nostoscomp@gmail.com">nostoscomp@gmail.com</a>
         adresine yazabilirsiniz.

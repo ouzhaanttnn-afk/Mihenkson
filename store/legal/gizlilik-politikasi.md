@@ -10,7 +10,7 @@ https://alpersonmihenk-chi.vercel.app/privacy.html
 Sayfa bu deponun `public/privacy.html` dosyasından Vercel dağıtımıyla
 yayınlanır; eski, güncellenemeyen üçüncü taraf paylaşım bağlantısı kullanılmaz.
 
-Son güncelleme: 4 Eylül 2026
+Son güncelleme: 19 Eylül 2026
 Geliştirici: Nostoscomp
 İletişim: nostoscomp@gmail.com
 
@@ -22,16 +22,16 @@ Oyun ilerlemeniz tamamen cihazınızda kalır ve geliştiriciye ait bir sunucuya
 gönderilmez. Uygulamada **isteğe bağlı ödüllü reklamlar** ve hafta açılışında
 gösterilebilen **geçiş reklamları** Google AdMob tarafından sağlanır. Google
 Mobile Ads SDK, reklam sunumu/güvenliği/ölçümü için aşağıda açıklanan bazı
-verileri işleyebilir.
+verileri işleyebilir. iOS uygulamasında Firebase Analytics Core genel kullanım
+istatistiklerini toplar; oyun kayıtları buluta yüklenmez.
 
 ## Topladığımız veri — oyun tarafı
 
-**Hiç.** Uygulama içinde girdiğiniz isim ve seçtiğiniz profil görseli dahil
-her şey yalnızca cihazınızın yerel depolamasında durur; bizim
-sunucularımıza hiçbir zaman ulaşmaz — çünkü böyle bir sunucumuz yok.
+Oyun kaydı bakımından **hiç.** Uygulama içinde girdiğiniz isim ve seçtiğiniz
+profil görseli dahil oyun kayıtları yalnızca cihazınızın yerel depolamasında
+durur; geliştirici sunucusuna yüklenmez.
 
 Uygulamanın kendi kodu şunları YAPMAZ:
-- Geliştiriciye ait analitik veya kullanım istatistiği toplamaz
 - Geliştiriciye ait çökme raporlama hizmeti kullanmaz
 - Konum, kamera, mikrofon veya kişi listesine erişmez
 - Hesap oluşturmanızı istemez
@@ -77,12 +77,21 @@ yerel depolamada saklanır. Bu veri:
 - Uygulamayı silmeniz veya uygulama verilerini temizlemeniz hâlinde kaybolur
 - Bizim erişimimizde değildir — göremeyiz, göndermenizi isteyemeyiz
 
+## Kullanım analitiği — Google Firebase
+
+iOS sürümündeki Firebase Analytics Core, uygulama açılışı ve oturum gibi
+olayları; uygulama sürümü, cihaz/işletim sistemi bilgisi, yaklaşık bölge ve
+uygulama örneği kimliği gibi teknik verileri işleyebilir. Google'a gönderilen
+bu veriler oyunun genel kullanımını anlamak ve iyileştirmek içindir. Dükkân
+adı, nakit, stok ve oyun kayıt dosyası özel analitik olayı olarak gönderilmez.
+Bu kurulumda reklam kimliği (IDFA) toplama yeteneği ve Crashlytics yoktur.
+Google'ın açıklaması: https://firebase.google.com/support/privacy
+
 ## Üçüncü taraf hizmetler
 
-Veri işleyen üçüncü taraf hizmet **Google AdMob**'dur (Google Mobile Ads SDK);
-yukarıdaki "Reklamlar" bölümünde açıklanmıştır. Capacitor uygulama kabuğu
-oyunun cihaz üzerinde çalışmasını sağlar ve ayrı bir hesap/analitik hizmeti
-değildir.
+Veri işleyen üçüncü taraf hizmetler **Google AdMob** (Google Mobile Ads SDK)
+ve iOS'ta **Firebase Analytics**'tir. Capacitor uygulama kabuğu oyunun cihaz
+üzerinde çalışmasını sağlar ve ayrı bir hesap hizmeti değildir.
 
 ## Çocukların gizliliği
 
