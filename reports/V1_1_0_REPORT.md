@@ -1,5 +1,17 @@
 # MIHENK v1.1.0 — sonuç ve yayın kapıları
 
+## Güncel doğrulama — 19 Eylül 2026, erişim açıldıktan sonra
+
+Önceki erişim engeli giderildi. `e5d1820` kodu için 78 Vitest dosyasında **1.166 test**, ayrıca **5 release hazırlık testi** geçti. Üretim build'i ve **77 release kontrolü** başarılı. Stok önerisinde sıfır eksikliğin `-0` dönmesi giderildi; ekonomi formülleri değişmedi. Vite büyük ana JS paketi uyarısı veriyor; build hatası değil.
+
+macOS CI aynı kodda npm test, release:check, build, Capacitor iOS sync ve imzasız iOS simülatör derlemesini başarıyla tamamladı: https://github.com/ouzhaanttnn-afk/Mihenkson/actions/runs/35443886836 . Bu signed Archive veya App Store gönderimi değildir.
+
+Yerel üretim paketinde tarayıcı kontrolü: 390 px kupa modalı, 320 px stok ve 430 px dükkan/pazarlık/Market ekranlarında yatay sayfa taşması gözlenmedi. Yeni profil oluşturma, ilk stok alımı, müşterinin 60 g bilezik ihtiyacına 6 × 10 g önerisi, temin → aynı müşteriye ürün seçimi → başarılı satış akışı denendi. Açık/koyu tema ve nakit/stok kaydı sayfa yenilenmesinde korundu. Analiz paneli yeni pazarlıkta açık geldi. Web Premium satın alma işleminin iOS gerektirdiğini gösterdi; kontrol sırasında tarayıcı çalışma zamanı hatası alınmadı.
+
+Kısa ses efektleri korunur; kullanıcı tercihi üzerine dışarıdan fon müziği eklenmedi. Gerçek Game Center ID'leri henüz girilmedi. Reklam SDK'sı, fiziksel titreşim, satın alma ve canlı Game Center için iPhone testi hâlâ gerekir; tarayıcı testi bunların yerine geçmez. Apple'a yükleme yapılmadı.
+
+Omni: kısa yayın kontrolü için 1 CLI denemesi yapıldı, yanıt alınamadı (başarılı çıkarım 0); sonuçlar yerel test ve tarayıcı kanıtlarına dayanıyor.
+
 ## Son yerel ek paket — 19 Eylül 2026
 
 Bu bölüm aşağıdaki eski doğrulama/yayın durumundan önceliklidir. Yeni değişiklikler henüz commit/push edilmedi; Vercel veya Apple'a yüklenmedi.
