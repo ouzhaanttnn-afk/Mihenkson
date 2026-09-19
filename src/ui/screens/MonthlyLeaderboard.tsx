@@ -40,14 +40,14 @@ export function MonthlyLeaderboard() {
     {gap !== null && <p className="monthlyRanking__gap">{t('Top 100 farkı')}: <strong>{result?.own && result.own.rank <= 100 ? fmt(0) : fmt(gap)} g</strong></p>}
     {!available && <p>{rankingConfigured() ? t('Game Center için iPhone uygulamasını kullan.') : t('Bu ayın sıralaması henüz açılmadı.')}</p>}
     {failed && <p role="status">{t('Sıralama alınamadı. Game Center hesabını ve bağlantını kontrol et.')}</p>}
-    {available && <p>{t('Top 100’e bağlandığında Game Center adın ve HAS servet skorun diğer oyunculara görünür.')}</p>}
+    {available && <p>{t('Top 100’e bağlandığında Game Center takma adın ve HAS servet skorun diğer oyunculara görünür.')}</p>}
     {available && <button className="miniBtn" disabled={busy} onClick={() => void load()}>{busy ? t('Yükleniyor…') : t('Game Center · Top 100')}</button>}
     {result && <ol className="monthlyRanking__list">{leading.map(entry => <li key={entry.rank} className={entry.rank === result.own?.rank ? 'monthlyRanking__own' : ''}>
       <span className="monthlyRanking__rank">{entry.rank}</span><span className="monthlyRanking__name">{entry.name}</span><strong>{fmt(entry.score / 1000)} g</strong>
     </li>)}</ol>}
     {result && !showAll && result.entries.length > 4 && <button className="monthlyRanking__more" onClick={() => setShowAll(true)}>{t('Top 100’ü göster')}</button>}
     {ownOutsideLeading && <div className="monthlyRanking__own monthlyRanking__ownSeparate">
-      <span className="monthlyRanking__rank">{result.own!.rank}</span><span className="monthlyRanking__name">{t('Sen')}</span><strong>{fmt(result.own!.score / 1000)} g</strong>
+      <span className="monthlyRanking__rank">{result.own!.rank}</span><span className="monthlyRanking__name">{result.own!.name}</span><strong>{fmt(result.own!.score / 1000)} g</strong>
     </div>}
   </section>;
 }

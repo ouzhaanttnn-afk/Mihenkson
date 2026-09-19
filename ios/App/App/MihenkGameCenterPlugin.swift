@@ -61,7 +61,7 @@ public class MihenkGameCenterPlugin: CAPPlugin, CAPBridgedPlugin {
             board.loadEntries(for: .global, timeScope: .allTime, range: NSRange(location: 1, length: 100)) { own, entries, _, error in
                 if let error = error { call.reject(error.localizedDescription); return }
                 func row(_ entry: GKLeaderboard.Entry) -> [String: Any] {
-                    return ["rank": entry.rank, "name": entry.player.displayName, "score": entry.score]
+                    return ["rank": entry.rank, "name": entry.player.alias, "score": entry.score]
                 }
                 var result: [String: Any] = ["entries": (entries ?? []).map(row)]
                 if let own = own { result["own"] = row(own) } else { result["own"] = NSNull() }

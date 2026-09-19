@@ -23,7 +23,7 @@
 
 export const EN: Record<string, string> = {
   'Tahmin': 'Estimate',
-  'Top 100’e bağlandığında Game Center adın ve HAS servet skorun diğer oyunculara görünür.': 'When you connect to the Top 100, your Game Center name and fine-gold wealth score are visible to other players.',
+  'Top 100’e bağlandığında Game Center takma adın ve HAS servet skorun diğer oyunculara görünür.': 'When you connect to the Top 100, your Game Center nickname and fine-gold wealth score are visible to other players.',
   "Müşteri için eksik: {miktar}": "Missing for this customer: {miktar}",
   "Bu müşteri için yeterli stok var.": "You have enough stock for this customer.",
   "Tüm stok · tek işlem toptancı teklifi. Miktar ve dilimleme fiyatı değiştirebilir.": "All stock · single-transaction wholesale quote. Quantity and splitting can change the price.",

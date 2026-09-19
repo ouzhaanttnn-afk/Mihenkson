@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 const native = vi.hoisted(() => ({
   authenticate: vi.fn(),
@@ -25,6 +26,12 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('real monthly Game Center boards', () => {
+  it('exposes only the Game Center nickname in leaderboard rows', () => {
+    const plugin = readFileSync(new URL('../../ios/App/App/MihenkGameCenterPlugin.swift', import.meta.url), 'utf8');
+    expect(plugin).toContain('"name": entry.player.alias');
+    expect(plugin).not.toContain('"name": entry.player.displayName');
+  });
+
   it('submits fine-gold milligrams to the real September board and loads real rows', async () => {
     expect(rankingConfigured('2026-09')).toBe(true);
     const result = await refreshRanking(250000);
