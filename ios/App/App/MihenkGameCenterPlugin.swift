@@ -7,10 +7,15 @@ public class MihenkGameCenterPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "MihenkGameCenter"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "isAuthenticated", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "submit", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "entries", returnType: CAPPluginReturnPromise)
     ]
     private var authenticationPending = false
+
+    @objc func isAuthenticated(_ call: CAPPluginCall) {
+        call.resolve(["authenticated": GKLocalPlayer.local.isAuthenticated])
+    }
 
     @objc func authenticate(_ call: CAPPluginCall) {
         DispatchQueue.main.async {

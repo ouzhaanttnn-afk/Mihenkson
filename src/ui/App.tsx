@@ -25,6 +25,7 @@ import { ProfileDialog } from '@ui/shell/ProfileDialog';
 import { SettingsDialog } from '@ui/shell/SettingsDialog';
 import { RecallDialog } from '@ui/shell/RecallDialog';
 import { RankingDialog } from '@ui/shell/RankingDialog';
+import { syncRankingIfAuthenticated } from '@ui/game-center';
 import { DayCloseDialog } from '@ui/shell/DayCloseDialog';
 import { AppLoadingScreen } from '@ui/shell/AppLoadingScreen';
 import { overdueJobs, readyJobs } from '@domain/service';
@@ -55,6 +56,20 @@ export function App() {
     refresh();
     const timer = window.setInterval(refresh, 60_000);
     return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    const sync = () => {
+      if (document.visibilityState !== 'visible') return;
+      const state = useGame.getState();
+      const wealth = rankingWealth(state);
+      // A signed-in player stays current after trading even with the trophy
+      // closed. Never open a sign-in prompt during normal gameplay.
+      void syncRankingIfAuthenticated(wealth.score).catch(() => {});
+    };
+    sync();
+    const timer = window.setInterval(sync, 30_000);
+    document.addEventListener('visibilitychange', sync);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', sync); };
   }, []);
   const tab = useGame((s) => s.tab);
   const setTab = useGame((s) => s.setTab);

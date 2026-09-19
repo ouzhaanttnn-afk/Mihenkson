@@ -31,11 +31,18 @@
 .monthlyRanking { padding:16px; margin-block:12px; border:1px solid var(--brass-500); border-radius:var(--r-md); background:var(--surface-card); color:var(--text-dark-1); }
 .monthlyRanking h2 { margin:0 0 6px; font-family:var(--font-display); font-size:18px; }
 .monthlyRanking p { margin-block:8px; font-size:13px; }
-.monthlyRanking .monthlyRanking__score { font-size:21px; overflow-wrap:anywhere; }
-.monthlyRanking__list { padding:0; list-style:none; }
-.monthlyRanking__list li { display:flex; gap:12px; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line-dark); }
-.monthlyRanking__list span { overflow-wrap:anywhere; min-width:0; }
-.monthlyRanking__list strong { flex-shrink:0; font-size:12px; }
+.monthlyRanking__hero { padding:14px; border:1px solid var(--brass-500); border-radius:var(--r-sm); background:var(--surface-card); }
+.monthlyRanking .monthlyRanking__score { display:flex; align-items:center; flex-wrap:wrap; gap:5px; font-size:clamp(20px,6vw,27px); font-weight:700; line-height:1.2; overflow-wrap:anywhere; }
+.monthlyRanking__gold { width:28px; height:28px; object-fit:contain; flex:none; }
+.monthlyRanking__gap { padding-top:8px; border-top:1px solid var(--line-dark); }
+.monthlyRanking__list { display:grid; gap:6px; padding:0; list-style:none; }
+.monthlyRanking__list li, .monthlyRanking__ownSeparate { display:grid; grid-template-columns:32px minmax(0,1fr) auto; gap:9px; align-items:center; min-width:0; padding:8px; border:1px solid var(--line-dark); border-radius:var(--r-sm); }
+.monthlyRanking__rank { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--brass-500); color:var(--ink-900); font-size:12px; font-weight:700; }
+.monthlyRanking__name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.monthlyRanking__list strong, .monthlyRanking__ownSeparate strong { flex-shrink:0; font-size:12px; white-space:nowrap; }
+.monthlyRanking__own { border-color:var(--brass-500) !important; background:color-mix(in srgb, var(--brass-500) 10%, transparent); }
+.monthlyRanking__ownSeparate { margin-top:9px; }
+.monthlyRanking__more { width:100%; min-height:44px; border:1px solid var(--line-dark); border-radius:var(--r-sm); background:transparent; color:inherit; cursor:pointer; }
 /* Build 21 owns the compact cards, three-column metrics and small purple chip
    in Workbench.css. Do not re-size those controls with a second visual system. */
 .simpleOffer { min-width:0; }

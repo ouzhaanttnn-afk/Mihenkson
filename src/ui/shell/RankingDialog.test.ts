@@ -15,13 +15,14 @@ describe('shop trophy entry point', () => {
     expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain('aria-expanded="false"');
   });
-  it('uses the real ranking panel and explains an unconfigured season', () => {
+  it('uses the real ranking panel, gold bar and iPhone-only Game Center state', () => {
     const html = renderToStaticMarkup(createElement(RankingDialog));
     expect(html).toContain('role="dialog"');
     expect(html).toContain('aria-modal="true"');
     expect(html).toContain('aria-label="Kapat"');
     expect(html).toContain('g HAS');
-    expect(html).toContain('Bu ayın sıralaması henüz açılmadı.');
+    expect(html).toContain('gold-bar-5g.webp');
+    expect(html).toContain('Game Center için iPhone uygulamasını kullan.');
     expect(html).not.toContain('monthlyRanking__list');
   });
 });

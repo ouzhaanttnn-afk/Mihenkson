@@ -2078,6 +2078,8 @@ export const EN: Record<string, string> = {
   'Özel ada': 'Private island',
   "ADET": "PCS",
   "Aylık sıralama": "Monthly leaderboard",
+  "Sen": "You",
+  "Top 100’ü göster": "Show Top 100",
   "Bu ay artış": "Growth this month",
   "Bu ayın sıralaması henüz açılmadı.": "This month's leaderboard is not open yet.",
   "Bırak gitsin": "Let them go",

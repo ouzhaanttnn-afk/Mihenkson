@@ -6,6 +6,7 @@ export interface RankingEntry { rank: number; name: string; score: number }
 export interface RankingResult { entries: RankingEntry[]; own: RankingEntry | null }
 const bridge = registerPlugin<{
   authenticate(): Promise<{ authenticated: boolean }>;
+  isAuthenticated(): Promise<{ authenticated: boolean }>;
   submit(options: { id: string; score: number }): Promise<void>;
   entries(options: { id: string }): Promise<RankingResult>;
 }>('MihenkGameCenter');
@@ -14,6 +15,15 @@ export function rankingConfigured(month = calendarMonth()): boolean {
   return !!MONTHLY_LEADERBOARD_IDS[month];
 }
 export function gameCenterSupported(): boolean { return Capacitor.getPlatform() === 'ios'; }
+
+/** Keep the board current without opening a Game Center sign-in prompt. */
+export async function syncRankingIfAuthenticated(score: number, month = calendarMonth()): Promise<boolean> {
+  const id = MONTHLY_LEADERBOARD_IDS[month];
+  if (!id || month !== calendarMonth() || !Number.isSafeInteger(score) || !gameCenterSupported()) return false;
+  if (!(await bridge.isAuthenticated()).authenticated || month !== calendarMonth()) return false;
+  await bridge.submit({ id, score });
+  return true;
+}
 
 export async function refreshRanking(score: number, month = calendarMonth()): Promise<RankingResult> {
   const id = MONTHLY_LEADERBOARD_IDS[month];
