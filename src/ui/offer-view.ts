@@ -49,11 +49,11 @@ export function offerUnitLabel(
   }
 
   const view = unitPriceView(first, Math.round(total / units));
-  if (view.perGram) {
+  if (view.perGram || first.templateId.startsWith('investment_bangle_')) {
     const grams = view.gramsPerPiece * units;
     const gramLabel = t('{gram} g · {birim}', {
       gram: numberFmt(grams),
-      birim: `${tlBare(view.unitPrice)} ${view.unit}`,
+      birim: `${tlBare(Math.round(total / grams))} ${moneyUnit('g')}`,
     });
     return first.templateId === 'gram_gold_1' ? gramLabel :
       t('{n} adet · {birim}', { n: units, birim: `${tlBare(Math.round(total / units))} ${moneyUnit(t('adet'))}` }) + ' · ' + gramLabel;

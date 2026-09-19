@@ -1843,19 +1843,19 @@
 }
 
 .premiumOffer { width: 100%; max-width: 440px; min-width: 0; }
-.premiumOffer__seal { display: block; color: #f4cf73; font-size: 32px; }
-.premiumOffer__eyebrow { color: #e4c77d; font-size: 11px; letter-spacing: .14em; }
+.premiumOffer__seal { display: block; color: var(--brass-300); font-size: 32px; }
+.premiumOffer__eyebrow { color: var(--brass-300); font-size: 11px; letter-spacing: .14em; }
 .premiumOffer ul { padding-left: 20px; text-align: left; color: var(--text-dark-2); font-size: 13px; line-height: 1.55; }
 .premiumOffer li + li { margin-top: 6px; }
 .premiumOffer__price { display: flex; flex-wrap: wrap; gap: 5px 10px; align-items: baseline; justify-content: center; margin: 16px 0; }
-.premiumOffer__price strong { color: #f4cf73; font-size: 26px; }
+.premiumOffer__price strong { color: var(--brass-300); font-size: 26px; }
 .premiumOffer__price span { color: var(--text-dark-2); font-size: 12px; }
 .premiumOffer__loadingBlock,
 .premiumOffer__errorBlock { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .premiumOffer__loadingText { color: var(--text-dark-3); font-size: 15px; font-style: italic; }
 .premiumOffer__errorText { color: var(--negative, #ff6b6b); font-size: 14px; font-weight: var(--fw-semibold); }
-.premiumOffer__retry { background: none; border: none; color: #f4cf73; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 4px 8px; }
-.premiumOffer__retry:hover { color: #fff; }
+.premiumOffer__retry { background: none; border: none; color: var(--brass-300); text-decoration: underline; cursor: pointer; font-size: 13px; padding: 4px 8px; }
+.premiumOffer__retry:hover { color: var(--text-dark-1); }
 .marketComingSoon .premiumOffer p { margin: 10px auto; color: var(--text-dark-2); }
 .marketComingSoon .premiumOffer .cta { width: 100%; color: #211706; background: linear-gradient(180deg, #f4cf73, #bd871e); padding: 12px; border-radius: var(--r-md); font-weight: var(--fw-bold); }
 .marketComingSoon .premiumOffer .cta:disabled,

@@ -19,6 +19,10 @@ const SEED = 20260828;
 const item = (id: string) => spawnItem(SEED, 1, id);
 
 describe('Gram bazlı sarrafiyede ₺/g yazılır', () => {
+  it('yatırım bileziği adet fiyatının yanında toplam gram ve gram fiyatını gösterir', () => {
+    expect(offerUnitLabel([item('investment_bangle_22k_10')], [6], 240_000))
+      .toBe('6 adet · 40.000 ₺/adet · 60 g · 4.000 ₺/g');
+  });
   it('tek 10 g külçede gram fiyatı görünür', () => {
     // 10 g × 4.000 ₺/g = 40.000 ₺
     const label = offerUnitLabel([item('gram_gold_10')], [1], 40_000);

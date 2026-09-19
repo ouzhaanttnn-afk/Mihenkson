@@ -57,3 +57,7 @@
 .settingsBox { max-height:calc(100dvh - var(--safe-top) - var(--safe-bottom) - 24px); }
 .bottomNav__item--active .bottomNav__label { color:var(--text-on-accent); }
 .weeklySummary { padding:12px; border:1px solid var(--brass-500); border-radius:var(--r-sm); margin-block:12px; }
+/* Explicit foregrounds survive the legacy preset/metrics selectors in both themes. */
+.simpleOffer__presets button[aria-pressed='true'],
+.simpleOffer__presets button[aria-pressed='true'] small,
+.simpleOffer__metrics .simpleOffer__priceEdit > strong { color:var(--text-on-accent); }

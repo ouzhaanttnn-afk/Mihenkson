@@ -70,7 +70,7 @@ Hakları size ait/lisanslı, kesintisiz döngüye uygun MP3 veya AAC dosyasını
 
 ### Archive / yayın
 
-Windows'ta Xcode bulunmadığından Swift/iOS Archive derlemesi **yapılmadı**. Web build ve Capacitor sync, imzalı IPA testi değildir.
+Windows'ta yerel Xcode yok. GitHub macOS/Xcode iOS simulator build kontrolü **başarılı**: [run 35439068599](https://github.com/ouzhaanttnn-afk/Mihenkson/actions/runs/35439068599), kaynak `46b95ce`. Premium StoreKit + GameKit + App/Haptics/AdMob birlikte derlendi. Sonraki değişiklikler yalnız web görünümü/birim fiyat gösterimi/test/rapordur, native kaynaklar aynı. Bu kontrol imzasızdır; imzalı Archive/IPA ve TestFlight yüklemesi yapılmadı.
 
 Mevcut boş Game Center ID haritasıyla build alınabilir; `npm run build` gerçek ID yoksa Game Center entitlement'ını eklemez ve mevcut signing profile'ı korur. Gerçek ID eklenirse entitlement otomatik açılır, workflow uyumlu profile gereksinimini açık bir hata ile kontrol eder. Canlı sıralama bu yapılandırma tamamlanmadan etkin değildir. macOS'ta temiz Archive al veya mevcut iOS TestFlight workflow'unu bu dalın doğru commit'i için çalıştır. Workflow build numarasını `GITHUB_RUN_NUMBER` ile belirliyor; bu numaranın ilgili App Store sürümünde kullanılmamış olduğunu kontrol et. Yerel project build değeri **22**. TestFlight workflow'u sıradaki kendi run numarasını kullanır (son başarılı run 21 idi). `mihenk-v1.1.0` dalını seçerek çalıştırılmalı.
 
@@ -78,7 +78,7 @@ App Store Connect'te 1.1.0 kaydını, yeni ekran görüntülerini ve sürüm not
 
 ## Test sonucu
 
-- Birleşim sonrası 1.139 Vitest + 3 release hazırlık testi geçti, 0 başarısız.
+- Birleşim sonrası 1.141 Vitest + 3 release hazırlık testi geçti, 0 başarısız.
 - TypeScript typecheck ve üretim web build başarılı.
 - Capacitor iOS + Android sync başarılı; AdMob/App/Haptics bağlandı.
 - 77 statik release kontrolü başarılı.
@@ -88,8 +88,9 @@ App Store Connect'te 1.1.0 kaydını, yeni ekran görüntülerini ve sürüm not
 - 320×568, 390×844, 430×932: beş ana ekranda belge genişliği viewport ile aynı. Koyu/açık stok ve pazarlık ekranları görsel incelendi. 390 px'de iOS safe inset'leri CSS ile simüle edildi; bu fiziksel Dynamic Island testi yerine geçmez.
 - Reklam tamamlanması/erken kapatma/tekrar callback/cooldown; save migration; HAS/borç/stock; tek recall/tek ziyaret/tek başarılı kayıt; 4x/karar duraklaması; haftalık özet; tema kalıcılığı ve native haptic çağrıları otomatik testli.
 - Native GameKit, gerçek AdMob doluluğu, haptic hissi ve müzik sesi için imzalı iPhone testi bekleniyor. Reklam mock testleri reklamın cihazda gösterildiğinin kanıtı değildir.
-- Build'de mevcut büyük JS chunk uyarısı sürüyor (yaklaşık 1,22 MB / 519 KB gzip). Kapsam dışı refactor yapılmadı.
+- Build'de mevcut büyük JS chunk uyarısı sürüyor (yaklaşık 1,28 MB / 544 KB gzip). Kapsam dışı refactor yapılmadı.
 
+- Birleşim sonrası gerçek UI akışı: 6 × 10 g yatırım bileziği temini → aynı müşteriye dönüş → varsayılan açık analiz → anlaşma odaklı teklif → 242.294 ₺ satış / 3.778 ₺ kâr. Açık temada seçili teklif ve manuel fiyatın kontrastı düzeltildi; yatırım bileziğine adet yanında gram fiyatı eklendi (ekonomi değişmedi).
 - React birleşim kontrolü: ikinci/kapalı analiz wrapper'ı kaldırıldı, tek kontrollü analiz alanı korundu; Premium geri çağırma metni reklamsız hakkı doğru anlatır.
 - Build öncesi merkezi release config doğrulaması ve gizli veri içermeyen `release.json` sürüm/commit kanıtı eklendi.
 
