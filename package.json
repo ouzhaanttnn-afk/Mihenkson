@@ -6,9 +6,10 @@
   "description": "MIHENKAYNAK — Kuyumcu Simülatörü. Mobil öncelikli portrait tycoon / shop management oyunu.",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node tools/prepare-release.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "node --test tools/prepare-release.test.mjs && vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
     "i18n": "node tools/i18n-keys.mjs",

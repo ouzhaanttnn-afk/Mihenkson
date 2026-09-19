@@ -56,7 +56,7 @@ import { getStance } from '@domain/appraisal';
 import { CONFIDENCE_LABEL } from '@domain/valuation';
 import { InspectStage } from '@ui/workbench/InspectStage';
 import { NegotiateStage } from '@ui/workbench/NegotiateStage';
-import { ResultStage, TradeSuccessBanner } from '@ui/workbench/ResultStage';
+import { ResultStage, SaleResult } from '@ui/workbench/ResultStage';
 import { ThesisStage } from '@ui/workbench/ThesisStage';
 import {
   DiagnoseStage,
@@ -312,6 +312,12 @@ export function ShopScreen() {
             stage === 'negotiate' ? (
               <NegotiateStage
                 key={deal.dealId + line.lineId}
+                counterAction={{
+                  onAccept: () => s.negotiationMove({ kind: 'acceptCounter', atRound: line.negotiation.round }),
+                  profit: (line.negotiation.finalOffer ?? line.negotiation.activeCounter ?? offer) - deal.purchase.packageCost,
+                  cashAfter: s.store.cash + (line.negotiation.finalOffer ?? line.negotiation.activeCounter ?? offer),
+                  estimated: false, disabled: isTerminal(line.negotiation.state),
+                }}
                 session={line.negotiation}
                 message={s.customerMessage}
                 offer={line.negotiation.finalOffer ?? offer}
@@ -348,19 +354,7 @@ export function ShopScreen() {
               />
             ) : stage === 'result' ? (
               line.negotiation.state === 'ACCEPTED' ? (
-                <div className="result">
-                  <TradeSuccessBanner />
-                  <span className="result__badge result__badge--good">{t('İyi karar')}</span>
-                  <h2 className="result__headline">
-                    {t('Satıldı · {tutar}', { tutar: tl(line.negotiation.settledPrice ?? 0) })}
-                  </h2>
-                  <p className="result__note">
-                    {t('Kâr')}: {' '}
-                    <strong className="num">
-                      {tlSigned((line.negotiation.settledPrice ?? 0) - deal.purchase.packageCost)}
-                    </strong>
-                  </p>
-                </div>
+                <SaleResult price={line.negotiation.settledPrice ?? 0} cost={deal.purchase.packageCost} />
               ) : (
                 <div className="result">
                   <span className="result__badge result__badge--neutral">{t('İşlem kapanmadı')}</span>
@@ -452,6 +446,14 @@ export function ShopScreen() {
             />
           ) : stage === 'negotiate' ? (
             <NegotiateStage
+              key={line.lineId}
+              counterAction={{
+                onAccept: () => s.negotiationMove({ kind: 'acceptCounter', atRound: line.negotiation.round }),
+                profit: ceiling - (line.negotiation.finalOffer ?? line.negotiation.activeCounter ?? offer),
+                cashAfter: s.store.cash - (line.negotiation.finalOffer ?? line.negotiation.activeCounter ?? offer),
+                estimated: true,
+                disabled: isTerminal(line.negotiation.state) || (line.negotiation.finalOffer ?? line.negotiation.activeCounter ?? offer) > s.store.cash,
+              }}
               session={line.negotiation}
               message={s.customerMessage}
               offer={line.negotiation.finalOffer ?? offer}
@@ -466,6 +468,8 @@ export function ShopScreen() {
             />
           ) : stage === 'result' && s.lastReview ? (
             <ResultStage
+              paid={line.negotiation.settledPrice ?? 0}
+              estimatedGain={ceiling - (line.negotiation.settledPrice ?? 0)}
               review={s.lastReview}
               accepted={line.negotiation.state === 'ACCEPTED'}
             />
@@ -479,7 +483,11 @@ export function ShopScreen() {
       */}
       {lesson && (
         <CoachBar
-          lesson={lesson}
+          lesson={lesson.id === 'negotiate' && deal?.flow === 'purchase'
+            ? { ...lesson, title: t('Maliyetinin altı zarardır'), body: t('Satış kârı, fiyatın ile maliyetin arasındaki farktır. Hazır teklif seçebilir veya tutara dokunup kendin ayarlayabilirsin.') }
+            : lesson.id === 'negotiate'
+              ? { ...lesson, body: t('Hazır teklif seç veya tutara dokunup kendin ayarla. Alıştaki kazanç tahminidir; satışa kadar gerçekleşmez.') }
+              : lesson}
           // Atlama kararı bir kez sorulur: hiç ders görmemiş oyuncuya.
           showSkip={s.seenLessons.length === 0}
           queuePriority={!deal && s.queue.length > 0}
@@ -750,9 +758,9 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         </button>
 
         {shopOverviewOpen ? <div className="shopOverview__details" id="shop-overview-details">
-          <button type="button" className="shopTalentButton" onClick={() => s.setShopTalentTreeOpen(true)}>
+          <button type="button" className="shopTalentButton" disabled>
             <span><IconBusiness size={18} /> {t('Yetenek Ağacı')}</span>
-            <small>Ayar %{Math.round(s.skillProgress.assayAccuracyRank === 0 ? 60 : 60 + s.skillProgress.assayAccuracyRank * 10)} · Tatlı Dil {s.skillProgress.tatliDilLevel}/3</small>
+            <small>{t('Yakında')}</small>
             <span aria-hidden="true">›</span>
           </button>
 
@@ -1626,7 +1634,7 @@ function ShopDock({
           primary={
             isFinal && counter !== null
               ? {
-                  label: t('Kabul Et'),
+                  label: t('Kabul Et · {tutar}', { tutar: tl(counter) }),
                   onPress: () => s.negotiationMove({ kind: 'acceptCounter', atRound: session.round }),
                   disabled: counter > s.store.cash,
                   disabledReason: counter > s.store.cash
@@ -1821,7 +1829,7 @@ function PurchaseDock({
           summaryValue={t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter ?? 0) })}
           hideSummary={!isFinal}
           primary={{
-            label: isFinal ? t('Son Teklifi Kabul Et') : t('Fiyatı Ver'),
+            label: isFinal ? t('Kabul Et · {tutar}', { tutar: tl(counter ?? 0) }) : t('Fiyatı Ver'),
             onPress: () =>
               isFinal && counter !== null
                 ? s.negotiationMove({ kind: 'acceptCounter', atRound: session.round })

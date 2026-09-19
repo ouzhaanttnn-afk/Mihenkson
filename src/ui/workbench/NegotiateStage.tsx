@@ -47,6 +47,7 @@ const MOVE_ICON: Record<string, typeof IconReason> = {
 };
 
 interface Props {
+  counterAction?: { onAccept: () => void; profit: Money; cashAfter: Money; estimated: boolean; disabled: boolean };
   /** Oyuncunun kendi vitrin stoğu: tarihî maliyet ile güncel metal ayrı. */
   saleAccounting?: { acquisitionCost: Money; metalValue: Money };
   session: NegotiationSession;
@@ -105,6 +106,7 @@ export function NegotiateStage({
   liquidityAfter,
   reference,
   saleAccounting,
+  counterAction,
 }: Props) {
   const analysisOpen = useGame(s => !s.activeDeal?.analysisCollapsed);
   const toggleAnalysis = () => useGame.setState(s => s.activeDeal
@@ -200,11 +202,21 @@ export function NegotiateStage({
       </div>
 
       {counter !== null && (
-        <div className={`counterRow ${isFinal ? 'counterRow--final' : ''}`}>
+        <div className={`counterRow simpleCounter ${isFinal ? 'counterRow--final' : ''}`}>
           <span className="counterRow__label">
             {isFinal ? t('Son teklifi') : t('Karşı teklifi')}
           </span>
           <span className="counterRow__value num">{tl(counter)}</span>
+          {counterAction && <>
+            <span className={`simpleCounter__profit ${counterAction.profit < 0 ? 'simpleCounter__profit--loss' : ''}`}>
+              {counterAction.estimated ? t('Tahmini kazanç') : t('Satış kârı')}: {tlSigned(counterAction.profit)}
+              {' · '}{t('Sonraki nakit')}: {tl(counterAction.cashAfter)}
+            </span>
+            {!isFinal && <button type="button" className="simpleCounter__accept" aria-label={t('Bu teklifi kabul et')} onClick={counterAction.onAccept} disabled={counterAction.disabled}>
+              {counterAction.disabled ? t('Nakit yetersiz') : t('Bu teklifi kabul et')}
+              <small className="simpleCounter__compactGain">{counterAction.estimated ? t('Tahmini') : t('Kâr')}: {tlSigned(counterAction.profit)}</small>
+            </button>}
+          </>}
         </div>
       )}
 

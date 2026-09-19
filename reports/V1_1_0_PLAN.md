@@ -1,6 +1,6 @@
 # Mihenk 1.1.0 implementation map
 
-Base: `58ef2cb` on `mihenk-classic-update`. Work is isolated on `mihenk-v1.1.0`.
+Initial base: `58ef2cb` on `mihenk-classic-update`. Work is isolated on `mihenk-v1.1.0`. Integration update: merged current production/TestFlight 1.0.3 (21), verified successful workflow commit `8ec41bb`, to preserve Premium/AdMob/icon and gameplay fixes from main. Main and classic branch tips remain unchanged.
 
 - React/Vite/Capacitor 8, Zustand `src/state/gameStore.ts`; domain functions own pricing/settlement. Keep these formulas.
 - Save v3 in `src/state/save.ts` persists economy, RNG, active deals and queue. Extend optional fields/default normalization; never clear saves.

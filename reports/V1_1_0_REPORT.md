@@ -2,7 +2,7 @@
 
 ## Durum
 
-Çalışma `mihenk-v1.1.0` dalında, başlangıçta açık olan `mihenk-classic-update` / `58ef2cb` üzerine yapıldı. `main` ve classic dalının uç commit'leri değiştirilmedi. Bu, main'deki tüm özelliklerin birleştirildiği bir sürüm değildir; mevcut classic oyun çekirdeğinin güncellemesidir.
+Çalışma `mihenk-v1.1.0` dalında. İlk classic tabanının ardından, kullanıcının ekran görüntüsündeki gerçek TestFlight **1.0.3 (21)** sürümünün başarılı GitHub workflow kaydı doğrulandı: `8ec41bb9f5d4f57a5588e08a570a57db7b9026ec`. Bu commit'in tüm main geliştirmeleri merge edildi. Premium StoreKit, gerçek fiyatlandırma, reklam preload/UMP düzeltmeleri, altın hareketleri, ticaret sonuçları ve premium ikon pipeline'ı korundu. `main` ve classic dalına yazılmadı.
 
 Web paketi ve native plugin senkronizasyonu hazır. **Henüz App Store/TestFlight'a gönderilmedi. Game Center canlı sıralaması ve duyulabilir fon müziği etkin değil.** Gerçek kimlikler/lisanslı ses olmadan bunları çalışıyormuş gibi göstermiyoruz.
 
@@ -72,13 +72,13 @@ Hakları size ait/lisanslı, kesintisiz döngüye uygun MP3 veya AAC dosyasını
 
 Windows'ta Xcode bulunmadığından Swift/iOS Archive derlemesi **yapılmadı**. Web build ve Capacitor sync, imzalı IPA testi değildir.
 
-Game Center profile ve gerçek ID'ler hazır olduğunda macOS'ta temiz Archive al veya mevcut iOS TestFlight workflow'unu bu dalın doğru commit'i için çalıştır. Workflow build numarasını `GITHUB_RUN_NUMBER` ile belirliyor; bu numaranın ilgili App Store sürümünde kullanılmamış olduğunu kontrol et. Yerel project build değeri 16 korunuyor; manuel Archive'da kullanılmamış yeni değer seç.
+Mevcut boş Game Center ID haritasıyla build alınabilir; `npm run build` gerçek ID yoksa Game Center entitlement'ını eklemez ve mevcut signing profile'ı korur. Gerçek ID eklenirse entitlement otomatik açılır, workflow uyumlu profile gereksinimini açık bir hata ile kontrol eder. Canlı sıralama bu yapılandırma tamamlanmadan etkin değildir. macOS'ta temiz Archive al veya mevcut iOS TestFlight workflow'unu bu dalın doğru commit'i için çalıştır. Workflow build numarasını `GITHUB_RUN_NUMBER` ile belirliyor; bu numaranın ilgili App Store sürümünde kullanılmamış olduğunu kontrol et. Yerel project build değeri **22**. TestFlight workflow'u sıradaki kendi run numarasını kullanır (son başarılı run 21 idi). `mihenk-v1.1.0` dalını seçerek çalıştırılmalı.
 
 App Store Connect'te 1.1.0 kaydını, yeni ekran görüntülerini ve sürüm notlarını hazırlayıp doğru işlenen build'i seç. Yalnız GitHub build'in başarılı olması App Store sürümünü değiştirmez. Bu çalışmada yayın/inceleme gönderimi yapılmadı.
 
 ## Test sonucu
 
-- 1.104 test geçti, 0 başarısız.
+- Birleşim sonrası 1.139 Vitest + 3 release hazırlık testi geçti, 0 başarısız.
 - TypeScript typecheck ve üretim web build başarılı.
 - Capacitor iOS + Android sync başarılı; AdMob/App/Haptics bağlandı.
 - 77 statik release kontrolü başarılı.
@@ -89,6 +89,9 @@ App Store Connect'te 1.1.0 kaydını, yeni ekran görüntülerini ve sürüm not
 - Reklam tamamlanması/erken kapatma/tekrar callback/cooldown; save migration; HAS/borç/stock; tek recall/tek ziyaret/tek başarılı kayıt; 4x/karar duraklaması; haftalık özet; tema kalıcılığı ve native haptic çağrıları otomatik testli.
 - Native GameKit, gerçek AdMob doluluğu, haptic hissi ve müzik sesi için imzalı iPhone testi bekleniyor. Reklam mock testleri reklamın cihazda gösterildiğinin kanıtı değildir.
 - Build'de mevcut büyük JS chunk uyarısı sürüyor (yaklaşık 1,22 MB / 519 KB gzip). Kapsam dışı refactor yapılmadı.
+
+- React birleşim kontrolü: ikinci/kapalı analiz wrapper'ı kaldırıldı, tek kontrollü analiz alanı korundu; Premium geri çağırma metni reklamsız hakkı doğru anlatır.
+- Build öncesi merkezi release config doğrulaması ve gizli veri içermeyen `release.json` sürüm/commit kanıtı eklendi.
 
 Ekran görüntüleri ve Vitest JSON'u `reports/v1.1.0-*` yerel kanıt dosyalarıdır.
 

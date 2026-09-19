@@ -25,7 +25,8 @@ ve **gerçek finansal, yatırım veya kuyumculuk tavsiyesi değildir.**
 
 Oyun içinde geçen "₺" ve "$" tamamen kurgusal, oyun içi bir birimdir; gerçek
 para veya değerli maden karşılığı taşımaz ve gerçek paraya çevrilemez.
-Bu sürümde hiçbir uygulama içi satın alma (IAP) entegrasyonu yoktur.
+iOS uygulamasında tek seferlik Premium satın alımı Apple StoreKit ile
+gerçekleştirilebilir; fiyat ve satın alma şartları Apple ödeme ekranında sunulur.
 
 ## 4. Fikri mülkiyet
 

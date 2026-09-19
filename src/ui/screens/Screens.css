@@ -641,7 +641,7 @@
 }
 
 .deliveryResult--failed { border-left-color: var(--negative); }
-.deliveryResult__head { display: flex; justify-content: space-between; gap: var(--sp-3); }
+.deliveryResult__head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); }
 .deliveryResult__head h2 { font-size: var(--fs-body); margin: 2px 0; }
 .deliveryResult__head p,
 .deliveryResult__message { color: var(--text-light-3); font-size: var(--fs-caption); }
@@ -1842,6 +1842,48 @@
   gap: var(--sp-2);
 }
 
+.premiumOffer { width: 100%; max-width: 440px; min-width: 0; }
+.premiumOffer__seal { display: block; color: #f4cf73; font-size: 32px; }
+.premiumOffer__eyebrow { color: #e4c77d; font-size: 11px; letter-spacing: .14em; }
+.premiumOffer ul { padding-left: 20px; text-align: left; color: var(--text-dark-2); font-size: 13px; line-height: 1.55; }
+.premiumOffer li + li { margin-top: 6px; }
+.premiumOffer__price { display: flex; flex-wrap: wrap; gap: 5px 10px; align-items: baseline; justify-content: center; margin: 16px 0; }
+.premiumOffer__price strong { color: #f4cf73; font-size: 26px; }
+.premiumOffer__price span { color: var(--text-dark-2); font-size: 12px; }
+.premiumOffer__loadingBlock,
+.premiumOffer__errorBlock { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.premiumOffer__loadingText { color: var(--text-dark-3); font-size: 15px; font-style: italic; }
+.premiumOffer__errorText { color: var(--negative, #ff6b6b); font-size: 14px; font-weight: var(--fw-semibold); }
+.premiumOffer__retry { background: none; border: none; color: #f4cf73; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 4px 8px; }
+.premiumOffer__retry:hover { color: #fff; }
+.marketComingSoon .premiumOffer p { margin: 10px auto; color: var(--text-dark-2); }
+.marketComingSoon .premiumOffer .cta { width: 100%; color: #211706; background: linear-gradient(180deg, #f4cf73, #bd871e); padding: 12px; border-radius: var(--r-md); font-weight: var(--fw-bold); }
+.marketComingSoon .premiumOffer .cta:disabled,
+.marketComingSoon .premiumOffer .cta--disabled {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-dark-3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.premiumOffer__caption { font-size: 12px; color: var(--text-dark-3); margin-top: 8px; text-align: center; }
+.premiumOffer__links { display: flex; justify-content: center; margin-top: 8px; }
+.premiumOffer__restore {
+  background: transparent;
+  border: none;
+  color: var(--text-dark-3);
+  font-size: 13px;
+  text-decoration: underline;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.premiumOffer__restore:hover { color: var(--text-dark-1); }
+.premiumOffer__restore:disabled { opacity: 0.5; cursor: default; }
+.premiumOffer__status:empty { display: none; }
+.marketCatalog__footerAction { display: flex; justify-content: center; padding: var(--sp-4) 0; }
+
 .marketComingSoon .marketComingSoon__reward {
   border-color: rgba(215, 170, 74, 0.58);
   color: var(--palette-211706);
@@ -2128,7 +2170,7 @@
 .talentLevel b { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, 0.05); }
 .talentLevel--earned { color: var(--text-dark-1); }
 .talentLevel--earned b { background: var(--brass-500); color: var(--palette-171006); }
-.talentTree__note { margin: 0; color: var(--text-dark-3); font-size: var(--fs-micro); line-height: 1.45; }
+.talentTree__note { margin: 0; color: var(--text-dark-2); font-size: var(--fs-caption); line-height: 1.45; }
 
 .talentTreeScrim {
   position: fixed;

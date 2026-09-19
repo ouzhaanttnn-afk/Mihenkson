@@ -69,6 +69,7 @@ public class MihenkGameCenterPlugin: CAPPlugin, CAPBridgedPlugin {
 @objc(MihenkBridgeViewController)
 class MihenkBridgeViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
+        bridge?.registerPluginInstance(PremiumPlugin())
         bridge?.registerPluginInstance(MihenkGameCenterPlugin())
     }
 }

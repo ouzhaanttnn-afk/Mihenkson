@@ -40,6 +40,12 @@ function selectorColorVariable(css: string, selector: string): string {
 }
 
 describe('mobil kabuk sözleşmesi', () => {
+  it('ertelenen yetenek ağacı girişi Yakında etiketiyle pasiftir', () => {
+    const shop = projectFile('src/ui/screens/ShopScreen.tsx');
+    expect(shop).toContain('className="shopTalentButton" disabled');
+    expect(shop).toContain("<small>{t('Yakında')}</small>");
+  });
+
   it('oyun kabuğunda iOS odak ve pinch yakınlaştırmasını kapatır', () => {
     const html = projectFile('index.html');
     const viewport = html.match(/<meta\s+name="viewport"\s+content="([^"]+)"/s)?.[1] ?? '';
@@ -129,14 +135,15 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(market).toContain('<section className="marketCatalog"');
   });
 
-  it('Market ilk sırada henüz satın alma yapmayan Yakında kategorisini gösterir', () => {
+  it('Market ilk sırada gerçek satın alma köprüsüne bağlı Premium kategorisini gösterir', () => {
     const market = projectFile('src/ui/screens/MarketPlaceholderScreen.tsx');
 
     expect(market).toContain("id: 'offers'");
     expect(market.indexOf("id: 'offers'")).toBeLessThan(market.indexOf('...MARKET_CATEGORIES'));
     expect(market).toContain("useState<MarketTab>('offers')");
     expect(market).toContain('category === \'offers\'');
-    expect(market).toContain('<button type="button" disabled>{t(\'Yakında\')}</button>');
+    expect(market).toContain('<PremiumOffer />');
+    expect(market).toContain('comingSoon: false');
   });
 
   it('saat rolünü ve profil düğmesindeki XP ilerleme adını korur', () => {
