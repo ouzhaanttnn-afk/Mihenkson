@@ -31,6 +31,15 @@ describe('iOS mağaza paketi', () => {
     expect(info).toMatch(/<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS<\/key>\s*<false\/>/);
   });
 
+  it('dağıtım profilini Swift paketleri yerine yalnız uygulama hedefine uygular', () => {
+    const project = read('ios/App/App.xcodeproj/project.pbxproj');
+    const workflow = read('.github/workflows/ios-testflight.yml');
+
+    expect(project).toContain('PROVISIONING_PROFILE_SPECIFIER = "$(MIHENK_PROVISION_PROFILE)";');
+    expect(workflow).toContain("MIHENK_PROVISION_PROFILE='${{ steps.signing.outputs.profile_name }}'");
+    expect(workflow).not.toContain("PROVISIONING_PROFILE_SPECIFIER='${{ steps.signing.outputs.profile_name }}'");
+  });
+
   it('dikey ürün kararıyla iPhone-only hedeflenir', () => {
     const project = read('ios/App/App.xcodeproj/project.pbxproj');
     const families = [...project.matchAll(/TARGETED_DEVICE_FAMILY = ([^;]+);/g)]
