@@ -1,3 +1,4 @@
+import { rankingWealth, seasonFor, type RankingSeason } from '@domain/ranking';
 /**
  * MIHENKAYNAK — Oyun oturumu orkestrasyonu
  *
@@ -267,6 +268,7 @@ export interface ServiceDeliverySummary {
 }
 
 export interface GameState {
+  rankingSeason: RankingSeason | null;
   // --- Determinizm ---
   seed: number;
   /** Artan spawn sayacı — her spawn'ın deterministik anahtarı. */
@@ -342,7 +344,7 @@ export interface GameState {
     expiresDay: number;
   } | null;
   /** Anlaşmadan ayrılan ve reklamla bir kez geri çağrılabilen son müşteri. */
-  recallableGuest: { customer: Customer; items: ItemInstance[] } | null;
+  recallableGuest: { customer: Customer; items: ItemInstance[]; deal?: ActiveDeal } | null;
 
   /**
    * Günün karakteri — Addendum §3'ün %24'lük dinamik havuzu.
@@ -366,12 +368,14 @@ export interface GameState {
   /** Bugün personel reklam kirası izlendi mi — gün kapanışında personel gideri 0 sayılır. */
   personnelCostWaivedToday: boolean;
   lastDayReport: import('@domain/settlement').DayReport | null;
+  weekReports: import('@domain/settlement').DayReport[];
   dayCloseConfirmOpen: boolean;
   dayReportOpen: boolean;
   dayCloseIssue: DayCloseIssue;
   requestDayClose: () => void;
   cancelDayClose: () => void;
   startNewDay: () => void;
+  weekTransitionPending: boolean;
   stockCatalogOpen: boolean;
   openStockCatalog: () => void;
   setStockCatalogOpen: (open: boolean) => void;
@@ -493,6 +497,7 @@ export interface GameState {
   requestSupplyExpress: () => Promise<void>;
   requestWorkshopRush: (jobId: string) => Promise<void>;
   requestCustomerRecall: () => Promise<void>;
+  dismissCustomerRecall: () => void;
   requestExtraOffer: () => Promise<void>;
   requestFreeShipping: () => Promise<void>;
   buyMarketProduct: (productId: string) => boolean;
@@ -660,6 +665,8 @@ export const useGame = create<GameState>((set, get) => {
     tab: 'shop',
     speed: 1,
     speed4xUnlocked: false,
+    rankingSeason: null,
+    weekTransitionPending: false,
     customerRushUntilMinutes: null,
     rewardedAdPending: null,
     sponsorRewardClaimedDay: null,
@@ -693,6 +700,7 @@ export const useGame = create<GameState>((set, get) => {
     missedGuestCountToday: 0,
     personnelCostWaivedToday: false,
     lastDayReport: null,
+    weekReports: [],
     dayCloseConfirmOpen: false,
     dayReportOpen: false,
     dayCloseIssue: null,
@@ -935,12 +943,15 @@ export const useGame = create<GameState>((set, get) => {
       const { market } = get();
       // GDD 23.10.1 — yalnız müşteri geliş aralığını kısaltır. Müşteri
       // kalitesi, bütçesi, rezervasyon fiyatı veya hidden truth DEĞİŞMEZ.
-      set({ customerRushUntilMinutes: market.clockMinutes + 90 });
+      set({ customerRushUntilMinutes: market.clockMinutes + 90,
+        nextCustomerAtMinutes: Math.min(get().nextCustomerAtMinutes, market.clockMinutes + 3) });
       pushToast(set, get, t('Müşteri akını başladı — geliş aralığı kısaldı.'), 'info');
     },
 
     requestCustomerRush: async () => {
-      if (get().rewardedAdPending) return;
+      const before = get();
+      if (before.rewardedAdPending || !isShopOpen(before.market.day) || before.activeDeal ||
+          (before.customerRushUntilMinutes ?? 0) > before.market.clockMinutes) return;
       set({ rewardedAdPending: 'customerRush' });
       const granted = await showRewardedAd('customerRush');
       set({ rewardedAdPending: null });
@@ -948,40 +959,8 @@ export const useGame = create<GameState>((set, get) => {
       else pushToast(set, get, t('Reklam tamamlanmadı — akın başlamadı.'), 'negative');
     },
 
-    requestSponsorReward: async () => {
-      const before = get();
-      if (before.rewardedAdPending || before.sponsorRewardClaimedDay === before.market.day) return;
-      const requestedDay = before.market.day;
-      set({ rewardedAdPending: 'dailySponsor' });
-      const granted = await showRewardedAd('dailySponsor');
-      set({ rewardedAdPending: null });
-      if (!granted) {
-        pushToast(set, get, t('Reklam tamamlanmadı — kasa desteği alınmadı.'), 'negative');
-        return;
-      }
-
-      const s = get();
-      if (s.market.day !== requestedDay || s.sponsorRewardClaimedDay === requestedDay) return;
-      const amount = sponsorRewardAmount(s.market);
-      const txId = `sponsor_${requestedDay}`;
-      const outcome = applyTransaction(economyOf(s), {
-        txId,
-        dealId: txId,
-        day: requestedDay,
-        cashDelta: amount,
-        itemsIn: [],
-        itemsOut: [],
-        trustDelta: 0,
-        reputationDelta: 0,
-        xpDelta: 0,
-        label: t('Çarşı sponsor desteği'),
-      });
-      if (!outcome.applied) return;
-      set({ ...economyToState(outcome.state), sponsorRewardClaimedDay: requestedDay });
-      writeSave(get());
-      cue(set, get, 'coins');
-      pushToast(set, get, t('Çarşı desteği kasaya eklendi · {tutar}', { tutar: tl(amount) }), 'positive');
-    },
+    // Compatibility entry point: reward opportunities instead of direct cash.
+    requestSponsorReward: async () => { await get().requestCustomerRush(); },
 
     requestPatienceBoost: async () => {
       const before = get();
@@ -1060,7 +1039,7 @@ export const useGame = create<GameState>((set, get) => {
       const line = deal ? activeLine(deal) : undefined;
       if (
         before.rewardedAdPending || !deal || !line || !before.activeCustomer ||
-        deal.stage !== 'negotiate' || deal.rewardedExtraOfferUsed || isTerminal(line.negotiation.state) ||
+        deal.stage !== 'negotiate' || deal.recalled || deal.rewardedExtraOfferUsed || isTerminal(line.negotiation.state) ||
         before.rewardedDailyUses.extraOffer === before.market.day
       ) return;
       const dealId = deal.dealId;
@@ -1235,13 +1214,23 @@ export const useGame = create<GameState>((set, get) => {
       pushToast(set, get, remainingDays === 0 ? t('Atölye mesaisi işi tamamladı.') : t('İşin kalan süresi bir gün azaldı.'), 'positive');
     },
 
+    dismissCustomerRecall: () => {
+      const s = get();
+      const guest = s.recallableGuest;
+      if (!guest) return;
+      const visit = guest.deal ? { ...s, activeDeal: guest.deal, activeCustomer: guest.customer } : null;
+      set({
+        recallableGuest: null,
+        ...(visit ? { customers: commitVisit(visit),
+          store: { ...s.store, reputation: clamp(s.store.reputation + visitReputationDelta(visit), 0, 100) } } : {}),
+      });
+      writeSave(get());
+    },
+
     requestCustomerRecall: async () => {
       const before = get();
-      if (
-        before.rewardedAdPending || before.activeDeal || !before.recallableGuest ||
-        before.queue.length >= queueCapacity(before.store) ||
-        before.rewardedDailyUses.customerRecall === before.market.day
-      ) return;
+      const guest = before.recallableGuest;
+      if (before.rewardedAdPending || before.activeDeal || !guest?.deal || guest.deal.recalled) return;
       const requestedDay = before.market.day;
       set({ rewardedAdPending: 'customerRecall' });
       const granted = await showRewardedAd('customerRecall');
@@ -1251,23 +1240,29 @@ export const useGame = create<GameState>((set, get) => {
         return;
       }
       const s = get();
-      if (s.market.day !== requestedDay || !s.recallableGuest || s.queue.length >= queueCapacity(s.store)) return;
-      const guest = s.recallableGuest;
-      const customer = {
-        ...guest.customer,
-        patience: Math.max(2, Math.round(guest.customer.patienceMax * 0.35)),
-      };
+      if (s.market.day !== requestedDay || s.recallableGuest !== guest || s.activeDeal) return;
+      const original = guest.deal;
+      // Keep product/quantity/budget and original transaction identity. No new spawn.
+      const lines = original.lines.map(line => ({
+        ...line,
+        status: 'appraised' as const,
+        negotiation: { ...line.negotiation, state: 'OPEN' as const,
+          activeCounter: null, finalOffer: null, settledPrice: null },
+      }));
       set({
-        queue: [{ customer, items: guest.items }, ...s.queue],
+        activeCustomer: { ...guest.customer, patience: Math.max(2, guest.customer.patienceMax * 0.35) },
+        activeDeal: { ...original, lines, activeLineId: lines[0]!.lineId, stage: 'negotiate',
+          recalled: true, settled: false },
+        items: { ...s.items, ...Object.fromEntries(guest.items.map(item => [item.id, item])) },
+        // Replace unsuccessful case records on final settlement; successful records never qualify.
+        ledger: { ...s.ledger, deals: s.ledger.deals.filter(d =>
+          !original.lines.some(l => d.dealId === original.dealId + '_' + l.lineId) &&
+          d.dealId !== original.dealId + '_pkg') },
         recallableGuest: null,
-        // Geri çağrılan ziyaret yeni bir oturumdur. Sıra sayacını tüketmek,
-        // önceki reddedilmiş ziyaretin deal/transaction kimlikleriyle
-        // çakışmasını engeller ve çift mutabakat korumasını sağlam tutar.
-        spawnCounter: s.spawnCounter + 1,
-        rewardedDailyUses: { ...s.rewardedDailyUses, customerRecall: requestedDay },
+        customerMessage: localizedMessage('Geri geldim. Son teklifini dinliyorum.'),
+        tab: 'shop',
       });
       writeSave(get());
-      pushToast(set, get, t('Son müşteri düşük sabırla kuyruğa döndü.'), 'positive');
     },
 
     buyMarketProduct: (productId) => {
@@ -1397,6 +1392,7 @@ export const useGame = create<GameState>((set, get) => {
       // 19:00 sonrası yeni işlem başlatılamaz (UI yarışına karşı store kapısı).
       if (s.market.clockMinutes >= DAY.closeMinutes) return;
       if (s.activeDeal && !isDealFinished(s.activeDeal)) return;
+      if (s.recallableGuest) return;
 
       let head = s.queue[0];
       if (!head) return;
@@ -2130,7 +2126,11 @@ export const useGame = create<GameState>((set, get) => {
         patienceLossTolerated: !!tatliDilEffect(s.skillProgress).patienceLossTolerated,
       };
 
-      const { session, response } = applyMove(line.negotiation, ctx, move);
+      const result = applyMove(line.negotiation, ctx, move);
+      const finalRetry = deal.recalled && (move.kind === 'offer' || move.kind === 'acceptCounter') &&
+        result.session.state !== 'ACCEPTED';
+      const session = finalRetry ? { ...result.session, state: 'REJECTED' as const } : result.session;
+      const response = finalRetry ? { ...result.response, message: localizedMessage('Son teklifte anlaşamadık.') } : result.response;
 
       const nextCustomer: Customer = {
         ...customer,
@@ -2200,23 +2200,27 @@ export const useGame = create<GameState>((set, get) => {
       // GDD 10.2 — ziyaret KAPANIRKEN deftere yazılır. İşlem içinde oynayan
       // güveni kaydetmeden müşteriyi göndermek, güveni ekonomik varlık değil
       // geçici bir sayı yapardı (GDD 10).
-      const customers = commitVisit(s);
-      const repDelta = visitReputationDelta(s);
+
       const outcome = s.activeDeal && s.activeCustomer
         ? visitOutcome(s.activeDeal, s.activeCustomer)
         : null;
-      const canRecall = !!s.activeDeal && !!s.activeCustomer &&
+      const canRecall = !!s.activeDeal && !!s.activeCustomer && !s.activeDeal.recalled &&
+        s.activeDeal.lines.length > 0 && (s.activeDeal.flow === 'purchase' || s.activeDeal.lines.every(l => l.band !== null)) &&
+        (s.activeDeal.flow !== 'purchase' || (s.activeDeal.purchase?.lines.length ?? 0) > 0) &&
         (s.activeDeal.flow === 'trade' || s.activeDeal.flow === 'purchase') &&
         !s.activeDeal.lines.some((line) => line.negotiation.state === 'ACCEPTED') &&
         (outcome === 'rejected' || outcome === 'walkedOut');
       const recallableGuest = canRecall
         ? {
             customer: s.activeCustomer!,
+            deal: s.activeDeal!,
             items: s.activeDeal!.flow === 'trade'
               ? s.activeDeal!.lines.map((line) => s.items[line.itemId]).filter((item): item is ItemInstance => !!item)
               : [],
           }
         : s.recallableGuest;
+      const customers = canRecall ? s.customers : commitVisit(s);
+      const repDelta = canRecall ? 0 : visitReputationDelta(s);
       set({
         customers,
         store: repDelta
@@ -2766,16 +2770,21 @@ export const useGame = create<GameState>((set, get) => {
     },
     startNewDay: () => {
       const s = get();
-      if (!s.dayReportOpen) return;
+      if (!s.dayReportOpen || s.weekTransitionPending) return;
       if (!writeSave({ ...s, dayReportOpen: false })) {
         pushToast(set, get, t('Kayıt yazılamadı; gün özeti açık tutuldu.'), 'negative'); return;
       }
-      set({ dayReportOpen: false });
+      if (s.lastDayReport && weekdayOf(s.lastDayReport.day) === 6) {
+        set({ weekTransitionPending: true });
+        void showInterstitialAd().catch(() => undefined).finally(() => {
+          if (get().lastDayReport === s.lastDayReport) set({ dayReportOpen: false, weekTransitionPending: false });
+        });
+      } else set({ dayReportOpen: false });
     },
     advanceDay: () => {
       cue(set, get, 'chime');
       const s = get();
-      if (s.dayReportOpen) return;
+      if (s.dayReportOpen || s.recallableGuest) return;
       const { state: closed, report, applied } = closeDay(
         economyOf(s),
         s.market.day,
@@ -2856,6 +2865,7 @@ export const useGame = create<GameState>((set, get) => {
         missedGuestCountToday: 0,
         personnelCostWaivedToday: false,
         lastDayReport: { ...report, overnightSummary: overnightOutcome.summary },
+        weekReports: [...s.weekReports.filter(r => r.day < report.day && Math.floor((r.day - 1) / 7) === Math.floor((report.day - 1) / 7)), report],
         dayCloseConfirmOpen: false,
         dayReportOpen: true,
         dayCloseIssue: null,
@@ -2935,9 +2945,7 @@ export const useGame = create<GameState>((set, get) => {
         beklemez, bloklamaz — yüklenmezse veya web/dev ortamındaysa sessizce
         hiçbir şey olmaz (bkz. `showInterstitialAd`).
       */
-      if (weekdayOf(s.market.day) === 6) {
-        void showInterstitialAd();
-      }
+
     },
 
     // -----------------------------------------------------------------------
@@ -2995,7 +3003,12 @@ export const useGame = create<GameState>((set, get) => {
     // -----------------------------------------------------------------------
     // Kayıt (GDD 28.1 · Addendum §11)
     // -----------------------------------------------------------------------
-    saveGame: () => writeSave(get()),
+    saveGame: () => {
+      const s = get();
+      const season = seasonFor(s.rankingSeason, rankingWealth(s).grams);
+      if (season !== s.rankingSeason) set({ rankingSeason: season });
+      return writeSave(get());
+    },
 
     loadGame: () => {
       const loaded = readSave();
@@ -3218,7 +3231,7 @@ function settleLine(
 
 /** Pazarlık başladıysa paket kilitlidir (GDD 34.2 tavanı yeniden zar atılamaz). */
 function packageLocked(deal: ActiveDeal): boolean {
-  return deal.lines.some((l) => l.negotiation.offerHistory.length > 0);
+  return !!deal.recalled || deal.lines.some((l) => l.negotiation.offerHistory.length > 0);
 }
 
 /**
@@ -3829,7 +3842,7 @@ export function clockPauseReason(s: GameState): ClockPauseReason | null {
   if (s.stockCatalogOpen) return 'quick-stock';
   if (s.shopTalentTreeOpen) return 'shop-modal';
   if (s.rewardedAdPending !== null) return 'rewarded-ad';
-  if (s.activeDeal !== null) return 'customer-deal';
+  if (s.activeDeal !== null || s.recallableGuest !== null) return 'customer-deal';
   if (nextLesson(coachContextOf(s), s.seenLessons) !== null) return 'onboarding';
   return null;
 }

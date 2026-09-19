@@ -1,3 +1,4 @@
+import { QuantityControl } from '@ui/QuantityControl';
 /**
  * STOK ekranı (GDD 23.15)
  *
@@ -295,7 +296,6 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
     değeri 2 tutuyordu; yazılabilir kutuda bu yanıltıcı olurdu.
   */
   const minQty = templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1;
-  const stepQty = 1;
   const unitSuffix =
     templateId === 'gram_gold_1' ? 'g' : gramsPerUnit ? `× ${gramsPerUnit} g` : t('adet');
   const maxLabel =
@@ -304,11 +304,7 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
       : gramsPerUnit
         ? t('{n} bilezik', { n: max })
         : t('{n} adet', { n: max });
-  const shift = (delta: number) => {
-    const base = Number.isFinite(qty) ? qty : minQty;
-    const next = Math.min(max, Math.max(minQty, base + delta));
-    setQty(templateId === 'gram_gold_1' ? next.toFixed(1) : String(Math.round(next)));
-  };
+
   const poolId = poolForTemplate(templateId);
   const held = s.inventory.filter(p => p.poolId === poolId)
     .reduce((sum, p) => sum + (p.quantityMg === undefined ? p.quantity : fromMg(p.quantityMg)), 0);
@@ -336,25 +332,8 @@ function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
       {max > 0 && <> {t('· en çok {sinir}', { sinir: maxLabel })}</>}
     </div>
     <div className="offerRow__controls">
-      <div className="qtyStep" role="group" aria-label={t('{ad} miktarı', { ad })}>
-        <button type="button" className="qtyStep__btn" aria-label={t('{ad} miktarını azalt', { ad })}
-          disabled={!Number.isFinite(qty) || qty <= minQty} onClick={() => shift(-stepQty)}>−</button>
-        <input
-          className="qtyStep__value num"
-          aria-label={t('{ad} miktarı', { ad })}
-          type="number"
-          inputMode="decimal"
-          min={minQty}
-          max={max || undefined}
-          step={templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1}
-          value={amount}
-          onChange={e => setQty(e.target.value)}
-          onBlur={() => templateId === 'gram_gold_1' && setQty(formatGramAmount(amount))}
-        />
-        <span className="qtyStep__unit">{unitSuffix}</span>
-        <button type="button" className="qtyStep__btn" aria-label={t('{ad} miktarını artır', { ad })}
-          disabled={!space || !Number.isFinite(qty) || qty + stepQty > max} onClick={() => shift(stepQty)}>+</button>
-      </div>
+      <QuantityControl value={qty} min={minQty} max={max} step={templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1}
+        unit={unitSuffix} label={t('{ad} miktarı', { ad })} onChange={n => setQty(String(n))} />
       <span className="offerRow__total num">{lot ? tl(lot.totalPrice) : '—'}</span>
       <button type="button" className="offerRow__buy" disabled={!affordable} onClick={buy}>{expensive && confirmed ? t('Onayla') : t('Al')}</button>
     </div>

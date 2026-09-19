@@ -26,6 +26,8 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
+import { BACKGROUND_MUSIC_URL } from '../config/release';
+
 export type SoundId =
   | 'tap'
   | 'coins'
@@ -61,6 +63,58 @@ type Ctx = AudioContext & { state: AudioContextState };
 let ctx: Ctx | null = null;
 let master: GainNode | null = null;
 let unlocked = false;
+let musicNode: AudioBufferSourceNode | null = null;
+let musicGain: GainNode | null = null;
+let musicBuffer: AudioBuffer | null = null;
+let musicLoad: Promise<void> | null = null;
+let musicWanted = true;
+let musicVolume = 25;
+let foreground = true;
+let adPlaying = false;
+
+export function musicAvailable(): boolean { return BACKGROUND_MUSIC_URL !== null; }
+
+/** Separate gain from effects; one looping source, never stacked on resume. */
+export function syncMusic(enabled: boolean, volume: number): void {
+  musicWanted = enabled;
+  musicVolume = volume;
+  updateMusic();
+}
+
+export function setAudioForeground(active: boolean): void {
+  foreground = active;
+  updateMusic();
+  if (!active) void ctx?.suspend().catch(() => undefined);
+  else if (unlocked) void ctx?.resume().catch(() => undefined);
+}
+
+export function setAdAudioPaused(paused: boolean): void {
+  adPlaying = paused;
+  updateMusic();
+}
+
+function updateMusic(): void {
+  const c = ctx;
+  const audible = musicWanted && foreground && !adPlaying && unlocked;
+  if (musicGain && c) musicGain.gain.setTargetAtTime(audible ? musicVolume / 100 : 0, c.currentTime, 0.15);
+  if (!audible || !c || !BACKGROUND_MUSIC_URL || musicNode) return;
+  if (!musicBuffer) {
+    if (!musicLoad) musicLoad = fetch(BACKGROUND_MUSIC_URL)
+      .then(response => { if (!response.ok) throw new Error('Music unavailable'); return response.arrayBuffer(); })
+      .then(data => c.decodeAudioData(data))
+      .then(buffer => { musicBuffer = buffer; updateMusic(); })
+      .catch(() => undefined);
+    return;
+  }
+  musicGain = c.createGain();
+  musicGain.gain.value = musicVolume / 100;
+  musicGain.connect(c.destination);
+  musicNode = c.createBufferSource();
+  musicNode.buffer = musicBuffer;
+  musicNode.loop = true;
+  musicNode.connect(musicGain);
+  musicNode.start();
+}
 const buffers = new Map<SoundId, AudioBuffer>();
 const failed = new Set<SoundId>();
 const lastPlayed = new Map<SoundId, number>();
@@ -102,6 +156,7 @@ export function unlockAudio(): void {
   if (!c) return;
   unlocked = true;
   if (c.state !== 'running') void c.resume().catch(() => undefined);
+  updateMusic();
 }
 
 export function isAudioUnlocked(): boolean {
@@ -140,7 +195,7 @@ export function preloadAudio(ids: readonly SoundId[] = Object.keys(AUDIO_FILES) 
  * @param volume 0–100 arası tam sayı (tercihlerdeki `soundVolume`).
  */
 export function playSound(id: SoundId, enabled: boolean, volume: number): void {
-  if (!enabled || !unlocked) return;
+  if (!enabled || !unlocked || !foreground || adPlaying) return;
   const gain = Math.min(100, Math.max(0, volume)) / 100;
   if (gain <= 0) return;
 
@@ -151,7 +206,7 @@ export function playSound(id: SoundId, enabled: boolean, volume: number): void {
 
   void loadBuffer(id).then(async (buffer) => {
     const c = ctx;
-    if (!buffer || !c || !master) return;
+    if (!buffer || !c || !master || !foreground || adPlaying) return;
     /*
       BAĞLAM UYUYORSA SES ATILMIYOR, ÖNCE UYANDIRILIYOR.
 
@@ -172,6 +227,7 @@ export function playSound(id: SoundId, enabled: boolean, volume: number): void {
       // taşıyıp karşılaştırmayı imkânsız sanıyor.
       if ((c.state as AudioContextState) !== 'running') return;
     }
+    if (!foreground || adPlaying) return;
     try {
       const source = c.createBufferSource();
       source.buffer = buffer;
@@ -204,6 +260,9 @@ export function audioStatus(): { supported: boolean; unlocked: boolean; state: s
 
 /** Testler için: modül durumunu sıfırlar. */
 export function resetAudioForTests(): void {
+  musicNode?.stop();
+  musicNode = null; musicGain = null; musicBuffer = null; musicLoad = null;
+  musicWanted = true; musicVolume = 25; foreground = true; adPlaying = false;
   ctx = null;
   master = null;
   unlocked = false;

@@ -35,11 +35,21 @@ export function DayCloseDialog() {
     }}>
     {report ? <>
       <h2 id="day-close-title">
+        {report.day % 7 === 0 && <span>{t('Hafta tamamlandı')} · </span>}
         {t('Gün {gun} · {haftaGunu} kapandı', {
           gun: report.day,
           haftaGunu: t(weekdayName(report.day)),
         })}
       </h2>
+      {report.day % 7 === 0 && s.weekReports.length > 0 && <section className="weeklySummary">
+        <h3>{t('Haftalık özet')}</h3>
+        <p>{t('{n} kayıtlı gün', { n: s.weekReports.length })}</p>
+        <dl className="dayCloseDialog__stats">
+          <Row label={t('Ticaret kârı')} value={tlSigned(s.weekReports.reduce((n, r) => n + r.realizedTradeProfit, 0))} />
+          <Row label={t('Toplam gider')} value={tl(s.weekReports.reduce((n, r) => n + r.overhead, 0))} />
+          <Row label={t('Kasa değişimi')} value={tlSigned(s.weekReports.reduce((n, r) => n + r.netCashChange, 0))} />
+        </dl>
+      </section>}
       <dl className="dayCloseDialog__stats">
         <Row label={t('Gerçekleşmiş kâr')} value={tlSigned(report.realizedTradeProfit)} tone={report.realizedTradeProfit >= 0 ? 'positive' : 'negative'} />
         <Row label={t('Günlük gider')} value={tlSigned(-report.overhead)} tone="negative" />
@@ -71,7 +81,7 @@ export function DayCloseDialog() {
         <Row label={t('Kaçırılan Misafir')} value={String(report.missedGuestCountToday ?? 0)} />
       </dl>
       {report.overnightSummary && <p>{report.overnightSummary}</p>}
-      <button type="button" className="dayCloseDialog__primary" onClick={s.startNewDay}>{t('Yeni güne başla')}</button>
+      <button type="button" className="dayCloseDialog__primary" disabled={s.weekTransitionPending} onClick={s.startNewDay}>{report.day % 7 === 0 ? t('Yeni haftaya başla') : t('Yeni güne başla')}</button>
     </> : <>
       <h2 id="day-close-title">{t('Günü şimdi kapat?')}</h2>
       <p>

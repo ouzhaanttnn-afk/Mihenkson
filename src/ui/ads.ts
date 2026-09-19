@@ -38,6 +38,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
+import { setAdAudioPaused } from './audio';
 import { Capacitor } from '@capacitor/core';
 import {
   AdMob,
@@ -125,7 +126,11 @@ function ensureInitialized(): Promise<AdConsentGate> {
       throw error;
     });
   }
-  return initPromise;
+  return initPromise.then(consent => {
+    // A non-requestable result is not a permanent session lock.
+    if (!consent.canRequestAds) initPromise = null;
+    return consent;
+  });
 }
 
 export type AdPrivacyOptionsResult = 'shown' | 'not-required' | 'unavailable' | 'failed';
@@ -163,7 +168,7 @@ export function adPrivacyOptionsSupported(): boolean {
  * yüklenemezse/gösterilemezse `false` döner — hiçbir dal sessizce ödül
  * uydurmaz.
  */
-export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
+async function presentRewardedAd(kind: RewardKind): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) {
     console.info(`[ads] Ödüllü reklam (${kind}) yalnız native (iOS/Android) derlemede çalışır; web/dev ortamında atlanıyor.`);
     return false;
@@ -202,7 +207,7 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
       AdMob.addListener(RewardAdPluginEvents.FailedToShow, () => finish(false)),
     );
 
-    AdMob.showRewardVideoAd().catch(() => finish(false));
+    Promise.all(handles).then(() => AdMob.showRewardVideoAd()).catch(() => finish(false));
   });
 }
 
@@ -211,12 +216,10 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
  * rewarded değil, interstitial: oyuncu başlatmıyor, kapanışını Google'ın
  * kendi reklam çerçevesi yönetiyor.
  *
- * ÇAĞIRAN TARAFI ASLA BEKLETMEZ/KİLİTLEMEZ: reklam yüklenemezse veya native
- * değilse günün açılışı normal akışında devam eder — reklam bir ekonomi
- * veya ilerleme koşulu DEĞİLDİR, yalnız bir yan etkidir. Bu yüzden
- * `gameStore.ts` bu fonksiyonu `await` ETMEDEN çağırır (fire-and-forget).
+ * Hafta özeti kapatıldığında çağrılır. Kapatma/hata olayı yeni haftaya geçişi
+ * serbest bırakır; native değilse veya yüklenemiyorsa hemen devam edilir.
  */
-export async function showInterstitialAd(): Promise<void> {
+async function presentInterstitialAd(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
 
   const platform = platformOf();
@@ -247,6 +250,42 @@ export async function showInterstitialAd(): Promise<void> {
       AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, finish),
     );
 
-    AdMob.showInterstitial().catch(finish);
+    Promise.all(handles).then(() => AdMob.showInterstitial()).catch(finish);
   });
+}
+
+// Shared presentation gate. Time is real foreground-independent time, not game time.
+export const REWARDED_INTERSTITIAL_GAP_MS = 120_000;
+let adBusy = false;
+let rewardedEndedAt: number | null = null;
+let interstitialEndedAt: number | null = null;
+
+export function interstitialAllowed(now = Date.now()): boolean {
+  return !adBusy &&
+    (rewardedEndedAt === null || now - rewardedEndedAt >= REWARDED_INTERSTITIAL_GAP_MS) &&
+    (interstitialEndedAt === null || now - interstitialEndedAt >= REWARDED_INTERSTITIAL_GAP_MS);
+}
+
+export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
+  if (adBusy) return false;
+  adBusy = true;
+  setAdAudioPaused(true);
+  try { return await presentRewardedAd(kind); }
+  finally {
+    rewardedEndedAt = Date.now();
+    adBusy = false;
+    setAdAudioPaused(false);
+  }
+}
+
+export async function showInterstitialAd(): Promise<void> {
+  if (!interstitialAllowed()) return;
+  adBusy = true;
+  setAdAudioPaused(true);
+  try { await presentInterstitialAd(); }
+  finally {
+    interstitialEndedAt = Date.now();
+    adBusy = false;
+    setAdAudioPaused(false);
+  }
 }

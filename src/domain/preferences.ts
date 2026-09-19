@@ -43,6 +43,9 @@ export const DEFAULT_VOLUME = 50;
 export const VOLUME_STEP = 5;
 
 export interface PlayerPreferences {
+  theme: 'system' | 'light' | 'dark';
+  musicEnabled: boolean;
+  musicVolume: number;
   /** EFEKT sesleri — işlem, gün ve müşteri olayları. */
   soundEnabled: boolean;
   /**
@@ -68,15 +71,13 @@ export interface PlayerPreferences {
  * Varsayılanlar. Ses efektleri ve titreşim AÇIK başlar: oyuncu bir şeyi
  * kapatmayı seçmediyse, oyunun kendini tam hâliyle tanıtması beklenir.
  *
- * MÜZİK YOK. Bir fon müziği özelliği vardı (`musicEnabled`/`musicVolume`,
- * `src/ui/music.ts`); kullanıcı geri bildirimi ("müziği beğenmedim", sonra
- * "müziği kaldıracaktın") üzerine önce varsayılanı kapatıldı, sonra özelliğin
- * kendisi tamamen kaldırıldı. Eski bir kayıtta bu alanlar hâlâ olabilir —
- * `normalizePreferences` onları artık okumuyor, kayıt bozulmadan sessizce
- * göz ardı edilirler.
+ * v1.1 müzik tercihini korur; lisanslı asset bağlanmadıkça oynatıcı sessizdir.
  */
 export function defaultPreferences(): PlayerPreferences {
   return {
+    theme: 'system',
+    musicEnabled: true,
+    musicVolume: 25,
     soundEnabled: true,
     soundVolume: DEFAULT_VOLUME,
     vibrationEnabled: true,
@@ -126,17 +127,12 @@ export function normalizePreferences(raw: unknown): PlayerPreferences {
   const source = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
   const fallback = defaultPreferences();
   return {
+    theme: source.theme === 'light' || source.theme === 'dark' ? source.theme : 'system',
+    musicEnabled: typeof source.musicEnabled === 'boolean' ? source.musicEnabled : fallback.musicEnabled,
+    musicVolume: normalizeVolume(source.musicVolume, fallback.musicVolume),
     soundEnabled:
       typeof source.soundEnabled === 'boolean' ? source.soundEnabled : fallback.soundEnabled,
     soundVolume: normalizeVolume(source.soundVolume, fallback.soundVolume),
-    /*
-      Eski bir kayıtta `musicEnabled`/`musicVolume` alanları olabilir —
-      kaldırılan müzik özelliğinden kalma. Burada bilerek OKUNMUYORLAR;
-      `source`ta var olsalar bile bu fonksiyonun döndürdüğü nesneye
-      girmezler, kayıt bir sonraki kaydedişte onlardan kendiliğinden
-      temizlenir. Çökme yok, veri kaybı yok — yalnız artık anlamı olmayan
-      bir alan sessizce düşüyor.
-    */
     vibrationEnabled:
       typeof source.vibrationEnabled === 'boolean'
         ? source.vibrationEnabled

@@ -980,6 +980,10 @@ export interface DealLine {
 
 /** Aktif müşteri oturumu. Sabır ve güven ortak, kalem state'leri ayrı (GDD 12.1). */
 export interface ActiveDeal {
+  /** Same visit, one final retry; persisted with the active negotiation. */
+  recalled?: boolean;
+  /** UI preference scoped to this negotiation; new deals default expanded. */
+  analysisCollapsed?: boolean;
   dealId: string;
   customerId: string;
   /** Hangi aşama dizisi kullanılıyor (GDD 23.23 intent matrisi). */

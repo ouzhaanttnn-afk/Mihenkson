@@ -41,7 +41,7 @@ describe('iOS mağaza paketi', () => {
     expect(plist).toMatch(/<key>UIRequiresFullScreen<\/key>\s*<true\/>/);
     expect(capacitor).toContain("contentInset: 'never'");
     expect(capacitor).toMatch(/SystemBars:[\s\S]*?hidden:\s*true/);
-    expect(sceneDelegate).toContain('CAPBridgeViewController()');
+    expect(sceneDelegate).toContain('MihenkBridgeViewController()');
   });
 
   it('muaf olmayan şifreleme kullanmadığını pakette açıklar', () => {

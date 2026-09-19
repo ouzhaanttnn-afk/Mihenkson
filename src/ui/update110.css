@@ -1,0 +1,59 @@
+/* Compact additions built on the existing Mihenk tokens. */
+.quantityControl { display:grid; grid-template-columns:40px minmax(60px,1fr) 40px auto; gap:4px; align-items:center; width:100%; min-width:0; }
+.quantityControl button, .quantityControl input { min-height:44px; min-width:0; border:1px solid var(--line-dark-strong); border-radius:var(--r-sm); background:var(--ink-700); color:var(--text-dark-1); font:inherit; text-align:center; padding:4px 8px; }
+.quantityControl input { width:100%; font-size:16px; }
+.quantityControl__value { overflow-wrap:anywhere; }
+.quantityControl small { font-size:11px; color:var(--text-dark-2); }
+.quantityControl button:disabled { opacity:.45; }
+.offerRow__controls > .quantityControl, .lotRow__controls > .quantityControl { grid-column:1 / -1; flex-basis:100%; }
+.lotRow__controls { flex-wrap:wrap; }
+.lotRow__buy { min-height:44px; width:100%; white-space:normal; overflow-wrap:anywhere; }
+.lotRow__terms summary, .settingsPrivacy summary { min-height:44px; align-content:center; cursor:pointer; }
+.settingsPrivacy { color:var(--text-light-1); }
+.settingsRow { gap:8px; flex-wrap:wrap; }
+.recallDialog { padding:24px; }
+.recallDialog p { line-height:1.5; color:var(--text-light-2); }
+.recallDialog button { min-height:44px; white-space:normal; }
+.monthlyRanking { padding:16px; margin-block:12px; border:1px solid var(--brass-500); border-radius:var(--r-md); background:var(--surface-card); color:var(--text-dark-1); }
+.monthlyRanking h2 { margin:0 0 6px; font-family:var(--font-display); font-size:18px; }
+.monthlyRanking p { margin-block:8px; font-size:13px; }
+.monthlyRanking .monthlyRanking__score { font-size:21px; overflow-wrap:anywhere; }
+.monthlyRanking__list { padding:0; list-style:none; }
+.monthlyRanking__list li { display:flex; gap:12px; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line-dark); }
+.monthlyRanking__list span { overflow-wrap:anywhere; min-width:0; }
+.monthlyRanking__list strong { flex-shrink:0; font-size:12px; }
+.simpleOffer { display:grid; gap:6px; min-width:0; }
+.simpleOffer__presets { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+.simpleOffer__presets button { min-width:0; padding:8px 4px; display:grid; gap:4px; border:1px solid var(--line-light-strong); border-radius:10px; background:var(--stone-50); color:var(--text-light-1); font:inherit; }
+.simpleOffer__presets button[aria-pressed=true] { border-color:var(--amethyst-400); box-shadow:inset 0 0 0 1px var(--amethyst-400); }
+.simpleOffer__presets span { font-size:11px; }
+.simpleOffer__presets strong { font-size:12px; overflow-wrap:anywhere; }
+.simpleOffer__presets small { font-size:11px; overflow-wrap:anywhere; color:var(--text-light-2); }
+.simpleOffer__metrics { display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; }
+.simpleOffer__metrics > div { display:grid; font-size:11px; color:var(--text-light-2); }
+.simpleOffer__priceEdit { min-height:44px; padding:6px 10px; border-radius:14px; border:1px solid var(--amethyst-400); background:var(--amethyst-600); color:var(--text-on-accent); display:grid; gap:3px; font-size:11px; }
+.simpleOffer__priceEdit strong { font-size:13px; }
+.simpleOffer__unit { margin:0; color:var(--text-light-2); font-size:11px; overflow-wrap:anywhere; }
+.simpleOffer__hint { font-size:11px; color:var(--text-light-3); }
+.offer__row { display:grid; grid-template-columns:44px minmax(0,1fr) 44px; align-items:center; }
+.offer__amount { display:block; min-width:0; text-align:center; font-size:clamp(18px,5vw,26px); overflow-wrap:anywhere; }
+.offer__compactSummary { display:none; }
+.offer__unit { display:block; font-size:11px; white-space:normal; }
+.offer__track { margin-inline:22px; }
+.offer__profitLegend { text-align:center; color:var(--text-light-2); font-size:11px; }
+.negotiationAnalysis { flex:0 0 auto; min-width:0; }
+.negotiationAnalysis__toggle { width:100%; min-height:44px; background:transparent; color:var(--text-dark-2); text-align:left; border:0; border-bottom:1px solid var(--line-dark); font-size:12px; }
+.negotiate { overflow-y:auto; overscroll-behavior:contain; }
+.negotiate > * { flex-shrink:0; }
+.page { --page-card:var(--surface-card); --page-card-strong:var(--ink-800); }
+.page__scroll { overscroll-behavior:contain; }
+@media (max-width:350px) { .simpleOffer__presets { gap:3px; } .simpleOffer__presets button { padding:6px 3px; } .monthlyRanking { padding:12px; } }
+@media (prefers-reduced-motion:reduce) { .quantityControl *, .simpleOffer * { transition:none!important; animation:none!important; } }
+/* Controls stay legible with six-figure prices at 320px. */
+.offerRow__controls { display:grid!important; grid-template-columns:minmax(0,1fr) auto; gap:6px; }
+.offerRow__controls > .quantityControl { grid-column:1 / -1; }
+.offerRow__total { white-space:nowrap; }
+.offerRow__buy { min-width:64px; min-height:44px; }
+.settingsBox { max-height:calc(100dvh - var(--safe-top) - var(--safe-bottom) - 24px); }
+.bottomNav__item--active .bottomNav__label { color:var(--text-on-accent); }
+.weeklySummary { padding:12px; border:1px solid var(--brass-500); border-radius:var(--r-sm); margin-block:12px; }

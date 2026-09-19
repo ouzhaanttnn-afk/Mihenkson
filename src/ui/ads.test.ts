@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   isNativePlatform: vi.fn(),
@@ -108,5 +108,60 @@ describe('AdMob gizlilik tercihleri', () => {
     expect(mocks.adMob.requestConsentInfo).toHaveBeenCalledTimes(2);
     expect(warning).toHaveBeenCalledOnce();
     warning.mockRestore();
+  });
+});
+afterEach(() => vi.unstubAllEnvs());
+
+describe('1.1 reklam tamamlanması ve geçiş koruması', () => {
+  async function setup() {
+    vi.stubEnv('VITE_ADMOB_REWARD_UNIT_IOS', 'test-reward-unit');
+    vi.stubEnv('VITE_ADMOB_DAY_OPEN_UNIT_IOS', 'test-interstitial-unit');
+    mocks.adMob.requestConsentInfo.mockResolvedValue(consent('NOT_REQUIRED'));
+    const callbacks = new Map<string, () => void>();
+    mocks.adMob.addListener.mockImplementation(async (name: string, callback: () => void) => {
+      callbacks.set(name, callback); return { remove: vi.fn() };
+    });
+    return { callbacks, api: await subject() };
+  }
+
+  it('SDK promise tek başına ödül vermez; erken kapatma false döner', async () => {
+    const { callbacks, api } = await setup();
+    const result = api.showRewardedAd('customerRecall');
+    await vi.waitFor(() => expect(mocks.adMob.showRewardVideoAd).toHaveBeenCalledOnce());
+    callbacks.get('rewardedDismissed')!();
+    await expect(result).resolves.toBe(false);
+  });
+
+  it('tamamlama + kapatma bir ödül verir; eşzamanlı ve hemen sonraki reklamı engeller', async () => {
+    const { callbacks, api } = await setup();
+    const result = api.showRewardedAd('customerRush');
+    await expect(api.showRewardedAd('customerRecall')).resolves.toBe(false);
+    await vi.waitFor(() => expect(mocks.adMob.showRewardVideoAd).toHaveBeenCalledOnce());
+    callbacks.get('rewarded')!();
+    callbacks.get('rewardedDismissed')!();
+    callbacks.get('rewardedDismissed')!();
+    await expect(result).resolves.toBe(true);
+    await api.showInterstitialAd();
+    expect(mocks.adMob.prepareInterstitial).not.toHaveBeenCalled();
+    expect(api.interstitialAllowed(Date.now() + api.REWARDED_INTERSTITIAL_GAP_MS + 1)).toBe(true);
+  });
+
+  it('FailedToShow ödül vermez', async () => {
+    const { callbacks, api } = await setup();
+    const result = api.showRewardedAd('speed4x');
+    await vi.waitFor(() => expect(mocks.adMob.showRewardVideoAd).toHaveBeenCalledOnce());
+    callbacks.get('rewardedFailedToShow')!();
+    await expect(result).resolves.toBe(false);
+  });
+
+  it('UMP false sonucu sonraki kullanıcı denemesini kalıcı kilitlemez', async () => {
+    const { callbacks, api } = await setup();
+    mocks.adMob.requestConsentInfo.mockResolvedValueOnce(consent('UNKNOWN', false));
+    await expect(api.showRewardedAd('speed4x')).resolves.toBe(false);
+    const retry = api.showRewardedAd('speed4x');
+    await vi.waitFor(() => expect(mocks.adMob.showRewardVideoAd).toHaveBeenCalledOnce());
+    callbacks.get('rewardedDismissed')!();
+    await expect(retry).resolves.toBe(false);
+    expect(mocks.adMob.requestConsentInfo).toHaveBeenCalledTimes(2);
   });
 });
