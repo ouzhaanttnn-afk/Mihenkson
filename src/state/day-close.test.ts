@@ -133,7 +133,7 @@ describe('personnel temp unlock via ad (kullanıcı: "reklamı bir kere izleyip 
     expect(useGame.getState().store.personnelTempUnlockTier ?? 0).toBe(0);
   });
 
-  it('advanceDay claws back headcount once a temp unlock expires, but never before', async () => {
+  it('advanceDay claws back headcount once a temp unlock expires, but never before', () => {
     // Kademe 2'yi bugünden itibaren tam PERSONNEL_TEMP_UNLOCK_DAYS gün açık bırak.
     const day = useGame.getState().market.day;
     useGame.setState({
@@ -149,7 +149,6 @@ describe('personnel temp unlock via ad (kullanıcı: "reklamı bir kere izleyip 
     for (let i = 0; i < PERSONNEL_TEMP_UNLOCK_DAYS; i += 1) {
       useGame.getState().advanceDay();
       useGame.getState().startNewDay();
-      await new Promise(resolve => setTimeout(resolve, 0));
       expect(useGame.getState().store.personnelCount).toBe(2); // süre dolmadan düşmez
     }
     useGame.getState().advanceDay();

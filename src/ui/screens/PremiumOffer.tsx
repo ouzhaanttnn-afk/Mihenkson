@@ -32,9 +32,7 @@ export function PremiumOffer() {
       </ul>
 
       <div className="premiumOffer__price">
-        {!supported ? (
-          <span>{t('Satın alma iOS uygulamasında kullanılabilir.')}</span>
-        ) : active && known ? (
+        {active && known ? (
           <strong>{t('Premium aktif')}</strong>
         ) : product ? (
           <>
@@ -79,6 +77,12 @@ export function PremiumOffer() {
       <p className="premiumOffer__caption">
         {t('Mevcut günlük haklar ve bekleme süreleri korunur.')}
       </p>
+
+      {!supported && (
+        <p className="premiumOffer__notice">
+          {t('Satın alma iOS uygulamasında kullanılabilir.')}
+        </p>
+      )}
 
       {supported && (
         <div className="premiumOffer__links">

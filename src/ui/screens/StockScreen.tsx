@@ -1,4 +1,3 @@
-import { QuantityControl } from '@ui/QuantityControl';
 /**
  * STOK ekranı (GDD 23.15)
  *
@@ -35,8 +34,6 @@ import { NAV_ART, productArt } from '@ui/assets';
 import { grams, moneyUnit, preciseGrams, pct, tl, tlBare, tlSigned } from '@ui/format';
 import type { InventoryPosition } from '@domain/types';
 import { WholesalerLiquidationList } from './WholesalerLiquidation';
-import { customerSupplySuggestion } from '@ui/stock-guidance';
-import { quoteLiquidation } from '@domain/wholesaler';
 
 type Filter = 'all' | 'display' | 'backStock' | 'workshop' | 'dead';
 
@@ -256,23 +253,16 @@ function BullionCounter() {
 }
 
 /** Ana Dükkan hızlı alım sheet'i ile Stok ekranı aynı gerçek kataloğu paylaşır. */
-export function BullionCatalog({ id, forCustomer = false }: { id?: string; forCustomer?: boolean }) {
-  const s = useGame();
-  const suggestion = forCustomer ? customerSupplySuggestion(s.activeDeal?.purchase?.demand, s.inventory, s.items) : null;
-  const products = [...POOL_SUPPLY].sort((a, b) => Number(b.templateId === suggestion?.templateId) - Number(a.templateId === suggestion?.templateId));
+export function BullionCatalog({ id }: { id?: string }) {
   return <div className="counter__list" id={id}>
-    {products.map(product => <BullionOffer key={product.templateId} product={product}
-      suggestedQuantity={product.templateId === suggestion?.templateId ? suggestion.quantity : undefined} />)}
+    {POOL_SUPPLY.map(product => <BullionOffer key={product.templateId} product={product} />)}
   </div>;
 }
 
-function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUPPLY[number]; suggestedQuantity?: number }) {
+function BullionOffer({ product }: { product: typeof POOL_SUPPLY[number] }) {
   const s = useGame();
   const { templateId, name, gramsPerUnit } = product;
-  const max = useMemo(() => maxPoolSupplyQuantity(templateId, s.market, s.store), [templateId, s.market, s.store]);
-  const initialAmount = suggestedQuantity !== undefined && suggestedQuantity > 0
-    ? String(Math.min(suggestedQuantity, Math.max(templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1, max)))
-    : counterMemory.qty[templateId] ?? '1';
+  const initialAmount = counterMemory.qty[templateId] ?? '1';
   const [amount, setAmount] = useState(templateId === 'gram_gold_1' ? formatGramAmount(initialAmount) : initialAmount);
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const qty = Number(amount.replace(',', '.'));
@@ -282,6 +272,7 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
     setConfirmation(null);
   };
   const lot = poolSupplyQuote(templateId, qty, s.market, s.store);
+  const max = useMemo(() => maxPoolSupplyQuantity(templateId, s.market, s.store), [templateId, s.market, s.store]);
   const unitQuote = lot ?? poolSupplyQuote(templateId, 1, s.market, s.store)!;
 
   /*
@@ -304,6 +295,7 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
     değeri 2 tutuyordu; yazılabilir kutuda bu yanıltıcı olurdu.
   */
   const minQty = templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1;
+  const stepQty = 1;
   const unitSuffix =
     templateId === 'gram_gold_1' ? 'g' : gramsPerUnit ? `× ${gramsPerUnit} g` : t('adet');
   const maxLabel =
@@ -312,7 +304,11 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
       : gramsPerUnit
         ? t('{n} bilezik', { n: max })
         : t('{n} adet', { n: max });
-
+  const shift = (delta: number) => {
+    const base = Number.isFinite(qty) ? qty : minQty;
+    const next = Math.min(max, Math.max(minQty, base + delta));
+    setQty(templateId === 'gram_gold_1' ? next.toFixed(1) : String(Math.round(next)));
+  };
   const poolId = poolForTemplate(templateId);
   const held = s.inventory.filter(p => p.poolId === poolId)
     .reduce((sum, p) => sum + (p.quantityMg === undefined ? p.quantity : fromMg(p.quantityMg)), 0);
@@ -329,9 +325,6 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
   };
   const ad = t(name);
   return <section className="offerRow" aria-label={ad}>
-    {suggestedQuantity !== undefined && <p className="offerRow__suggestion">{suggestedQuantity > 0
-      ? t('Müşteri için eksik: {miktar}', { miktar: gramsPerUnit ? preciseGrams(suggestedQuantity * gramsPerUnit) : t('{n} adet', { n: suggestedQuantity }) })
-      : t('Bu müşteri için yeterli stok var.')}</p>}
     <div className="offerRow__head">
       <span className="offerRow__name">{ad}</span>
       <span className="offerRow__unit num">
@@ -343,8 +336,25 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
       {max > 0 && <> {t('· en çok {sinir}', { sinir: maxLabel })}</>}
     </div>
     <div className="offerRow__controls">
-      <QuantityControl value={qty} min={minQty} max={max} step={templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1}
-        unit={unitSuffix} label={t('{ad} miktarı', { ad })} onChange={n => setQty(String(n))} />
+      <div className="qtyStep" role="group" aria-label={t('{ad} miktarı', { ad })}>
+        <button type="button" className="qtyStep__btn" aria-label={t('{ad} miktarını azalt', { ad })}
+          disabled={!Number.isFinite(qty) || qty <= minQty} onClick={() => shift(-stepQty)}>−</button>
+        <input
+          className="qtyStep__value num"
+          aria-label={t('{ad} miktarı', { ad })}
+          type="number"
+          inputMode="decimal"
+          min={minQty}
+          max={max || undefined}
+          step={templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1}
+          value={amount}
+          onChange={e => setQty(e.target.value)}
+          onBlur={() => templateId === 'gram_gold_1' && setQty(formatGramAmount(amount))}
+        />
+        <span className="qtyStep__unit">{unitSuffix}</span>
+        <button type="button" className="qtyStep__btn" aria-label={t('{ad} miktarını artır', { ad })}
+          disabled={!space || !Number.isFinite(qty) || qty + stepQty > max} onClick={() => shift(stepQty)}>+</button>
+      </div>
       <span className="offerRow__total num">{lot ? tl(lot.totalPrice) : '—'}</span>
       <button type="button" className="offerRow__buy" disabled={!affordable} onClick={buy}>{expensive && confirmed ? t('Onayla') : t('Al')}</button>
     </div>
@@ -375,11 +385,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
   if (!item) return null;
 
   const template = getTemplate(item.templateId);
-  const actualQuote = isBullion(item.templateId) && position.location !== 'workshop'
-    ? quoteLiquidation({ itemId: position.itemId, quantity: position.quantity }, s.items, s.inventory, s.market, s.store, 1) : null;
-  const liquidation = actualQuote
-    ? { value: actualQuote.gross, channel: 'Toptancı', time: 'Hemen' }
-    : liquidationEstimate(position);
+  const liquidation = liquidationEstimate(position);
   const delta = liquidation.value - position.costBasis;
   const isDead = position.age >= DEAD_STOCK_AGE;
 
@@ -460,7 +466,7 @@ function StockRow({ position }: { position: InventoryPosition }) {
             <span className="figure__value num">{tl(position.costBasis)}</span>
           </span>
           <span className="figure">
-            <span className="figure__label">{actualQuote ? t('Toptancı') : t('Tahmin')}</span>
+            <span className="figure__label">{t('Bugün')}</span>
             <span className="figure__value num">{tl(liquidation.value)}</span>
           </span>
           <span className="figure">
@@ -476,9 +482,9 @@ function StockRow({ position }: { position: InventoryPosition }) {
         </div>
 
         <div className="row__exitEstimate">
-          {actualQuote ? t('Tüm stok · tek işlem toptancı teklifi. Miktar ve dilimleme fiyatı değiştirebilir.')
-            : <>{t('Tahmin · kesin satış teklifi değildir.')} <strong>{t(liquidation.channel)}</strong>{' '}
-                {t('· tahmini süre {sure}.', { sure: liquidation.time })}</>}
+          {t('Bugünkü en hızlı çıkış:')} <strong>{t(liquidation.channel)}</strong>{' '}
+          {t('· tahmini süre {sure}.', { sure: liquidation.time })}{' '}
+          {t('Beklemek daha iyi bir kanal açabilir.')}
         </div>
 
         {/* Satır uyarısı — tek satır durum (GDD 23.15) */}

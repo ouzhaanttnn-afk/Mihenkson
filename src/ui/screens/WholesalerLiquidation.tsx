@@ -1,5 +1,4 @@
 import { t } from '@i18n/index';
-import { QuantityControl } from '@ui/QuantityControl';
 import { useState } from 'react';
 
 import { isBullion } from '@data/bullion';
@@ -78,15 +77,38 @@ function WholesalerLiquidationRow({
           {tlSigned(profit)}
         </span>
       </div>
-      <details className="lotRow__terms"><summary>{t('Fiyat bilgisi')}</summary>{quote.rationale}</details>
+      <div className="lotRow__terms">{quote.rationale}</div>
 
       <div className="lotRow__controls">
-        <QuantityControl value={qty} min={gramPool ? 0.001 : 1} max={position.quantity}
-          step={gramPool ? 0.1 : 1} unit={gramPool ? 'g' : t('adet')} label={t('Satış miktarı')} onChange={setQuantity} />
-        <details className="lotRow__terms"><summary>{t('Satışı böl')}</summary>
-          <QuantityControl value={slices} max={Math.max(1, Math.floor(qty))}
-            unit={t('Dilim')} label={t('Dilim')} onChange={setSlices} />
-        </details>
+        {(gramPool || position.quantity > 1) && (
+          <label className="lotRow__field">
+            <span>
+              {gramPool
+                ? 'Gram'
+                : position.poolId === '22K_INVESTMENT_BANGLE_POOL'
+                  ? '10 g birim'
+                  : 'Adet'}
+            </span>
+            <input
+              type="number"
+              min={gramPool ? 0.001 : 1}
+              step={gramPool ? 0.001 : 1}
+              max={position.quantity}
+              value={qty}
+              onChange={(event) => setQuantity(Number(event.target.value))}
+            />
+          </label>
+        )}
+        <label className="lotRow__field">
+          <span>{t('Dilim')}</span>
+          <input
+            type="number"
+            min={1}
+            max={Math.max(1, qty)}
+            value={slices}
+            onChange={(event) => setSlices(Number(event.target.value))}
+          />
+        </label>
         {suggested > slices && (
           <button type="button" className="miniBtn" onClick={() => setSlices(suggested)}>
             {suggested} dilim öner
@@ -97,7 +119,7 @@ function WholesalerLiquidationRow({
           className="lotRow__buy"
           onClick={() => s.liquidateToWholesaler(position.itemId, qty, slices)}
         >
-          {qty} {gramPool ? 'G' : t('ADET')} {t('SAT')} · {tl(quote.gross)}
+          {t('Toptancıya Sat')}
         </button>
       </div>
     </div>

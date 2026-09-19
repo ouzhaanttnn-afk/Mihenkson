@@ -1,4 +1,3 @@
-import { normalizeRankingSeason } from '@domain/ranking';
 /**
  * MIHENKAYNAK — Kayıt / yükleme
  * Kaynak: GDD 28.1 "kayıt sistemi", 28.3 determinizm;
@@ -56,9 +55,6 @@ import type {
 export const SAVE_VERSION = 3;
 
 export interface SaveFile {
-  rankingSeason?: GameState['rankingSeason'];
-  weekReports?: GameState['weekReports'];
-  customerRushUntilMinutes?: number | null;
   dayReportOpen?: boolean;
   queue?: GameState['queue'];
   activeCustomer?: GameState['activeCustomer'];
@@ -163,9 +159,6 @@ export interface SaveFile {
 export function serialize(state: GameState): SaveFile {
   return {
     version: SAVE_VERSION,
-    rankingSeason: state.rankingSeason,
-    weekReports: state.weekReports,
-    customerRushUntilMinutes: state.customerRushUntilMinutes,
     queue: state.queue,
     activeCustomer: state.activeCustomer,
     activeDeal: state.activeDeal,
@@ -208,9 +201,6 @@ export function serialize(state: GameState): SaveFile {
 /** Yüklendiğinde doğrudan store'a yazılabilecek alanlar. */
 export type LoadedState = Pick<
   GameState,
-  | 'rankingSeason'
-  | 'weekReports'
-  | 'customerRushUntilMinutes'
   | 'seed'
   | 'spawnCounter'
   | 'jobCounter'
@@ -295,10 +285,6 @@ export function deserialize(file: SaveFile): LoadedState {
     // Eski kayıtta alan yok → zaten oynamış oyuncu → ekran gösterilmez.
     profileSetupDone: save.profileSetupDone ?? true,
     preferences: normalizePreferences(save.preferences),
-    rankingSeason: normalizeRankingSeason(save.rankingSeason),
-    weekReports: Array.isArray(save.weekReports) ? save.weekReports.filter(r => r && Number.isInteger(r.day) && [r.realizedTradeProfit, r.overhead, r.netCashChange].every(Number.isFinite)).slice(-7) : [],
-    customerRushUntilMinutes: typeof save.customerRushUntilMinutes === 'number' && Number.isFinite(save.customerRushUntilMinutes)
-      ? Math.min(save.customerRushUntilMinutes, save.clockMinutes + 90) : null,
     playerMarket: save.playerMarket ?? defaultPlayerMarket(),
     skillProgress,
     // Aktif ziyaret ve yarım pazarlık aynı durumdan devam eder.
@@ -318,7 +304,7 @@ export function deserialize(file: SaveFile): LoadedState {
     rewardedSupplyExpressReady: save.rewardedSupplyExpressReady ?? false,
     rewardedFreeShippingReady: save.rewardedFreeShippingReady ?? false,
     rewardedCosmeticTrial: save.rewardedCosmeticTrial ?? null,
-    recallableGuest: save.recallableGuest?.deal ? save.recallableGuest : null,
+    recallableGuest: save.recallableGuest ?? null,
     lastDayReport: save.lastDayReport ?? null,
     dayReportOpen: !!save.dayReportOpen && !!save.lastDayReport,
     customerMessage: save.customerMessage ?? '',

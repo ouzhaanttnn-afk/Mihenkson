@@ -137,7 +137,6 @@ describe('sunum tercihleri', () => {
     const p = defaultPreferences();
 
     expect(p).toEqual({
-      theme: 'classic', themeVersion: 1, musicEnabled: true, musicVolume: 25,
       soundEnabled: true,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
@@ -153,7 +152,6 @@ describe('sunum tercihleri', () => {
     expect(useGame.getState().preferences.soundEnabled).toBe(false);
     expect(useGame.getState().preferences.language).toBe('en');
     expect(readSave()?.preferences).toEqual({
-      theme: 'classic', themeVersion: 1, musicEnabled: true, musicVolume: 25,
       soundEnabled: false,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
@@ -174,7 +172,6 @@ describe('sunum tercihleri', () => {
     const geri = deserialize(serialize(useGame.getState()));
 
     expect(geri.preferences).toEqual({
-      theme: 'classic', themeVersion: 1, musicEnabled: true, musicVolume: 25,
       soundEnabled: true,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: false,
@@ -225,11 +222,11 @@ describe('sunum tercihleri', () => {
     kayıtta `musicEnabled`/`musicVolume` olabilir; `normalizePreferences`
     onları artık okumuyor bile — çıktıda hiç görünmezler, çökme olmaz.
   */
-  it('eski kayıttaki müzik tercihi yeniden kullanılır', () => {
+  it('eski kayıttaki musicEnabled/musicVolume alanları sessizce düşer', () => {
     const p = normalizePreferences({ soundEnabled: true, musicEnabled: true, musicVolume: 80 });
 
-    expect(p.musicEnabled).toBe(true);
-    expect(p.musicVolume).toBe(80);
+    expect(p).not.toHaveProperty('musicEnabled');
+    expect(p).not.toHaveProperty('musicVolume');
     expect(p.soundEnabled).toBe(true);
   });
 

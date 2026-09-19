@@ -9,8 +9,6 @@
  * `overflow: hidden`; ikincil ekranlar kendi scroll'unu yönetir.
  */
 
-import { rankingWealth, seasonFor } from '@domain/ranking';
-import { writeSave } from '@state/save';
 import { syncDocumentLanguage, t } from '@i18n/index';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -23,23 +21,16 @@ import { WorkshopScreen } from '@ui/screens/WorkshopScreen';
 import { MarketPlaceholderScreen } from '@ui/screens/MarketPlaceholderScreen';
 import { ProfileDialog } from '@ui/shell/ProfileDialog';
 import { SettingsDialog } from '@ui/shell/SettingsDialog';
-import { RecallDialog } from '@ui/shell/RecallDialog';
-import { RankingDialog } from '@ui/shell/RankingDialog';
 import { DayCloseDialog } from '@ui/shell/DayCloseDialog';
 import { AppLoadingScreen } from '@ui/shell/AppLoadingScreen';
 import { overdueJobs, readyJobs } from '@domain/service';
 import { playSound, preloadAudio, unlockAudio, type SoundId } from '@ui/audio';
 import { playHaptic, stopHaptics } from '@ui/haptics';
-import { watchTheme } from '@ui/theme';
-import { syncMusic, setAudioForeground } from '@ui/audio';
-import { App as NativeApp } from '@capacitor/app';
-import { Capacitor } from '@capacitor/core';
 
 import '@ui/tokens.css';
 import '@ui/shell/AppShell.css';
 import '@ui/workbench/Workbench.css';
 import '@ui/screens/Screens.css';
-import '@ui/update110.css';
 
 /** Bir bildirim balonunun ekranda kalma süresi. */
 const TOAST_LIFETIME_MS = 4000;
@@ -47,16 +38,6 @@ const TOAST_LIFETIME_MS = 4000;
 export function App() {
   const [launching, setLaunching] = useState(true);
   const finishLaunch = useCallback(() => setLaunching(false), []);
-  useEffect(() => {
-    const refresh = () => {
-      const state = useGame.getState();
-      const next = seasonFor(state.rankingSeason, rankingWealth(state).grams);
-      if (next !== state.rankingSeason) { useGame.setState({ rankingSeason: next }); writeSave(useGame.getState()); }
-    };
-    refresh();
-    const timer = window.setInterval(refresh, 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
   const tab = useGame((s) => s.tab);
   const setTab = useGame((s) => s.setTab);
   const toasts = useGame((s) => s.toasts);
@@ -64,30 +45,12 @@ export function App() {
   const profile = useGame((s) => s.profile);
   const profileOpen = useGame((s) => s.profileOpen);
   const settingsOpen = useGame((s) => s.settingsOpen);
-  const rankingOpen = useGame((s) => s.rankingOpen);
   const profileSetupDone = useGame((s) => s.profileSetupDone);
   const completeProfileSetup = useGame((s) => s.completeProfileSetup);
   const closeProfile = useGame((s) => s.closeProfile);
   // Bu iki abonelik App'i ve alt ağacı sunum tercihi değiştiğinde yeniden
   // çizer; bileşenleri remount edip yerel teklif durumunu silmez.
   const language = useGame((s) => s.preferences.language);
-  const theme = useGame((s) => s.preferences.theme);
-  const musicEnabled = useGame((s) => s.preferences.musicEnabled);
-  const musicVolume = useGame((s) => s.preferences.musicVolume);
-  useEffect(() => watchTheme(theme), [theme]);
-  useEffect(() => syncMusic(musicEnabled, musicVolume), [musicEnabled, musicVolume]);
-  useEffect(() => {
-    const visible = () => setAudioForeground(document.visibilityState === 'visible');
-    document.addEventListener('visibilitychange', visible);
-    visible();
-    const handle = Capacitor.isNativePlatform()
-      ? NativeApp.addListener('appStateChange', state => setAudioForeground(state.isActive)) : null;
-    return () => {
-      document.removeEventListener('visibilitychange', visible);
-      void handle?.then(listener => listener.remove());
-      setAudioForeground(false);
-    };
-  }, []);
   useGame((s) => s.preferences.currency);
   const updateProfile = useGame((s) => s.updateProfile);
   const workshopAttention = useGame((s) => {
@@ -271,7 +234,6 @@ export function App() {
           workshopBadge={workshopAttention}
         />
         <DayCloseDialog />
-        <RecallDialog />
 
         {/*
           CİHAZ SEVİYESİ MODAL ÖNCELİĞİ: welcome > profil > ayarlar.
@@ -296,8 +258,6 @@ export function App() {
           />
         ) : settingsOpen ? (
           <SettingsDialog />
-        ) : rankingOpen ? (
-          <RankingDialog />
         ) : null}
 
         {/*

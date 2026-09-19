@@ -42,7 +42,7 @@ describe('iOS mağaza paketi', () => {
     expect(capacitor).toContain("contentInset: 'never'");
     expect(capacitor).toMatch(/SystemBars:[\s\S]*?hidden:\s*true/);
     expect(sceneDelegate).toContain('MihenkBridgeViewController()');
-    expect(read('ios/App/App/MihenkGameCenterPlugin.swift')).toContain('class MihenkBridgeViewController: CAPBridgeViewController');
+    expect(read('ios/App/App/PremiumPlugin.swift')).toContain('class MihenkBridgeViewController: CAPBridgeViewController');
   });
 
   it('muaf olmayan şifreleme kullanmadığını pakette açıklar', () => {

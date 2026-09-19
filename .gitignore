@@ -17,6 +17,3 @@ tsconfig.tsbuildinfo
 *.p8
 *.mobileprovision
 apple-signing/
-
-# Generated, non-secret deployment identification.
-public/release.json

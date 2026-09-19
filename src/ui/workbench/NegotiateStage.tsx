@@ -1,4 +1,3 @@
-import { useGame } from '@state/gameStore';
 /**
  * İşlem Masası · PAZARLIK (GDD 23.7 "Pazarlık", 23.10.2)
  *
@@ -108,9 +107,6 @@ export function NegotiateStage({
   saleAccounting,
   counterAction,
 }: Props) {
-  const analysisOpen = useGame(s => !s.activeDeal?.analysisCollapsed);
-  const toggleAnalysis = () => useGame.setState(s => s.activeDeal
-    ? { activeDeal: { ...s.activeDeal, analysisCollapsed: !s.activeDeal.analysisCollapsed } } : {});
   const active = selectedThesis
     ? thesisOptions.find((o) => o.channel === selectedThesis)
     : thesisOptions[0];
@@ -220,6 +216,9 @@ export function NegotiateStage({
         </div>
       )}
 
+      <details className="tradeAnalysis">
+      <summary>{t('Analiz ve piyasa detayları')}</summary>
+      <div className="tradeAnalysis__body">
       {active && (
         <div className="contextRow">
           <span className="contextRow__key">{t('Seçili tez')}</span>
@@ -285,10 +284,6 @@ export function NegotiateStage({
         "Analize Göre Fark" da teklifi o kendi bilgisine göre konumlar,
         müşterinin kabul edeceği rakama göre değil.
       */}
-      <section className="negotiationAnalysis tradeAnalysis">
-      <button type="button" className="negotiationAnalysis__toggle" aria-expanded={analysisOpen}
-        onClick={toggleAnalysis}>{t('Analiz ve piyasa detayları')} {analysisOpen ? '−' : '+'}</button>
-      <div className="negotiationAnalysis__body" hidden={!analysisOpen}>
       {saleAccounting && <div className="refPanel" aria-label={t('Vitrin satış hesabı')}>
         <div className="refPanel__row"><span className="refPanel__key">{t('Alış Maliyetim')}</span><span className="refPanel__val num">{tl(saleAccounting.acquisitionCost)}</span></div>
         <div className="refPanel__row"><span className="refPanel__key">{t('Güncel Metal Değeri')}</span><span className="refPanel__val num">{tl(saleAccounting.metalValue)}</span></div>
@@ -389,7 +384,6 @@ export function NegotiateStage({
         </div>
       )}
 
-      </div></section>
       {session.offerHistory.length > 0 && (
         <div className="history">
           <span className="history__label">{t('Teklifleriniz')}</span>
@@ -445,6 +439,8 @@ export function NegotiateStage({
           )}
         </div>
       )}
+      </div>
+      </details>
     </div>
   );
 }

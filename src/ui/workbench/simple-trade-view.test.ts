@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
@@ -6,12 +5,6 @@ import { SaleResult, ResultStage } from './ResultStage';
 import { OfferControl } from './OfferControl';
 
 describe('simple trade receipts and controls', () => {
-  it('analysis has one per-deal expanded control, not a closed outer accordion', () => {
-    const source = readFileSync(new URL('./NegotiateStage.tsx', import.meta.url), 'utf8');
-    expect(source).toContain('!s.activeDeal?.analysisCollapsed');
-    expect(source).toContain('aria-expanded={analysisOpen}');
-    expect(source).not.toContain('<details');
-  });
   it('sale receipt separates proceeds, cost and realized profit', () => {
     const html = renderToStaticMarkup(createElement(SaleResult, { price: 33000, cost: 30000 }));
     expect(html).toContain('Satış tutarı');expect(html).toContain('Toplam maliyet');

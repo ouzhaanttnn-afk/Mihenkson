@@ -7,7 +7,6 @@
  * kalsaydı yalnız müşteri kurasıyla denenebilirdi.
  */
 
-import { gramsFor } from '@domain/channels';
 import { isBullion } from '@data/bullion';
 import { unitPriceView } from '@domain/channels';
 import { getLanguage, t } from '@i18n/index';
@@ -24,7 +23,7 @@ import type { ItemInstance, Money } from '@domain/types';
  *   · tek ürünlü paket / tek kalem → tam birim fiyat (₺/g veya ₺/adet)
  *   · karışık paket → yalnız adet; 100 g külçe ile çeyreği aynı "birim
  *     fiyatta" ortalamak yanlış yönlendirirdi
- *   · işçilikli ürün → adet ve anlamlıysa toplam gram karşılığı
+ *   · işçilikli tekil ürün → hiç; orada birim diye bir şey yok
  */
 export function offerUnitLabel(
   items: ItemInstance[],
@@ -43,23 +42,26 @@ export function offerUnitLabel(
   }
 
   if (!isBullion(first.templateId)) {
-    const grams = items.reduce((sum, it, i) => sum + gramsFor(it, quantities[i] ?? 0), 0);
-    const perItem = t('{n} adet · {birim}', { n: units, birim: `${tlBare(Math.round(total / units))} ${moneyUnit(t('adet'))}` });
-    return grams > 0 ? perItem + ' · ' + numberFmt(grams) + ' g · ' + tlBare(Math.round(total / grams)) + ' ' + moneyUnit('g') : perItem;
+    // İşçilikli üründe adet 1'dir ve "birim fiyat" toplamın kendisidir.
+    return units > 1
+      ? t('{n} adet · {birim}', {
+          n: units,
+          birim: `${tlBare(Math.round(total / units))} ${moneyUnit(t('adet'))}`,
+        })
+      : null;
   }
 
   const view = unitPriceView(first, Math.round(total / units));
-  if (view.perGram || first.templateId.startsWith('investment_bangle_')) {
+  if (view.perGram) {
     const grams = view.gramsPerPiece * units;
-    const gramLabel = t('{gram} g · {birim}', {
+    return t('{gram} g · {birim}', {
       gram: numberFmt(grams),
-      birim: `${tlBare(Math.round(total / grams))} ${moneyUnit('g')}`,
+      birim: `${tlBare(view.unitPrice)} ${view.unit}`,
     });
-    return first.templateId === 'gram_gold_1' ? gramLabel :
-      t('{n} adet · {birim}', { n: units, birim: `${tlBare(Math.round(total / units))} ${moneyUnit(t('adet'))}` }) + ' · ' + gramLabel;
   }
-  // Tek adet ziynette de aynı birim standardı korunur.
-
+  // Tek adet ziynette birim fiyat toplamın kendisidir; aynı sayıyı iki kez
+  // yazmak bilgi değil gürültüdür.
+  if (units === 1) return null;
   return t('{n} adet · {birim}', {
     n: units,
     birim: `${tlBare(view.unitPrice)} ${view.unit}`,

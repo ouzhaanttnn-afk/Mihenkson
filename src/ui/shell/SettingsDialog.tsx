@@ -1,9 +1,50 @@
-/** Preferences: appearance, independent music/effects, native haptics and save.
- * Missing licensed music is shown honestly as unavailable.
- * UMP privacy access lives under Privacy and Support. Game time pauses here.
+/**
+ * AYARLAR penceresi.
+ *
+ * KAPSAM:
+ *
+ *   Profil            → kuyumcunun adı ve portresi (ProfileDialog'a devreder)
+ *   Öğretici ipuçları → açık / kapalı, iki yöne de çalışır
+ *   Ses               → tek anahtar + düzey kaydırıcısı · GERÇEKTEN ÇALIŞIR
+ *   Titreşim          → GERÇEKTEN ÇALIŞIR (destekleyen cihazda; iOS'ta API yok)
+ *   Dil               → GERÇEKTEN ÇALIŞIR (tr / en)
+ *   Para birimi       → GERÇEKTEN ÇALIŞIR (₺ / $) — yalnız GÖSTERİM
+ *   Kayıt             → bugünkü gerçek davranış: cihazda otomatik yerel kayıt
+ *   Yasal / destek    → yayımlanmış HTTPS gizlilik ve destek sayfaları
+ *
+ * "YENİ OYUN / KAYDI SİL" bu pencerede sunulmaz. `resetGame` mağaza eylemi
+ * testler ve ileride açık bir sıfırlama akışı için durur. Henüz var olmayan
+ * bulut hesap özelliği ise App Review'da yarım özellik gibi görünmesin diye
+ * burada vaat edilmez.
+ *
+ * "MÜZİK" ANAHTARI VE "MÜZİK DÜZEYİ" DE KALDIRILDI. Kullanıcı geri bildirimi:
+ * "müziği beğenmedim" → önce varsayılan kapatıldı, sonra kullanıcı özelliğin
+ * kendisinin kaldırılmasını istedi ("müziği kaldıracaktın"). Ses altyapısı
+ * (`src/ui/music.ts`, `public/assets/audio/music/`, `tools/muzik-uret.py`)
+ * ve `PlayerPreferences`teki `musicEnabled`/`musicVolume` alanları tamamen
+ * silindi — geri getirmek istenirse `git log`'da bu değişiklikten önceki
+ * sürüm referans alınabilir. Eski (bu değişiklikten önceki) bir kayıtta bu
+ * alanlar olabilir; `normalizePreferences` artık onları OKUMUYOR bile —
+ * fazladan JSON alanı sessizce göz ardı edilir, kayıt bozulmaz.
+ *
+ * ARTIK HİÇBİR SATIRDA "HAZIRLANIYOR" YOK. Bu dosya uzun süre o ibareyi
+ * taşıdı, çünkü anahtarlar konulmuş ama davranışları bağlanmamıştı ve
+ * çalışmayan bir anahtarı çalışıyormuş gibi göstermek, ayarlar ekranının
+ * güvenilirliğini tam da orada kırardı. Dördü de bağlandı; ibare kalktı.
+ *
+ * PARA BİRİMİ SATIRI OYUNCUYA NE OLDUĞUNU SÖYLER: dolar seçmek oyunun
+ * parasını çevirmez, yazısını çevirir. Sabit kur ekranda yazılıdır ki
+ * oyuncu "kasam mı eridi?" diye düşünmesin.
+ *
+ * ZAMAN DURUR: pencere açıkken `tick` erken döner (gameStore · §4). Oyuncu
+ * ayara bakarken saatin işlemesi ve kuyruğun ilerlemesi cezaya dönerdi.
+ *
+ * ERİŞİLEBİLİRLİK: role="dialog" + aria-modal, başlıkla ilişkili; Escape ve
+ * dış tıklama kapatır; açılışta odak ilk denetime gider ve Tab pencerede
+ * döner (odak tuzağı) — aksi halde klavye kullanıcısı arkadaki oyuna düşer.
  */
 
-
+import { useState } from 'react';
 
 import {
   CURRENCIES,
@@ -15,13 +56,12 @@ import {
 import { USD_RATE } from '@i18n/currency';
 import { pct } from '@ui/format';
 import { t } from '@i18n/index';
-import { hapticsSupported } from '@ui/haptics';
-import { musicAvailable } from '@ui/audio';
+import { hapticsSupported, playHaptic } from '@ui/haptics';
+import { audioStatus, playSound, unlockAudio } from '@ui/audio';
 import { adPrivacyOptionsSupported, showAdPrivacyOptions } from '@ui/ads';
-
+import { soundTestNoteText, type SoundTestNote } from '@ui/transient-copy';
 import { useModalSurface } from '@ui/useModalSurface';
 import { useGame } from '@state/gameStore';
-import { ReleaseInfo } from './ReleaseInfo';
 
 const PRIVACY_URL = {
   tr: 'https://alpersonmihenk-chi.vercel.app/privacy.html',
@@ -46,14 +86,20 @@ export function SettingsDialog() {
   const setPreference = useGame((s) => s.setPreference);
 
   // Cihaz desteği render sırasında sabittir; her çizimde sormaya gerek yok.
-  const titresimVar = hapticsSupported();
+  const [titresimVar] = useState(hapticsSupported);
   /*
     iOS'ta Web Audio, telefonun fiziksel sessiz düğmesine tabidir; Apple'ın
     bunu aşan bir web API'si yok. Bu yüzden ipucu YALNIZ orada gösterilir.
     Modern iPad'ler kendini "MacIntel" diye tanıtıyor, dokunma noktası sayısı
     ikisini ayırır.
   */
-
+  const [sessizDugmeliCihaz] = useState(
+    () =>
+      typeof navigator !== 'undefined' &&
+      (/iP(hone|ad|od)/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)),
+  );
+  const [sesNotu, setSesNotu] = useState<SoundTestNote>('prompt');
   const { dialogRef, initialFocusRef } = useModalSurface<HTMLDivElement>(
     close,
     { active: open },
@@ -109,29 +155,6 @@ export function SettingsDialog() {
             <span className="settingsRow__knob" />
           </span>
         </button>
-
-        <div className="settingsRow settingsRow--static">
-          <span className="settingsRow__copy"><strong>{t('Görünüm')}</strong></span>
-          <span className="settingsSegment settingsSegment--appearance" role="radiogroup" aria-label={t('Görünüm')}>
-            {(['classic', 'system', 'light', 'dark'] as const).map(mode => <button key={mode} type="button"
-              role="radio" aria-checked={preferences.theme === mode}
-              className={`settingsSegment__option ${preferences.theme === mode ? 'settingsSegment__option--on' : ''}`}
-              onClick={() => setPreference('theme', mode)}>
-              {mode === 'classic' ? 'Build 21' : mode === 'system' ? t('Sistem') : mode === 'light' ? t('Açık tema') : t('Koyu tema')}
-            </button>)}
-          </span>
-        </div>
-        <button type="button" className="settingsRow" aria-pressed={preferences.musicEnabled}
-          disabled={!musicAvailable()} onClick={() => setPreference('musicEnabled', !preferences.musicEnabled)}>
-          <span className="settingsRow__copy"><strong>{t('Müzik')}</strong>
-            <small>{musicAvailable() ? t(preferences.musicEnabled ? 'Açık' : 'Kapalı') : t('Müzik bu sürümde mevcut değil')}</small>
-          </span>
-          <span className={`settingsRow__switch ${preferences.musicEnabled && musicAvailable() ? 'settingsRow__switch--on' : ''}`}><span className="settingsRow__knob" /></span>
-        </button>
-        {musicAvailable() && <label className="settingsRow">{t('Müzik düzeyi')}
-          <input aria-label={t('Müzik düzeyi')} type="range" min="0" max="100" step="5"
-            value={preferences.musicVolume} onChange={e => setPreference('musicVolume', Number(e.target.value))} />
-        </label>}
 
         <button
           type="button"
@@ -231,7 +254,49 @@ export function SettingsDialog() {
           />
         </div>
 
+        {/*
+          "SESİ DENE" — görünmez bir arızayı görünür kılar.
 
+          "Ses çalmıyor" kör bir şikâyettir: oyuncu tarayıcının mı, ayarın mı,
+          dosyanın mı yoksa telefonun yan tarafındaki sessiz düğmesinin mi
+          sustuğunu göremez; hiçbiri ekrana yansımaz. Bu düğme tek dokunuşta
+          hem sesi çalmayı dener hem de ses yolunun o anki durumunu söyler.
+
+          KİLİT BURADA DA AÇILIR: düğmenin kendisi bir kullanıcı jestidir,
+          yani tarayıcının beklediği izin tam bu anda doğar.
+
+          iOS NOTU HERKESE DEĞİL, YALNIZ iPhone/iPad'e. Web Audio orada
+          telefonun fiziksel sessiz düğmesine tabidir ve bunu tahmin etmenin
+          yolu yoktur; Android'de böyle bir davranış olmadığı için oradaki
+          oyuncuya yanlış ipucu verilmez.
+        */}
+        <div className="settingsRow settingsRow--static settingsRow--stack">
+          <span className="settingsRow__copy">
+            <strong>{t('Sesi dene')}</strong>
+            <small>{soundTestNoteText(sesNotu)}</small>
+          </span>
+          <button
+            type="button"
+            className="chip"
+            onClick={() => {
+              unlockAudio();
+              playSound('coins', true, preferences.soundVolume);
+              playHaptic('coins', preferences.vibrationEnabled);
+              const durum = audioStatus();
+              setSesNotu(
+                !durum.supported
+                  ? 'unsupported'
+                  : durum.state === 'running'
+                    ? sessizDugmeliCihaz
+                      ? 'running-silent-device'
+                      : 'running'
+                    : 'blocked',
+              );
+            }}
+          >
+            {t('Çal')}
+          </button>
+        </div>
 
         {/*
           Dil bir AÇIK/KAPALI değil, bir seçim — o yüzden anahtar değil
@@ -310,8 +375,6 @@ export function SettingsDialog() {
           <span className="settingsRow__badge">{t('Yerel')}</span>
         </div>
 
-        <ReleaseInfo />
-        <details className="settingsPrivacy"><summary>{t('Gizlilik ve destek')}</summary>
         <div className="settingsRow settingsRow--static">
           <span className="settingsRow__copy">
             <strong>{t('Gizlilik ve destek')}</strong>
@@ -357,7 +420,6 @@ export function SettingsDialog() {
             </button>
           </div>
         ) : null}
-        </details>
         </div>
 
         <button type="button" className="settingsBox__close" onClick={close}>

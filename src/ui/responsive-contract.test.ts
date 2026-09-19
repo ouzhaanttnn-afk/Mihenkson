@@ -250,7 +250,7 @@ describe('mobil kabuk sözleşmesi', () => {
       /className="toolRailSlot"[\s\S]*?<ContextualToolRail[\s\S]*?<RushFab/,
     );
     /* Boş/kuyruk durumunda ray günlük ödülü taşır; dış slot yüksekliği yine sabittir. */
-    expect(shop).not.toContain("id: 'dailySponsor'");
+    expect(shop).toContain("id: 'dailySponsor'");
     expect(shellCss).toMatch(
       /\.toolRailSlot\s*\{[\s\S]*?flex:\s*0 0 var\(--h-tool-rail\);/,
     );
