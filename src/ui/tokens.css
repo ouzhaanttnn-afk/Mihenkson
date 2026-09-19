@@ -408,3 +408,54 @@ ol {
   border-radius: var(--r-pill);
   background: linear-gradient(160deg, var(--ink-600), var(--ink-800));
 }
+
+/* v1.1: component palette literals have one owner. Decorative metals stay fixed. */
+:root {
+  --palette-171d26: #171d26;
+  --palette-0b0f14: #0b0f14;
+  --palette-070a0e: #070a0e;
+  --palette-12161d: #12161d;
+  --palette-fff1b7: #fff1b7;
+  --palette-fff: #fff;
+  --palette-000: #000;
+  --palette-efc45a: #efc45a;
+  --palette-cf9526: #cf9526;
+  --palette-aa7617: #aa7617;
+  --palette-241a06: #241a06;
+  --palette-0008: #0008;
+  --palette-080d13b8: #080d13b8;
+  --palette-2e7d32: #2e7d32;
+  --palette-b92828: #b92828;
+  --palette-dcaf45: #dcaf45;
+  --palette-ac7e1e: #ac7e1e;
+  --palette-20170a: #20170a;
+  --palette-fff6dc: #fff6dc;
+  --palette-080d13c4: #080d13c4;
+  --palette-0009: #0009;
+  --palette-cfc9bf: #cfc9bf;
+  --palette-0004: #0004;
+  --palette-f2eee7: #f2eee7;
+  --palette-d8a32b: #d8a32b;
+  --palette-121b28: #121b28;
+  --palette-0b1119: #0b1119;
+  --palette-fff4d3: #fff4d3;
+  --palette-bf902f: #bf902f;
+  --palette-f4cf73: #f4cf73;
+  --palette-211706: #211706;
+  --palette-e8b94b: #e8b94b;
+  --palette-ae7818: #ae7818;
+  --palette-f0bf4c: #f0bf4c;
+  --palette-f6eaff: #f6eaff;
+  --palette-171006: #171006;
+  --palette-18212d: #18212d;
+  --palette-090e15: #090e15;
+  --palette-f7dc8c: #f7dc8c;
+  --palette-bd8120: #bd8120;
+  --palette-f5dda0: #f5dda0;
+  --palette-fbf6eb: #fbf6eb;
+  --palette-e8ddc8: #e8ddc8;
+  --palette-2a2115: #2a2115;
+  --palette-bd851d: #bd851d;
+  --text-on-accent: #f5edff;
+  --surface-card: color-mix(in srgb, var(--ink-800) 94%, transparent);
+}

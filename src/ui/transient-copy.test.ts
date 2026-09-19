@@ -49,8 +49,8 @@ describe('geçici arayüz metinleri', () => {
     const settings = projectFile('src/ui/shell/SettingsDialog.tsx');
     const shop = projectFile('src/ui/screens/ShopScreen.tsx');
 
-    expect(settings).toContain("useState<SoundTestNote>('prompt')");
-    expect(settings).toContain('soundTestNoteText(sesNotu)');
+    expect(settings).not.toContain("{t('Sesi dene')}");
+    expect(settings).toContain('settingsPrivacy');
     expect(settings).not.toMatch(/setSesNotu\(\s*t\(/);
     expect(shop).toContain('useState<ShopStageNotice | null>(null)');
     expect(shop).toContain("setStageNotice('valuation-skipped')");

@@ -38,6 +38,8 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
+import { setAdAudioPaused } from './audio';
+import { setRewardedFeedback, type RewardedFeedback } from './ad-feedback';
 import { Capacitor } from '@capacitor/core';
 import { premiumEntitlement } from './premium';
 import {
@@ -228,6 +230,13 @@ export function logAdLoadError(error: any): void {
   });
 }
 
+function adFailureReason(error: unknown): RewardedFeedback {
+  const category = classifyAdMobError(error);
+  return category === 'no fill' ? 'unavailable'
+    : category === 'network problemi' ? 'network'
+    : category === 'consent/UMP problemi' ? 'consent' : 'failed';
+}
+
 export function logAdShowError(error: any): void {
   console.error('[ADMOB][REWARDED][SHOW_ERROR]', error);
   const category = classifyAdMobError(error);
@@ -286,7 +295,11 @@ function ensureInitialized(): Promise<AdConsentGate> {
       throw error;
     });
   }
-  return initPromise;
+  return initPromise.then(consent => {
+    // A non-requestable result is not a permanent session lock.
+    if (!consent.canRequestAds) initPromise = null;
+    return consent;
+  });
 }
 
 /** Uygulama başlangıcında (main.tsx) çağrılır; SDK ve ilk preload'u tetikler. */
@@ -338,6 +351,7 @@ let isRewardedAdLoaded = false;
 let isRewardedAdLoading = false;
 let rewardedLoadPromise: Promise<boolean> | null = null;
 let loadedAdUnitId: string | null = null;
+let lastLoadFailure: RewardedFeedback = null;
 
 export function isRewardedAdReady(): boolean {
   return isRewardedAdLoaded;
@@ -348,6 +362,7 @@ function resetRewardedAdState(): void {
   isRewardedAdLoading = false;
   rewardedLoadPromise = null;
   loadedAdUnitId = null;
+  lastLoadFailure = null;
 }
 
 /**
@@ -381,6 +396,7 @@ export async function preloadRewardedAd(): Promise<boolean> {
 
       console.info(`[ADMOB][REWARDED] Preloading ad (Unit: ${unitId}, TestMode: ${testModeActive})...`);
       await AdMob.prepareRewardVideoAd({ adId: unitId });
+      lastLoadFailure = null;
       isRewardedAdLoaded = true;
       loadedAdUnitId = unitId;
       isRewardedAdLoading = false;
@@ -391,8 +407,10 @@ export async function preloadRewardedAd(): Promise<boolean> {
       loadedAdUnitId = null;
       isRewardedAdLoading = false;
       logAdLoadError(error);
+      lastLoadFailure = adFailureReason(error);
       return false;
     } finally {
+      isRewardedAdLoading = false;
       rewardedLoadPromise = null;
     }
   })();
@@ -407,14 +425,19 @@ export async function preloadRewardedAd(): Promise<boolean> {
  * yüklenemezse/gösterilemezse `false` döner — hiçbir dal sessizce ödül
  * uydurmaz.
  */
-export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
+async function presentRewardedAd(kind: RewardKind): Promise<boolean> {
   const premium = await premiumEntitlement();
   if (premium === true) return true;
-  if (premium === null) return false;
+  if (premium === null) { setRewardedFeedback('premium-unknown'); return false; }
   if (!Capacitor.isNativePlatform()) {
+    setRewardedFeedback('web');
     console.info(`[ads] Ödüllü reklam (${kind}) yalnız native (iOS/Android) derlemede çalışır; web/dev ortamında atlanıyor.`);
     return false;
   }
+
+  // A cached creative never bypasses current UMP permission.
+  try { if (!(await ensureInitialized()).canRequestAds) { setRewardedFeedback('consent'); return false; } }
+  catch (error) { setRewardedFeedback(adFailureReason(error)); logAdShowError(error); return false; }
 
   // 1. Eğer halihazırda bir yükleme sürüyorsa kısa bir süre tamamlanmasını bekle
   if (!isRewardedAdLoaded && isRewardedAdLoading && rewardedLoadPromise) {
@@ -427,6 +450,7 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
 
   // 2. REKLAM HENÜZ YÜKLENMEDİYSE SHOW() ÇAĞIRMA!
   if (!isRewardedAdLoaded) {
+    setRewardedFeedback(isRewardedAdLoading ? 'loading' : lastLoadFailure ?? 'loading');
     const notReadyErr = new Error('Reward Video is Not Ready Yet');
     logAdShowError(notReadyErr);
     // Bir sonraki denemeye hazır olsun diye arka planda preload başlat
@@ -466,18 +490,17 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
       AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
         console.info(`[ADMOB][REWARDED] Ad dismissed. User rewarded: ${rewarded}`);
         // Reklam başarıyla TAMAMLANDIĞINDA ödülü ver; yarıda kapatıldıysa ödül verme
+        if (!rewarded) setRewardedFeedback('cancelled');
         finish(rewarded);
       }),
       AdMob.addListener(RewardAdPluginEvents.FailedToShow, (error: AdMobError) => {
+        setRewardedFeedback(adFailureReason(error));
         logAdShowError(error);
         finish(false);
       }),
     );
 
-    AdMob.showRewardVideoAd().catch((error: any) => {
-      logAdShowError(error);
-      finish(false);
-    });
+    Promise.all(handles).then(() => AdMob.showRewardVideoAd()).catch(error => { setRewardedFeedback(adFailureReason(error)); logAdShowError(error); finish(false); });
   });
 }
 
@@ -486,12 +509,10 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
  * rewarded değil, interstitial: oyuncu başlatmıyor, kapanışını Google'ın
  * kendi reklam çerçevesi yönetiyor.
  *
- * ÇAĞIRAN TARAFI ASLA BEKLETMEZ/KİLİTLEMEZ: reklam yüklenemezse veya native
- * değilse günün açılışı normal akışında devam eder — reklam bir ekonomi
- * veya ilerleme koşulu DEĞİLDİR, yalnız bir yan etkidir. Bu yüzden
- * `gameStore.ts` bu fonksiyonu `await` ETMEDEN çağırır (fire-and-forget).
+ * Hafta özeti kapatıldığında çağrılır. Kapatma/hata olayı yeni haftaya geçişi
+ * serbest bırakır; native değilse veya yüklenemiyorsa hemen devam edilir.
  */
-export async function showInterstitialAd(): Promise<void> {
+async function presentInterstitialAd(): Promise<void> {
   if (await premiumEntitlement() !== false) return;
   if (!Capacitor.isNativePlatform()) return;
 
@@ -523,6 +544,44 @@ export async function showInterstitialAd(): Promise<void> {
       AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, finish),
     );
 
-    AdMob.showInterstitial().catch(finish);
+    Promise.all(handles).then(() => AdMob.showInterstitial()).catch(finish);
   });
+}
+
+// Shared presentation gate. Time is real foreground-independent time, not game time.
+export const REWARDED_INTERSTITIAL_GAP_MS = 120_000;
+let adBusy = false;
+let rewardedEndedAt: number | null = null;
+let interstitialEndedAt: number | null = null;
+
+export function interstitialAllowed(now = Date.now()): boolean {
+  return !adBusy &&
+    (rewardedEndedAt === null || now - rewardedEndedAt >= REWARDED_INTERSTITIAL_GAP_MS) &&
+    (interstitialEndedAt === null || now - interstitialEndedAt >= REWARDED_INTERSTITIAL_GAP_MS);
+}
+
+export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
+  if (adBusy) return false;
+  setRewardedFeedback(null);
+  adBusy = true;
+  setAdAudioPaused(true);
+  try { return await presentRewardedAd(kind); }
+  catch (error) { setRewardedFeedback(adFailureReason(error)); return false; }
+  finally {
+    rewardedEndedAt = Date.now();
+    adBusy = false;
+    setAdAudioPaused(false);
+  }
+}
+
+export async function showInterstitialAd(): Promise<void> {
+  if (!interstitialAllowed()) return;
+  adBusy = true;
+  setAdAudioPaused(true);
+  try { await presentInterstitialAd(); }
+  finally {
+    interstitialEndedAt = Date.now();
+    adBusy = false;
+    setAdAudioPaused(false);
+  }
 }

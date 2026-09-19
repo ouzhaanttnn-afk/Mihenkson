@@ -13,6 +13,8 @@
  * ve klavye hiç açılmaz.
  */
 
+import { selectionHaptic } from '@ui/haptics';
+import { useGame } from '@state/gameStore';
 import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { tlBare, pct } from '@ui/format';
@@ -47,6 +49,7 @@ interface Props {
    * bir "ortalama birim fiyat" yanlış yönlendirir.
    */
   unitLabel?: string | null;
+  unitLabelForValue?: (value: number) => string | null;
   /** Oyuncunun kârı sıfırlanmadan verebileceği sınır; müşteri eşiği değildir. */
   profitBoundary?: Money | null;
   guidance?: { direction: PresetInput['direction']; anchor: Money; cash: Money };
@@ -67,7 +70,10 @@ export function OfferControl({
   unitLabel,
   profitBoundary,
   guidance,
+  unitLabelForValue,
 }: Props) {
+  const haptics = useGame(s => s.preferences.vibrationEnabled);
+  const select = (n: number) => { onChange(n); selectionHaptic(haptics); };
   const [manual, setManual] = useState(false);
   const controlId = useId();
   const normalizedValue = snapOffer(value, min, max, step);
@@ -85,11 +91,13 @@ export function OfferControl({
       <div className="simpleOffer">
         {!manual && presets.length > 0 && <div className="simpleOffer__presets" role="group" aria-label={t('Teklif tarzı')}>
           {presets.map(preset => <button type="button" key={preset.id}
+            aria-label={`${labels[preset.id]} ${tlBare(preset.value)} ${currencySymbol()} ${unitLabelForValue?.(preset.value) ?? ''}`.trim()}
             aria-pressed={selectedPreset?.id === preset.id}
             disabled={disabled || (guidance.direction === 'buy' && preset.value > guidance.cash)}
             title={guidance.direction === 'buy' && preset.value > guidance.cash ? t('Nakit yetersiz') : t('Kabul garantisi değildir.')}
-            onClick={() => onChange(preset.value)}>
+            onClick={() => select(preset.value)}>
             <span>{labels[preset.id]}</span><strong className="num">{tlBare(preset.value)} {currencySymbol()}</strong>
+            <small className="simpleOffer__presetUnit" aria-hidden="true">{unitLabelForValue?.(preset.value)}</small>
           </button>)}
         </div>}
         <div className="simpleOffer__metrics" aria-live="polite">
@@ -99,8 +107,9 @@ export function OfferControl({
           <div><span>{guidance.direction === 'buy' ? t('Tahmini kazanç') : t('Satış kârı')}</span><strong className={`num impact__value--${impacts[0]?.tone ?? 'neutral'}`}>{impacts[0]?.value ?? '—'}</strong></div>
           <div><span>{t('Sonraki nakit')}</span><strong className={`num ${cashAfter < 0 ? 'impact__value--negative' : ''}`}>{tlBare(cashAfter)} {currencySymbol()}</strong></div>
         </div>
+        {unitLabel && <p className="simpleOffer__unit num">{unitLabel}</p>}
         <div id={controlId} className="simpleOffer__manual" hidden={!manual}>
-          {manual && <OfferControl value={value} min={min} max={max} step={step} onChange={onChange} impacts={[]} disabled={disabled} profitBoundary={profitBoundary} unitLabel={unitLabel} />}
+          {manual && <OfferControl value={value} min={min} max={max} step={step} onChange={onChange} impacts={impacts} disabled={disabled} profitBoundary={profitBoundary} unitLabel={unitLabel} />}
         </div>
         {!manual && <span className="simpleOffer__hint">{t('Kabul garantisi değildir.')}</span>}
       </div>
@@ -159,6 +168,8 @@ export function OfferControl({
           onChange={(e) => onChange(snapOffer(Number(e.target.value), min, max, step))}
           disabled={disabled}
           aria-label={t('Teklif tutarı')}
+          onPointerUp={() => selectionHaptic(haptics)}
+          onKeyUp={() => selectionHaptic(haptics)}
         />
         {boundaryPercent !== null && (
           <span
@@ -172,7 +183,7 @@ export function OfferControl({
 
       {boundaryPercent !== null && (
         <div className="offer__profitLegend">
-          <span>{t('Kâr sınırı')}</span>
+          <span>{t('Kâr sınırı')}: {tlBare(profitBoundary ?? 0)} {currencySymbol()}</span>
         </div>
       )}
 

@@ -26,7 +26,7 @@ import { toolsForLevel } from '@data/tools';
 import { getArchetype } from '@data/archetypes';
 import { getServiceType } from '@data/service-types';
 import { expectedCompletionDay, findQuote, overdueJobs, readyJobs } from '@domain/service';
-import { activeLine, canEnterStage, selectors, sponsorRewardAmount, useGame } from '@state/gameStore';
+import { activeLine, canEnterStage, selectors, useGame } from '@state/gameStore';
 import { offerableStock, recommendedSalePrice } from '@domain/purchase';
 import {
   bullionUnitValue,
@@ -127,6 +127,7 @@ import type {
   WorkbenchStage,
 } from '@domain/types';
 import { TalentTreePanel } from './TalentTreePanel';
+import { RankingButton } from '@ui/shell/RankingDialog';
 
 const TOOL_ICON: Record<string, typeof IconScale> = {
   scale: IconScale,
@@ -225,7 +226,10 @@ export function ShopScreen() {
         onEditProfile={s.openProfile}
       />
 
-      <MarketStrip market={s.market} cash={s.store.cash} onOpenMarket={() => s.setTab('business')} />
+      <div className="shopMarketRow">
+        <MarketStrip market={s.market} cash={s.store.cash} onOpenMarket={() => s.setTab('business')} />
+        <RankingButton />
+      </div>
 
 
 
@@ -311,7 +315,7 @@ export function ShopScreen() {
           deal.flow === 'purchase' && deal.purchase ? (
             stage === 'negotiate' ? (
               <NegotiateStage
-                key={line.lineId}
+                key={deal.dealId + line.lineId}
                 counterAction={{
                   onAccept: () => s.negotiationMove({ kind: 'acceptCounter', atRound: line.negotiation.round }),
                   profit: (line.negotiation.finalOffer ?? line.negotiation.activeCounter ?? offer) - deal.purchase.packageCost,
@@ -547,7 +551,7 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
           <strong>{tl(cash)}</strong>
         </p>
         <div className="quickStockSheet__scroll">
-          <BullionCatalog />
+          <BullionCatalog forCustomer />
         </div>
         {/*
           C3 — düğme yapmadığı şeyi vaat etmemeli. Alım satır satır "Al" ile
@@ -991,28 +995,8 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
   const line = deal ? activeLine(deal) : undefined;
 
   if (!deal || !line) {
-    const sponsorUsed = s.sponsorRewardClaimedDay === s.market.day;
-    const recallUsed = s.rewardedDailyUses.customerRecall === s.market.day;
-    const items: RailItem[] = [{
-      id: 'dailySponsor',
-      label: t('Kasa Desteği'),
-      icon: <IconVideo size={19} />,
-      badge: sponsorUsed ? t('Alındı') : tl(sponsorRewardAmount(s.market)),
-      used: sponsorUsed,
-      disabled: sponsorUsed || s.rewardedAdPending !== null,
-      onPress: s.requestSponsorReward,
-    }];
-    if (s.recallableGuest) {
-      items.push({
-        id: 'customerRecall',
-        label: t('Geri Çağır'),
-        icon: <IconVideo size={19} />,
-        badge: t('Son müşteri'),
-        used: recallUsed,
-        disabled: recallUsed || s.queue.length >= queueCapacity(s.store) || s.rewardedAdPending !== null,
-        onPress: s.requestCustomerRecall,
-      });
-    }
+    const items: RailItem[] = [];
+
     return (
       <ToolRail
         idle
@@ -1068,7 +1052,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           onPress: s.requestPatienceBoost,
         });
       }
-      if (!deal.rewardedExtraOfferUsed && s.rewardedDailyUses.extraOffer !== s.market.day) {
+      if (!deal.recalled && !deal.rewardedExtraOfferUsed && s.rewardedDailyUses.extraOffer !== s.market.day) {
         items.push({
           id: 'extraOffer',
           label: t('Ek Teklif'),
@@ -1325,7 +1309,7 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         });
       }
 
-      if (!deal.rewardedExtraOfferUsed && s.rewardedDailyUses.extraOffer !== s.market.day) {
+      if (!deal.recalled && !deal.rewardedExtraOfferUsed && s.rewardedDailyUses.extraOffer !== s.market.day) {
         items.push({
           id: 'extraOffer',
           label: t('Ek Teklif'),
@@ -1697,8 +1681,9 @@ function ShopDock({
         >
           {!isFinal && (
             <OfferControl
-              key={line.lineId}
+              key={deal.dealId + line.lineId}
               guidance={{ direction: 'buy', anchor: ceiling * NEGOTIATION.openingOfferToCeiling, cash: s.store.cash }}
+              unitLabelForValue={price => { const item = s.items[line.itemId]; return item ? offerUnitLabel([item], [1], price) : null; }}
               value={offer}
               min={bounds.min}
               max={bounds.max}
@@ -1877,8 +1862,10 @@ function PurchaseDock({
                 </p>
               )}
               <OfferControl
-                key={line.lineId}
+                key={deal.dealId + line.lineId}
                 guidance={{ direction: 'sell', anchor: purchaseStartingOffer(purchase), cash: s.store.cash }}
+                unitLabelForValue={price => offerUnitLabel(purchase.lines.map(l => s.items[l.itemId]).filter(Boolean) as ItemInstance[],
+                  purchase.lines.filter(l => s.items[l.itemId]).map(l => l.quantity), price)}
                 value={offer}
                 onChange={setOffer}
                 min={bounds.min}

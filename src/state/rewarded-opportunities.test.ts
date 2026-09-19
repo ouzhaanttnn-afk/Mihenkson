@@ -100,6 +100,8 @@ describe('haftalık zorunlu geçiş reklamı', () => {
     });
     useGame.getState().advanceDay();
 
+    expect(adMocks.showInterstitialAd).not.toHaveBeenCalled();
+    useGame.getState().startNewDay();
     expect(adMocks.showInterstitialAd).toHaveBeenCalledTimes(1);
     expect(useGame.getState().market.day).toBe(8);
   });

@@ -72,6 +72,18 @@ afterEach(() => {
 });
 
 describe('merkezi duraklatma politikası', () => {
+  it('kupa penceresinde saat durur, kapatılınca devam eder', () => {
+    useGame.getState().setRankingOpen(true);
+    expect(clockPauseReason(useGame.getState())).toBe('shop-modal');
+    expectTickPaused();
+    useGame.getState().setRankingOpen(false);
+    expect(clockPauseReason(useGame.getState())).toBeNull();
+  });
+  it('sekme değişiminde kupa penceresi açık kalmaz', () => {
+    useGame.getState().setRankingOpen(true);
+    useGame.getState().setTab('business');
+    expect(useGame.getState().rankingOpen).toBe(false);
+  });
   it('boş Dükkan tezgâhında akar', () => {
     const before = useGame.getState().market.clockMinutes;
 

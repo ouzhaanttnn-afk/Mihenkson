@@ -115,9 +115,3 @@ public class PremiumPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 }
-
-class MihenkBridgeViewController: CAPBridgeViewController {
-    override func capacitorDidLoad() {
-        bridge?.registerPluginInstance(PremiumPlugin())
-    }
-}

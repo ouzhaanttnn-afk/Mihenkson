@@ -19,20 +19,24 @@ const SEED = 20260828;
 const item = (id: string) => spawnItem(SEED, 1, id);
 
 describe('Gram bazlı sarrafiyede ₺/g yazılır', () => {
+  it('yatırım bileziği adet fiyatının yanında toplam gram ve gram fiyatını gösterir', () => {
+    expect(offerUnitLabel([item('investment_bangle_22k_10')], [6], 240_000))
+      .toBe('6 adet · 40.000 ₺/adet · 60 g · 4.000 ₺/g');
+  });
   it('tek 10 g külçede gram fiyatı görünür', () => {
     // 10 g × 4.000 ₺/g = 40.000 ₺
     const label = offerUnitLabel([item('gram_gold_10')], [1], 40_000);
-    expect(label).toBe('10 g · 4.000 ₺/g');
+    expect(label).toBe('1 adet · 40.000 ₺/adet · 10 g · 4.000 ₺/g');
   });
 
   it('adet artınca toplam gram da artar', () => {
     const label = offerUnitLabel([item('gram_gold_10')], [3], 120_000);
-    expect(label).toBe('30 g · 4.000 ₺/g');
+    expect(label).toBe('3 adet · 40.000 ₺/adet · 30 g · 4.000 ₺/g');
   });
 
   it('tek adette bile yazılır — toplamla aynı sayı değildir', () => {
     const label = offerUnitLabel([item('gram_gold_50')], [1], 200_000);
-    expect(label).toBe('50 g · 4.000 ₺/g');
+    expect(label).toBe('1 adet · 200.000 ₺/adet · 50 g · 4.000 ₺/g');
   });
 });
 
@@ -42,20 +46,20 @@ describe('Adet bazlı ziynette ₺/adet yazılır', () => {
     expect(label).toBe('4 adet · 7.000 ₺/adet');
   });
 
-  it('TEK adette yazılmaz — birim fiyat toplamın kendisidir', () => {
-    expect(offerUnitLabel([item('quarter_gold')], [1], 7_000)).toBeNull();
-    expect(offerUnitLabel([item('ata_gold')], [1], 30_000)).toBeNull();
+  it('tek adette de birim standardı korunur', () => {
+    expect(offerUnitLabel([item('quarter_gold')], [1], 7_000)).toBe('1 adet · 7.000 ₺/adet');
+    expect(offerUnitLabel([item('ata_gold')], [1], 30_000)).toBe('1 adet · 30.000 ₺/adet');
   });
 });
 
 describe('İşçilikli üründe', () => {
-  it('tek parçada birim satırı yoktur', () => {
-    expect(offerUnitLabel([item('ring_18k')], [1], 43_131)).toBeNull();
-    expect(offerUnitLabel([item('bracelet_22k_thin')], [1], 90_000)).toBeNull();
+  it('tek parçada adet ve gram satırı bulunur', () => {
+    expect(offerUnitLabel([item('ring_18k')], [1], 43_131)).toContain('1 adet · 43.131 ₺/adet');
+    expect(offerUnitLabel([item('bracelet_22k_thin')], [1], 90_000)).toContain('1 adet · 90.000 ₺/adet');
   });
 
   it('çok parçada adet başına yazılır', () => {
-    expect(offerUnitLabel([item('ring_18k')], [3], 90_000)).toBe('3 adet · 30.000 ₺/adet');
+    expect(offerUnitLabel([item('ring_18k')], [3], 90_000)).toContain('3 adet · 30.000 ₺/adet');
   });
 });
 

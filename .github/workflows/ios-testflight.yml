@@ -119,6 +119,13 @@ jobs:
             exit 1
           fi
 
+          GC_REQUIRED=$(/usr/libexec/PlistBuddy -c 'Print :com.apple.developer.game-center' ios/App/App/App.entitlements 2>/dev/null || true)
+          GC_ALLOWED=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:com.apple.developer.game-center' "$PROFILE_PLIST_PATH" 2>/dev/null || true)
+          if [[ "$GC_REQUIRED" == "true" && "$GC_ALLOWED" != "true" ]]; then
+            echo 'Game Center IDs are configured: replace BUILD_PROVISION_PROFILE_BASE64 with a Game Center-enabled profile.'
+            exit 1
+          fi
+
           PROFILE_INSTALL_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILE_INSTALL_DIR"
           cp "$PROFILE_PATH" "$PROFILE_INSTALL_DIR/$PROFILE_UUID.mobileprovision"

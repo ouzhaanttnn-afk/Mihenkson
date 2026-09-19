@@ -1,3 +1,4 @@
+import { MonthlyLeaderboard } from './MonthlyLeaderboard';
 /**
  * İŞLETME ekranı (GDD 23.19) + Piyasa ikincil rotası (GDD 23.16)
  *
@@ -181,6 +182,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
         aria-labelledby="business-page-title"
         tabIndex={0}
       >
+        <MonthlyLeaderboard />
         {/* Finans — kısa özet satırları, dev kart değil (GDD 23.19) */}
         <div className="group">
           <h2 className="group__title">{t('Finans')}</h2>
