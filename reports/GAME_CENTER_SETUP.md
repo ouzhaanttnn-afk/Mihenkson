@@ -13,17 +13,18 @@ Bu ID'ler `src/config/release.ts` içinde uygulamaya bağlandı. Bir skor birimi
 
 Apple recurring leaderboard 30 günden uzun tekrarlayamadığı için 31 günlük gerçek takvim aylarını tek recurring board ile temsil etmiyoruz. Her ay ayrı classic board kullanılıyor. Yeni ay için App Store Connect'te ayrı board oluşturup ID'yi **yeni build'den önce** bu haritaya eklemek gerekecek. Classic board'daki eski puanlar Apple tarafında kalır, fakat istemci yalnız içinde bulunulan ayın ID'sini gönderir. Bu cihaz saati ve yerel save'e dayalıdır; sunucu tarafı hile koruması değildir.
 
-## Release öncesinde kalan zorunlu adım
+## Dağıtım durumu ve kalan kontroller
 
-Apple Developer'daki eski `MIHENKAYNAK App Store` provisioning profile Game Center açılınca geçersizleşti. Aynı dağıtım sertifikasıyla yeniden üretildi ve portalda **Active**, `Game Center, In-App Purchase` olarak doğrulandı. Ancak Chrome, profil indirme bağlantısını engellediği için yeni `.mobileprovision` dosyası bu makineye alınamadı ve GitHub `BUILD_PROVISION_PROFILE_BASE64` secret'ı henüz güncellenemedi. Secret eski profile işaret ediyorsa iOS workflow `Game Center IDs are configured` kontrolünde bilinçli olarak durur. Secret güncellenmeden TestFlight build'i çalıştırmayın. Profil/certifika dosyaları repoya konmamalıdır.
+Apple Developer'daki eski `MIHENKAYNAK App Store` provisioning profile Game Center açılınca geçersizleşti. Aynı dağıtım sertifikasıyla yeniden üretilen profil indirildi; CMS imzası, `8X6KZC5R23.com.mihenkaynak.app` uygulama kimliği ve Game Center entitlement'ı doğrulandı. GitHub Actions `BUILD_PROVISION_PROFILE_BASE64` secret'ı bu yeni profille güncellendi. Profil/certifika dosyaları repoya konmadı.
 
-1. Apple Developer → Certificates, Identifiers & Profiles → Profiles → **MIHENKAYNAK App Store** → Download ile yenilenmiş profili indir.
-2. Bu profili base64'e çevirip GitHub Actions secret `BUILD_PROVISION_PROFILE_BASE64` değerini değiştir. Diğer sertifika ve şifreleri değiştirme.
-3. 1.1.0 için yeni iOS workflow build'i başlat; archive'deki entitlement ve Game Center hesabını iki gerçek iPhone/TestFlight hesabıyla doğrula.
-4. Sıralamaların App Store sürüm incelemesine eklendiğini kontrol et. Bunlar şu anda **Prepare for Submission** durumunda; public yayınlandıkları iddia edilmez.
+[`iOS TestFlight` run 26](https://github.com/ouzhaanttnn-afk/Mihenkson/actions/runs/35462003606), `f64fdfd` commit'inden **1.1.0 (26)** sürümünü arşivledi, imzalı IPA'yı dışa aktardı ve Apple doğrulama/yükleme adımını başarıyla bitirdi. GitHub Actions başarısı, Apple'ın TestFlight işlemeyi tamamladığını veya build'in test kullanıcısına hemen açıldığını tek başına doğrulamaz.
+
+1. App Store Connect'te **1.1.0 (26)** build'inin işlemeyi bitirip TestFlight'ta kullanılabilir hale geldiğini kontrol et.
+2. Game Center hesabını iki gerçek iPhone/TestFlight hesabıyla dene: oturum, kendi sıra, gerçek Top 100, altın külçesi görseli ve skor güncellemesi.
+3. Sıralamaların App Store sürüm incelemesine eklendiğini kontrol et. Bunlar son kontrolde **Prepare for Submission** durumundaydı; public yayınlandıkları iddia edilmez.
 
 ## Test ve kabul
 
-Yerel `npm test`: 80 dosya, 1181 test geçti. `npm run build`: TypeScript ve Vite üretim build'i geçti. Windows'ta Xcode/Archive ve gerçek Game Center oturum testi yapılamadı. Cihazda özellikle giriş/iptal, iki farklı oyuncu, kendi sıra/Top 100, servet düşünce Most Recent güncellemesi, ağsız durum ve ay değişimi denenmelidir. Game Center skorunun yerel save'den üretildiği, cihaz saatini değiştirerek bir takvim ayının hileli biçimde taklit edilebileceği unutulmamalıdır.
+Yerel `npm test`: 80 dosya, 1181 test geçti. `npm run build`: TypeScript ve Vite üretim build'i geçti. GitHub macOS runner'ında iOS Archive, imzalı IPA ve Apple doğrulama/yükleme adımı geçti. Gerçek Game Center oturum testi henüz yapılmadı. Cihazda özellikle giriş/iptal, iki farklı oyuncu, kendi sıra/Top 100, servet düşünce Most Recent güncellemesi, ağsız durum ve ay değişimi denenmelidir. Game Center skorunun yerel save'den üretildiği, cihaz saatini değiştirerek bir takvim ayının hileli biçimde taklit edilebileceği unutulmamalıdır.
 
 Kaynaklar: [Apple — Manage leaderboards](https://developer.apple.com/help/app-store-connect/configure-game-center/manage-leaderboards/), [Leaderboard fields](https://developer.apple.com/help/app-store-connect/reference/game-center/leaderboards), [Capability/profile updates](https://developer.apple.com/help/account/reference/capability-entitlement-updates).
