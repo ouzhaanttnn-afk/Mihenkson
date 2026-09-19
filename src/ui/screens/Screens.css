@@ -122,7 +122,7 @@
   padding-top: max(var(--sp-4), var(--safe-top));
 }
 :root[data-native-platform='ios'] .pageHead__art {
-  top: max(var(--sp-2), var(--safe-top));
+  top: 50%;
 }
 
 .filterRailWrap {
@@ -511,12 +511,26 @@
 
 /* Seviye şartını tek seferlik ödemeyle atlayan düğme — kilitli sütunun altında. */
 .personnelChoice__unlock {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: var(--touch-min);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
   font-size: var(--fs-micro);
-  padding: 3px 2px;
-  min-height: 0;
+  padding: 4px 2px;
   line-height: 1.2;
   text-align: center;
   white-space: normal;
+}
+
+.personnelChoice__unlock span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .personnelWaiver {
@@ -1524,13 +1538,14 @@
 
 .pageHead__art {
   position: absolute;
-  top: var(--sp-2);
+  top: 50%;
   right: var(--gutter);
   width: auto;
-  max-width: 96px;
-  height: 88px;
+  max-width: 64px;
+  max-height: 64px;
   opacity: 0.9;
   pointer-events: none;
+  transform: translateY(-50%);
 }
 
 /*

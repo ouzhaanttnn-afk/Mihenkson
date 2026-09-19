@@ -272,6 +272,17 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(shop).toContain('<ToolRail\n        idle');
   });
 
+  it('işletme görseli ve dar ödül düğmeleri kendi yuvalarından taşmaz', () => {
+    const screensCss = projectFile('src/ui/screens/Screens.css');
+    const shellCss = projectFile('src/ui/shell/AppShell.css');
+    const rushFab = projectFile('src/ui/shell/RushFab.tsx');
+
+    expect(screensCss).toMatch(/\.pageHead__art\s*\{[^}]*max-height:\s*64px;[^}]*transform:\s*translateY\(-50%\);/);
+    expect(screensCss).toMatch(/\.personnelChoice__unlock\s*\{[^}]*width:\s*100%;[^}]*height:\s*auto;/);
+    expect(shellCss).toMatch(/\.rushFab__label\s*\{[^}]*max-width:\s*100%;[^}]*overflow:\s*hidden;/);
+    expect(rushFab).toContain("t('Akın')");
+  });
+
   it('gerçek iPhone portresinde pazarlık kararlarını kaydırmadan gösterir', () => {
     const tokens = projectFile('src/ui/tokens.css');
     const shellCss = projectFile('src/ui/shell/AppShell.css');

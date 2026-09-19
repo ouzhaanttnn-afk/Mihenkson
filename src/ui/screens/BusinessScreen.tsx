@@ -303,14 +303,17 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
                         className="chip personnelChoice__unlock"
                         disabled={s.rewardedAdPending === 'personnelTempUnlock'}
                         onClick={() => s.requestPersonnelTempUnlock(count)}
+                        aria-label={t(premium ? 'Premium ile {gun} gün ücretsiz aç' : 'Reklam izle, {gun} gün boyunca ücretsiz aç', {
+                          gun: PERSONNEL_TEMP_UNLOCK_DAYS,
+                        })}
                         title={t(premium ? 'Premium ile {gun} gün ücretsiz aç' : 'Reklam izle, {gun} gün boyunca ücretsiz aç', {
                           gun: PERSONNEL_TEMP_UNLOCK_DAYS,
                         })}
                       >
-                        <IconVideo size={11} />{' '}
-                        {s.rewardedAdPending === 'personnelTempUnlock'
+                        {!premium && <IconVideo size={11} />}
+                        <span>{s.rewardedAdPending === 'personnelTempUnlock'
                           ? t(premium ? 'İşlem sürüyor…' : 'Reklam yükleniyor…')
-                          : t(premium ? 'Premium ile {gun} gün aç' : 'Reklamla {gun} gün aç', { gun: PERSONNEL_TEMP_UNLOCK_DAYS })}
+                          : t('{gun} gün aç', { gun: PERSONNEL_TEMP_UNLOCK_DAYS })}</span>
                       </button>
                     )}
                   </div>

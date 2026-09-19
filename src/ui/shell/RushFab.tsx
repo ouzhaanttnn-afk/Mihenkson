@@ -28,7 +28,7 @@ export function RushFab() {
   if (!open || decisionActive || queueFull) return null;
   const active = open && remaining > 0;
 
-  const label = adPending ? (premium ? t('İşlem sürüyor…') : t('Reklam…')) : active ? t('{dk} dk', { dk: remaining }) : t('Müşteri Akını');
+  const label = adPending ? '…' : active ? t('{dk} dk', { dk: remaining }) : t('Akın');
   const title = adPending
     ? t(premium ? 'İşlem sürüyor…' : 'Reklam yükleniyor…')
     : !open

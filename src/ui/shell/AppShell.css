@@ -2456,6 +2456,8 @@
   /* 52 px'lik kısa rayda da üst/alt ikişer piksel içeride kalır. */
   width: min(52px, calc(var(--h-tool-rail) - 4px));
   height: min(52px, calc(var(--h-tool-rail) - 4px));
+  box-sizing: border-box;
+  padding: 2px;
   border-radius: var(--r-pill);
   pointer-events: auto;
 
@@ -2488,10 +2490,15 @@
 
 /* GDD 23.22 — 11 px mutlak alt sınır. Daha küçüğüne inilmez. */
 .rushFab__label {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
   font-size: var(--fs-micro);
   line-height: 1;
   letter-spacing: -0.2px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 /* Akın sürerken düğme dolu pirinç olur ve etiket kalan süreyi söyler. */
