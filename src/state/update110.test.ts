@@ -31,7 +31,7 @@ describe('1.1 kayıt ve tema', () => {
     const restored = deserialize(save);
     expect(restored.store).toMatchObject(save.store);
     expect(restored.inventory).toEqual(save.inventory);
-    expect(restored.preferences).toMatchObject({ theme: 'system', musicEnabled: true, vibrationEnabled: true });
+    expect(restored.preferences).toMatchObject({ theme: 'classic', themeVersion: 1, musicEnabled: true, vibrationEnabled: true });
     expect(restored.rankingSeason).toBeNull();
     expect(restored.weekReports).toEqual([]);
   });
@@ -39,7 +39,7 @@ describe('1.1 kayıt ve tema', () => {
     useGame.getState().setPreference('theme', 'dark');
     useGame.getState().setPreference('musicEnabled', false);
     expect(deserialize(serialize(useGame.getState())).preferences).toMatchObject({ theme: 'dark', musicEnabled: false });
-    expect(normalizePreferences({ theme: 'invalid', musicVolume: Infinity }).theme).toBe('system');
+    expect(normalizePreferences({ theme: 'invalid', musicVolume: Infinity }).theme).toBe('classic');
   });
   it('sistem görünümü takip edilir, açık seçim geçersiz kılınmaz', () => {
     expect(resolveTheme('system', true)).toBe('dark');

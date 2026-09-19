@@ -112,12 +112,12 @@ export function SettingsDialog() {
 
         <div className="settingsRow settingsRow--static">
           <span className="settingsRow__copy"><strong>{t('Görünüm')}</strong></span>
-          <span className="settingsSegment" role="radiogroup" aria-label={t('Görünüm')}>
-            {(['system', 'light', 'dark'] as const).map(mode => <button key={mode} type="button"
+          <span className="settingsSegment settingsSegment--appearance" role="radiogroup" aria-label={t('Görünüm')}>
+            {(['classic', 'system', 'light', 'dark'] as const).map(mode => <button key={mode} type="button"
               role="radio" aria-checked={preferences.theme === mode}
               className={`settingsSegment__option ${preferences.theme === mode ? 'settingsSegment__option--on' : ''}`}
               onClick={() => setPreference('theme', mode)}>
-              {mode === 'system' ? t('Sistem') : mode === 'light' ? t('Açık tema') : t('Koyu tema')}
+              {mode === 'classic' ? 'Build 21' : mode === 'system' ? t('Sistem') : mode === 'light' ? t('Açık tema') : t('Koyu tema')}
             </button>)}
           </span>
         </div>

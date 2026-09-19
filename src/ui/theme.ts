@@ -1,6 +1,6 @@
 import type { PlayerPreferences } from '@domain/preferences';
 
-export function resolveTheme(theme: PlayerPreferences['theme'], systemDark: boolean): 'light' | 'dark' {
+export function resolveTheme(theme: PlayerPreferences['theme'], systemDark: boolean): 'classic' | 'light' | 'dark' {
   return theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
 }
 
@@ -9,7 +9,7 @@ export function watchTheme(theme: PlayerPreferences['theme']): () => void {
   const apply = () => {
     const resolved = resolveTheme(theme, media.matches);
     document.documentElement.dataset.theme = resolved;
-    document.documentElement.style.colorScheme = resolved;
+    document.documentElement.style.colorScheme = resolved === 'classic' ? 'dark' : resolved;
   };
   apply();
   media.addEventListener('change', apply);

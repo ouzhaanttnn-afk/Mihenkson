@@ -43,7 +43,9 @@ export const DEFAULT_VOLUME = 50;
 export const VOLUME_STEP = 5;
 
 export interface PlayerPreferences {
-  theme: 'system' | 'light' | 'dark';
+  theme: 'classic' | 'system' | 'light' | 'dark';
+  /** Distinguishes an explicitly selected system theme from the old preview default. */
+  themeVersion: 1;
   musicEnabled: boolean;
   musicVolume: number;
   /** EFEKT sesleri — işlem, gün ve müşteri olayları. */
@@ -75,7 +77,8 @@ export interface PlayerPreferences {
  */
 export function defaultPreferences(): PlayerPreferences {
   return {
-    theme: 'system',
+    theme: 'classic',
+    themeVersion: 1,
     musicEnabled: true,
     musicVolume: 25,
     soundEnabled: true,
@@ -127,7 +130,9 @@ export function normalizePreferences(raw: unknown): PlayerPreferences {
   const source = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
   const fallback = defaultPreferences();
   return {
-    theme: source.theme === 'light' || source.theme === 'dark' ? source.theme : 'system',
+    theme: source.theme === 'light' || source.theme === 'dark' || source.theme === 'classic'
+      ? source.theme : source.theme === 'system' && source.themeVersion === 1 ? 'system' : fallback.theme,
+    themeVersion: 1,
     musicEnabled: typeof source.musicEnabled === 'boolean' ? source.musicEnabled : fallback.musicEnabled,
     musicVolume: normalizeVolume(source.musicVolume, fallback.musicVolume),
     soundEnabled:

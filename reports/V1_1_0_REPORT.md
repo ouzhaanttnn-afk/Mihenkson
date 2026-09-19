@@ -1,5 +1,17 @@
 # MIHENK v1.1.0 — sonuç ve yayın kapıları
 
+## Build 21 görsel koruma düzeltmesi — 19 Eylül 2026
+
+Kullanıcının yeni yönlendirmesiyle ana görünüm için doğrulanan `8ec41bb` / 1.0.3 (21) referans alındı; kodun tamamı eski sürüme döndürülmedi. Build/sürüm numarası 21'e geri çekilmedi. Ekonomi, pazarlık kararları ve reklam/rekabet akışları bu düzeltmede değiştirilmedi.
+
+- Varsayılan `classic` görünümü Build 21'in orijinal lacivert/taş/altın token paletini kullanır. Ayarlarda “Build 21” seçilebilir; açık/koyu/sistem seçenekleri korunur.
+- Eski önizlemenin otomatik `system` tercihi bir defa classic'e taşınır. Bilinçli light/dark seçimi korunur. Yeni `themeVersion` alanı ileride yeniden seçilen sistem tercihini korur; başka kayıt alanı değiştirilmez.
+- Büyük mor fiyat kutusu ve tekrarlanan teklif kartı düzeni kaldırıldı; Workbench.css içindeki Build 21 kompakt kartlar, üç sütunlu kâr/nakit alanı ve küçük mor fiyat düğmesi kullanılır. Seçili teklifin birim bilgisi görünür; diğer tekliflerin birimleri erişilebilir adlarında korunur.
+- Analiz panelinin çerçevesi geri geldi; varsayılan açık ve aynı müşteri için kapatma tercihi korunuyor. 393×665 tarayıcı alanında analiz paneli bütünüyle sığıyor (panel altı 345.69 px; içerik sınırı 351.66 px). 320×568'de ana eylemler ekranda, gerektiğinde yalnız analiz içeriği kayabilir; yatay taşma yok. 430×932 görünümü ayrıca incelendi.
+- 79 dosyada 1.170 Vitest testi, 5 release hazırlık testi, TypeScript/üretim build'i, 77 release kontrolü geçti; 1.035 çeviri anahtarında eksik yok. Tarayıcıda çalışma zamanı hatası alınmadı. Fiziksel iPhone testi yerine geçmez.
+
+React incelemesinde mevcut state ve hesaplamalar korundu, yeni paralel oyun sistemi eklenmedi. Omni için 1 kısa kontrol denemesi yapıldı, yanıt alınamadı (başarılı çağrı 0). Apple'a yükleme yapılmadı.
+
 ## Güncel doğrulama — 19 Eylül 2026, erişim açıldıktan sonra
 
 Önceki erişim engeli giderildi. `e5d1820` kodu için 78 Vitest dosyasında **1.166 test**, ayrıca **5 release hazırlık testi** geçti. Üretim build'i ve **77 release kontrolü** başarılı. Stok önerisinde sıfır eksikliğin `-0` dönmesi giderildi; ekonomi formülleri değişmedi. Vite büyük ana JS paketi uyarısı veriyor; build hatası değil.

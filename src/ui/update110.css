@@ -25,6 +25,8 @@
 .lotRow__terms summary, .settingsPrivacy summary { min-height:44px; align-content:center; cursor:pointer; }
 .settingsPrivacy { color:var(--text-light-1); }
 .settingsRow { gap:8px; flex-wrap:wrap; }
+.settingsSegment.settingsSegment--appearance { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; min-width:0; flex:1 1 100%; }
+.settingsSegment--appearance .settingsSegment__option { min-width:0; white-space:normal; }
 .recallDialog { padding:24px; }
 .recallDialog p { line-height:1.5; color:var(--text-light-2); }
 .recallDialog button { min-height:44px; white-space:normal; }
@@ -36,19 +38,12 @@
 .monthlyRanking__list li { display:flex; gap:12px; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line-dark); }
 .monthlyRanking__list span { overflow-wrap:anywhere; min-width:0; }
 .monthlyRanking__list strong { flex-shrink:0; font-size:12px; }
-.simpleOffer { display:grid; gap:6px; min-width:0; }
-.simpleOffer__presets { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
-.simpleOffer__presets button { min-width:0; padding:8px 4px; display:grid; gap:4px; border:1px solid var(--line-light-strong); border-radius:10px; background:var(--stone-50); color:var(--text-light-1); font:inherit; }
-.simpleOffer__presets button[aria-pressed=true] { border-color:var(--amethyst-400); box-shadow:inset 0 0 0 1px var(--amethyst-400); }
-.simpleOffer__presets span { font-size:11px; }
-.simpleOffer__presets strong { font-size:12px; overflow-wrap:anywhere; }
+/* Build 21 owns the compact cards, three-column metrics and small purple chip
+   in Workbench.css. Do not re-size those controls with a second visual system. */
+.simpleOffer { min-width:0; }
 .simpleOffer__presets small { font-size:11px; overflow-wrap:anywhere; color:var(--text-light-2); }
-.simpleOffer__metrics { display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; }
-.simpleOffer__metrics > div { display:grid; font-size:11px; color:var(--text-light-2); }
-.simpleOffer__priceEdit { min-height:44px; padding:6px 10px; border-radius:14px; border:1px solid var(--amethyst-400); background:var(--amethyst-600); color:var(--text-on-accent); display:grid; gap:3px; font-size:11px; }
-.simpleOffer__priceEdit strong { font-size:13px; }
+:root[data-theme='classic'] .simpleOffer__presetUnit { display:none; }
 .simpleOffer__unit { margin:0; color:var(--text-light-2); font-size:11px; overflow-wrap:anywhere; }
-.simpleOffer__hint { font-size:11px; color:var(--text-light-3); }
 .offer__row { display:grid; grid-template-columns:44px minmax(0,1fr) 44px; align-items:center; }
 .offer__amount { display:block; min-width:0; text-align:center; font-size:clamp(18px,5vw,26px); overflow-wrap:anywhere; }
 .offer__compactSummary { display:none; }
@@ -56,12 +51,33 @@
 .offer__track { margin-inline:22px; }
 .offer__profitLegend { text-align:center; color:var(--text-light-2); font-size:11px; }
 .negotiationAnalysis { flex:0 0 auto; min-width:0; }
-.negotiationAnalysis__toggle { width:100%; min-height:44px; background:transparent; color:var(--text-dark-2); text-align:left; border:0; border-bottom:1px solid var(--line-dark); font-size:12px; }
-.negotiate { overflow-y:auto; overscroll-behavior:contain; }
+.negotiationAnalysis__toggle { width:100%; min-height:44px; padding:10px 12px; background:transparent; color:var(--text-dark-2); text-align:left; border:0; font-size:var(--fs-caption); cursor:pointer; }
+.negotiationAnalysis__body { padding:0 10px 12px; }
+.negotiate { overflow-y:auto; overscroll-behavior:contain; -webkit-mask-image:none; mask-image:none; }
+.negotiate__spacer--empty { display:none; }
 .negotiate > * { flex-shrink:0; }
 .page { --page-card:var(--surface-card); --page-card-strong:var(--ink-800); }
 .page__scroll { overscroll-behavior:contain; }
-@media (max-width:350px) { .simpleOffer__presets { gap:3px; } .simpleOffer__presets button { padding:6px 3px; } .monthlyRanking { padding:12px; } }
+@media (max-width:350px) { .simpleOffer__presets { gap:3px; } .monthlyRanking { padding:12px; } }
+/* Safari/Chrome toolbars leave roughly 620–700px on an iPhone. Keep the
+   selected offer's full unit line; avoid repeating it on all three cards. */
+@media (max-height:820px) and (orientation:portrait) {
+  .simpleOffer__presetUnit { display:none; }
+  .negotiationAnalysis__toggle { padding-block:6px; }
+  .negotiationAnalysis__body { padding:0 8px 8px; }
+  .negotiate__top { flex-shrink:0; }
+}
+@media (max-height:740px) and (orientation:portrait) {
+  .simpleOffer { gap:2px; }
+  .simpleOffer__metrics { padding-block:2px; }
+  .negotiate__top .speech { margin:0; }
+  .speech__portrait { width:44px; height:44px; }
+  .negotiationAnalysis .refPanel { grid-template-columns:minmax(0,1fr); gap:2px; padding:4px 8px; }
+  .negotiationAnalysis .refPanel__row { flex-direction:row; align-items:baseline; justify-content:space-between; gap:6px; }
+  .negotiationAnalysis .refPanel__row--analysis { margin-bottom:0; padding-bottom:2px; }
+  .negotiationAnalysis .refPanel__key { min-width:0; line-height:1.15; }
+  .negotiationAnalysis .refPanel__val { flex-shrink:0; }
+}
 @media (prefers-reduced-motion:reduce) { .quantityControl *, .simpleOffer * { transition:none!important; animation:none!important; } }
 /* Controls stay legible with six-figure prices at 320px. */
 .offerRow__controls { display:grid!important; grid-template-columns:minmax(0,1fr) auto; gap:6px; }
@@ -73,5 +89,4 @@
 .weeklySummary { padding:12px; border:1px solid var(--brass-500); border-radius:var(--r-sm); margin-block:12px; }
 /* Explicit foregrounds survive the legacy preset/metrics selectors in both themes. */
 .simpleOffer__presets button[aria-pressed='true'],
-.simpleOffer__presets button[aria-pressed='true'] small,
-.simpleOffer__metrics .simpleOffer__priceEdit > strong { color:var(--text-on-accent); }
+.simpleOffer__presets button[aria-pressed='true'] small { color:var(--text-on-accent); }

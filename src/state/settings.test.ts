@@ -137,7 +137,7 @@ describe('sunum tercihleri', () => {
     const p = defaultPreferences();
 
     expect(p).toEqual({
-      theme: 'system', musicEnabled: true, musicVolume: 25,
+      theme: 'classic', themeVersion: 1, musicEnabled: true, musicVolume: 25,
       soundEnabled: true,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
@@ -153,7 +153,7 @@ describe('sunum tercihleri', () => {
     expect(useGame.getState().preferences.soundEnabled).toBe(false);
     expect(useGame.getState().preferences.language).toBe('en');
     expect(readSave()?.preferences).toEqual({
-      theme: 'system', musicEnabled: true, musicVolume: 25,
+      theme: 'classic', themeVersion: 1, musicEnabled: true, musicVolume: 25,
       soundEnabled: false,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: true,
@@ -174,7 +174,7 @@ describe('sunum tercihleri', () => {
     const geri = deserialize(serialize(useGame.getState()));
 
     expect(geri.preferences).toEqual({
-      theme: 'system', musicEnabled: true, musicVolume: 25,
+      theme: 'classic', themeVersion: 1, musicEnabled: true, musicVolume: 25,
       soundEnabled: true,
       soundVolume: DEFAULT_VOLUME,
       vibrationEnabled: false,

@@ -91,12 +91,13 @@ export function OfferControl({
       <div className="simpleOffer">
         {!manual && presets.length > 0 && <div className="simpleOffer__presets" role="group" aria-label={t('Teklif tarzı')}>
           {presets.map(preset => <button type="button" key={preset.id}
+            aria-label={`${labels[preset.id]} ${tlBare(preset.value)} ${currencySymbol()} ${unitLabelForValue?.(preset.value) ?? ''}`.trim()}
             aria-pressed={selectedPreset?.id === preset.id}
             disabled={disabled || (guidance.direction === 'buy' && preset.value > guidance.cash)}
             title={guidance.direction === 'buy' && preset.value > guidance.cash ? t('Nakit yetersiz') : t('Kabul garantisi değildir.')}
             onClick={() => select(preset.value)}>
             <span>{labels[preset.id]}</span><strong className="num">{tlBare(preset.value)} {currencySymbol()}</strong>
-            <small>{unitLabelForValue?.(preset.value)}</small>
+            <small className="simpleOffer__presetUnit" aria-hidden="true">{unitLabelForValue?.(preset.value)}</small>
           </button>)}
         </div>}
         <div className="simpleOffer__metrics" aria-live="polite">
