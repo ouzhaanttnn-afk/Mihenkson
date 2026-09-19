@@ -29,6 +29,6 @@ export function customerSupplySuggestion(
       : position.quantity * (isMassPool(pool) ? (bullionMeta(item.templateId)?.unitWeightGrams ?? unitGrams) / unitGrams : 1)), 0);
   const step = product.templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1;
   const missing = Math.max(0, requested - held);
-  const quantity = Math.round(Math.ceil(missing / step - 1e-9) * step * 1000) / 1000;
+  const quantity = Math.max(0, Math.round(Math.ceil(missing / step - 1e-9) * step * 1000) / 1000);
   return { templateId: product.templateId, quantity, requested, held };
 }
