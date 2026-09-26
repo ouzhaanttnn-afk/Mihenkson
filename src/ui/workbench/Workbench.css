@@ -1819,6 +1819,7 @@
 .simpleCounter__profit--loss { color: var(--negative-soft); }
 .simpleCounter__accept { grid-column: 1 / -1; min-height: 44px; border: 1px solid var(--brass-500); border-radius: var(--r-sm); background: var(--amethyst-700, #4c2874); color: var(--text-dark-1); font-weight: var(--fw-semibold); cursor: pointer; }
 .simpleCounter__accept:disabled { opacity: .5; }
+.simpleCounter__accept.counter-risk { border-color: var(--negative-soft); background: color-mix(in srgb, var(--negative) 20%, var(--ink-800)); }
 .simpleCounter__compactGain { display: none; }
 .tradeAnalysis { flex: 0 0 auto; min-width: 0; border: 1px solid var(--line-dark); border-radius: var(--r-sm); background: rgba(255,255,255,.025); }
 .tradeAnalysis > summary { min-height: 44px; padding: 12px; color: var(--text-dark-2); cursor: pointer; font-size: var(--fs-caption); }
@@ -1834,6 +1835,7 @@
 .tradeReceipt__loss dd { color: var(--negative-soft); }
 .result__tradeSuccess--neutral { background: var(--ink-800); border-color: var(--line-dark); }
 .tradeAnalysis--result { width: 100%; text-align: left; }
+.result__quickNote { margin: 0; padding: var(--sp-2) var(--sp-3); border-left: 2px solid var(--brass-500); color: var(--text-dark-1); font-size: var(--fs-caption); line-height: 1.35; }
 .tradeAnalysis--result .result__headline { font-size: var(--fs-subtitle); }
 .tradeAnalysis--result .result__badge { align-self: flex-start; }
 @media (max-height: 620px) and (orientation: portrait) {

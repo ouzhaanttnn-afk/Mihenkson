@@ -16,7 +16,7 @@
 import { TERM } from '@ui/terms';
 import { useEffect, useMemo, useState } from 'react';
 
-import { DAY, NEGOTIATION } from '@domain/balance';
+import { DAY, NEGOTIATION, PATIENCE_PER_TEST_SECOND } from '@domain/balance';
 import { isBlindTradingDay, isShopOpen, nextMarketOpenDay, weekdayLabel } from '@domain/calendar';
 import { DEFAULT_JEWELER_NAME, SHOP_SUFFIX, shopDisplayName } from '@domain/profile';
 import { effectiveCeiling, suggestedChannel } from '@domain/thesis';
@@ -1181,6 +1181,8 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
         .map(({ tool, locked, lockReason }) => {
         const Icon = TOOL_ICON[tool.id] ?? IconScale;
         const used = line.testResults.some((r) => r.toolId === tool.id);
+        const patienceCost = Math.round(tool.durationSec * PATIENCE_PER_TEST_SECOND);
+        const patienceBadge = t('-{n} sabır', { n: patienceCost });
         return {
           id: tool.id,
           label: t(tool.shortLabel),
@@ -1193,7 +1195,9 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
           // açıklanır." Dokunmatikte tooltip yoktur; nedeni toast ile söyle.
           onLockedPress: () => s.notify(`${t(tool.name)}: ${t(lockReason)}`, 'info'),
           disabled: used || tool.cost > s.store.cash,
-          badge: tool.cost > 0 ? tl(tool.cost) : undefined,
+          badge: patienceCost > 0
+            ? tool.cost > 0 ? [tl(tool.cost), patienceBadge].join(' · ') : patienceBadge
+            : tool.cost > 0 ? tl(tool.cost) : undefined,
           };
         });
       if (
@@ -1396,6 +1400,7 @@ function ShopDock({
   const s = useGame();
   const deal = s.activeDeal;
   const line = deal ? activeLine(deal) : undefined;
+  const [riskApproval, setRiskApproval] = useState<string | null>(null);
 
   // --- IDLE ---
   if (!deal || !line) {
@@ -1597,6 +1602,8 @@ function ShopDock({
       const session = line.negotiation;
       const isFinal = session.state === 'FINAL_OFFER';
       const counter = session.finalOffer ?? session.activeCounter;
+      const riskKey = `${deal.dealId}:${line.lineId}:${session.round}:${counter}`;
+      const counterExceedsCeiling = counter !== null && counter > ceiling;
 
       const liquidityAfter = liquidityRatio(
         Math.max(0, s.store.cash - offer),
@@ -1633,13 +1640,25 @@ function ShopDock({
       return (
         <DecisionDock
           summaryLabel={t('Son teklif')}
-          summaryValue={t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter ?? 0) })}
+          summaryValue={counterExceedsCeiling
+            ? t('Müşteri: {tutar} · alış tavanı üstü', { tutar: tl(counter) })
+            : t('Müşteri: {tutar} — geri dönüş yok', { tutar: tl(counter ?? 0) })}
           hideSummary={!isFinal}
           primary={
             isFinal && counter !== null
               ? {
-                  label: t('Kabul Et · {tutar}', { tutar: tl(counter) }),
-                  onPress: () => s.negotiationMove({ kind: 'acceptCounter', atRound: session.round }),
+                  label: counterExceedsCeiling
+                    ? riskApproval === riskKey
+                      ? t('Evet, tavan üstü teklifi kabul et')
+                      : t('Tavan üstü teklif · onayla')
+                    : t('Kabul Et · {tutar}', { tutar: tl(counter) }),
+                  onPress: () => {
+                    if (counterExceedsCeiling && riskApproval !== riskKey) {
+                      setRiskApproval(riskKey);
+                      return;
+                    }
+                    s.negotiationMove({ kind: 'acceptCounter', atRound: session.round });
+                  },
                   disabled: counter > s.store.cash,
                   disabledReason: counter > s.store.cash
                     ? t('Minimum teklif {teklif} · mevcut nakit {nakit} · eksik {eksik}', {

@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { SaleResult, ResultStage } from './ResultStage';
 import { OfferControl } from './OfferControl';
+import { QuantityControl, clampQuantity } from '@ui/QuantityControl';
 
 describe('simple trade receipts and controls', () => {
   it('analysis has one per-deal expanded control, not a closed outer accordion', () => {
@@ -27,6 +28,21 @@ describe('simple trade receipts and controls', () => {
       review: { headline: 'test', tone: 'neutral', valueDelta: 200, missedSignals: [], keyDecisionPoint: '', alternativeChannelNote: '' } }));
     expect(html).toContain('Tahmini kazanç');expect(html).toContain('Kâr, ürün satıldığında gerçekleşir.');
     expect(html).not.toContain('Net kâr / zarar');
+  });
+  it('shows the short learning note before the optional detailed report', () => {
+    const html = renderToStaticMarkup(createElement(ResultStage, { accepted: false,
+      review: { headline: 'test', tone: 'neutral', valueDelta: 0, missedSignals: [],
+        keyDecisionPoint: 'Karşı teklifi reddettiniz; işlem yapılmadı.', alternativeChannelNote: '' } }));
+    expect(html.indexOf('Karşı teklifi reddettiniz')).toBeLessThan(html.indexOf('<details'));
+  });
+  it('offers half-gram buttons without rounding away manually entered tenths', () => {
+    const html = renderToStaticMarkup(createElement(QuantityControl, {
+      value: 1.1, min: 0.1, max: 10, step: 0.1, buttonStep: 0.5, unit: 'g',
+      label: '24 ayar gram', onChange: () => {},
+    }));
+    expect(html).toContain('24 ayar gram + 0.5 g');
+    expect(html).toContain('24 ayar gram − 0.5 g');
+    expect(clampQuantity(1.1 + 0.5, 0.1, 10, 0.1)).toBe(1.6);
   });
   it('unaffordable buy presets are disabled, without disabling manual price access', () => {
     const html = renderToStaticMarkup(createElement(OfferControl, { value: 900, min: 100, max: 1500, step: 50,

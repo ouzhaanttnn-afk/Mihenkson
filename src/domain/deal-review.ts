@@ -29,6 +29,7 @@ export interface ReviewInput {
   band: ValuationBand;
   price: Money;
   accepted: boolean;
+  playerRejected?: boolean;
   testsUsed: string[];
   selectedThesis: ExitChannel | null;
   thesisOptions: ThesisOption[];
@@ -59,7 +60,9 @@ export function buildCaseReview(input: ReviewInput): CaseReview {
       headline: t('İşlem kapanmadı.'),
       missedSignals: [],
       keyDecisionPoint:
-        price > 0
+        input.playerRejected
+          ? t('Karşı teklifi reddettiniz; işlem yapılmadı.')
+          : price > 0
           ? t('Teklifiniz müşterinin kabul sınırının altında kaldı.')
           : t('İşlemi reddettiniz.'),
       alternativeChannelNote: describeBestAlternative(input),

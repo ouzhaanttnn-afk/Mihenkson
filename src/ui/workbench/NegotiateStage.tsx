@@ -1,4 +1,5 @@
 import { useGame } from '@state/gameStore';
+import { useState } from 'react';
 /**
  * İşlem Masası · PAZARLIK (GDD 23.7 "Pazarlık", 23.10.2)
  *
@@ -117,6 +118,17 @@ export function NegotiateStage({
 
   const isFinal = session.state === 'FINAL_OFFER';
   const counter = session.finalOffer ?? session.activeCounter;
+  const [riskApproval, setRiskApproval] = useState<string | null>(null);
+  const riskKey = `${session.round}:${counter}`;
+  const counterExceedsCeiling = !!counterAction && counterAction.estimated && counterAction.profit < 0;
+  const acceptCounter = () => {
+    if (!counterAction) return;
+    if (counterExceedsCeiling && riskApproval !== riskKey) {
+      setRiskApproval(riskKey);
+      return;
+    }
+    counterAction.onAccept();
+  };
 
   /*
     Ara bölge artık YALNIZ final teklif önizlemesini taşır.
@@ -209,11 +221,14 @@ export function NegotiateStage({
           <span className="counterRow__value num">{tl(counter)}</span>
           {counterAction && <>
             <span className={`simpleCounter__profit ${counterAction.profit < 0 ? 'simpleCounter__profit--loss' : ''}`}>
+              {counterExceedsCeiling && <>{t('Alış tavanını {fark} aşıyor', { fark: tl(-counterAction.profit) })}{' · '}</>}
               {counterAction.estimated ? t('Tahmini kazanç') : t('Satış kârı')}: {tlSigned(counterAction.profit)}
               {' · '}{t('Sonraki nakit')}: {tl(counterAction.cashAfter)}
             </span>
-            {!isFinal && <button type="button" className="simpleCounter__accept" aria-label={t('Bu teklifi kabul et')} onClick={counterAction.onAccept} disabled={counterAction.disabled}>
-              {counterAction.disabled ? t('Nakit yetersiz') : t('Bu teklifi kabul et')}
+            {!isFinal && <button type="button" className={`simpleCounter__accept ${counterExceedsCeiling ? 'counter-risk' : ''}`} aria-label={counterExceedsCeiling ? riskApproval === riskKey ? t('Evet, tavan üstü teklifi kabul et') : t('Tavan üstü teklif · onayla') : t('Bu teklifi kabul et')} onClick={acceptCounter} disabled={counterAction.disabled}>
+              {counterAction.disabled ? t('Nakit yetersiz') : counterExceedsCeiling
+                ? riskApproval === riskKey ? t('Evet, tavan üstü teklifi kabul et') : t('Tavan üstü teklif · onayla')
+                : t('Bu teklifi kabul et')}
               <small className="simpleCounter__compactGain">{counterAction.estimated ? t('Tahmini') : t('Kâr')}: {tlSigned(counterAction.profit)}</small>
             </button>}
           </>}

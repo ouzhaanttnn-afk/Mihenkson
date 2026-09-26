@@ -82,7 +82,8 @@ function WholesalerLiquidationRow({
 
       <div className="lotRow__controls">
         <QuantityControl value={qty} min={gramPool ? 0.001 : 1} max={position.quantity}
-          step={gramPool ? 0.1 : 1} unit={gramPool ? 'g' : t('adet')} label={t('Satış miktarı')} onChange={setQuantity} />
+          step={gramPool ? 0.1 : 1} buttonStep={gramPool ? 0.5 : 1}
+          unit={gramPool ? 'g' : t('adet')} label={t('Satış miktarı')} onChange={setQuantity} />
         <details className="lotRow__terms"><summary>{t('Satışı böl')}</summary>
           <QuantityControl value={slices} max={Math.max(1, Math.floor(qty))}
             unit={t('Dilim')} label={t('Dilim')} onChange={setSlices} />

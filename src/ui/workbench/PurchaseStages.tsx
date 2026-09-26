@@ -136,6 +136,7 @@ export function StockPickStage({
             const template = getTemplate(item.templateId);
             // Sarrafiye adetle satılır; işçilikli ürün tektir.
             const stackable = position.quantity > 1;
+            const gramPool = position.poolId === '24K_GRAM_GOLD_POOL';
 
             return (
               <li key={item.id}>
@@ -171,18 +172,18 @@ export function StockPickStage({
                       <button
                         type="button"
                         className="qtyStep__btn"
-                        onClick={() => onQuantity(item.id, qty - 1)}
-                        aria-label={t('Bir azalt')}
+                        onClick={() => onQuantity(item.id, qty - (gramPool ? 0.5 : 1))}
+                        aria-label={gramPool ? t('0,5 g azalt') : t('Bir azalt')}
                       >
                         −
                       </button>
-                      {position.poolId === '24K_GRAM_GOLD_POOL' ? <input className="qtyStep__value num" aria-label={t('Gram miktarı')} type="number" min="0.001" step="0.001" max={Math.min(position.quantity, demand.quantity)} value={qty} onChange={e => onQuantity(item.id, Number(e.target.value))} /> : <span className="qtyStep__value num">{amountLabel(demand, qty)}</span>}
+                      {gramPool ? <input className="qtyStep__value num" aria-label={t('Gram miktarı')} type="number" min="0.001" step="0.001" max={Math.min(position.quantity, demand.quantity)} value={qty} onChange={e => onQuantity(item.id, Number(e.target.value))} /> : <span className="qtyStep__value num">{amountLabel(demand, qty)}</span>}
                       <button
                         type="button"
                         className="qtyStep__btn"
-                        onClick={() => onQuantity(item.id, qty + 1)}
+                        onClick={() => onQuantity(item.id, qty + (gramPool ? 0.5 : 1))}
                         disabled={qty >= Math.min(position.quantity, demand.quantity)}
-                        aria-label={t('Bir artır')}
+                        aria-label={gramPool ? t('0,5 g artır') : t('Bir artır')}
                       >
                         +
                       </button>

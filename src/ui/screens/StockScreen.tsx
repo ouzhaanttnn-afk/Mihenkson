@@ -344,6 +344,7 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
     </div>
     <div className="offerRow__controls">
       <QuantityControl value={qty} min={minQty} max={max} step={templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1}
+        buttonStep={templateId === 'gram_gold_1' ? 0.5 : 1}
         unit={unitSuffix} label={t('{ad} miktarı', { ad })} onChange={n => setQty(String(n))} />
       <span className="offerRow__total num">{lot ? tl(lot.totalPrice) : '—'}</span>
       <button type="button" className="offerRow__buy" disabled={!affordable} onClick={buy}>{expensive && confirmed ? t('Onayla') : t('Al')}</button>

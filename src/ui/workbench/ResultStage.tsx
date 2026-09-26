@@ -65,6 +65,8 @@ export function ResultStage({ review, accepted, paid, estimatedGain }: Props) {
         <p>{t('Ürün stoğa girdi. Kâr, ürün satıldığında gerçekleşir.')}</p>
       </dl>}
 
+      {review.keyDecisionPoint ? <p className="result__quickNote">{review.keyDecisionPoint}</p> : null}
+
       <details className="tradeAnalysis tradeAnalysis--result">
       <summary>{t('İşlem değerlendirmesi')}</summary>
       <div className="tradeAnalysis__body">
@@ -81,8 +83,6 @@ export function ResultStage({ review, accepted, paid, estimatedGain }: Props) {
           <strong className="num">{tlSigned(review.valueDelta)}</strong>
         </p>
       )}
-
-      <p className="result__note">{review.keyDecisionPoint}</p>
 
       {/* GDD 21.2 — "İşlem sonrası hangi sinyalin kaçırıldığı gösterilir." */}
       {review.missedSignals.length > 0 && (

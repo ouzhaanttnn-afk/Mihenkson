@@ -3100,6 +3100,7 @@ function settleLine(
     band,
     price: reviewPrice,
     accepted,
+    playerRejected: line.negotiation.moveHistory.at(-1)?.kind === 'reject',
     testsUsed: line.testResults.map((r) => r.toolId),
     selectedThesis: line.selectedThesis,
     thesisOptions: line.thesisOptions,
