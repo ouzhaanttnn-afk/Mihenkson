@@ -11,9 +11,9 @@ export function MonthlyLeaderboard() {
   const season = seasonFor(s.rankingSeason, wealth.grams);
   const [result, setResult] = useState<RankingResult | null>(null);
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<'sign-in' | 'unavailable' | null>(null);
   const [showAll, setShowAll] = useState(false);
-  useEffect(() => { setResult(null); setFailed(false); setShowAll(false); }, [season.month]);
+  useEffect(() => { setResult(null); setFailure(null); setShowAll(false); }, [season.month]);
   const fmt = (n: number) => new Intl.NumberFormat(getLanguage() === 'en' ? 'en-US' : 'tr-TR', {
     minimumFractionDigits: 3, maximumFractionDigits: 3,
   }).format(n);
@@ -22,9 +22,12 @@ export function MonthlyLeaderboard() {
   const leading = result?.entries.slice(0, showAll ? 100 : 4) ?? [];
   const ownOutsideLeading = result?.own && !leading.some(entry => entry.rank === result.own?.rank);
   const load = async () => {
-    setBusy(true); setFailed(false);
+    setBusy(true); setFailure(null);
     try { setResult(await refreshRanking(wealth.score, season.month)); }
-    catch { setFailed(true); } finally { setBusy(false); }
+    catch (error) {
+      const code = error instanceof Error ? error.message : '';
+      setFailure(code === 'sign-in-required' ? 'sign-in' : 'unavailable');
+    } finally { setBusy(false); }
   };
   // Opening the trophy is the player's explicit Game Center action. Authenticate,
   // submit the latest net worth, then load real players; never render fake rows.
@@ -39,7 +42,9 @@ export function MonthlyLeaderboard() {
     </div>
     {gap !== null && <p className="monthlyRanking__gap">{t('Top 100 farkı')}: <strong>{result?.own && result.own.rank <= 100 ? fmt(0) : fmt(gap)} g</strong></p>}
     {!available && <p>{rankingConfigured() ? t('Game Center için iPhone uygulamasını kullan.') : t('Bu ayın sıralaması henüz açılmadı.')}</p>}
-    {failed && <p role="status">{t('Sıralama alınamadı. Game Center hesabını ve bağlantını kontrol et.')}</p>}
+    {failure && <p role="status">{failure === 'sign-in'
+      ? t('Sıralamayı görmek için Game Center hesabına giriş yap.')
+      : t('Top 100 şu anda kullanılamıyor. Sıralama Apple onayını bekliyor veya bağlantı kesilmiş olabilir.')}</p>}
     {available && <p>{t('Top 100’e bağlandığında Game Center takma adın ve HAS servet skorun diğer oyunculara görünür.')}</p>}
     {available && <button className="miniBtn" disabled={busy} onClick={() => void load()}>{busy ? t('Yükleniyor…') : t('Game Center · Top 100')}</button>}
     {result && <ol className="monthlyRanking__list">{leading.map(entry => <li key={entry.rank} className={entry.rank === result.own?.rank ? 'monthlyRanking__own' : ''}>

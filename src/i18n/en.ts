@@ -1936,6 +1936,8 @@ export const EN: Record<string, string> = {
   '{n} koşul eksik.': '{n} conditions unmet.',
   'Kayıt yazılamadı; depolama alanını kontrol edin.':
     'The save could not be written; check your storage space.',
+  'Kayıt yazılamadı. Oyunu kapatmadan tekrar deneyin.':
+    'The save could not be written. Try again before closing the game.',
   '{kanal} · {gerekce}': '{kanal} · {gerekce}',
   '{kanal} · {gerekce} · Hacim indirimi {oran}': '{kanal} · {gerekce} · Volume discount {oran}',
   'Dükkân açık': 'The shop is open',
@@ -2103,6 +2105,8 @@ export const EN: Record<string, string> = {
   "Satışı böl": "Split sale",
   "Son teklifte anlaşamadık.": "We couldn't agree on the final offer.",
   "Sıralama alınamadı. Game Center hesabını ve bağlantını kontrol et.": "Could not load rankings. Check your Game Center account and connection.",
+  "Sıralamayı görmek için Game Center hesabına giriş yap.": "Sign in to Game Center to view the leaderboard.",
+  "Top 100 şu anda kullanılamıyor. Sıralama Apple onayını bekliyor veya bağlantı kesilmiş olabilir.": "Top 100 is unavailable right now. The leaderboard may be awaiting Apple's approval, or the connection may be offline.",
   "Ticaret kârı": "Trading profit",
   "Top 100 farkı": "Gap to Top 100",
   "Toplam gider": "Total expenses",

@@ -1,4 +1,5 @@
 import { normalizeRankingSeason } from '@domain/ranking';
+import { gzipSync, gunzipSync, strFromU8, strToU8 } from 'fflate';
 /**
  * MIHENKAYNAK — Kayıt / yükleme
  * Kaynak: GDD 28.1 "kayıt sistemi", 28.3 determinizm;
@@ -414,6 +415,26 @@ export function migrate(file: SaveFile): SaveFile {
 
 const STORAGE_KEY = 'mihenkaynak.save.v1';
 const BACKUP_STORAGE_KEY = 'mihenkaynak.save.v1.backup';
+const COMPRESSED_PREFIX = 'mihenk-gzip-v1:';
+
+function encodeSave(raw: string): string {
+  const bytes = gzipSync(strToU8(raw));
+  // btoa's argument is built in chunks so long-running saves do not overflow
+  // the JavaScript call stack on iPhone WebKit.
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 8192) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+  }
+  return COMPRESSED_PREFIX + btoa(binary);
+}
+
+function decodeSave(raw: string): string {
+  if (!raw.startsWith(COMPRESSED_PREFIX)) return raw; // existing installs
+  const binary = atob(raw.slice(COMPRESSED_PREFIX.length));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return strFromU8(gunzipSync(bytes));
+}
 
 /**
  * YAZMA KİLİDİ — "Kaydı sil"in sözünü tutan şey.
@@ -456,10 +477,23 @@ function commitRawSave(raw: string): boolean {
   if (savesSuspended) return true;
   try {
     const previous = localStorage.getItem(STORAGE_KEY);
-    if (previous && parseSave(previous)) localStorage.setItem(BACKUP_STORAGE_KEY, previous);
-    localStorage.setItem(STORAGE_KEY, raw);
+    const encoded = encodeSave(raw);
+    // A full origin quota must not make the optional backup prevent progress.
+    // setItem replaces the primary atomically, so the previous save survives a
+    // failed primary write even when there is no room for its second copy.
+    if (previous && parseSave(previous)) {
+      try { localStorage.setItem(BACKUP_STORAGE_KEY, previous); } catch { /* keep primary */ }
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, encoded);
+    } catch {
+      // A stale backup can consume the last available bytes. The old primary
+      // is still intact; free only the backup and retry once.
+      try { localStorage.removeItem(BACKUP_STORAGE_KEY); } catch { /* no-op */ }
+      localStorage.setItem(STORAGE_KEY, encoded);
+    }
 
-    if (localStorage.getItem(STORAGE_KEY) !== raw) {
+    if (localStorage.getItem(STORAGE_KEY) !== encoded) {
       if (previous) localStorage.setItem(STORAGE_KEY, previous);
       return false;
     }
@@ -528,7 +562,7 @@ function saveCandidates(): string[] {
 
 function parseSave(raw: string): SaveFile | null {
   try {
-    const file = JSON.parse(raw) as SaveFile;
+    const file = JSON.parse(decodeSave(raw)) as SaveFile;
     if (
       typeof file !== 'object' ||
       file === null ||

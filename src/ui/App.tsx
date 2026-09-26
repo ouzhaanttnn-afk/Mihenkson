@@ -204,7 +204,7 @@ export function App() {
   useEffect(() => {
     let scheduled = false;
     let disposed = false;
-    const flush = () => { if (!useGame.getState().saveGame()) useGame.getState().notify(t('Kayıt yazılamadı; depolama alanını kontrol edin.'), 'negative'); };
+    const flush = () => { if (!useGame.getState().saveGame()) useGame.getState().notify(t('Kayıt yazılamadı. Oyunu kapatmadan tekrar deneyin.'), 'negative'); };
     const unsubscribe = useGame.subscribe((next, prev) => {
       if (next.ledger === prev.ledger && next.activeDeal === prev.activeDeal && next.activeCustomer === prev.activeCustomer &&
           next.queue === prev.queue && next.missedGuestCountToday === prev.missedGuestCountToday) return;
