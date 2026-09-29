@@ -27,7 +27,9 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
       İkisini de yayın öncesinde ayrı bir güvenli ortama yedekle.
 - [x] Android sürümü `1.1.3` (`versionCode 1`) ve imzalı Play AAB derleme
       iş akışı hazır (`.github/workflows/android-play-bundle.yml`).
-- [ ] İmzalı AAB çıktısı doğrulandı ve güvenli bir klasöre indirildi.
+- [x] İmzalı AAB çıktısı GitHub Actions'ta `jarsigner` ile doğrulandı ve
+      `C:\Users\Gaming\Desktop\Mihenk-Android-Play-1.1.3\app-release.aab`
+      konumuna indirildi. Yerel SHA-256, derleme günlüğündeki değerle eşleşiyor.
 - [ ] App Bundle (.aab) internal testing kanalına yüklendi ve kendi
       cihazında denendi
 
