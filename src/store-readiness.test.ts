@@ -116,7 +116,7 @@ describe('yayınlanan yasal ve destek sayfaları', () => {
       'cihaz veya reklam kimlikleri',
       'performans',
       'çökme/teşhis',
-      'nostoscomp@gmail.com',
+      'oguzhaanttnn@gmail.com',
     ]) {
       expect(privacy, `gizlilik metninde eksik: ${required}`).toContain(required);
     }
@@ -139,7 +139,7 @@ describe('yayınlanan yasal ve destek sayfaları', () => {
       expect(read(`public/${page}-en.html`)).toContain('<html lang="en">');
     }
     expect(read('public/privacy-en.html')).toContain('Google AdMob');
-    expect(read('public/support-en.html')).toContain('nostoscomp@gmail.com');
+    expect(read('public/support-en.html')).toContain('oguzhaanttnn@gmail.com');
   });
 
   it('mağaza belgeleri eski geçici paylaşım bağlantısını taşımaz', () => {

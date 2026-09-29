@@ -56,4 +56,4 @@ mağaza sayfasında bağlantılı URL'de bulunur.
 
 ## 8. İletişim
 
-nostoscomp@gmail.com
+oguzhaanttnn@gmail.com

@@ -20,9 +20,14 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
 - [x] `strings.xml`'deki `admob_app_id` gerçek AdMob Android App ID'si
       (`ca-app-pub-4229088811556918~6302768552`) — kullanıcının AdMob
       hesabından alındı, `isTesting` kaldırıldı (bkz. `src/ui/ads.ts`)
-- [ ] İmzalama anahtarı (keystore) üretildi ve **güvenli bir yere yedeklendi**
-      (kaybedilirse uygulama bir daha güncellenemez) — **bu ortamda Android
-      Studio yok, senin makinende yapılmalı**
+- [x] Mihenk'e özel yükleme anahtarı depo dışında üretildi:
+      `C:\Users\Gaming\Documents\Mihenk-Android-Signing\mihenk-upload.p12`.
+      Şifresi aynı klasörde Windows hesabına bağlı, şifreli
+      `upload-password.dpapi` dosyasında; ayrıca GitHub Actions gizli alanında.
+      İkisini de yayın öncesinde ayrı bir güvenli ortama yedekle.
+- [x] Android sürümü `1.1.3` (`versionCode 1`) ve imzalı Play AAB derleme
+      iş akışı hazır (`.github/workflows/android-play-bundle.yml`).
+- [ ] İmzalı AAB çıktısı doğrulandı ve güvenli bir klasöre indirildi.
 - [ ] App Bundle (.aab) internal testing kanalına yüklendi ve kendi
       cihazında denendi
 

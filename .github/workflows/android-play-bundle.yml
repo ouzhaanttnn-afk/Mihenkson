@@ -1,0 +1,66 @@
+name: Android Play upload bundle
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/mihenk-android-play-ready
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install and verify web app
+        run: |
+          npm ci
+          npm test
+          npm run release:check
+          npm run build
+          npx cap sync android
+
+      - name: Restore upload key outside the checkout
+        env:
+          MIHENK_ANDROID_KEYSTORE_BASE64: ${{ secrets.MIHENK_ANDROID_KEYSTORE_BASE64 }}
+          MIHENK_ANDROID_UPLOAD_PASSWORD: ${{ secrets.MIHENK_ANDROID_UPLOAD_PASSWORD }}
+        run: |
+          test -n "$MIHENK_ANDROID_KEYSTORE_BASE64"
+          test -n "$MIHENK_ANDROID_UPLOAD_PASSWORD"
+          printf '%s' "$MIHENK_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/mihenk-upload.p12"
+          chmod 600 "$RUNNER_TEMP/mihenk-upload.p12"
+          echo "MIHENK_ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/mihenk-upload.p12" >> "$GITHUB_ENV"
+          echo "MIHENK_ANDROID_KEYSTORE_PASSWORD=$MIHENK_ANDROID_UPLOAD_PASSWORD" >> "$GITHUB_ENV"
+          echo "MIHENK_ANDROID_KEY_PASSWORD=$MIHENK_ANDROID_UPLOAD_PASSWORD" >> "$GITHUB_ENV"
+          echo "MIHENK_ANDROID_KEY_ALIAS=mihenk-upload" >> "$GITHUB_ENV"
+
+      - name: Build and verify signed AAB
+        run: |
+          cd android
+          bash ./gradlew :app:bundleRelease
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          test -s "$AAB"
+          jarsigner -verify "$AAB" > /dev/null
+          sha256sum "$AAB"
+
+      - name: Downloadable Play package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mihenk-Android-1.1.3-Play-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30

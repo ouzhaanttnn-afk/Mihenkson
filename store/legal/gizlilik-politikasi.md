@@ -12,7 +12,7 @@ yayınlanır; eski, güncellenemeyen üçüncü taraf paylaşım bağlantısı k
 
 Son güncelleme: 19 Eylül 2026
 Geliştirici: Nostoscomp
-İletişim: nostoscomp@gmail.com
+İletişim: oguzhaanttnn@gmail.com
 
 ---
 
@@ -109,4 +109,4 @@ fotoğrafıdır.
 
 ## İletişim
 
-Sorularınız için: nostoscomp@gmail.com
+Sorularınız için: oguzhaanttnn@gmail.com

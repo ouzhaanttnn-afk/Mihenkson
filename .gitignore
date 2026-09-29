@@ -18,5 +18,11 @@ tsconfig.tsbuildinfo
 *.mobileprovision
 apple-signing/
 
+# Android upload signing material must stay outside Git.
+*.jks
+*.keystore
+*.p12
+android-signing/
+
 # Generated, non-secret deployment identification.
 public/release.json

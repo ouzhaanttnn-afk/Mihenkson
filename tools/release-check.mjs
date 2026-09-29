@@ -29,6 +29,7 @@ const xcodeProject = read('ios/App/App.xcodeproj/project.pbxproj');
 const infoPlist = read('ios/App/App/Info.plist');
 const sceneDelegate = read('ios/App/App/SceneDelegate.swift');
 const androidStrings = read('android/app/src/main/res/values/strings.xml');
+const androidGradle = read('android/app/build.gradle');
 const productionEnv = read('.env.production');
 const indexHtml = read('index.html');
 const webManifest = read('public/manifest.webmanifest');
@@ -49,6 +50,9 @@ check(
   'Xcode hedefi iPhone-only',
 );
 check(androidStrings.includes('ca-app-pub-4229088811556918~6302768552'), 'Android AdMob App ID hazır');
+check(/applicationId "com\.mihenkaynak\.app"/.test(androidGradle), 'Android uygulama kimliği doğru');
+check(/versionCode 1\b/.test(androidGradle) && /versionName "1\.1\.3"/.test(androidGradle), 'Android ilk Play sürümü 1.1.3 (1)');
+check(androidGradle.includes("System.getenv('MIHENK_ANDROID_KEYSTORE_FILE')"), 'Android release imzası yalnız harici anahtar kullanıyor');
 check(infoPlist.includes('ca-app-pub-4229088811556918~3768104554'), 'iOS AdMob App ID hazır');
 const skAdNetworkIds = [...infoPlist.matchAll(
   /<key>SKAdNetworkIdentifier<\/key>\s*<string>([^<]+)<\/string>/g,
@@ -122,7 +126,7 @@ for (const page of [
   if (existsSync(join(root, page))) {
     const html = read(page);
     check(!html.includes('[DOLDURULACAK]'), `${page} placeholder içermiyor`);
-    check(/nostoscomp@gmail\.com/i.test(html), `${page} iletişim adresi içeriyor`);
+    check(/oguzhaanttnn@gmail\.com/i.test(html), `${page} erişilebilir iletişim adresi içeriyor`);
   }
 }
 if (existsSync(join(root, 'public/privacy.html'))) {

@@ -55,7 +55,7 @@ Oyun > Simülasyon
 
 ## İletişim
 ```
-E-posta: nostoscomp@gmail.com
+E-posta: oguzhaanttnn@gmail.com
 Web sitesi: https://alpersonmihenk-chi.vercel.app/
 Gizlilik politikası: https://alpersonmihenk-chi.vercel.app/privacy.html
 Destek: https://alpersonmihenk-chi.vercel.app/support.html
