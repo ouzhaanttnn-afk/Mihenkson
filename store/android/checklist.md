@@ -41,8 +41,10 @@ Google Play Console hesabı (tek seferlik kayıt ücreti) gerekir.
       `../README.md`); gözle kontrol edildi, temiz görünüyor.
 - [x] Öne çıkan görsel (feature graphic) 1024×500 — üretildi:
       `../assets/generated/feature-graphic-1024x500.png`
-- [x] Telefon ekran görüntüleri — en az 2, en çok 8 (16:9 veya 9:16) —
-      4 adet üretildi (1290×2796, 9:16 içinde): `../assets/generated/screenshots/`
+- [ ] Google Play telefon ekran görüntüleri: mevcut 1290×2796 App Store
+      görselleri Play için uygun değil (uzun kenar kısa kenarın 2 katını
+      aşıyor). Android cihazda gerçek oyundan en az 3 adet 9:16 portre
+      görüntü alıp listeye ekle; bunları Play'e yüklenebilir sayma.
 - [ ] (opsiyonel) 7" ve 10" tablet ekran görüntüleri
 
 ## 4. Mağaza girişi (bkz. `metadata-taslak.md`)
