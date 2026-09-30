@@ -60,4 +60,31 @@ Tamamlanan personel satışı müşteri ziyaret/ciro hafızasına da yazılır.
 Paket sürümü: 1.2.0. iOS bundle: com.mihenkaynak.app. App Store uygulaması:
 6808742428. Apple'da 1.2.0 kaydı ve yenilik/inceleme notları hazırlandı.
 Canlı 1.1.3 değiştirilmez; inceleme onayından önce 1.2.0 canlı değildir.
-Derleme numarası ve Apple gönderim sonucu, işlem tamamlanınca bu kayda eklenir.
+Derleme numarası ve doğrulanmış Apple gönderim sonucu aşağıdadır.
+
+### İmzalı iOS derlemesi
+
+- Kaynak commit: `b630caa782a67037e7f9486f41e5295402307a34` (main'e fast-forward edildi).
+- Sürüm/build: **1.2.0 (31)**.
+- GitHub macOS işi: https://github.com/ouzhaanttnn-afk/Mihenkson/actions/runs/36781632440
+- Test, web build, Game Center yetkili imza, archive, IPA export ve Apple upload başarılı.
+- 2026-09-30 21:53:58 UTC: `UPLOAD SUCCEEDED with no errors`.
+- App Store Connect'te 1.2.0 (31) processing tamamlandı; sürüme seçilip kaydedildi.
+- Mevcut Betatest grubuna build 31 bağlı (3 davet).
+- 2026-10-01 01:07 TRT: Submit for Review tamamlandı; `1 Item Submitted` ve
+  **1.2.0 — Waiting for Review** durumları arayüzde doğrulandı.
+- İnceleme gönderimi: https://appstoreconnect.apple.com/apps/6808742428/distribution/reviewsubmissions/details/f89083de-7225-431f-9350-546e96d05ff1
+- Onay sonrası manuel yayın ayarı korundu. Yeni sürüm henüz App Store'da canlı değil.
+
+Ek browser smoke: Tam Altın alımı nakit/stok maliyetine yansıdı; vadeli MAX
+tedariği 233,6 g ekledi, aynı gram havuzuyla birleşerek kapasiteyi artırmadı.
+965.061 ₺ peşin ve 26.039 ₺ vadeli kayıt (486 ₺ fark dahil) ekranda önceden
+gösterildi, alım sonrası kasa 0 ve açık fatura 26.039 ₺ / 7. gün doğrulandı.
+Yetersiz kullanılabilir limit yeni alımı engeller; kasa negatife düşmez.
+Birleşmiş 235,1 g stok toptancıya satıldı; 26.039 ₺ fatura ödendi ve açık vade
+`Yok` oldu. Bu test pozisyonunun gerçekleşmiş zararının nakit/deftere doğru
+yansıdığı görüldü; hızlı çıkış garantili kâr değildir.
+
+Yayın engellemeyen mevcut sunum notu: toptancı satış toast'u gram havuzu
+miktarında da genel `adet` ifadesini kullanıyor; stok/satış kontrolündeki `g`
+birimi ve ekonomik miktar doğrudur. Sonraki metin düzeltmesinde ele alınabilir.
