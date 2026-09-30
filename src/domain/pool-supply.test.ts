@@ -13,20 +13,22 @@ const initial = useGame.getState();
 beforeEach(() => {
   const data = new Map<string, string>();
   vi.stubGlobal('localStorage', { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => data.set(k, v) });
-  useGame.setState({ ...initial, store: { ...initial.store, cash: 10_000_000, hasBalanceMg: 0, hasCostBasis: 0 },
+  useGame.setState({ ...initial, store: { ...initial.store, storeTier: 2, cash: 10_000_000, hasBalanceMg: 0, hasCostBasis: 0 },
     market: createMarketForDay(456, 5), inventory: [], items: {}, ledger: createLedger() }, true);
 });
 afterEach(() => { useGame.setState(initial, true); vi.unstubAllGlobals(); });
 
-describe('cash-only three-family pooled counter', () => {
+describe('cash-only canonical pooled counter', () => {
   it('has the canonical player-sellable supply families', () => {
     expect(POOL_SUPPLY.map(p => p.templateId)).toEqual([
       'gram_gold_1',
       'quarter_gold',
       'half_gold',
+      'full_gold',
       'republic_gold',
       'ata_gold',
       'investment_bangle_22k_10',
+      'small_ingot',
     ]);
   });
   it.each(POOL_SUPPLY.map(p => p.templateId))('%s tedariki normal müşteri bandında kârlı satılabilir', templateId => {
@@ -75,13 +77,14 @@ describe('cash-only three-family pooled counter', () => {
     useGame.getState().buyPoolStock('quarter_gold', qty);
     expect(useGame.getState().inventory[0]?.quantity).toBe(qty);
   });
-  it.each(['half_gold', 'republic_gold', 'ata_gold'] as const)('buys and stacks requested coin stock: %s', templateId => {
+  it.each(['half_gold', 'full_gold', 'republic_gold', 'ata_gold', 'small_ingot'] as const)('buys and stacks requested unit stock: %s', templateId => {
     useGame.getState().buyPoolStock(templateId, 2);
     useGame.getState().buyPoolStock(templateId, 1);
     const position = useGame.getState().inventory[0];
     expect(position?.quantity).toBe(3);
     expect(position?.poolId).toBe(
-      templateId === 'half_gold' ? 'HALF_GOLD_POOL' : templateId === 'republic_gold' ? 'REPUBLIC_GOLD_POOL' : 'ATA_GOLD_POOL',
+      templateId === 'half_gold' ? 'HALF_GOLD_POOL' : templateId === 'full_gold' ? 'FULL_GOLD_POOL' :
+        templateId === 'republic_gold' ? 'REPUBLIC_GOLD_POOL' : templateId === 'ata_gold' ? 'ATA_GOLD_POOL' : 'SMALL_INGOT_POOL',
     );
   });
   it.each([0, -1, .5, 135.5, NaN, Infinity])('rejects invalid quarter quantity %s without financial mutations', qty => {

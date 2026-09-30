@@ -168,7 +168,10 @@ export function effectiveReservation(ctx: NegotiationContext, session: Negotiati
   const raw = base * a.closeThreshold * (1 - sign * flex) * accessibilityFactor;
 
   const threshold = scaleToFair(raw, ctx);
-  return Math.round(ctx.economicBand ? clamp(threshold, ctx.economicBand.min, ctx.economicBand.max) : threshold);
+  const bounded = ctx.economicBand ? clamp(threshold, ctx.economicBand.min, ctx.economicBand.max) : threshold;
+  // Piyasa bandı ve ilişki esnemesi müşterinin olmayan parasını yaratamaz.
+  // Özellikle büyük paketlerde bütçe, piyasa bandının tabanından düşük olabilir.
+  return Math.min(Math.round(bounded), buyerBudgetLimit(ctx));
 }
 
 /**
@@ -220,6 +223,13 @@ function purchaseThresholdBase(ctx: NegotiationContext): Money {
 /** Adalet algısının referansı — yön ne olursa olsun müşterinin kendi sınırı. */
 function thresholdBaseFor(ctx: NegotiationContext): Money {
   return dirSign(ctx) === 1 ? ctx.customer.reservationPrice : purchaseThresholdBase(ctx);
+}
+
+/** Sabit alıcı bütçesi sert sınırdır; satıcı tarafına uygulanmaz. */
+function buyerBudgetLimit(ctx: NegotiationContext): number {
+  return dirSign(ctx) === -1 && Number.isFinite(ctx.customer.budget)
+    ? Math.max(0, Math.floor(ctx.customer.budget))
+    : Number.POSITIVE_INFINITY;
 }
 
 /**
@@ -292,19 +302,24 @@ function handleOffer(
   const wasRepeat = lastOffer !== undefined && offer === lastOffer;
 
   if (wasRepeat) {
+    const exhausted = customer.patience - NEGOTIATION.repeatOfferPatiencePenalty <= 0;
     const next: NegotiationSession = {
       ...session,
+      state: exhausted ? 'REJECTED' : session.state,
       round: session.round + 1,
       offerHistory: [...session.offerHistory, offer],
       moveHistory: [...session.moveHistory, move],
+      activeCounter: exhausted ? null : session.activeCounter,
     };
     return {
       session: next,
       response: {
-        state: session.state,
-        message: localizedMessage('Aynı rakamı tekrar ediyorsunuz. Cevabım değişmedi.'),
+        state: next.state,
+        message: localizedMessage(exhausted
+          ? 'Aynı rakamı tekrar ettiniz. Sabrım kalmadı; anlaşamayacağız.'
+          : 'Aynı rakamı tekrar ediyorsunuz. Cevabım değişmedi.'),
         // Karşı teklif de değişmez — yeni bilgi verilmediği için.
-        counterOffer: session.activeCounter,
+        counterOffer: next.activeCounter,
         patienceDelta: -NEGOTIATION.repeatOfferPatiencePenalty,
         trustDelta: -NEGOTIATION.repeatOfferTrustPenalty,
         suspicionDelta: 0,
@@ -314,10 +329,17 @@ function handleOffer(
     };
   }
 
-  const threshold =
+  const currentThreshold =
     session.state === 'FINAL_OFFER' && session.finalOffer !== null
       ? session.finalOffer
       : effectiveReservation(ctx, session);
+  // Masadaki karşı teklif bağlayıcıdır. Aynı rakamı yazmak ile "kabul et"
+  // düğmesine basmak, aradaki sabır/güven değişiminden dolayı farklı sonuç
+  // üretmesin. Eski kayıttaki teklif de sabit bütçeyi aşamaz.
+  const quotedThreshold = session.activeCounter === null ? currentThreshold
+    : dirSign(ctx) === 1 ? Math.min(currentThreshold, session.activeCounter)
+      : Math.max(currentThreshold, session.activeCounter);
+  const threshold = Math.min(quotedThreshold, buyerBudgetLimit(ctx));
 
   const round = session.round + 1;
 
@@ -384,7 +406,7 @@ function handleOffer(
   let nextState: NegotiationState = session.state;
   if (patienceRatioAfter <= 0) {
     nextState = 'REJECTED';
-  } else if (patienceRatioAfter <= NEGOTIATION.finalOfferPatienceRatio) {
+  } else if (session.state === 'FINAL_OFFER' || patienceRatioAfter <= NEGOTIATION.finalOfferPatienceRatio) {
     nextState = 'FINAL_OFFER';
   } else if (badOfferCount >= NEGOTIATION.hardeningTrigger || session.state === 'HARDENING') {
     nextState = 'HARDENING';
@@ -398,10 +420,11 @@ function handleOffer(
         round,
         offerHistory: [...session.offerHistory, offer],
         moveHistory: [...session.moveHistory, move],
+        activeCounter: null,
       },
       response: {
         state: 'REJECTED',
-        message: localizedMessage('Bu fiyatlarla olmayacak. Başka yere bakacağım.'),
+        message: rejectedOfferMessage(ctx, ratio, offer),
         counterOffer: null,
         patienceDelta: -patienceCost,
         trustDelta: -TRUST.rejectPenalty,
@@ -431,7 +454,7 @@ function handleOffer(
     session: next,
     response: {
       state: nextState,
-      message: counterMessage(nextState, ratio, a.demeanor, isInsulting),
+      message: counterMessage(nextState, ratio, a.demeanor, isInsulting, ctx, offer),
       counterOffer: counter,
       patienceDelta: -patienceCost,
       // Aşırı düşük teklif güveni aşındırır (GDD 21.2 "Kötü pazarlık").
@@ -455,6 +478,10 @@ function deriveCounter(
   playerOffer: Money,
   threshold: Money,
 ): Money {
+  // "Son teklif" fiyatı jest/sonraki soru ile yeniden açılmaz.
+  if (session.state === 'FINAL_OFFER' && session.finalOffer !== null) {
+    return Math.min(session.finalOffer, buyerBudgetLimit(ctx));
+  }
   const key = state === 'FINAL_OFFER' ? 'FINAL_OFFER' : state === 'HARDENING' ? 'HARDENING' : 'OPEN';
   const [startMargin, endMargin] = NEGOTIATION.counterMarginByState[key];
 
@@ -485,7 +512,10 @@ function deriveCounter(
       ? Math.min(session.activeCounter, derived)
       : Math.max(session.activeCounter, derived)
     : derived;
-  return ctx.economicBand ? Math.round(clamp(counter, ctx.economicBand.min, ctx.economicBand.max)) : counter;
+  const bounded = ctx.economicBand ? Math.round(clamp(counter, ctx.economicBand.min, ctx.economicBand.max)) : counter;
+  // Alıcının piyasa bandının altında kalan bir bütçesi varsa gerçek karşı
+  // teklifi de aşağıda kalır; bandın tabanına yükselterek ödeme sözü verilmez.
+  return dirSign(ctx) === -1 ? Math.min(bounded, threshold, buyerBudgetLimit(ctx)) : bounded;
 }
 
 // ---------------------------------------------------------------------------
@@ -691,7 +721,7 @@ function handleRequestCounter(
   }
 
   const nextState: NegotiationState =
-    exhausted || patienceRatioAfter <= NEGOTIATION.finalOfferPatienceRatio
+    session.state === 'FINAL_OFFER' || exhausted || patienceRatioAfter <= NEGOTIATION.finalOfferPatienceRatio
       ? 'FINAL_OFFER'
       : session.state;
 
@@ -743,8 +773,11 @@ function handleAcceptCounter(
   if (price === null) {
     return handleNoop(session, localizedMessage('Masada kabul edilecek bir teklif yok.'));
   }
+  if (price > buyerBudgetLimit(ctx)) {
+    return handleNoop(session, localizedMessage('Bu teklif bütçemi aşıyor. Geçerli bir karşı teklif isteyin.'));
+  }
 
-  const fairness = price / Math.max(1, ctx.customer.reservationPrice);
+  const fairness = offerRatio(ctx, price, Math.max(1, thresholdBaseFor(ctx)));
 
   return {
     session: {
@@ -840,7 +873,7 @@ export const STATE_LABEL: Record<NegotiationState, string> = {
 
 function countBadOffers(session: NegotiationSession, ctx: NegotiationContext): number {
   const threshold = effectiveReservation(ctx, session);
-  return session.offerHistory.filter((o) => o / Math.max(1, threshold) < NEGOTIATION.insultThreshold)
+  return session.offerHistory.filter((o) => offerRatio(ctx, o, threshold) < NEGOTIATION.insultThreshold)
     .length;
 }
 
@@ -855,7 +888,17 @@ function counterMessage(
   ratio: number,
   demeanor: string,
   insulting: boolean,
+  ctx: NegotiationContext,
+  offer: Money,
 ): LocalizedMessage {
+  if (dirSign(ctx) === -1) {
+    if (offer > buyerBudgetLimit(ctx)) return localizedMessage('İstediğiniz fiyat bütçemi aşıyor. Karşı teklifim bu.');
+    if (state === 'FINAL_OFFER') return localizedMessage('Son teklifim bu. Daha fazlasını ödeyemem.');
+    if (insulting) return localizedMessage('Bu fiyat beklentimin çok üzerinde. Bu kadar ödeyemem.');
+    if (state === 'HARDENING') return localizedMessage('Bakın, bu fiyatı daha fazla yükseltmem.');
+    if (ratio > 0.95) return localizedMessage('Fiyatlarımız yakın. İstediğiniz rakamı biraz düşürün.');
+    return localizedMessage('İstediğiniz fiyat güncel piyasa beklentimin üzerinde. Daha düşük bir rakam konuşabiliriz.');
+  }
   if (state === 'FINAL_OFFER') return localizedMessage('Son fiyatım bu. Daha aşağısına bırakmam.');
   if (insulting) return localizedMessage('Bu rakam ciddi değil. Ürünün hâlini biliyorum.');
   if (state === 'HARDENING') return localizedMessage('Bakın, buradan aşağı inmem artık.');
@@ -863,6 +906,18 @@ function counterMessage(
   return localizedMessage('{tavir} davranmak istiyorum ama bu fiyat beklentimin altında.', {
     tavir: { kind: 'translation', value: demeanor },
   });
+}
+
+function rejectedOfferMessage(ctx: NegotiationContext, ratio: number, offer: Money): LocalizedMessage {
+  if (dirSign(ctx) === -1) {
+    if (offer > buyerBudgetLimit(ctx)) return localizedMessage('İstediğiniz fiyat bütçemi aşıyor. Sabrım da kalmadı; anlaşamayacağız.');
+    return localizedMessage(ratio > 0.95
+      ? 'Fiyatlarımız yaklaştı ama sabrım kalmadı; anlaşamadık.'
+      : 'İstediğiniz fiyat güncel piyasa beklentimin üzerinde. Sabrım da kalmadı; anlaşamayacağız.');
+  }
+  return localizedMessage(ratio > 0.95
+    ? 'Fiyatlarımız yaklaştı ama sabrım kalmadı; anlaşamadık.'
+    : 'Teklifiniz beklentimin altında. Sabrım da kalmadı; anlaşamayacağız.');
 }
 
 function reasonReplyFor(archetypeId: string, claim: string): LocalizedMessage {

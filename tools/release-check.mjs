@@ -52,7 +52,7 @@ check(
 );
 check(androidStrings.includes('ca-app-pub-4229088811556918~6302768552'), 'Android AdMob App ID hazır');
 check(/applicationId "com\.mihenkaynak\.app"/.test(androidGradle), 'Android uygulama kimliği doğru');
-check(/versionCode 1\b/.test(androidGradle) && /versionName "1\.1\.3"/.test(androidGradle), 'Android ilk Play sürümü 1.1.3 (1)');
+check(/versionCode 2\b/.test(androidGradle) && /versionName "1\.2\.0"/.test(androidGradle), 'Android güncel sürüm 1.2.0 (2)');
 check(androidGradle.includes("System.getenv('MIHENK_ANDROID_KEYSTORE_FILE')"), 'Android release imzası yalnız harici anahtar kullanıyor');
 check(androidManifest.includes('android:screenOrientation="portrait"'), 'Android oyun ekranı portre yönünde');
 check(infoPlist.includes('ca-app-pub-4229088811556918~3768104554'), 'iOS AdMob App ID hazır');

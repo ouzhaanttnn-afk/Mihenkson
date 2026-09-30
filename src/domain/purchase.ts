@@ -29,7 +29,8 @@ import { isMassPool, poolForItem, poolForTemplate, poolUnitGrams, validQuantity 
 import { customerPriceBand, isCrafted } from './customer-pricing';
 import { roundMoney } from './v5-rules';
 import { costBasisForUnits } from './settlement';
-import { bullionMeta, isBullion, RETAIL_BULLION_CATALOG } from '@data/bullion';
+import { bullionMeta, isBullion, RETAIL_BULLION_CATALOG, BULK_BULLION_CATALOG } from '@data/bullion';
+import { poolSupplyQuote } from './pool-supply';
 import { getTemplate } from '@data/item-templates';
 import { bullionUnitValue, gramsFor, priceForChannel, CHANNEL_LABEL_TR } from './channels';
 import { trueValue } from './valuation';
@@ -52,6 +53,13 @@ import type {
 // ---------------------------------------------------------------------------
 // Talep üretimi
 // ---------------------------------------------------------------------------
+
+export const VIP_BULK = {
+  minTier: 3,
+  minReputation: 65,
+  minSupplierTrust: 65,
+  gramAmounts: [250, 500, 1000],
+} as const;
 
 /**
  * Müşterinin ne aradığını spawn anında sabitler (GDD 9.3).
@@ -86,7 +94,7 @@ export function spawnDemand(
   let quantity = 1;
 
   if (wantsBullion) {
-    const tierCatalog = RETAIL_BULLION_CATALOG.filter(
+    const tierCatalog = (isBulk ? BULK_BULLION_CATALOG : RETAIL_BULLION_CATALOG).filter(
       (id) => getTemplate(id).minTier <= storeTier,
     );
 
@@ -121,6 +129,20 @@ export function spawnDemand(
     const unitEstimate = estimatedUnit(templateId);
     const affordableQuantity = unitEstimate > 0 ? Math.max(1, Math.floor(demandBudget / unitEstimate)) : rolledQuantity;
     quantity = Math.min(rolledQuantity, affordableQuantity);
+    if (isBulk && store && market && storeTier >= VIP_BULK.minTier &&
+        store.reputation >= VIP_BULK.minReputation && store.supplier.trust >= VIP_BULK.minSupplierTrust &&
+        poolForTemplate(templateId) === '24K_GRAM_GOLD_POOL') {
+      const volumeRng = new Rng(deriveSeed(rootSeed, 'customer/vipBulkVolume', spawnIndex));
+      const requested = volumeRng.pick(VIP_BULK.gramAmounts);
+      // Keep the existing bulk budget share and verify the real supply quote.
+      let lo = 0, hi = requested + 1;
+      while (hi - lo > 1) {
+        const mid = Math.floor((lo + hi) / 2);
+        const quote = poolSupplyQuote('gram_gold_1', mid, market, store);
+        if (quote && quote.totalPrice <= demandBudget) lo = mid; else hi = mid;
+      }
+      if (lo >= VIP_BULK.gramAmounts[0]) { templateId = 'gram_gold_1'; quantity = lo; }
+    }
   }
 
   // §4.1 kısmi karşılama: toplu müşteri stok yetmezse azıyla da çıkabilir.
@@ -225,14 +247,17 @@ export type DemandMatch = 'exact' | 'family' | 'off';
 
 export function matchDemand(demand: CustomerDemand, item: ItemInstance): DemandMatch {
   if (demand.targetInventoryItemId) return item.id === demand.targetInventoryItemId && isCrafted(item) && item.location === 'display' ? 'exact' : 'off';
+  if (item.templateId === 'small_ingot' && !demand.isBulk) return 'off';
   // Gram altın ve yatırım bileziği fiziksel gram havuzudur; burada yalnız
   // standart/saf havuz ürünü kabul edilir. Adetli ziynetlerde ise müşterinin
   // söylediği somut ürün adı belirleyicidir (Yarım ≠ Cumhuriyet ≠ Ata).
   if (demand.poolId && isMassPool(demand.poolId) && demand.poolId === poolForTemplate(demand.templateId ?? '')) {
     return poolForItem(item) === demand.poolId ? 'exact' : 'off';
   }
-  if (demand.templateId && item.templateId === demand.templateId) return 'exact';
   if (demand.poolId) return poolForItem(item) === demand.poolId ? 'exact' : 'off';
+  if (demand.templateId && item.templateId === demand.templateId) {
+    return poolForTemplate(item.templateId) && !poolForItem(item) ? 'off' : 'exact';
+  }
   // UPDATEv1: Somut bir ürün isteyen müşteriye yalnız o SKU sunulur.
   // "Bilezik" talebine gram altın ya da başka bir bilezik önermek hem
   // metni hem de stok kararını anlamsızlaştırıyordu.
@@ -254,6 +279,7 @@ export function offerableStock(
   const rank: Record<DemandMatch, number> = { exact: 0, family: 1, off: 2 };
   const rows: { position: InventoryPosition; item: ItemInstance; match: DemandMatch }[] = [];
   for (const position of inventory) {
+    if (!Number.isFinite(position.quantity) || position.quantity <= 0) continue;
     if (position.location !== 'display' && position.location !== 'backStock') continue;
     const item = items[position.itemId];
     if (!item) continue;
@@ -296,6 +322,8 @@ export function packageFairValue(
  * kullanır." Adet bandın üstüne çıktığında kanal profili de değişir.
  */
 export function channelForDemand(demand: CustomerDemand): TradeChannel {
+  const meta = demand.templateId ? bullionMeta(demand.templateId) : null;
+  if (demand.isBulk && meta?.channelFit.includes('bulkCustomer') && !meta.channelFit.includes('retailCustomer')) return 'bulkCustomer';
   return demand.quantity >= PURCHASE.bulkChannelThreshold ? 'bulkCustomer' : 'retailCustomer';
 }
 

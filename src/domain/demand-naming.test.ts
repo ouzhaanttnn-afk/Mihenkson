@@ -15,7 +15,7 @@ import { describe, expect, it } from 'vitest';
 import { START } from './balance';
 import { poolForTemplate } from './stock-pools';
 import { getTemplate, ITEM_TEMPLATES } from '@data/item-templates';
-import { RETAIL_BULLION_CATALOG, INVESTMENT_BANGLE_WEIGHTS, bullionMeta } from '@data/bullion';
+import { RETAIL_BULLION_CATALOG, BULK_BULLION_CATALOG, INVESTMENT_BANGLE_WEIGHTS, bullionMeta } from '@data/bullion';
 import { spawnCustomer } from './customer-spawn';
 import { dayCharacter } from './intent';
 import { spawnItem } from './item-spawn';
@@ -87,10 +87,10 @@ describe('Talep somut bir ürün adı taşır', () => {
     }
   });
 
-  it('UPDATEv2 — bütün satın alma talepleri ortak perakende kataloğundan gelir', () => {
+  it('satın alma talepleri kendi perakende veya toplu kanal kataloğundan gelir', () => {
     for (const d of all) {
       expect(d.wantsBullion).toBe(true);
-      expect(RETAIL_BULLION_CATALOG).toContain(d.templateId);
+      expect(d.isBulk ? BULK_BULLION_CATALOG : RETAIL_BULLION_CATALOG).toContain(d.templateId);
     }
   });
 });

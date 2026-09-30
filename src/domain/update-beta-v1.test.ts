@@ -15,10 +15,10 @@ describe('Beta Update v1', () => {
     expect(NEGOTIATION.counterMarginByState.FINAL_OFFER).toEqual([0.015, 0.015]);
   });
 
-  it('Tam Altın yeni stok ve müşteri talebi havuzlarında yer almaz', () => {
-    expect(RETAIL_BULLION_CATALOG).not.toContain('full_gold');
+  it('Tam Altın aktif stok ve müşteri talebi havuzlarında yer alır', () => {
+    expect(RETAIL_BULLION_CATALOG).toContain('full_gold');
     for (let tier = 1; tier <= 4; tier += 1) {
-      expect(templatesForTier(tier).map((template) => template.id)).not.toContain('full_gold');
+      expect(templatesForTier(tier).map((template) => template.id)).toContain('full_gold');
     }
   });
 

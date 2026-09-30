@@ -308,7 +308,9 @@ export interface CustomerDemand {
     | 'QUARTER_GOLD_POOL'
     | 'HALF_GOLD_POOL'
     | 'REPUBLIC_GOLD_POOL'
-    | 'ATA_GOLD_POOL';
+    | 'ATA_GOLD_POOL'
+    | 'FULL_GOLD_POOL'
+    | 'SMALL_INGOT_POOL';
   /** Aradığı ürün aileleri. Boşsa esnek müşteri. */
   families: string[];
   /** Sarrafiye mi arıyor, işçilikli mi. */
@@ -375,6 +377,8 @@ export interface Archetype {
 /** GDD 28.2 · Customer. */
 export interface Customer {
   id: string;
+  /** Spawn identity for this visit; returning customers keep their person id. */
+  visitId?: string;
   displayName: string;
   archetype: ArchetypeId;
   intent: CustomerIntent;
@@ -773,6 +777,10 @@ export interface AppraisalOutcome {
 
 /** GDD 28.2 · StoreState. */
 export interface StoreState {
+  /** 1.2.0: explicit assignments; old hires remain idle until assigned. */
+  personnelRoles?: PersonnelRole[];
+  /** Active-play seconds only; no offline automatic trading. */
+  personnelElapsedSeconds?: number;
   /** Queue personnel are distinct from workshop staff/masters. */
   personnelCount?: number;
   /**
@@ -806,6 +814,8 @@ export interface StoreState {
   /** Günlük kira + sabit gider (GDD 14.1). */
   dailyOverhead: Money;
 }
+
+export type PersonnelRole = 'idle' | 'reception' | 'sales' | 'workshop';
 
 // ---------------------------------------------------------------------------
 // İşlem kaydı ve settlement (GDD 22)
@@ -877,7 +887,7 @@ export interface StockOut {
 
 export interface SettlementTransaction {
   /** Canonical pool intake: grams, quarters or 10g bangle units. */
-  poolPurchase?: { quantity: number };
+  poolPurchase?: { quantity: number; financed?: boolean };
   hasDeltaMg?: number;
   hasCostDelta?: number;
   hasOperation?: 'buy' | 'sell' | 'melt';

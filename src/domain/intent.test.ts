@@ -209,7 +209,7 @@ describe('GDD 23.23 — Müşteri alış akışı', () => {
 
   it('stok eşleşmesi talebi doğru sınıflandırır', () => {
     const customer = buyer();
-    const demand = { ...customer.demand!, wantsBullion: true, templateId: 'quarter_gold' };
+    const demand = { ...customer.demand!, wantsBullion: true, templateId: 'quarter_gold', poolId: 'QUARTER_GOLD_POOL' as const };
     const quarter = spawnItem(SEED, 1, 'quarter_gold');
     const gram = spawnItem(SEED, 2, 'gram_gold_10');
 

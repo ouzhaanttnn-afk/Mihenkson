@@ -22,9 +22,13 @@ import {
   PERSONNEL_TEMP_UNLOCK_DAYS,
 } from '@domain/v5-rules';
 import { customerDelayFactor } from '@domain/customer-traffic';
+import { availableWorkshopStaff, personnelRoles, PERSONNEL_ACTION_SECONDS } from '@domain/personnel';
+import { personnelSale } from '@domain/personnel-sale';
+import { financedPoolSupply } from '@domain/financed-pool-supply';
 import { tradeHas, meltToHas } from '@domain/has-account';
 import { customerPriceBand, isCrafted } from '@domain/customer-pricing';
-import { packagePriceBand, showcaseStock } from '@domain/purchase';
+import { showcaseStock } from '@domain/purchase';
+import { purchaseNegotiationContext } from '@domain/purchase-negotiation-context';
 import { validQuantity } from '@domain/stock-pools';
 
 import {
@@ -37,7 +41,6 @@ import {
   PATIENCE_PER_TEST_SECOND,
   type SpeedStep,
 } from '@domain/balance';
-import { spawnItem } from '@domain/item-spawn';
 import { createMarketForDay, stepMarketIntraday } from '@domain/market';
 import { isShopOpen, weekdayOf } from '@domain/calendar';
 import { nextCustomerDelay, spawnCustomer } from '@domain/customer-spawn';
@@ -52,9 +55,7 @@ import {
   createPurchaseSession,
   matchDemand,
   maxPackageLines,
-  packageFitPenalty,
   packageGrams,
-  purchaseCeiling,
   repricePackage,
 } from '@domain/purchase';
 import { CHANNEL_LABEL_TR, gramsFor } from '@domain/channels';
@@ -201,6 +202,7 @@ import type {
   PurchaseSession,
   ServiceJob,
   ServiceVenue,
+  PersonnelRole,
   SettlementTransaction,
   StoreState,
   TradeNetworkMember,
@@ -387,6 +389,7 @@ export interface GameState {
   rankingOpen: boolean;
   setRankingOpen: (open: boolean) => void;
   setPersonnelCount: (count: number) => void;
+  setPersonnelRole: (index: number, role: PersonnelRole) => void;
   /** Bugünkü personel giderini ödüllü reklamla ücretsizleştirir. */
   requestPersonnelAdWaiver: () => Promise<void>;
   /**
@@ -541,7 +544,7 @@ export interface GameState {
 
   // --- Toptancı (Addendum §4.2, §7) ---
   liquidateToWholesaler: (itemId: string, quantity: number, sliceCount: number) => void;
-  buyPoolStock: (templateId: string, quantity: number) => void;
+  buyPoolStock: (templateId: string, quantity: number, useCredit?: boolean) => void;
   buyFromWholesaler: (templateId: string, quantity: number) => void;
   repaySupplier: (invoiceId: string) => void;
 
@@ -764,7 +767,26 @@ export const useGame = create<GameState>((set, get) => {
     setPersonnelCount: (count) => {
       const s = get();
       if (!canSetPersonnel(s.store, count, s.market.day)) return;
-      set({ store: { ...s.store, personnelCount: count } });
+      if (s.jobs.some(job => job.result === 'pending' && job.assignedStaff?.startsWith('personnel_') && Number(job.assignedStaff.slice(10)) > count)) {
+        pushToast(set, get, t('Bu personel mevcut atölye işini bitirmeli.'), 'negative'); return;
+      }
+      const roles = personnelRoles({ ...s.store, personnelCount: count });
+      set({ store: { ...s.store, personnelCount: count, personnelRoles: roles, personnelElapsedSeconds: 0 } });
+      refreshPendingServiceQuote(set, get);
+      writeSave(get());
+    },
+    setPersonnelRole: (index, role) => {
+      const s = get();
+      const roles = personnelRoles(s.store);
+      if (!Number.isInteger(index) || index < 0 || index >= roles.length ||
+        !['idle', 'reception', 'sales', 'workshop'].includes(role)) return;
+      // An accepted job retains its worker and fixed outcome until completion.
+      if (s.jobs.some(job => job.result === 'pending' && job.assignedStaff === `personnel_${index + 1}`)) {
+        pushToast(set, get, t('Bu personel mevcut atölye işini bitirmeli.'), 'negative'); return;
+      }
+      roles[index] = role;
+      set({ store: { ...s.store, personnelRoles: roles, personnelElapsedSeconds: 0 } });
+      refreshPendingServiceQuote(set, get);
       writeSave(get());
     },
 
@@ -814,6 +836,7 @@ export const useGame = create<GameState>((set, get) => {
           personnelCount: Math.max(personnelCount(store2), count),
         },
       });
+      refreshPendingServiceQuote(set, get);
       pushToast(
         set,
         get,
@@ -1217,6 +1240,7 @@ export const useGame = create<GameState>((set, get) => {
         } : item),
         rewardedDailyUses: { ...s.rewardedDailyUses, workshopRush: requestedDay },
       });
+      refreshPendingServiceQuote(set, get);
       writeSave(get());
       pushToast(set, get, remainingDays === 0 ? t('Atölye mesaisi işi tamamladı.') : t('İşin kalan süresi bir gün azaldı.'), 'positive');
     },
@@ -1317,7 +1341,7 @@ export const useGame = create<GameState>((set, get) => {
         cezalandırırdı. Bütün durma sebepleri bu saf seçicide toplanır; tick'i
         testten ya da başka bir zamanlayıcıdan çağırmak da kuralı delemez.
       */
-      if (clockPauseReason(s) !== null) return;
+      if (!simulationForeground || (typeof document !== 'undefined' && document.hidden) || clockPauseReason(s) !== null) return;
 
       const advance = deltaRealSeconds * DAY.minutesPerRealSecond * s.speed;
       const clock = s.market.clockMinutes + advance;
@@ -1374,7 +1398,7 @@ export const useGame = create<GameState>((set, get) => {
           clock +
           nextCustomerDelay(s.seed, spawnCounter, DAY.customerIntervalMinutes, rushActive) *
             s.dayCharacter.tempo *
-            customerDelayFactor(s.store);
+            customerDelayFactor(s.store, s.playerMarket);
       }
 
       // GDD 14.3 / 15.1 — stok değeri bugünkü piyasaya göre canlı kalır.
@@ -1390,6 +1414,31 @@ export const useGame = create<GameState>((set, get) => {
         intentTelemetry: telemetry,
         missedGuestCountToday,
       });
+      const roles = personnelRoles(s.store);
+      if (!roles.some(role => role === 'sales' || role === 'reception')) return;
+      const elapsed = Math.min(PERSONNEL_ACTION_SECONDS, (s.store.personnelElapsedSeconds ?? 0) + Math.max(0, deltaRealSeconds));
+      set({ store: { ...get().store, personnelElapsedSeconds: elapsed } });
+      if (elapsed >= PERSONNEL_ACTION_SECONDS && queue.length > 0 && roles.some(role => role === 'sales' || role === 'reception')) {
+        set({ store: { ...get().store, personnelElapsedSeconds: 0 } });
+        const current = get();
+        const head = current.queue[0]!;
+        const sold = roles.includes('sales') ? personnelSale(economyOf(current), head.customer, market) : null;
+        if (sold) {
+          const sale = sold.ledger.deals[sold.ledger.deals.length - 1]!;
+          const customer = head.customer;
+          const record = current.customers[customer.id] ?? createRecord(customer, market.day, current.spawnCounter);
+          const customers = { ...current.customers, [customer.id]: recordVisit(record, {
+            day: market.day, dealId: sale.dealId, outcome: 'accepted',
+            trustDelta: 0, note: visitNote('accepted', sale.price),
+          }, sale.price) };
+          set({ ...economyToState(sold), customers, queue: current.queue.slice(1) });
+          pushToast(set, get, t('Personel uygun stoktan kârlı bir satış tamamladı.'), 'positive');
+          writeSave(get());
+        } else if (roles.includes('reception')) {
+          get().greetCustomer();
+          writeSave(get());
+        }
+      }
     },
 
     // -----------------------------------------------------------------------
@@ -1578,7 +1627,7 @@ export const useGame = create<GameState>((set, get) => {
       if (!item) return;
 
       const quote = findQuote(
-        deal.service.quotes,
+        buildQuotes(item, deal.service.diagnosis ?? diagnose(item, s.store.level), quoteContext(s)),
         deal.service.selectedTypeId,
         deal.service.selectedVenue,
       );
@@ -1598,6 +1647,7 @@ export const useGame = create<GameState>((set, get) => {
         quote,
         today: s.market.day,
         promiseBufferDays: deal.service.promiseBufferDays,
+        assignedStaff: availableWorkshopStaff(s.store, s.jobs)[0] ?? null,
       });
 
       const tx: SettlementTransaction = {
@@ -2116,16 +2166,19 @@ export const useGame = create<GameState>((set, get) => {
       // Pazarlık payı ürün sınıfından gelir (product-classes.ts · haggleRoom):
       // sarrafiyede eşik kanal makasına sıkışır, işçilikli üründe band aynen
       // kalır. Çapa, pazarlığın döndüğü kalemin adil değeridir.
-      const haggle = haggleContext(deal, line, s);
+      const haggle = haggleContext(line, s);
 
-      const ctx = {
-        economicBand: isPurchase ? packagePriceBand(deal.purchase!.lines, s.items, s.market) :
-          (s.items[line.itemId] ? customerPriceBand(s.items[line.itemId]!, s.market, 'shopBuys') ?? undefined : undefined),
+      const ctx = isPurchase ? purchaseNegotiationContext({
+        purchase: deal.purchase!, customer, items: s.items, market: s.market,
+        reputation: s.store.reputation, knowledge: line.knowledge,
+        buyCeiling: effectiveCeiling(options, line.selectedThesis),
+        patienceLossTolerated: !!tatliDilEffect(s.skillProgress).patienceLossTolerated,
+      }) : {
+        economicBand: s.items[line.itemId] ? customerPriceBand(s.items[line.itemId]!, s.market, 'shopBuys') ?? undefined : undefined,
         customer,
-        direction: (isPurchase ? 'shopSells' : 'shopBuys') as TradeSide,
+        direction: 'shopBuys' as TradeSide,
         reputation: s.store.reputation,
         buyCeiling: effectiveCeiling(options, line.selectedThesis),
-        purchaseCeiling: isPurchase ? effectivePurchaseCeiling(deal, customer, s) : undefined,
         knowledge: line.knowledge,
         fairValue: haggle.fairValue,
         haggleRoom: haggle.room,
@@ -2339,10 +2392,19 @@ export const useGame = create<GameState>((set, get) => {
     },
 
     /** Canonical cash-only counter families; transaction revalidates quote, cash and physical space. */
-    buyPoolStock: (templateId, quantity) => {
+    buyPoolStock: (templateId, quantity, useCredit = false) => {
       const s = get();
       const quote = poolSupplyQuote(templateId, quantity, s.market, s.store);
       if (!quote) return;
+      if (useCredit) {
+        const outcome = financedPoolSupply(economyOf(s), s.market, templateId, quantity);
+        if (!outcome.applied) { pushToast(set, get, outcome.reason ?? t('Tedarik uygulanamadı.'), 'negative'); return; }
+        set(economyToState({ ...outcome.state, inventory: revalueInventory(outcome.state.inventory, outcome.state.items, thesisContext(s)) }));
+        writeSave(get());
+        cue(set, get, 'coins');
+        pushToast(set, get, t('Toptancı tedariki tamamlandı. Vade borcu İşletme bölümünde görünür.'), 'positive');
+        return;
+      }
       const id = `poolbuy_${s.market.day}_${s.ledger.appliedTxIds.length}`;
       const item = { ...poolSupplyItem(templateId), id: `${id}_item`,
         buyCost: quote.totalPrice / quantity, acquiredDay: s.market.day, location: 'backStock' as const };
@@ -2363,7 +2425,7 @@ export const useGame = create<GameState>((set, get) => {
      */
     buyFromWholesaler: (templateId, quantity) => {
       const s = get();
-      const probe = spawnItem(s.seed, s.spawnCounter * 100 + 7, templateId);
+      const probe = poolSupplyItem(templateId);
       // Fiyat İSTENEN adetle hesaplanır. supplyLots() kendi "bugün sığan"
       // adedini kullandığı için ekranda gösterilen tutarla tahsil edilen
       // tutar ayrışıyordu — hacim makasa girdiği için birim fiyat adede
@@ -2384,6 +2446,10 @@ export const useGame = create<GameState>((set, get) => {
 
       if (terms.blockedReason) {
         pushToast(set, get, terms.blockedReason, 'negative');
+        return;
+      }
+      if (terms.totalDue > terms.availableLimit) {
+        pushToast(set, get, t('Vade ve farkı için limit yetersiz.'), 'negative');
         return;
       }
 
@@ -2413,7 +2479,7 @@ export const useGame = create<GameState>((set, get) => {
       // kalemlerini ezerdi — applyTransaction gelen kalemi kimliğiyle
       // yazar, aynı kimlik iki kez gelirse ikincisi birincinin üstüne biner.
       const itemsIn: ItemInstance[] = Array.from({ length: units }, (_, i) => ({
-        ...spawnItem(s.seed, s.spawnCounter * 100 + 7, templateId),
+        ...probe,
         id: `${probe.id}_${seq}_${i}`,
         // Vade farkı maliyet tabanına BİNER: finanse edilmiş malın gerçek
         // maliyeti daha yüksektir ve kâr hesabı bunu görmek zorundadır.
@@ -2440,7 +2506,7 @@ export const useGame = create<GameState>((set, get) => {
       if (!outcome.applied) {
         // `outcome.reason` işlem kimliğini taşıyan GELİŞTİRİCİ metnidir;
         // oyuncuya gösterilmez (v1.1 §7 — iç isimler ekrana çıkmaz).
-        pushToast(set, get, t('Tedarik uygulanamadı.'), 'negative');
+        pushToast(set, get, outcome.reasonCode === 'stock-capacity' ? outcome.reason! : t('Tedarik uygulanamadı.'), 'negative');
         return;
       }
 
@@ -2995,6 +3061,7 @@ export const useGame = create<GameState>((set, get) => {
       }
 
       set(economyToState({ ...outcome.state, store: applyTierGrants(outcome.state.store, next) }));
+      refreshPendingServiceQuote(set, get);
 
       pushToast(
         set,
@@ -3065,6 +3132,19 @@ function cue(
   id: SoundId,
 ): void {
   set({ soundCue: { id, n: (get().soundCue?.n ?? 0) + 1 } });
+}
+
+// Transient lifecycle gate; it is not persisted and cannot grant offline sales.
+let simulationForeground = true;
+export function setSimulationForeground(active: boolean): void { simulationForeground = active; }
+
+function refreshPendingServiceQuote(set: (partial: Partial<GameState>) => void, get: () => GameState): void {
+  const s = get(), deal = s.activeDeal;
+  if (!deal?.service || deal.service.outcome !== 'pending') return;
+  const line = activeLine(deal), item = line ? s.items[line.itemId] : undefined;
+  if (!item) return;
+  set({ activeDeal: { ...deal, service: { ...deal.service,
+    quotes: buildQuotes(item, deal.service.diagnosis ?? diagnose(item, s.store.level), quoteContext(s)) } } });
 }
 
 function settleLine(
@@ -3167,7 +3247,12 @@ function settleLine(
     if (!outcome.applied) {
       // Zaten uygulanmış — sessizce çık. Bu, GDD 22.1'in "çift tap ikinci
       // işlem oluşturmaz" garantisinin çalıştığı yerdir.
-      set({ lastReview: review });
+      if (!economy.ledger.appliedTxIds.includes(tx.txId)) {
+        pushToast(set, get, outcome.reason ?? t('Alım uygulanamadı.'), 'negative');
+        set({ lastReview: null, activeDeal: { ...deal, lines: deal.lines.map(candidate => candidate.lineId === lineId
+          ? { ...candidate, status: 'rejected', negotiation: { ...candidate.negotiation, state: 'REJECTED', settledPrice: null } }
+          : candidate) } });
+      }
       return;
     }
     economy = outcome.state;
@@ -3282,31 +3367,6 @@ function applyPackage(
 function syncPackageLine(lines: DealLine[], itemIds: string[]): DealLine[] {
   if (lines.length === 0) return lines;
   return lines.map((l, i) => (i === 0 ? { ...l, itemId: itemIds[0] ?? '' } : l));
-}
-
-/**
- * Müşterinin bu PAKET için ödeme tavanı (GDD 6.6: asla gösterilmez).
- *
- * Oranı spawn anında sabittir (GDD 34.2); TL karşılığı paketten türer.
- * Yanlış mal sunmak tavanı düşürür — §9'un "her koşulda en iyi sonuç yok"
- * ilkesinin müşteri tarafındaki karşılığı.
- */
-function effectivePurchaseCeiling(deal: ActiveDeal, customer: Customer, s: GameState): Money {
-  const purchase = deal.purchase;
-  if (!purchase) return customer.reservationPrice;
-
-  const base = purchaseCeiling(customer, purchase.packageFairValue);
-
-  // Kısmi karşılama müşteriyi tam memnun etmez: §4.1 "kısmen karşılanabilir"
-  // demek "aynı parayı öder" demek değildir.
-  const fulfilmentFactor =
-    purchase.fulfilment === 'full' ? 1 : purchase.fulfilment === 'partial' ? 0.94 : 0.8;
-
-  // Yanlış mal sunmak tavanı düşürür (§9 — hiçbir seçim her koşulda en iyi
-  // sonucu vermez).
-  const { ceilingMultiplier } = packageFitPenalty(purchase.demand, purchase.lines, s.items);
-
-  return Math.round(base * fulfilmentFactor * ceilingMultiplier);
 }
 
 /**
@@ -3594,35 +3654,13 @@ function thesisContext(s: Pick<GameState, 'store' | 'market' | 'inventory'>): Th
 /**
  * Pazarlığın çapası ve ürün sınıfının pazarlık payı.
  *
- * Ticaret ve ekspertizde kalem tektir. Alış akışında pazarlık bir PAKET
- * üzerinden döner: çapa paketin toplam adil değeri, pay ise paketteki en
- * DAR paydır — içinde çeyrek olan bir pakette çeyreğin fiyatı pazarlıkla
- * uçurulamaz. Pakette hiç kalem yoksa sıkıştırma uygulanmaz.
+ * Ticaret ve ekspertizde kalem tektir. Müşteriye paket satışının ortak
+ * bağlamı purchaseNegotiationContext tarafından hesaplanır.
  */
 function haggleContext(
-  deal: ActiveDeal,
   line: DealLine,
   s: GameState,
 ): { fairValue: Money | undefined; room: number; retailSpread: number } {
-  const pkg = deal.purchase?.lines ?? [];
-
-  if (deal.flow === 'purchase' && pkg.length > 0) {
-    let fair = 0;
-    let room = 1;
-    let retailSpread = Number.POSITIVE_INFINITY;
-    for (const pl of pkg) {
-      const item = s.items[pl.itemId];
-      if (!item) continue;
-      const rules = rulesFor(getTemplate(item.templateId));
-      fair += trueValue(item, s.market) * pl.quantity;
-      room = Math.min(room, rules.haggleRoom);
-      retailSpread = Math.min(retailSpread, rules.retailSpread);
-    }
-    return fair > 0
-      ? { fairValue: fair, room, retailSpread: Number.isFinite(retailSpread) ? retailSpread : 0 }
-      : { fairValue: undefined, room: 1, retailSpread: 0 };
-  }
-
   const item = s.items[line.itemId];
   if (!item) return { fairValue: undefined, room: 1, retailSpread: 0 };
   const rules = rulesFor(getTemplate(item.templateId));
@@ -3752,6 +3790,7 @@ export function quoteContext(
     store: s.store,
     market: s.market,
     workshopLoad: inHouseLoad(s.jobs),
+    jobs: s.jobs,
     day: s.market.day,
   };
 }

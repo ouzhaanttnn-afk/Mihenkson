@@ -241,9 +241,12 @@ export const BULLION_META: BullionMeta[] = [
  * satabildiği katalog. Talep üretimi ve Stok > Sarrafiye Al bunu paylaşır.
  */
 export const RETAIL_BULLION_CATALOG = BULLION_META
-  // Beta v1: Tam Altın eski kayıtlarla uyumluluk için metadata'da kalır,
-  // fakat yeni stok ve müşteri talebi havuzlarına artık giremez.
-  .filter((meta) => meta.templateId !== 'full_gold' && meta.channelFit.includes('retailCustomer'))
+  .filter((meta) => meta.channelFit.includes('retailCustomer'))
+  .map((meta) => meta.templateId);
+
+/** Bulk-only products keep their channel restriction while receiving real orders. */
+export const BULK_BULLION_CATALOG = BULLION_META
+  .filter((meta) => meta.channelFit.includes('bulkCustomer'))
   .map((meta) => meta.templateId);
 
 export const BULLION_BY_TEMPLATE = new Map(BULLION_META.map((m) => [m.templateId, m]));

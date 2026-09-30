@@ -16,6 +16,7 @@
 
 import { localizeCustomerName, t } from '@i18n/index';
 import { SERVICE } from '@domain/balance';
+import { availableWorkshopStaff, personnelRoles } from '@domain/personnel';
 import { activeJobs, inHouseLoad, overdueJobs, readyJobs } from '@domain/service';
 import { getServiceType } from '@data/service-types';
 import { useGame } from '@state/gameStore';
@@ -256,11 +257,12 @@ export function WorkshopScreen() {
             <div className="statLine">
               <span className="statLine__label">{t('Personel')}</span>
               <span className="statLine__value num">
-                {s.store.staff.length === 0
+                {s.store.staff.length + personnelRoles(s.store).filter(role => role === 'workshop').length === 0
                   ? t('Yok')
-                  : t('{n} kişi', { n: s.store.staff.length })}
+                  : t('{n} kişi', { n: s.store.staff.length + personnelRoles(s.store).filter(role => role === 'workshop').length })}
               </span>
             </div>
+            <p className="emptyNote">{t('Boş usta: {n}. İşletme → Personel bölümünden atölye görevi seç. Her boş usta yeni işin riskini 6 puan azaltır; kabul edilen işin sonucu sonradan değişmez.', { n: availableWorkshopStaff(s.store, s.jobs).length })}</p>
             <div className="statLine">
               <span className="statLine__label">{t('Yoğunluk risk etkisi')}</span>
               <span className="statLine__value statLine__value--warning num">
@@ -360,6 +362,7 @@ function JobRow({
           </span>
         </div>
 
+        {job.assignedStaff?.startsWith('personnel_') && <p className="row__meta">{t('Atanan usta: Personel {n}', { n: Number(job.assignedStaff.slice(10)) })}</p>}
         {/* Satır uyarısı — tek satır durum */}
         {isLate && (
           <div className="rowAlert">

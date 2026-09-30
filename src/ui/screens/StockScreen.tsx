@@ -1,4 +1,4 @@
-import { QuantityControl } from '@ui/QuantityControl';
+import { QuantityControl, clampQuantity } from '@ui/QuantityControl';
 /**
  * STOK ekranı (GDD 23.15)
  *
@@ -18,6 +18,8 @@ import { isCrafted } from '@domain/customer-pricing';
 import { fromMg, toMg, roundMoney, isHasTradingDay } from '@domain/v5-rules';
 import { hasQuote, maxHasBuyMg } from '@domain/has-account';
 import { poolForTemplate } from '@domain/stock-pools';
+import { financeTerms } from '@domain/wholesaler';
+import { maxFinancedPoolSupplyQuantity } from '@domain/financed-pool-supply';
 import { isBullion } from '@data/bullion';
 import { isShowcaseStale } from '@domain/showcase-weight';
 import { showcaseTargetChancePerItem } from '@domain/purchase';
@@ -26,7 +28,7 @@ import { KARAT_LABEL } from '@domain/balance';
 import { channelShort } from '@domain/thesis';
 import { liquidationEstimate, liquidityBand, liquidityRatio, summarizeWealth } from '@domain/settlement';
 import { getTemplate } from '@data/item-templates';
-import { GRAM_SUPPLY_STEP, POOL_SUPPLY, poolSupplyQuote, maxPoolSupplyQuantity, hasPoolSupplySpace } from '@domain/pool-supply';
+import { GRAM_SUPPLY_STEP, POOL_SUPPLY, availablePoolSupply, poolSupplyQuote, maxPoolSupplyQuantity, hasPoolSupplySpace } from '@domain/pool-supply';
 import { useGame } from '@state/gameStore';
 
 import { IconStock, IconWarning, ProductSilhouette } from '@ui/icons';
@@ -259,7 +261,7 @@ function BullionCounter() {
 export function BullionCatalog({ id, forCustomer = false }: { id?: string; forCustomer?: boolean }) {
   const s = useGame();
   const suggestion = forCustomer ? customerSupplySuggestion(s.activeDeal?.purchase?.demand, s.inventory, s.items) : null;
-  const products = [...POOL_SUPPLY].sort((a, b) => Number(b.templateId === suggestion?.templateId) - Number(a.templateId === suggestion?.templateId));
+  const products = availablePoolSupply(s.store.storeTier).sort((a, b) => Number(b.templateId === suggestion?.templateId) - Number(a.templateId === suggestion?.templateId));
   return <div className="counter__list" id={id}>
     {products.map(product => <BullionOffer key={product.templateId} product={product}
       suggestedQuantity={product.templateId === suggestion?.templateId ? suggestion.quantity : undefined} />)}
@@ -269,13 +271,15 @@ export function BullionCatalog({ id, forCustomer = false }: { id?: string; forCu
 function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUPPLY[number]; suggestedQuantity?: number }) {
   const s = useGame();
   const { templateId, name, gramsPerUnit } = product;
-  const max = useMemo(() => maxPoolSupplyQuantity(templateId, s.market, s.store), [templateId, s.market, s.store]);
+  const [credit, setCredit] = useState(false);
+  const max = useMemo(() => credit ? maxFinancedPoolSupplyQuantity(templateId, s.market, s.store)
+    : maxPoolSupplyQuantity(templateId, s.market, s.store), [templateId, s.market, s.store, credit]);
   const initialAmount = suggestedQuantity !== undefined && suggestedQuantity > 0
     ? String(Math.min(suggestedQuantity, Math.max(templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1, max)))
     : counterMemory.qty[templateId] ?? '1';
   const [amount, setAmount] = useState(templateId === 'gram_gold_1' ? formatGramAmount(initialAmount) : initialAmount);
   const [confirmation, setConfirmation] = useState<string | null>(null);
-  const qty = Number(amount.replace(',', '.'));
+  const qty = clampQuantity(Number(amount.replace(',', '.')), templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1, max, templateId === 'gram_gold_1' ? GRAM_SUPPLY_STEP : 1);
   const setQty = (next: string) => {
     counterMemory.qty[templateId] = next;
     setAmount(next);
@@ -317,18 +321,22 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
   const held = s.inventory.filter(p => p.poolId === poolId)
     .reduce((sum, p) => sum + (p.quantityMg === undefined ? p.quantity : fromMg(p.quantityMg)), 0);
   const space = hasPoolSupplySpace(templateId, s.inventory, s.store);
-  const affordable = !!lot && lot.totalPrice <= s.store.cash && space;
-  const signature = lot ? `${qty}:${lot.totalPrice}` : '';
+  const minimumQuote = poolSupplyQuote(templateId, minQty, s.market, s.store);
+  const terms = lot || minimumQuote ? financeTerms(s.store, (lot ?? minimumQuote)!.totalPrice, s.market.day) : null;
+  const affordable = !!lot && space && (credit ? !!terms && !terms.blockedReason && terms.totalDue <= terms.availableLimit : lot.totalPrice <= s.store.cash);
+  const signature = lot ? `${qty}:${lot.totalPrice}:${credit}:${terms?.financeCost}` : '';
   const expensive = !!lot && lot.totalPrice >= Math.max(100_000, Math.round(s.store.cash * .2));
   const confirmed = confirmation === signature;
   const buy = () => {
     if (!affordable || !lot) return;
     if (expensive && !confirmed) { setConfirmation(signature); return; }
-    s.buyPoolStock(templateId, qty);
+    s.buyPoolStock(templateId, qty, credit);
     setQty(templateId === 'gram_gold_1' ? '1.0' : '1');
   };
   const ad = t(name);
   return <section className="offerRow" aria-label={ad}>
+    <label className="offerRow__meta offerRow__credit"><input type="checkbox" aria-label={`${ad} · ${t('Toptancı vadesini kullan')}`} checked={credit} onChange={event => { setCredit(event.target.checked); setConfirmation(null); }} /> {t('Toptancı vadesini kullan')}</label>
+    {credit && terms && <p className="emptyNote">{t('Nakit {nakit} · Vade {vade} · Fark {fark} · Ödeme {gun}. gün', { nakit: tl(terms.fromCash), vade: tl(terms.totalDue), fark: tl(terms.financeCost), gun: terms.dueDay })}</p>}
     {suggestedQuantity !== undefined && <p className="offerRow__suggestion">{suggestedQuantity > 0
       ? t('Müşteri için eksik: {miktar}', { miktar: gramsPerUnit ? preciseGrams(suggestedQuantity * gramsPerUnit) : t('{n} adet', { n: suggestedQuantity }) })
       : t('Bu müşteri için yeterli stok var.')}</p>}
@@ -350,10 +358,12 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
       <button type="button" className="offerRow__buy" disabled={!affordable} onClick={buy}>{expensive && confirmed ? t('Onayla') : t('Al')}</button>
     </div>
     {expensive && confirmed && <p className="offerRow__confirm" role="status">{t('Yüksek tutar: {tutar}. Satın almak için tekrar onayla.', { tutar: tl(lot.totalPrice) })}</p>}
-    {!lot && <p className="offerRow__shortfall">{t('Pozitif, geçerli bir miktar seçin. Gram altın hassasiyeti 0,1 g.')}</p>}
+    {!lot && <p className="offerRow__shortfall">{max === 0 && minimumQuote
+      ? credit ? terms?.blockedReason ?? t('Vade ve farkı için limit yetersiz.') : t('Yetersiz nakit; işlem uygulanmadı.')
+      : t('Pozitif, geçerli bir miktar seçin. Gram altın hassasiyeti 0,1 g.')}</p>}
     {lot && !affordable && <p className="offerRow__shortfall">{!space
-      ? t('Arka stokta yeni ürün ailesi için yer yok.')
-      : t('Minimum {enAz} · Yetersiz Nakit · {gerekli} gerekli, {mevcut} mevcut', {
+      ? t('Arka stok dolu. Yeni stok satırı için yer aç; mevcut altın havuzuna ekleme yapabilirsin.')
+      : credit ? terms?.blockedReason ?? t('Vade ve farkı için limit yetersiz.') : t('Minimum {enAz} · Yetersiz Nakit · {gerekli} gerekli, {mevcut} mevcut', {
               enAz: templateId === 'gram_gold_1' ? t('0,1 g') : t('{n} adet', { n: 1 }),
               gerekli: tl(lot.totalPrice),
               mevcut: tl(s.store.cash),

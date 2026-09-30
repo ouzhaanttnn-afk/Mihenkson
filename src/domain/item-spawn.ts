@@ -411,9 +411,8 @@ function rollAmbientSignals(
  * Arketip tercihine göre ağırlıklandırma customer-spawn tarafında yapılır.
  */
 export function templatesForTier(tier: number): ItemTemplate[] {
-  // Tam Altın mevcut kayıtlarda okunabilir kalır; yeni müşteri ürünü olarak
-  // doğmaz. Böylece kayıt göçü bozulmadan aktif havuzdan çıkarılmış olur.
-  return ITEM_TEMPLATES.filter((t) => t.id !== 'full_gold' && t.minTier <= tier);
+  // Legacy silver definitions remain readable, but never enter new visits.
+  return ITEM_TEMPLATES.filter((t) => t.metal !== 'silver' && t.minTier <= tier);
 }
 
 function round1(n: number): number {

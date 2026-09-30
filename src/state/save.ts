@@ -27,7 +27,8 @@ import { consolidatePools, isMassPool, poolForTemplate, poolUnitGrams } from '@d
 import { bullionMeta } from '@data/bullion';
 import type { CustomerDemand } from '@domain/types';
 import { dayCharacter, emptyTelemetry } from '@domain/intent';
-import { createLedger, type Ledger } from '@domain/settlement';
+import { applyTransaction, createLedger, type Ledger } from '@domain/settlement';
+import { personnelRoles } from '@domain/personnel';
 import type { GameState } from './gameStore';
 import { normalizeProfile, type PlayerProfile } from '@domain/profile';
 import { normalizePreferences, type PlayerPreferences } from '@domain/preferences';
@@ -54,7 +55,7 @@ import type {
 } from '@domain/types';
 
 /** Kayıt formatı sürümü. Artırıldığında migrate() bir adım daha kazanır. */
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface SaveFile {
   rankingSeason?: GameState['rankingSeason'];
@@ -402,15 +403,44 @@ export function migrate(file: SaveFile): SaveFile {
       activeDeal.purchase.packageCost = packageCost(activeDeal.purchase.lines, inventory);
     }
   }
-  return { ...file, version: SAVE_VERSION, inventory, items,
+  const silver = inventory.filter(position => items[position.itemId]?.metal === 'silver');
+  let migratedEconomy = { store: { ...file.store, cash: file.store.cash + supplyRebate }, inventory, items, ledger: file.ledger ?? createLedger() };
+  if (file.version < 4 && silver.length > 0) {
+    const refund = Math.round(silver.reduce((sum, position) => sum + Math.max(position.costBasis, position.currentValue), 0));
+    const outcome = applyTransaction(migratedEconomy, {
+      txId: 'migration_1_2_0_silver', dealId: 'migration_1_2_0_silver', day: file.day,
+      cashDelta: refund, itemsIn: [], itemsOut: silver.map(position => ({ itemId: position.itemId, quantity: position.quantity })),
+      trustDelta: 0, reputationDelta: 0, xpDelta: 0, label: '1.2.0 gümüş stok iadesi (ticaret kârı değil)',
+    });
+    if (!outcome.applied) throw new Error('Silver stock migration failed');
+    migratedEconomy = outcome.state;
+    for (const position of silver) {
+      const item = migratedEconomy.items[position.itemId]!;
+      // Existing customer service jobs remain readable and finish normally.
+      if (file.jobs.some(job => job.itemId === item.id && job.result !== 'delivered')) {
+        migratedEconomy.items[item.id] = { ...item, location: 'workshop' };
+      }
+    }
+  }
+  const silverVisit = (customer: GameState['activeCustomer'], visitItems: ItemInstance[]) =>
+    !!customer && customer.intent !== 'service' && (visitItems.some(item => item.metal === 'silver') || customer.demand?.templateId?.startsWith('silver_'));
+  const retireActive = silverVisit(file.activeCustomer ?? null,
+    (activeDeal?.lines ?? []).flatMap(line => items[line.itemId] ? [items[line.itemId]!] : []));
+  const normalizedStore = { ...migratedEconomy.store, personnelCount: file.store.personnelCount ?? 0 };
+  return { ...file, version: SAVE_VERSION, inventory: migratedEconomy.inventory, items: migratedEconomy.items, ledger: migratedEconomy.ledger,
     store: { ...file.store,
       // Denge yamaları mevcut oyuncuya da ulaşır. Günlük gider yalnız mağaza
       // kademesinden türediği için kayıt içindeki eski değeri güvenle yenileriz.
-      cash: file.store.cash + supplyRebate,
+      cash: migratedEconomy.store.cash,
       dailyOverhead: TIER_BY_ID.get(file.store.storeTier)?.grants.dailyOverhead ?? file.store.dailyOverhead,
+      personnelRoles: personnelRoles(normalizedStore),
+      personnelElapsedSeconds: Math.min(90, Math.max(0, Number.isFinite(file.store.personnelElapsedSeconds) ? file.store.personnelElapsedSeconds! : 0)),
       personnelCount: file.store.personnelCount ?? 0, personnelTempUnlockTier: file.store.personnelTempUnlockTier ?? 0, personnelTempUnlockUntilDay: file.store.personnelTempUnlockUntilDay ?? 0, hasBalanceMg: file.store.hasBalanceMg ?? 0, hasCostBasis: file.store.hasCostBasis ?? 0 },
-    activeDeal, activeCustomer: file.activeCustomer ? { ...file.activeCustomer, demand: normalizeDemand(file.activeCustomer.demand) } : null,
-    queue: file.queue?.map(entry => ({ ...entry, customer: { ...entry.customer, demand: normalizeDemand(entry.customer.demand) } })) };
+    activeDeal: retireActive ? null : activeDeal,
+    activeCustomer: !retireActive && file.activeCustomer ? { ...file.activeCustomer, demand: normalizeDemand(file.activeCustomer.demand) } : null,
+    recallableGuest: file.recallableGuest && silverVisit(file.recallableGuest.customer, file.recallableGuest.items) ? null : file.recallableGuest,
+    customerMessage: retireActive ? '' : file.customerMessage,
+    queue: file.queue?.filter(entry => !entry.items.some(item => item.metal === 'silver') && !entry.customer.demand?.templateId?.startsWith('silver_')).map(entry => ({ ...entry, customer: { ...entry.customer, demand: normalizeDemand(entry.customer.demand) } })) };
 }
 
 const STORAGE_KEY = 'mihenkaynak.save.v1';

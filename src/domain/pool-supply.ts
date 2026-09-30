@@ -1,5 +1,6 @@
 import { spawnItem } from './item-spawn';
 import { bullionMeta } from '@data/bullion';
+import { getTemplate } from '@data/item-templates';
 import { bullionUnitValue, priceForChannel } from './channels';
 import { customerPriceBand } from './customer-pricing';
 import { PURCHASE } from './balance';
@@ -11,10 +12,15 @@ export const POOL_SUPPLY = [
   { templateId: 'gram_gold_1', name: 'Gram Altın', gramsPerUnit: 1 },
   { templateId: 'quarter_gold', name: 'Çeyrek Altın', gramsPerUnit: 0 },
   { templateId: 'half_gold', name: 'Yarım Altın', gramsPerUnit: 0 },
+  { templateId: 'full_gold', name: 'Tam Altın', gramsPerUnit: 0 },
   { templateId: 'republic_gold', name: 'Cumhuriyet Altını', gramsPerUnit: 0 },
   { templateId: 'ata_gold', name: 'Ata Lira', gramsPerUnit: 0 },
   { templateId: 'investment_bangle_22k_10', name: '22 Ayar İşçiliksiz Yatırım Bileziği', gramsPerUnit: 10 },
+  { templateId: 'small_ingot', name: 'Küçük Külçe (20 g)', gramsPerUnit: 0 },
 ] as const;
+export function availablePoolSupply(storeTier: number) {
+  return POOL_SUPPLY.filter(product => getTemplate(product.templateId).minTier <= storeTier);
+}
 /** Sarrafiye gram alımında oyuncuya gösterilen ve kabul edilen en küçük adım. */
 export const GRAM_SUPPLY_STEP = 0.1;
 export function validPoolSupplyQuantity(templateId: string, quantity: number): boolean {
@@ -26,7 +32,8 @@ export function validPoolSupplyQuantity(templateId: string, quantity: number): b
 }
 export function poolSupplyQuote(templateId: string, quantity: number, market: MarketState, store: StoreState) {
   if (!validPoolSupplyQuantity(templateId, quantity)) return null;
-  const item = spawnItem(0, 0, templateId);
+  if (getTemplate(templateId).minTier > store.storeTier) return null;
+  const item = poolSupplyItem(templateId);
   const baseUnitValue = bullionUnitValue(item, market);
   const quote = priceForChannel({ item, quantity, market, channel: 'wholesaler', side: 'shopBuys',
     baseUnitValue, relationship: store.supplier.trust });
@@ -85,12 +92,13 @@ export function validPoolSupplyItem(item: ItemInstance): boolean {
     item.declared.claimedWeight !== null && Math.abs(item.declared.claimedWeight - meta.unitWeightGrams) < 1e-9;
 }
 /** Cash-only counter: quote each amount because existing volume pricing varies. */
-export function maxPoolSupplyQuantity(templateId: string, market: MarketState, store: StoreState): number {
-  if (!POOL_SUPPLY.some(p => p.templateId === templateId) || !Number.isFinite(store.cash) || store.cash <= 0) return 0;
+export function maxPoolSupplyQuantity(templateId: string, market: MarketState, store: StoreState, canAfford?: (amount: number) => boolean): number {
+  if (!POOL_SUPPLY.some(p => p.templateId === templateId) || !Number.isFinite(store.cash) || (!canAfford && store.cash <= 0)) return 0;
+  if (getTemplate(templateId).minTier > store.storeTier) return 0;
   const scale = templateId === 'gram_gold_1' ? 1 / GRAM_SUPPLY_STEP : 1;
   const affordable = (ticks: number) => {
     const quote = poolSupplyQuote(templateId, ticks / scale, market, store);
-    return !!quote && quote.totalPrice <= store.cash;
+    return !!quote && (canAfford ? canAfford(quote.totalPrice) : quote.totalPrice <= store.cash);
   };
   let lo = 0, hi = scale;
   while (affordable(hi) && hi < Number.MAX_SAFE_INTEGER / 20000) { lo = hi; hi *= 2; }
@@ -101,6 +109,7 @@ export function maxPoolSupplyQuantity(templateId: string, market: MarketState, s
   return lo / scale;
 }
 export function hasPoolSupplySpace(templateId: string, inventory: { poolId?: string; location: string }[], store: StoreState) {
-  return inventory.some(p => p.poolId === poolForTemplate(templateId) && p.location !== 'workshop') ||
-    inventory.filter(p => p.location === 'backStock').length < store.backStockSlots;
+  const pool = poolForTemplate(templateId);
+  return !!pool && (inventory.some(p => p.poolId === pool && p.location !== 'workshop') ||
+    inventory.filter(p => p.location === 'backStock').length < store.backStockSlots);
 }

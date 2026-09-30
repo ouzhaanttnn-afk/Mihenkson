@@ -14,7 +14,9 @@ import { MonthlyLeaderboard } from './MonthlyLeaderboard';
 import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { useEffect, useState } from 'react';
-import { customerDensity } from '@domain/customer-traffic';
+import { customerDensity, shopPresentationBonus } from '@domain/customer-traffic';
+import { personnelRoles, PERSONNEL_ROLE_LABELS } from '@domain/personnel';
+import { availablePoolSupply, poolSupplyItem } from '@domain/pool-supply';
 import { usePremium } from '@ui/premium';
 import {
   PERSONNEL_MONTHLY,
@@ -43,7 +45,6 @@ import { evaluateUpgrade, growthSnapshot } from '@domain/store-growth';
 import { intentAlarm } from '@domain/intent';
 import { bullionMeta } from '@data/bullion';
 import { TEST_TOOLS } from '@data/tools';
-import { spawnItem } from '@domain/item-spawn';
 import { readSaveSummary } from '@state/save';
 import {
   creditLimit,
@@ -62,7 +63,7 @@ import {
   networkLiquidationOffer,
   networkLoanOffer,
 } from '@domain/trade-network';
-import type { ItemInstance, TradeNetworkMember } from '@domain/types';
+import type { ItemInstance, TradeNetworkMember, PersonnelRole } from '@domain/types';
 import { REWARDED_SHIPPING_DISCOUNT, selectors, useGame } from '@state/gameStore';
 
 import {
@@ -249,9 +250,18 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             </p>
             <p>
               {t(
-                'Yalnız bekleme kapasitesini artırır; müşteri geliş hızını veya atölyeyi değiştirmez.',
+                'Karşılama ve satış 90 saniyelik aktif oyun aralığında çalışır. Kapalı oyunda satış yapılmaz.',
               )}
             </p>
+            {personnelRoles(s.store).map((role, index) => <label key={index} className="statLine personnelRole">
+              <span>{t('Personel {n}', { n: index + 1 })}{s.jobs.some(job => job.result === 'pending' && job.assignedStaff === `personnel_${index + 1}`) && <small> · {t('Bu personel mevcut atölye işini bitirmeli.')}</small>}</span>
+              <select aria-label={t('Personel {n} görevi', { n: index + 1 })} value={role}
+                disabled={s.jobs.some(job => job.result === 'pending' && job.assignedStaff === `personnel_${index + 1}`)}
+                onChange={event => s.setPersonnelRole(index, event.target.value as PersonnelRole)}>
+                {Object.entries(PERSONNEL_ROLE_LABELS).map(([id, label]) => <option key={id} value={id}>{t(label)}</option>)}
+              </select>
+            </label>)}
+            {personnelCount(s.store) > 0 && <p className="emptyNote">{t('Güvenli satış: yalnız tam karşılanan mevcut stok, normal müşteri kabulü ve en az %1 maliyet marjı. Personel ürün almaz veya borç açmaz.')}</p>}
             {/*
               DÜĞMEDE YAZAN TUTAR O KADRONUN AYLIK TOPLAMIDIR, kişi başı maaş
               değil. Kişi başı yazsaydı "3" düğmesi 60.000 ₺ gösterirdi ama
@@ -411,8 +421,8 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             */}
             <StatLine
               label={t('Müşteri trafiği')}
-              value={multiplier(customerDensity(s.store))}
-              tone={customerDensity(s.store) >= 1 ? 'positive' : 'warning'}
+              value={multiplier(customerDensity(s.store, s.playerMarket))}
+              tone={customerDensity(s.store, s.playerMarket) >= 1 ? 'positive' : 'warning'}
             />
             {/*
               GDD 10.1 — üç ayrı ilişki metriği. Semt itibarı ve toptancı
@@ -669,7 +679,7 @@ function WholesalerRoute({ onBack }: { onBack: () => void }) {
   const available = Math.max(0, limit - used);
 
   // §4.1 "uygun ticari kanal üzerinden tedarik" — toptancının sattığı ürünler.
-  const probes = SUPPLY_TEMPLATES.map((id) => spawnItem(s.seed, LOT_PROBE_INDEX, id));
+  const probes = availablePoolSupply(s.store.storeTier).map(({ templateId }) => poolSupplyItem(templateId));
 
   return (
     <div className="page">
@@ -887,7 +897,7 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
             value={quantity}
             onChange={(e) => {
               const next = Number(e.target.value);
-              setQuantity(Number.isFinite(next) ? Math.min(lot.maxQuantity, Math.max(1, next)) : 1);
+              setQuantity(Number.isFinite(next) ? Math.min(lot.maxQuantity, Math.max(1, Math.round(next))) : 1);
               setConfirming(false);
             }}
           />
@@ -904,7 +914,7 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
           type="button"
           className="lotRow__buy"
           onClick={buy}
-          disabled={!!terms.blockedReason}
+          disabled={!!terms.blockedReason || terms.totalDue > terms.availableLimit}
         >
           {terms.blockedReason ??
                 (confirming ? t('{tutar} ödemeyi onayla', { tutar: tl(payable) }) : t('Al'))}
@@ -920,9 +930,7 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
 }
 
 /** Toptancının sattığı standart lot havuzu — §4'ün ürün havuzuyla aynı küme. */
-const SUPPLY_TEMPLATES = ['gram_gold_1', 'quarter_gold', 'half_gold', 'full_gold'];
 /** Lot fiyatlaması ürünün kimliğine değil şablonuna bağlıdır; sabit sonda yeter. */
-const LOT_PROBE_INDEX = 424_242;
 
 /** §8 — ağın durumu bir satırda: kaç esnaf alım yapar, ne kadar borç açık. */
 function networkSub(s: ReturnType<typeof useGame.getState>): string {
@@ -1318,6 +1326,10 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
               value={t('{n} slot', { n: s.store.workshopCapacity })}
             />
             <StatLine label={t("Günlük gider")} value={tl(s.store.dailyOverhead)} />
+            <StatLine label={t('Müşteri yoğunluğu')} value={`${customerDensity(s.store, s.playerMarket).toFixed(2)}×`} />
+            <StatLine label={t('Dükkan sunum katkısı')} value={`+${Math.round(shopPresentationBonus(s.playerMarket) * 100)}%`} />
+            <p className="emptyNote">{t('Tema, dekorasyon ve koleksiyon kategorilerinin her biri müşteri yoğunluğuna %4 katkı verir; toplam en fazla %12. Şahsi ve gerçek para kozmetikleri güç vermez.')}</p>
+            <p className="emptyNote">{t('250–1000 g siparişler: kademe 3, itibar 65 ve toptancı güveni 65. Talep hacmi nakit ve kullanılabilir vadeye bağlıdır.')}</p>
           </div>
         </div>
 
@@ -1512,7 +1524,7 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
         <div className="group">
           <h2 className="group__title">{t('Varlıklar')}</h2>
           <div className="group__body">
-            {market.assets.map((asset) => (
+            {market.assets.filter(asset => asset.id !== 'silverGram').map((asset) => (
               <div key={asset.id} className="assetRow">
                 <div>
                   <div className="assetRow__name">{t(asset.label)}</div>

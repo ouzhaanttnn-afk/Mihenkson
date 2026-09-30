@@ -1,5 +1,6 @@
 import { getLanguage, t } from '@i18n/index';
 import { useState } from 'react';
+import { shopPresentationBonus } from '@domain/customer-traffic';
 import {
   MARKET_CATALOG,
   MARKET_CATEGORIES,
@@ -123,6 +124,7 @@ export function MarketPlaceholderScreen() {
           <b>{s.playerMarket.owned.length}</b> {t('sahip olunan')}
         </span>
         <span><IconCash size={17} /><b>{tl(upkeep)}</b> {t('günlük şahsi bakım')}</span>
+        <span>{t('Dükkan sunum katkısı')} <b>+{Math.round(shopPresentationBonus(s.playerMarket) * 100)}%</b></span>
       </div>
 
       {/*
@@ -243,6 +245,7 @@ export function MarketPlaceholderScreen() {
                   <div className="marketProduct__topline"><span>{t(tierLabel(product))}</span>{product.dailyUpkeep ? <em>{t('+{tutar}/gün', { tutar: tl(product.dailyUpkeep) })}</em> : null}</div>
                   <h2>{t(product.name)}</h2>
                   <p>{t(product.description)}</p>
+                  {['shop', 'decoration', 'collection'].includes(product.category) && <p className="emptyNote">{t('Bu kategoride ilk sahiplik: +%4 müşteri yoğunluğu. Aynı kategorideki ek ürünler bonusu artırmaz.')}</p>}
                   {(!unlocked || requiresServerClaim) && <div className="marketProduct__requirement"><IconLock size={13} />{requirementLabel(product, s.store.hasBalanceMg ?? 0)}</div>}
                   <div className="marketProduct__actionRow">
                     <strong className="num">{requiresServerClaim

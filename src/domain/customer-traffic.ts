@@ -24,6 +24,13 @@
 
 import { START } from './balance';
 import type { StoreState } from './types';
+import { productById, type PlayerMarketState } from './marketplace';
+
+/** In-game purchased decor only; equipped/trial/IAP cosmetics confer no benefit. */
+export function shopPresentationBonus(state?: PlayerMarketState): number {
+  const categories = new Set((state?.owned ?? []).map(id => productById(id)?.category));
+  return ['shop', 'decoration', 'collection'].reduce((bonus, category) => bonus + (categories.has(category as 'shop') ? 0.04 : 0), 0);
+}
 
 /**
  * İtibarın taşıdığı ağırlık. 100 itibarda yoğunluk çarpanı
@@ -52,10 +59,10 @@ const MAX_DENSITY = 1.9;
  * Gün başına düşen müşteri yoğunluğu çarpanı.
  * 1,0 = başlangıç dükkânı. Büyüdükçe artar.
  */
-export function customerDensity(store: Pick<StoreState, 'reputation' | 'storeTier'>): number {
+export function customerDensity(store: Pick<StoreState, 'reputation' | 'storeTier'>, presentation?: PlayerMarketState): number {
   const rep = (store.reputation - START.reputation) / 100;
   const tier = Math.max(0, store.storeTier - 1);
-  const density = 1 + rep * REPUTATION_WEIGHT + tier * TIER_STEP;
+  const density = 1 + rep * REPUTATION_WEIGHT + tier * TIER_STEP + shopPresentationBonus(presentation);
   return Math.min(MAX_DENSITY, Math.max(MIN_DENSITY, density));
 }
 
@@ -67,6 +74,7 @@ export function customerDensity(store: Pick<StoreState, 'reputation' | 'storeTie
  */
 export function customerDelayFactor(
   store: Pick<StoreState, 'reputation' | 'storeTier'>,
+  presentation?: PlayerMarketState,
 ): number {
-  return 1 / customerDensity(store);
+  return 1 / customerDensity(store, presentation);
 }

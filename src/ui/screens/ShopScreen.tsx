@@ -24,6 +24,7 @@ import { isTerminal } from '@domain/negotiation';
 import { liquidityRatio } from '@domain/settlement';
 import { toolsForLevel } from '@data/tools';
 import { getArchetype } from '@data/archetypes';
+import { tierDef } from '@data/store-tiers';
 import { getServiceType } from '@data/service-types';
 import { expectedCompletionDay, findQuote, overdueJobs, readyJobs } from '@domain/service';
 import { activeLine, canEnterStage, selectors, useGame } from '@state/gameStore';
@@ -286,7 +287,7 @@ export function ShopScreen() {
       )}
 
       <section
-        className={`workbench ${!deal ? 'workbench--idle' : ''} ${s.playerMarket.equipped.shopTheme ? `workbench--${s.playerMarket.equipped.shopTheme}` : ''}`}
+        className={`workbench workbench--tier-${s.store.storeTier} ${!deal ? 'workbench--idle' : ''} ${s.playerMarket.equipped.shopTheme ? `workbench--${s.playerMarket.equipped.shopTheme}` : ''}`}
         aria-label={t('Dükkan')}
       >
         <div className="wb">
@@ -746,6 +747,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
               )}
             </h2>
             <p className="idle__sub">
+              <span className="tag">{t(tierDef(s.store.storeTier).name)}</span>{' '}
               {shopOverviewOpen
                 ? t('{karakter} · Gün {gun} · {haftaGunu} · Semt itibarı {itibar}', {
                     karakter: t(s.dayCharacter.label),

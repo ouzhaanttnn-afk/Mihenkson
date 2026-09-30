@@ -20,9 +20,11 @@
 
 import { t } from '@i18n/index';
 import { LIQUIDITY_BANDS, XP } from './balance';
-import { hasPoolSupplySpace, poolSupplyQuote, validPoolSupplyItem, validPoolSupplyQuantity } from './pool-supply';
+import { poolSupplyQuote, validPoolSupplyItem, validPoolSupplyQuantity } from './pool-supply';
 import { isBullion } from '@data/bullion';
 import { consolidatePools, poolForItem, validQuantity, poolUnitGrams } from './stock-pools';
+import { stockCapacityBlock, type StockCapacityLocation } from './stock-capacity';
+import { financeTerms, openInvoice, tradeTrustAfterPurchase, creditLimit } from './wholesaler';
 import { toMg, fromMg, roundMoney, personnelDaily, isHasTradingDay, scaleMaintenanceCost, dueScaleMaintenanceDebt } from './v5-rules';
 import type {
   DealRecord,
@@ -65,10 +67,12 @@ export interface EconomyState {
 }
 
 export interface SettlementOutcome {
-  /** false ise işlem zaten uygulanmıştı; hiçbir durum değişmedi. */
+  /** false ise işlem uygulanmadı; hiçbir durum değişmedi. */
   applied: boolean;
   state: EconomyState;
   reason?: string;
+  reasonCode?: 'stock-capacity';
+  blockedStockLocation?: StockCapacityLocation;
 }
 
 /**
@@ -97,16 +101,25 @@ export function applyTransaction(
     return { applied: false, state, reason: t('Yetersiz nakit; işlem uygulanmadı.') };
   }
 
+  let financedTerms: ReturnType<typeof financeTerms> | undefined;
+  let financedPurchasePrice = 0;
   if (tx.poolPurchase) {
     const item = tx.itemsIn[0];
     const quantity = tx.poolPurchase.quantity;
     const quote = item && state.market && poolSupplyQuote(item.templateId, quantity, state.market, state.store);
+    if (quote && tx.poolPurchase.financed) {
+      financedTerms = financeTerms(state.store, quote.totalPrice, tx.day);
+      financedPurchasePrice = quote.totalPrice;
+      if (financedTerms.blockedReason || financedTerms.totalDue > financedTerms.availableLimit)
+        return { applied: false, state, reason: financedTerms.blockedReason ?? t('Vade ve farkı için limit yetersiz.') };
+    }
+    const expectedCash = financedTerms ? financedTerms.fromCash : quote?.totalPrice;
+    const expectedCost = (quote?.totalPrice ?? 0) + (financedTerms?.financeCost ?? 0);
     if (!item || !quote || tx.itemsIn.length !== 1 || tx.itemsOut.length || tx.hasOperation ||
         !validPoolSupplyQuantity(item.templateId, quantity) || !validPoolSupplyItem(item) || !poolForItem(item) ||
         item.location !== 'backStock' || state.items[item.id] || tx.day !== state.market?.day ||
-        !hasPoolSupplySpace(item.templateId, state.inventory, state.store) ||
-        tx.cashDelta !== -quote.totalPrice || !Number.isFinite(item.buyCost) ||
-        Math.abs((item.buyCost ?? 0) * quantity - quote.totalPrice) > 1e-6)
+        tx.cashDelta !== -(expectedCash ?? 0) || !Number.isFinite(item.buyCost) ||
+        Math.abs((item.buyCost ?? 0) * quantity - expectedCost) > 1e-6)
       return { applied: false, state, reason: t('Geçersiz sarrafiye miktarı, tutarı veya stok kapasitesi.') };
   }
 
@@ -136,7 +149,7 @@ export function applyTransaction(
 
   // --- Stok girişleri: cost basis kalem bazında yazılır (GDD 12.3) ---
   const items = { ...state.items };
-  let inventory = [...state.inventory];
+  let inventory = state.inventory.map(position => ({ ...position }));
 
   for (const incoming of tx.itemsIn) {
     items[incoming.id] = incoming;
@@ -167,13 +180,35 @@ export function applyTransaction(
     if (item && !stillHeld) items[out.itemId] = { ...item, location: 'sold' };
   }
 
+  // Project all stock changes before committing cash, ownership or progression.
+  // Canonical pooling decides occupancy for every intake route, not just supply.
+  const pooled = consolidatePools(inventory, items);
+  const previous = consolidatePools(state.inventory.map(position => ({ ...position })), state.items);
+  const blockedStockLocation = stockCapacityBlock(previous.inventory, pooled.inventory, state.store);
+  if (blockedStockLocation) {
+    return {
+      applied: false,
+      state,
+      reasonCode: 'stock-capacity',
+      blockedStockLocation,
+      reason: blockedStockLocation === 'display'
+        ? t('Vitrin kapasitesi dolu; işlem uygulanmadı.')
+        : t('Arka stok kapasitesi dolu; işlem uygulanmadı.'),
+    };
+  }
+
   // --- İlişki ve ilerleme ---
   const reputation = clamp(state.store.reputation + tx.reputationDelta, 0, 100);
   const { level, xp, xpToNext } = applyXp(state.store, tx.xpDelta);
 
-  const pooled = consolidatePools(inventory, items);
   const store: StoreState = { ...state.store, cash, reputation, level, xp, xpToNext,
     hasBalanceMg, hasCostBasis: Math.max(0, (state.store.hasCostBasis ?? 0) + (tx.hasCostDelta ?? 0)) };
+  if (financedTerms) {
+    const supplier = financedTerms.totalDue > 0
+      ? openInvoice(store.supplier, { id: tx.txId, amount: financedTerms.totalDue, dueDay: financedTerms.dueDay })
+      : store.supplier;
+    store.supplier = tradeTrustAfterPurchase(supplier, financedPurchasePrice, creditLimit(state.store));
+  }
 
   const ledger: Ledger = {
     ...state.ledger,

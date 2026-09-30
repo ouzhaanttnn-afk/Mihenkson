@@ -21,6 +21,7 @@
  */
 
 import { t } from '@i18n/index';
+import { availableWorkshopStaff } from './personnel';
 import { CONDITION_DEDUCTION, CONDITION_ORDER, SERVICE } from './balance';
 import { getTemplate } from '@data/item-templates';
 import { rulesFor } from '@data/product-classes';
@@ -141,6 +142,7 @@ export function improveCondition(from: ConditionGrade, steps: number): Condition
 // ---------------------------------------------------------------------------
 
 export interface QuoteContext {
+  jobs?: ServiceJob[];
   store: StoreState;
   market: MarketState;
   /** Atölyede şu an açık olan iş sayısı. */
@@ -169,7 +171,7 @@ export function errorRisk(
   const capacity = Math.max(1, ctx.store.workshopCapacity);
   const load = ctx.workshopLoad / capacity;
 
-  const staffSkill = ctx.store.staff.length * SERVICE.staffSkillPerMember;
+  const staffSkill = (ctx.store.staff.length + availableWorkshopStaff(ctx.store, ctx.jobs).length) * SERVICE.staffSkillPerMember;
   const equipmentBonus = SERVICE.equipmentBonusByTier[ctx.store.storeTier] ?? 0;
 
   const raw =
@@ -309,6 +311,7 @@ export function createServiceJob(input: {
   quote: ServiceQuote;
   today: GameDay;
   promiseBufferDays: number;
+  assignedStaff?: string | null;
 }): ServiceJob {
   const { rootSeed, jobIndex, item, quote, today, promiseBufferDays } = input;
 
@@ -331,7 +334,7 @@ export function createServiceJob(input: {
     remainingDays: quote.durationDays,
     risk: quote.risk,
     partsCost: quote.partsCost,
-    assignedStaff: null,
+    assignedStaff: quote.venue === 'inHouse' ? input.assignedStaff ?? null : null,
     venue: quote.venue,
     outsourceCost: quote.outsourceCost,
     promisedDay: expectedDay + Math.max(0, promiseBufferDays),

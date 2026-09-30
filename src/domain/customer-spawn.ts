@@ -216,6 +216,7 @@ export function spawnCustomer(
   // toplu olmak müşteriyi yeniden üretmez, davranışını değiştirir.
   const base: Customer = {
     id,
+    visitId: id,
     displayName,
     archetype: archetypeId,
     intent,

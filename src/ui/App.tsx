@@ -14,7 +14,7 @@ import { writeSave } from '@state/save';
 import { syncDocumentLanguage, t } from '@i18n/index';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useGame } from '@state/gameStore';
+import { useGame, setSimulationForeground } from '@state/gameStore';
 import { BottomNav } from '@ui/shell/BottomNav';
 import { BusinessScreen } from '@ui/screens/BusinessScreen';
 import { ShopScreen } from '@ui/screens/ShopScreen';
@@ -89,15 +89,17 @@ export function App() {
   const musicVolume = useGame((s) => s.preferences.musicVolume);
   useEffect(() => syncMusic(musicEnabled, musicVolume), [musicEnabled, musicVolume]);
   useEffect(() => {
-    const visible = () => setAudioForeground(document.visibilityState === 'visible');
+    const foreground = (active: boolean) => { setAudioForeground(active); setSimulationForeground(active); };
+    const visible = () => foreground(document.visibilityState === 'visible');
     document.addEventListener('visibilitychange', visible);
     visible();
     const handle = Capacitor.isNativePlatform()
-      ? NativeApp.addListener('appStateChange', state => setAudioForeground(state.isActive)) : null;
+      ? NativeApp.addListener('appStateChange', state => foreground(state.isActive)) : null;
     return () => {
       document.removeEventListener('visibilitychange', visible);
       void handle?.then(listener => listener.remove());
       setAudioForeground(false);
+      setSimulationForeground(false);
     };
   }, []);
   useGame((s) => s.preferences.currency);

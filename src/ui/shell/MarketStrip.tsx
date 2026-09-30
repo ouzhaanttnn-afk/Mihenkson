@@ -34,7 +34,7 @@ export function MarketStrip({ market, cash, onOpenMarket }: Props) {
       price: market.goldSpot,
       changePct: gramAsset?.changePct ?? 0,
     },
-    ...market.assets,
+    ...market.assets.filter(asset => asset.id !== 'silverGram'),
   ].slice(0, 5);
 
   /*

@@ -2,7 +2,7 @@
 
 Tarih: 30 Eylül 2026  
 Kaynak: Kullanıcının ekran görüntüleri, sesli anlatımları ve yazılı netleştirmeleri.  
-Durum: Geri bildirimler birleştirildi ve mevcut kod incelendi. Bu belge uygulanacak işleri tanımlar; maddelerin tamamlandığı veya yeni bir sürüm yayımlandığı anlamına gelmez. Sürüm numarası henüz belirlenmedi.
+Durum: 1 Ekim 2026'da yayıncı 1.2.0 uygulama ve Apple incelemesine gönderim yetkisi verdi. Aşağıdaki metin ilk denetim bulgularını korur; güncel kararlar `UPDATE_1.2.0_DESIGN.md`, uygulama ve doğrulama özeti `UPDATE_1.2.0_RELEASE.md` içindedir. Apple gönderim durumu ayrıca doğrulanır; kodun tamamlanması yayımlandığı anlamına gelmez.
 
 ## 1. Önce ürün ve stok sorunları
 

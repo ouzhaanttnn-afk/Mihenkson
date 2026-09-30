@@ -24,6 +24,8 @@ import { createMarketForDay, spotFor } from './market';
 import { createSession, effectiveReservation } from './negotiation';
 import { purchaseCeiling } from './purchase';
 import { trueValue } from './valuation';
+import { customerPriceBand } from './customer-pricing';
+import { spawnItem } from './item-spawn';
 import type { NegotiationSession, StoreState, TradeSide } from './types';
 
 const SEED = 20260828;
@@ -105,16 +107,28 @@ describe('Sarrafiyede pazarlık payı gerçek makasa oturur', () => {
 
     for (const id of ['gram_gold_1', 'gram_gold_5', 'republic_gold', 'ata_gold']) {
       const meta = bullionMeta(id)!;
-      const fair = meta.unitWeightGrams * meta.unitPurity * spot * (1 + meta.premiumRatio);
-      const buy = mean(bestBuyRatio(id));
+      const reference = meta.unitWeightGrams * meta.unitPurity * spot;
+      const buys: number[] = [];
 
       // Satış yönü: müşterinin ödeme tavanı, aynı payla sıkıştırılmış.
       const caps: number[] = [];
       for (let day = 1; day <= 25; day++) {
         const m = createMarketForDay(SEED, day);
         const ch = dayCharacter(SEED, day, m);
+        const probe = spawnItem(SEED, day, id);
+        const saleBand = customerPriceBand(probe, m, 'shopSells')!;
+        const fair = trueValue(probe, m);
         for (let i = 0; i < 70; i++) {
           const c = spawnCustomer(SEED + day, i, m, store, ch);
+          const item = c.items[0];
+          if (c.customer.intent === 'sell' && c.items.length === 1 && item?.templateId === id) {
+            const band = customerPriceBand(item, m, 'shopBuys');
+            if (band) buys.push(effectiveReservation({
+              customer: c.customer, direction: 'shopBuys', reputation: store.reputation,
+              buyCeiling: 0, knowledge: [], fairValue: trueValue(item, m), economicBand: band,
+              haggleRoom: rulesFor(getTemplate(id)).haggleRoom,
+            }, aggressiveSession()) / band.reference);
+          }
           if (c.customer.intent !== 'buy' || (c.customer.demand?.templateId !== id && (!c.customer.demand?.poolId || c.customer.demand.poolId !== poolForTemplate(id)))) continue;
           caps.push(
             effectiveReservation(
@@ -122,28 +136,24 @@ describe('Sarrafiyede pazarlık payı gerçek makasa oturur', () => {
                 customer: c.customer, direction: 'shopSells' as TradeSide, reputation: store.reputation,
                 buyCeiling: 0, purchaseCeiling: purchaseCeiling(c.customer, fair), knowledge: [],
                 fairValue: fair,
+                economicBand: saleBand,
                 haggleRoom: rulesFor(getTemplate(id)).haggleRoom,
                 retailSpread: rulesFor(getTemplate(id)).retailSpread,
               },
               aggressiveSession(),
-            ) / fair,
+            ) / saleBand.reference,
           );
         }
       }
       expect(caps.length, id).toBeGreaterThan(3);
+      expect(buys.length, id).toBeGreaterThan(3);
 
-      const perGram = ((mean(caps) - buy) * fair) / meta.unitWeightGrams;
-      /*
-        SINIRLAR GÜNCELLENDİ — pay 0,12'den 0,06'ya inince tur farkı da indi.
-        Eski sınır (100–260 ₺/g) oyunun sektörün ~2 katında oturduğu döneme
-        aitti. Ölçüm: 1 g altında tur farkı 99 ₺/gram, yani playtest'te
-        istenen "gram başı ~100 ₺" mertebesinin ta kendisi. Alt sınırı
-        düşürmek testi gevşetmek değil, hedefi tutturmuş olmayı kabul etmek.
-
-        Ürün primi, gramaj ve müşteri profili nedeniyle birim tur farkı aynı
-        değildir. Koruma bandı çöküşü ve şişmeyi yakalar; perakende çıpasının
-        maliyetin üstünde kalması aşağıdaki ayrı regresyonla bağlanır.
-      */
+      // UPDATEv5 prices standard coins on the metal reference band. Mint
+      // premiums remain in fair value but cannot be counted as an extra
+      // retail spread outside the production band.
+      const perGram = ((mean(caps) - mean(buys)) * reference) / meta.unitWeightGrams;
+      // Keep the sector envelope; measure both directions with the same
+      // production reference instead of expanding the limit for mint premiums.
       expect(perGram, `${id}: ${perGram.toFixed(0)} ₺/gram`).toBeGreaterThan(60);
       expect(perGram, `${id}: ${perGram.toFixed(0)} ₺/gram`).toBeLessThan(300);
     }
@@ -154,7 +164,7 @@ describe('Sarrafiyede pazarlık payı gerçek makasa oturur', () => {
     const store = makeStore();
     const spawned = spawnCustomer(SEED, 0, market, store, dayCharacter(SEED, 1, market));
     const base = {
-      customer: { ...spawned.customer, reservationPrice: 123_500 },
+      customer: { ...spawned.customer, reservationPrice: 123_500, budget: 123_500 },
       direction: 'shopSells' as TradeSide,
       reputation: store.reputation,
       buyCeiling: 0,
@@ -176,7 +186,7 @@ describe('İşçilikli ve ikinci el üründe pazarlık DARALMAZ', () => {
   it('takıda brüt marj gerçek ikinci el mertebesinde kalır', () => {
     // Bu test bir güvenlik ağıdır: sarrafiyeyi sıkıştıran değişiklik yanlışlıkla
     // takıyı da sıkıştırırsa oyunun asıl pazarlık gerilimi ölürdü.
-    for (const id of ['bracelet_22k_thin', 'necklace_18k', 'ring_18k', 'silver_chain']) {
+    for (const id of ['bracelet_22k_thin', 'necklace_18k', 'ring_18k']) {
       const ratios = bestBuyRatio(id);
       expect(ratios.length, id).toBeGreaterThan(3);
       const margin = 1 - mean(ratios);
