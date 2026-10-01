@@ -26,3 +26,4 @@ android-signing/
 
 # Generated, non-secret deployment identification.
 public/release.json
+.vercel/
