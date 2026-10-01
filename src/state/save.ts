@@ -29,6 +29,7 @@ import type { CustomerDemand } from '@domain/types';
 import { dayCharacter, emptyTelemetry } from '@domain/intent';
 import { applyTransaction, createLedger, type Ledger } from '@domain/settlement';
 import { personnelRoles } from '@domain/personnel';
+import { normalizeOfflineClock, normalizeOfflineReport } from '@domain/offline-personnel';
 import type { GameState } from './gameStore';
 import { normalizeProfile, type PlayerProfile } from '@domain/profile';
 import { normalizePreferences, type PlayerPreferences } from '@domain/preferences';
@@ -58,6 +59,8 @@ import type {
 export const SAVE_VERSION = 4;
 
 export interface SaveFile {
+  offlinePersonnelClock?: GameState['offlinePersonnelClock'];
+  offlinePersonnelReport?: GameState['offlinePersonnelReport'];
   rankingSeason?: GameState['rankingSeason'];
   weekReports?: GameState['weekReports'];
   customerRushUntilMinutes?: number | null;
@@ -165,6 +168,8 @@ export interface SaveFile {
 export function serialize(state: GameState): SaveFile {
   return {
     version: SAVE_VERSION,
+    offlinePersonnelClock: state.offlinePersonnelClock,
+    offlinePersonnelReport: state.offlinePersonnelReport,
     rankingSeason: state.rankingSeason,
     weekReports: state.weekReports,
     customerRushUntilMinutes: state.customerRushUntilMinutes,
@@ -210,6 +215,8 @@ export function serialize(state: GameState): SaveFile {
 /** Yüklendiğinde doğrudan store'a yazılabilecek alanlar. */
 export type LoadedState = Pick<
   GameState,
+  | 'offlinePersonnelClock'
+  | 'offlinePersonnelReport'
   | 'rankingSeason'
   | 'weekReports'
   | 'customerRushUntilMinutes'
@@ -301,6 +308,8 @@ export function deserialize(file: SaveFile): LoadedState {
       ? Math.min(save.customerRushUntilMinutes, save.clockMinutes + 90) : null,
     playerMarket: save.playerMarket ?? defaultPlayerMarket(),
     skillProgress,
+    offlinePersonnelClock: normalizeOfflineClock(save.offlinePersonnelClock),
+    offlinePersonnelReport: normalizeOfflineReport(save.offlinePersonnelReport),
     // Aktif ziyaret ve yarım pazarlık aynı durumdan devam eder.
     queue: (save.queue ?? []).map((entry, index) => ({
       ...entry,
@@ -619,6 +628,9 @@ function parseSave(raw: string): SaveFile | null {
 export function writeSave(state: GameState): boolean {
   return commitRawSave(JSON.stringify({ ...serialize(state), savedAt: Date.now() }));
 }
+
+/** Economic offline commits cannot treat a intentionally suspended write as durable. */
+export function savesEnabled(): boolean { return !savesSuspended; }
 
 export interface SaveSummary {
   day: number;

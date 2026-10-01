@@ -24,6 +24,9 @@ import {
 import { customerDelayFactor } from '@domain/customer-traffic';
 import { availableWorkshopStaff, personnelRoles, PERSONNEL_ACTION_SECONDS } from '@domain/personnel';
 import { personnelSale } from '@domain/personnel-sale';
+import { armOfflineClock, consumeOfflineClock, emptyOfflineClock, settleOfflinePersonnel,
+  type OfflinePersonnelClock, type OfflinePersonnelReport } from '@domain/offline-personnel';
+import { personnelDaily } from '@domain/v5-rules';
 import { financedPoolSupply } from '@domain/financed-pool-supply';
 import { tradeHas, meltToHas } from '@domain/has-account';
 import { customerPriceBand, isCrafted } from '@domain/customer-pricing';
@@ -183,6 +186,7 @@ import {
   readSave,
   resumeSaves,
   suspendSaves,
+  savesEnabled,
   writeSave,
 } from './save';
 import type { SoundId } from '@ui/audio';
@@ -571,6 +575,13 @@ export interface GameState {
 
   // --- Kayıt (GDD 28.1 · Addendum §11) ---
   saveGame: () => boolean;
+  offlinePersonnelClock: OfflinePersonnelClock;
+  offlinePersonnelReport: OfflinePersonnelReport | null;
+  offlineSaveIssue: boolean;
+  offlineResumeAtMs: number | null;
+  handlePersonnelLifecycle: (active: boolean, now?: number) => boolean;
+  acknowledgeOfflinePersonnel: (id: string) => boolean;
+  discardOfflinePersonnel: () => boolean;
   loadGame: () => boolean;
   resetGame: () => void;
   notify: (text: string, tone: ToastMessage['tone']) => void;
@@ -679,6 +690,10 @@ export const useGame = create<GameState>((set, get) => {
     inventory: [],
     items: {},
     ledger: createLedger(),
+    offlinePersonnelClock: emptyOfflineClock(),
+    offlinePersonnelReport: null,
+    offlineSaveIssue: false,
+    offlineResumeAtMs: null,
 
     tab: 'shop',
     speed: 1,
@@ -3127,6 +3142,59 @@ export const useGame = create<GameState>((set, get) => {
     // -----------------------------------------------------------------------
     // Kayıt (GDD 28.1 · Addendum §11)
     // -----------------------------------------------------------------------
+    handlePersonnelLifecycle: (active, now = Date.now()) => {
+      const s = get();
+      if (!savesEnabled()) return true;
+      if (!active) {
+        if (s.offlinePersonnelClock.session || s.offlinePersonnelReport || s.offlineSaveIssue ||
+            !offlinePersonnelEligible(s) || !personnelRoles(s.store).includes('sales')) return true;
+        const clock = armOfflineClock(s.offlinePersonnelClock, now);
+        if (clock === s.offlinePersonnelClock) return true;
+        if (!writeSave({ ...s, offlinePersonnelClock: clock })) return false;
+        set({ offlinePersonnelClock: clock });
+        return true;
+      }
+      if (!s.offlinePersonnelClock.session) return true;
+      const resumeAt = s.offlinePersonnelClock.session.resumeAtMs ?? s.offlineResumeAtMs ?? now;
+      const result = offlinePersonnelEligible(s) && !s.offlinePersonnelReport
+        ? settleOfflinePersonnel({ economy: economyOf(s), market: s.market, seed: s.seed,
+          clock: s.offlinePersonnelClock, now: resumeAt, customers: s.customers, skills: s.skillProgress,
+          pendingWages: s.personnelCostWaivedToday ? 0 : personnelDaily(s.store) })
+        : { economy: economyOf(s), clock: consumeOfflineClock(s.offlinePersonnelClock, resumeAt).clock, report: null };
+      const update = { ...economyToState(result.economy), offlinePersonnelClock: result.clock,
+        offlinePersonnelReport: result.report ?? s.offlinePersonnelReport, offlineSaveIssue: false, offlineResumeAtMs: null };
+      if (Number.isSafeInteger(now) && now >= 0)
+        update.offlinePersonnelClock.highWaterMs = Math.max(update.offlinePersonnelClock.highWaterMs, now);
+      if (!writeSave({ ...s, ...update })) {
+        // No live cash/stock mutation before durable full-state verification. Pause for a safe retry.
+        set({ offlineSaveIssue: true, offlineResumeAtMs: resumeAt,
+          offlinePersonnelClock: { ...s.offlinePersonnelClock,
+            session: { ...s.offlinePersonnelClock.session, resumeAtMs: resumeAt } } });
+        return false;
+      }
+      set(update);
+      return true;
+    },
+
+    acknowledgeOfflinePersonnel: (id) => {
+      const s = get();
+      if (s.offlinePersonnelReport?.id !== id || !savesEnabled()) return false;
+      if (!writeSave({ ...s, offlinePersonnelReport: null })) return false;
+      set({ offlinePersonnelReport: null });
+      return true;
+    },
+
+    discardOfflinePersonnel: () => {
+      const s = get();
+      if (!s.offlineSaveIssue || !s.offlinePersonnelClock.session || !savesEnabled()) return false;
+      // A smaller save can succeed when the extra sale journal/report exceeds the quota.
+      // Never hide a storage error while leaving a redeemable departure on disk.
+      const clock = consumeOfflineClock(s.offlinePersonnelClock, Date.now()).clock;
+      if (!writeSave({ ...s, offlinePersonnelClock: clock })) return false;
+      set({ offlinePersonnelClock: clock, offlineSaveIssue: false, offlineResumeAtMs: null });
+      return true;
+    },
+
     saveGame: () => {
       const s = get();
       const season = seasonFor(s.rankingSeason, rankingWealth(s).grams);
@@ -3140,8 +3208,12 @@ export const useGame = create<GameState>((set, get) => {
       // Oyuncu devam etmeyi seçti: "Kaydı sil"den kalan yazma kilidi kalkar.
       resumeSaves();
       // Aboneler yüklenmiş tercihle çizilmeden önce sunum modüllerini kur.
+      // Explicit/manual load cannot redeem an old background interval. Preserve the watermark.
+      const offlinePersonnelClock = { ...loaded.offlinePersonnelClock, session: null,
+        highWaterMs: Math.max(get().offlinePersonnelClock.highWaterMs, loaded.offlinePersonnelClock.highWaterMs, Date.now()) };
+      if (!writeSave({ ...get(), ...loaded, offlinePersonnelClock })) return false;
       applyDisplayPreferences(loaded.preferences);
-      set(loaded);
+      set({ ...loaded, offlinePersonnelClock, offlineSaveIssue: false, offlineResumeAtMs: null });
       pushToast(set, get, t('Kayıt yüklendi · Gün {gun}', { gun: loaded.market.day }), 'info');
       return true;
     },
@@ -3155,6 +3227,7 @@ export const useGame = create<GameState>((set, get) => {
         altındaki söz, "yeni oyun bir sonraki açılışta başlar", tutmuyordu.
       */
       suspendSaves();
+      set({ offlinePersonnelClock: emptyOfflineClock(), offlinePersonnelReport: null, offlineSaveIssue: false, offlineResumeAtMs: null });
       pushToast(set, get, t('Kayıt silindi. Yeni oyun bir sonraki açılışta başlar.'), 'info');
     },
 
@@ -3187,6 +3260,20 @@ function cue(
 // Transient lifecycle gate; it is not persisted and cannot grant offline sales.
 let simulationForeground = true;
 export function setSimulationForeground(active: boolean): void { simulationForeground = active; }
+
+/** Management tabs do not block a staffed shop; an unfinished player transaction always does. */
+export function offlinePersonnelEligible(s: GameState): boolean {
+  return s.profileSetupDone && isShopOpen(s.market.day) && s.market.clockMinutes >= DAY.openMinutes &&
+    s.market.clockMinutes < DAY.closeMinutes && !s.activeCustomer && !s.activeDeal && !s.recallableGuest &&
+    !s.dayCloseConfirmOpen && !s.dayReportOpen && !s.weekTransitionPending && s.rewardedAdPending === null &&
+    nextLesson(coachContextOf(s), s.seenLessons) === null;
+}
+
+export function offlinePersonnelSurfaceVisible(s: GameState): boolean {
+  return !!(s.offlinePersonnelReport || s.offlineSaveIssue) && s.profileSetupDone && !s.activeCustomer &&
+    !s.activeDeal && !s.recallableGuest && !s.dayCloseConfirmOpen && !s.dayReportOpen &&
+    !s.weekTransitionPending && s.rewardedAdPending === null;
+}
 
 function refreshPendingServiceQuote(set: (partial: Partial<GameState>) => void, get: () => GameState): void {
   const s = get(), deal = s.activeDeal;
@@ -3950,6 +4037,7 @@ function coachContextOf(s: GameState): CoachContext {
  */
 export function clockPauseReason(s: GameState): ClockPauseReason | null {
   if (!s.profileSetupDone) return 'profile-setup';
+  if (s.offlinePersonnelReport || s.offlineSaveIssue) return 'shop-modal';
   if (s.tab !== 'shop') return 'management-tab';
   if (s.profileOpen) return 'profile';
   if (s.settingsOpen) return 'settings';

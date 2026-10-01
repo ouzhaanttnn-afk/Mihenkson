@@ -14,7 +14,8 @@ import { writeSave } from '@state/save';
 import { syncDocumentLanguage, t } from '@i18n/index';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useGame, setSimulationForeground } from '@state/gameStore';
+import { useGame, setSimulationForeground, offlinePersonnelSurfaceVisible } from '@state/gameStore';
+import { OfflinePersonnelDialog } from '@ui/shell/OfflinePersonnelDialog';
 import { BottomNav } from '@ui/shell/BottomNav';
 import { BusinessScreen } from '@ui/screens/BusinessScreen';
 import { PersonnelSheet } from '@ui/screens/PersonnelPanel';
@@ -82,6 +83,7 @@ export function App() {
   const settingsOpen = useGame((s) => s.settingsOpen);
   const rankingOpen = useGame((s) => s.rankingOpen);
   const personnelOpen = useGame((s) => s.personnelOpen);
+  const offlinePersonnelOpen = useGame(offlinePersonnelSurfaceVisible);
   const talentOpen = useGame((s) => s.shopTalentTreeOpen);
   const profileSetupDone = useGame((s) => s.profileSetupDone);
   const completeProfileSetup = useGame((s) => s.completeProfileSetup);
@@ -93,14 +95,26 @@ export function App() {
   const musicVolume = useGame((s) => s.preferences.musicVolume);
   useEffect(() => syncMusic(musicEnabled, musicVolume), [musicEnabled, musicVolume]);
   useEffect(() => {
-    const foreground = (active: boolean) => { setAudioForeground(active); setSimulationForeground(active); };
-    const visible = () => foreground(document.visibilityState === 'visible');
+    let nativeActive = true, pageAway = false;
+    const foreground = () => {
+      const active = nativeActive && !pageAway && document.visibilityState === 'visible';
+      setAudioForeground(active); setSimulationForeground(active);
+      if (!useGame.getState().handlePersonnelLifecycle(active) && !active)
+        useGame.getState().notify(t('Mesai başlangıcı kaydedilemedi; çevrimdışı satış başlatılmadı.'), 'negative');
+    };
+    const visible = () => foreground();
+    const hide = () => { pageAway = true; foreground(); };
+    const show = () => { pageAway = false; foreground(); };
     document.addEventListener('visibilitychange', visible);
+    window.addEventListener('pagehide', hide);
+    window.addEventListener('pageshow', show);
     visible();
     const handle = Capacitor.isNativePlatform()
-      ? NativeApp.addListener('appStateChange', state => foreground(state.isActive)) : null;
+      ? NativeApp.addListener('appStateChange', state => { nativeActive = state.isActive; foreground(); }) : null;
     return () => {
       document.removeEventListener('visibilitychange', visible);
+      window.removeEventListener('pagehide', hide);
+      window.removeEventListener('pageshow', show);
       void handle?.then(listener => listener.remove());
       setAudioForeground(false);
       setSimulationForeground(false);
@@ -292,7 +306,7 @@ export function App() {
         <RecallDialog />
 
         {/*
-          CİHAZ SEVİYESİ MODAL ÖNCELİĞİ: welcome > profil > ayarlar > sıralama > personel.
+          CİHAZ SEVİYESİ MODAL ÖNCELİĞİ: welcome > mesai > profil > ayarlar > sıralama > personel > yetenek.
 
           Bu yüzeyler ekranın içine konsa Dükkan'ın `overflow: hidden`
           gövdesine hapsolur. Tek zincir olmaları da yalnız normal akışı
@@ -306,6 +320,8 @@ export function App() {
             onCancel={() => undefined}
             onSave={completeProfileSetup}
           />
+        ) : offlinePersonnelOpen ? (
+          <OfflinePersonnelDialog />
         ) : profileOpen ? (
           <ProfileDialog
             profile={profile}

@@ -42,7 +42,10 @@ describe('main-shop personnel surface', () => {
     expect(html).toContain('aria-label="Personel 1 görevi"');
     expect(html).toContain('value="reception" selected');
     expect(html).toContain('value="workshop" selected');
-    expect(html).toContain('90 saniyelik aktif oyun');
+    expect(html).toContain('aktif oyunda 90 saniyede');
+    expect(html).toContain('kapalı oyunda 15 dakikada');
+    expect(html).toContain('en fazla 4 saat');
+    expect(html).not.toContain('Kapalı oyunda satış yapılmaz');
     expect(html).toContain('90.000');
     expect(html).toContain('Reklam izle, bugün ücretsiz olsun');
     expect(html).toContain('en az %1 maliyet marjı');

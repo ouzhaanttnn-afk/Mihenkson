@@ -13,10 +13,26 @@ TradeUp design rules do not apply to this separate game.
 - Every stock intake validates projected canonical positions before cash/debt
   changes. Legacy overflow may decrease or stay flat, never worsen.
 - Personnel keep existing salaries/unlocks. Roles are idle, reception, sales,
-  workshop. Counter tasks run once per 90 active real seconds, not offline,
-  paused screens, or catch-up bursts. Automatic sales use only exact full-stock
+  workshop. Foreground counter tasks run once per 90 active real seconds, not on
+  paused screens or catch-up bursts. Automatic sales use only exact full-stock
   requests, normal negotiation acceptance and at least 1% recorded-cost margin.
   No automatic purchases, debt or guaranteed sales. Default old hires to idle.
+- Additional publisher approval on 2026-10-01: safe-sales personnel can run a
+  bounded offline shift, calculated on return, without continuous background CPU.
+  Explicitly save the departure session; never use generic save timestamps.
+  One regular customer attempt per 15 real minutes, at most 16 over four hours,
+  independent of worker count or game speed. Use a separate deterministic spawn
+  chain and preserve the player's live queue. No forced buyer/guaranteed acceptance.
+  Use actual full-stock sales and the existing margin/settlement contract.
+  Do not advance the day, market, debt, workshop, XP or mastery. Day-close wages
+  remain once per game day; report any pending wages separately, not as cash paid.
+  Skip shifts around active customers, recall, tutorials, closed shops/day close
+  or rewarded ads. Unread reports block another shift (no report overwrite).
+  Missing/invalid anchors and clock rollback grant nothing. Consume excess time
+  once, with no carryover. Manual load discards old departure anchors. A verified
+  save must precede economic application; acknowledgment only closes the report.
+  Failed shift saves offer retry or a verified smaller save that skips the shift
+  without sales. Never simply dismiss an unresolved redeemable session.
 - Workshop personnel apply only to new quoted/accepted jobs; outcome is fixed
   at acceptance. One available worker is assigned; previous outcomes never reroll.
 - Mature shops (tier 3+, reputation 65+, supplier trust 65+) may receive large

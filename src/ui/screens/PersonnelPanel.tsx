@@ -54,7 +54,7 @@ export function PersonnelPanel() {
     </p>
     <p>
       {t(
-        'Karşılama ve satış 90 saniyelik aktif oyun aralığında çalışır. Kapalı oyunda satış yapılmaz.',
+        'Karşılama ve satış aktif oyunda 90 saniyede bir çalışır. Güvenli satış görevi, kapalı oyunda 15 dakikada bir müşteri dener; en fazla 4 saat.',
       )}
     </p>
     {personnelRoles(s.store).map((role, index) => <label key={index} className="statLine personnelRole">
@@ -212,4 +212,3 @@ export function PersonnelSheet() {
     </div>
   );
 }
-
