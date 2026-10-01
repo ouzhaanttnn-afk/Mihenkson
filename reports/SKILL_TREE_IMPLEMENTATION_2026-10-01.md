@@ -1,6 +1,6 @@
 # Mihenk — çalışan yetenek ağacı
 
-Durum: yerel kaynak kodda tamamlandı ve doğrulandı. Önceki araştırma önerisi artık bu uygulama kararlarıyla somutlaştırıldı. Bu çalışma Apple'a yüklenmedi; incelemedeki 1.2.0 build 31 değiştirilmedi.
+Durum: uygulama tamamlandı, doğrulandı ve 1.2.0 build 32 olarak Apple'a başarıyla yüklendi. Önceki araştırma önerisi artık bu uygulama kararlarıyla somutlaştırıldı. İncelemedeki 1.2.0 build 31 değiştirilmedi. Güncel imzalı paket ve TestFlight kaydı: `SKILL_TREE_BUILD_32_2026-10-01.md`.
 
 ## Oyuncu deneyimi
 
@@ -65,4 +65,4 @@ Gerçek tarayıcı kontrolü: temiz yerel kariyerde ana ekran girişi, üç dal 
 
 Üretim girişine dahil olmayan `spec/mastery-preview.html?scale=2&lang=en` fikstürüyle 24px açıklama metni (normalin iki katı) ve 320px genişlikte gerçek öğrenme, onay, iptal, ücretsiz sıfırlama, günlük sınır, Tab/Shift+Tab döngüsü ve Escape/focus iadesi kontrol edildi. Yatay taşma sıfır; reset düğmeleri 44px üzerinde ve metni kırpılmıyor. Fikstür sentetik puanlarla çalışır; yalnız atılabilir yerel test kaydında kullanılmalıdır ve production `dist` paketine girmez.
 
-Tarayıcı ekran görüntüsü yakalama denemeleri `Page.captureScreenshot` zaman aşımına uğradı; ağacın son görselinin piksel kanıtı kaydedilemedi. Doğrulama DOM, erişilebilirlik ağacı, gerçek düğme akışları ve yerleşim ölçümleriyle yapıldı. Fiziksel iPhone/Dynamic Type ve native imzalı paket bu çalışma kapsamında yeniden test edilmedi. Yayın öncesi cihaz smoke testi gereklidir.
+Tarayıcı ekran görüntüsü yakalama denemeleri `Page.captureScreenshot` zaman aşımına uğradı; ağacın son görselinin piksel kanıtı kaydedilemedi. Doğrulama DOM, erişilebilirlik ağacı, gerçek düğme akışları ve yerleşim ölçümleriyle yapıldı. Fiziksel iPhone/Dynamic Type testi yapılmadı. Sonraki imzalı iOS archive/export ve Apple yüklemesi 1.2.0 (32) için başarılıdır; kanıtı `SKILL_TREE_BUILD_32_2026-10-01.md` içindedir. Yayın öncesi cihaz smoke testi gereklidir.

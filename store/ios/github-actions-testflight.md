@@ -27,10 +27,19 @@ silinir; runner da GitHub tarafından yok edilir.
 
 1. GitHub deposunda **Settings → Secrets and variables → Actions** yolunda
    yukarıdaki altı secret'ı tanımla.
-2. **Actions → iOS TestFlight → Run workflow** yolundan `main` dalında başlat.
+2. **Actions → iOS TestFlight → Run workflow** yolundan doğrulanmış kaynak dalını
+   seçerek başlat. Derlemenin `headSha` değeri yayınlanacak commit ile eşleşmeli.
 3. İş tamamlandıktan sonra App Store Connect → TestFlight'ta build'in Apple
    tarafından işlenmesini bekle. İlk işleme birkaç dakika sürebilir.
 
-Her çalıştırmada `CURRENT_PROJECT_VERSION`, GitHub run numarasına eşitlenir;
-böylece yeniden yüklemede build numarası çakışmaz. Mağaza sürümü `1.0` kalır.
+Her **yeni dispatch** işleminde `CURRENT_PROJECT_VERSION`, bu workflow'un
+GitHub run numarasına eşitlenir. Mevcut bir run'ı yeniden çalıştırmak numarayı
+artırmaz; Apple'a yükleme başarılı olduktan sonra yeniden paket yüklemek
+gerekiyorsa yeni dispatch kullanılır. Mağaza sürümü Xcode projesindeki
+`MARKETING_VERSION` değeridir; güncel sürüm `1.2.0`.
+
+Bu workflow yalnız imzalı IPA üretir, doğrular ve Apple'a yükler. Apple'ın
+processing işlemini tamamlaması, TestFlight grubuna erişim, App Review'a build
+seçimi/gönderimi ve mağazada yayın ayrı adımlardır; workflow bunları otomatik
+yapmaz. TestFlight'a yeni paket yüklenmesi, incelemedeki eski paketi değiştirmez.
 
