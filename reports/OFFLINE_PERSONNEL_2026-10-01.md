@@ -73,6 +73,11 @@ in UPDATE_1.2.0_DESIGN.md.
 - Permanent storage failure still needs storage recovery: neither a reward nor
   an unverified dismissal is applied. The smaller skip-save can help when extra
   journal/report space, rather than all storage, is the limiting factor.
-- The previous signed TestFlight upload is **1.2.0 (32)** and does NOT contain
-  this addition. A new signed native build is required. No TestFlight upload,
-  App Review replacement or public release was performed for this work block.
+- The original implementation ended before a signed upload; build 32 did not
+  contain this addition. The publisher subsequently requested a new release:
+  **1.2.0 (33)** now contains it, signed archive/export/Apple upload succeeded,
+  and the existing three-person Betatest group has access. Build 31's review
+  submission was withdrawn and replaced with build 33, submitted at 12:55 TRT
+  on 2026-10-01. Apple state is **Waiting for Review**, with automatic release
+  after approval. Not yet public; no guaranteed review time or device-QA claim.
+  Evidence: `OFFLINE_PERSONNEL_BUILD_33_2026-10-01.md`.

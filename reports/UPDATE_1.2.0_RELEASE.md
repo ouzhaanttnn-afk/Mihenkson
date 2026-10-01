@@ -1,5 +1,15 @@
 # Mihenk 1.2.0 — uygulama ve yayın kaydı
 
+## Güncel gönderim — 2026-10-01 12:55 TRT
+
+İlk build 31 başvurusu yayıncının isteğiyle geri çekildi. Ana ekran Personel,
+çalışan Yetenek Ağacı ve sınırlı çevrimdışı mesaiyi içeren **1.2.0 (33)**,
+mevcut üç kişilik Betatest grubunda hazır ve yeniden Apple'a gönderildi:
+**Waiting for Review**. Onay sonrası otomatik, tüm kullanıcılara yayın seçildi.
+Henüz canlı değildir; bu akşam yayınlanacağı garanti edilmez.
+Güncel imzalı derleme/gönderim kanıtı: `OFFLINE_PERSONNEL_BUILD_33_2026-10-01.md`.
+Aşağıdaki build 31 bölümü ilk gönderimin tarihî kaydıdır.
+
 ## Uygulanan geri bildirimler
 
 - 38 altın tanımı denetlendi. Tam Altın aktif talep ve tedarike geri alındı;
@@ -17,8 +27,12 @@
   başarılı işlem gibi görünmez.
 - Personelin mevcut maaş/seviye şartları korundu. Bekleme desteği, karşılama,
   güvenli satış ve atölye ustası görevleri seçilebilir. Tezgâh görevleri yalnız
-  90 aktif gerçek saniyede bir, boş Dükkan ekranında çalışır. Arka plan,
-  müşteride/modalda bekleme veya kapalı oyun otomatik satış kazandırmaz.
+  90 aktif gerçek saniyede bir, boş Dükkan ekranında çalışır; aktif müşteri/modal
+  sırasında durur. İlk build 31 çevrimdışı satış içermiyordu. Build 33'te açık,
+  boş dükkândan doğrulanmış ayrılış sonrası güvenli satış personeli dönüşte
+  15 gerçek dakikada bir, en fazla dört saat/16 talep için mesai hesaplar.
+  Satış garantisi yoktur; rapor gerçek satış/maliyet/kâr ile bekleyen günlük
+  maaşı ayırır. Oyun günü/piyasa/borç/atölye/XP/ustalık çevrimdışı ilerlemez.
 - Personel satışları gerçek stok, tam talep, normal müşteri kabulü ve en az
   %1 kayıtlı-maliyet marjına bağlıdır. Otomatik borç, mal alımı veya garantili
   satış yoktur. Defter ve satılan miktarın maliyeti normal satışla uzlaşır.

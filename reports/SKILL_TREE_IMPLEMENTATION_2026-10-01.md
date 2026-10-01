@@ -1,6 +1,6 @@
 # Mihenk — çalışan yetenek ağacı
 
-Durum: uygulama tamamlandı, doğrulandı ve 1.2.0 build 32 olarak Apple'a başarıyla yüklendi. Önceki araştırma önerisi artık bu uygulama kararlarıyla somutlaştırıldı. İncelemedeki 1.2.0 build 31 değiştirilmedi. Güncel imzalı paket ve TestFlight kaydı: `SKILL_TREE_BUILD_32_2026-10-01.md`.
+Durum: uygulama tamamlandı ve doğrulandı. İlk imzalı yükleme 1.2.0 build 32 idi; tarihî kanıtı `SKILL_TREE_BUILD_32_2026-10-01.md`. Yayıncının sonraki isteğiyle çevrimdışı personel mesaisi de eklenerek **1.2.0 (33)** TestFlight'a yüklendi ve 2026-10-01 12:55 TRT'de build 31'in yerine Apple'a gönderildi. Güncel durum **Waiting for Review**, onay sonrası otomatik yayın. Güncel kanıt: `OFFLINE_PERSONNEL_BUILD_33_2026-10-01.md`. Önceki araştırma önerisi artık aşağıdaki uygulama kararlarıyla somutlaştırılmıştır.
 
 ## Oyuncu deneyimi
 
