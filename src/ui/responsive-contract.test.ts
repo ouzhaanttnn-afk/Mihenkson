@@ -40,6 +40,19 @@ function selectorColorVariable(css: string, selector: string): string {
 }
 
 describe('mobil kabuk sözleşmesi', () => {
+  it('personel yönetimini finans özetinin dışından, cihaz seviyesinde açar', () => {
+    const shop = projectFile('src/ui/screens/ShopScreen.tsx');
+    const app = projectFile('src/ui/App.tsx');
+    const personnel = projectFile('src/ui/screens/PersonnelPanel.tsx');
+    const css = projectFile('src/ui/screens/Screens.css');
+    expect(shop).toMatch(/<\/section>\s+<PersonnelShortcut shop \/>/);
+    expect(app).toContain(') : personnelOpen ? (');
+    expect(app).toContain('<PersonnelSheet />');
+    expect(personnel).toContain('useModalSurface<HTMLElement>(close)');
+    expect(personnel).toContain('aria-haspopup="dialog"');
+    expect(css).toMatch(/\.personnelSheet__scroll\s*\{[^}]*overflow-y: auto/);
+    expect(css).toMatch(/\.personnelSheet__done\s*\{[^}]*min-height: var\(--touch-min\)/);
+  });
   it('ertelenen yetenek ağacı girişi Yakında etiketiyle pasiftir', () => {
     const shop = projectFile('src/ui/screens/ShopScreen.tsx');
     expect(shop).toContain('className="shopTalentButton" disabled');

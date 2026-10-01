@@ -15,21 +15,7 @@ import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { useEffect, useState } from 'react';
 import { customerDensity, shopPresentationBonus } from '@domain/customer-traffic';
-import { personnelRoles, PERSONNEL_ROLE_LABELS } from '@domain/personnel';
 import { availablePoolSupply, poolSupplyItem } from '@domain/pool-supply';
-import { usePremium } from '@ui/premium';
-import {
-  PERSONNEL_MONTHLY,
-  PERSONNEL_SALARIES,
-  PERSONNEL_TEMP_UNLOCK_DAYS,
-  PERSONNEL_UNLOCK_LEVELS,
-  canSetPersonnel,
-  personnelCount,
-  personnelDaily,
-  personnelTempUnlockActive,
-  personnelTempUnlockTier,
-  queueCapacity,
-} from '@domain/v5-rules';
 
 import { MARKET_REGIME, WHOLESALE } from '@domain/balance';
 import { DEFAULT_JEWELER_NAME, SHOP_SUFFIX, shopDisplayName } from '@domain/profile';
@@ -63,7 +49,7 @@ import {
   networkLiquidationOffer,
   networkLoanOffer,
 } from '@domain/trade-network';
-import type { ItemInstance, TradeNetworkMember, PersonnelRole } from '@domain/types';
+import type { ItemInstance, TradeNetworkMember } from '@domain/types';
 import { REWARDED_SHIPPING_DISCOUNT, selectors, useGame } from '@state/gameStore';
 
 import {
@@ -80,6 +66,7 @@ import { Art } from '@ui/Art';
 import { NAV_ART, merchantArt } from '@ui/assets';
 import { clock, moneyUnit, multiplier, pct, pctChange, price, priceRawTl, tl, tlSigned } from '@ui/format';
 import { TalentTreePanel } from './TalentTreePanel';
+import { PersonnelShortcut } from './PersonnelPanel';
 import { WholesalerLiquidationList } from './WholesalerLiquidation';
 
 type Route = 'root' | 'market' | 'journal' | 'wholesaler' | 'network' | 'store' | 'career' | 'save';
@@ -142,10 +129,7 @@ export function BusinessScreen() {
 // ---------------------------------------------------------------------------
 
 function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
-  const premium = usePremium((s) => s.active && s.known);
   const s = useGame();
-  const [pendingPersonnel, setPendingPersonnel] = useState<number | null>(null);
-  const [personnelOpen, setPersonnelOpen] = useState(false);
   const wealth = summarizeWealth({
     market: s.market,
     store: s.store,
@@ -214,177 +198,7 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
 
         {/* Addendum §5 — gecelik pozisyon ve sonucu */}
         <OvernightPanel />
-        <div className="group">
-          <button
-            type="button"
-            className="personnelDisclosure personnelDisclosure--money"
-            onClick={() => setPersonnelOpen((open) => !open)}
-            aria-expanded={personnelOpen}
-            aria-controls="personnel-controls"
-          >
-            <span className="personnelDisclosure__icon"><IconBusiness size={18} /></span>
-            <span className="personnelDisclosure__copy">
-              <strong>{t('Personel')}</strong>
-              <small>
-                {t('{n} personel · Kapasite {kap} · Günlük {gunluk}', {
-                  n: personnelCount(s.store),
-                  kap: queueCapacity(s.store),
-                  gunluk: tl(personnelDaily(s.store)),
-                })}
-              </small>
-            </span>
-            <span className={`personnelDisclosure__chevron ${personnelOpen ? 'personnelDisclosure__chevron--open' : ''}`} aria-hidden="true">⌄</span>
-          </button>
-          {personnelOpen && <div className="group__body v5Controls personnelControls" id="personnel-controls">
-            <p>Personel {personnelCount(s.store)} · Bekleme kapasitesi {queueCapacity(s.store)}</p>
-            <p>
-              {t('Aylık {aylik} · Günlük {gunluk}', {
-                aylik: tl(PERSONNEL_MONTHLY[personnelCount(s.store)]!),
-                gunluk: tl(personnelDaily(s.store)),
-              })}
-            </p>
-            <p>
-              {t('Maaşlar kişi başına eklenir: {liste} / ay. Düğmedeki tutar o kadronun aylık toplamıdır.', {
-                liste: PERSONNEL_SALARIES.map((salary) => tl(salary)).join(' + '),
-              })}
-            </p>
-            <p>
-              {t(
-                'Karşılama ve satış 90 saniyelik aktif oyun aralığında çalışır. Kapalı oyunda satış yapılmaz.',
-              )}
-            </p>
-            {personnelRoles(s.store).map((role, index) => <label key={index} className="statLine personnelRole">
-              <span>{t('Personel {n}', { n: index + 1 })}{s.jobs.some(job => job.result === 'pending' && job.assignedStaff === `personnel_${index + 1}`) && <small> · {t('Bu personel mevcut atölye işini bitirmeli.')}</small>}</span>
-              <select aria-label={t('Personel {n} görevi', { n: index + 1 })} value={role}
-                disabled={s.jobs.some(job => job.result === 'pending' && job.assignedStaff === `personnel_${index + 1}`)}
-                onChange={event => s.setPersonnelRole(index, event.target.value as PersonnelRole)}>
-                {Object.entries(PERSONNEL_ROLE_LABELS).map(([id, label]) => <option key={id} value={id}>{t(label)}</option>)}
-              </select>
-            </label>)}
-            {personnelCount(s.store) > 0 && <p className="emptyNote">{t('Güvenli satış: yalnız tam karşılanan mevcut stok, normal müşteri kabulü ve en az %1 maliyet marjı. Personel ürün almaz veya borç açmaz.')}</p>}
-            {/*
-              DÜĞMEDE YAZAN TUTAR O KADRONUN AYLIK TOPLAMIDIR, kişi başı maaş
-              değil. Kişi başı yazsaydı "3" düğmesi 60.000 ₺ gösterirdi ama
-              basınca 150.000 ₺ ödenirdi — düğmenin üstündeki sayı ile kasadan
-              çıkan para birbirini tutmazdı. Onay satırı da (aşağıda) aynı
-              `PERSONNEL_MONTHLY` değerini okuyor; iki yer tek kaynaktan
-              besleniyor.
-            */}
-            <div className="personnelChoiceRow" role="group" aria-label={t('Personel sayısı')}>
-              {[0, 1, 2, 3].map((count) => {
-                const aylik = PERSONNEL_MONTHLY[count]!;
-                const seviye = PERSONNEL_UNLOCK_LEVELS[count] ?? 0;
-                const isim =
-                  count > 0
-                    ? t('{n} personel, aylık toplam {tutar}, seviye {sv} gerektirir', {
-                        n: count,
-                        tutar: tl(aylik),
-                        sv: seviye,
-                      })
-                    : t('Personelsiz — maaş ödenmez');
-                const locked = count > 0 && !canSetPersonnel(s.store, count, s.market.day);
-                return (
-                  <div key={count} className="personnelChoice__cell">
-                    <button
-                      type="button"
-                      className={`personnelChoice ${aylik > 0 ? 'personnelChoice--paid' : ''}`}
-                      aria-pressed={personnelCount(s.store) === count}
-                      aria-label={isim}
-                      title={isim}
-                      disabled={!canSetPersonnel(s.store, count, s.market.day)}
-                      onClick={() => setPendingPersonnel(count)}
-                    >
-                      <strong>{count}</strong>
-                      <small className="personnelChoice__wage">{tl(aylik)}</small>
-                      <small className="personnelChoice__req">
-                        {count > 0 ? `${t('Sv')} ${seviye}` : t('Başlangıç')}
-                      </small>
-                    </button>
-                    {/*
-                      YALNIZ 3. KADEME reklamla atlanabilir — kullanıcı isteği:
-                      "gerçek para ödeme sistemini kaldır. 3. personele reklam
-                      ekle diğerleri yine kalksın." 1. ve 2. kademede TEK yol
-                      seviyedir (`PERSONNEL_UNLOCK_LEVELS`), başka açılış yok.
-                      Gerçek parayla açma denemesi tamamen geri alındı.
-                    */}
-                    {locked && count === 3 && (
-                      <button
-                        type="button"
-                        className="chip personnelChoice__unlock"
-                        disabled={s.rewardedAdPending === 'personnelTempUnlock'}
-                        onClick={() => s.requestPersonnelTempUnlock(count)}
-                        aria-label={t(premium ? 'Premium ile {gun} gün ücretsiz aç' : 'Reklam izle, {gun} gün boyunca ücretsiz aç', {
-                          gun: PERSONNEL_TEMP_UNLOCK_DAYS,
-                        })}
-                        title={t(premium ? 'Premium ile {gun} gün ücretsiz aç' : 'Reklam izle, {gun} gün boyunca ücretsiz aç', {
-                          gun: PERSONNEL_TEMP_UNLOCK_DAYS,
-                        })}
-                      >
-                        {!premium && <IconVideo size={11} />}
-                        <span>{s.rewardedAdPending === 'personnelTempUnlock'
-                          ? t(premium ? 'İşlem sürüyor…' : 'Reklam yükleniyor…')
-                          : t('{gun} gün aç', { gun: PERSONNEL_TEMP_UNLOCK_DAYS })}</span>
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {/*
-              GEÇİCİ AÇILIŞ DURUMU — reklamla açılan kademe hâlâ süresi
-              dolmadıysa kalan gün burada görünür; ne zaman biteceğini
-              bilmeden oyuncu "neden düştü" diye şaşırmasın.
-            */}
-            {personnelTempUnlockActive(s.store, s.market.day) && (
-              <p className="personnelWaiver">
-                {t('{n} personel geçici açık — {gun} gün kaldı.', {
-                  n: personnelTempUnlockTier(s.store),
-                  gun: s.store.personnelTempUnlockUntilDay! - s.market.day + 1,
-                })}
-              </p>
-            )}
-            {pendingPersonnel !== null && <div role="group" aria-label={t('Personel onayı')}>
-              <p>
-                {t('{n} personel · aylık toplam {tutar}.', {
-                  n: pendingPersonnel,
-                  tutar: tl(PERSONNEL_MONTHLY[pendingPersonnel]!),
-                })}{' '}
-                {t('Günlük gider kapanışta tahsil edilir.')}
-              </p>
-              <button type="button" className="chip" onClick={() => { s.setPersonnelCount(pendingPersonnel); setPendingPersonnel(null); }}>{t('Personeli Onayla')}</button>
-              <button type="button" className="chip" onClick={() => setPendingPersonnel(null)}>{t('Vazgeç')}</button>
-            </div>}
-            {/*
-              GÜNLÜK REKLAM DOLUMU — personel varsa, bugünün gideri henüz
-              ücretsizleşmediyse gösterilir. Ertesi gün `advanceDay()`
-              `personnelCostWaivedToday`'i sıfırlar, düğme yeniden görünür.
-            */}
-            {personnelCount(s.store) > 0 && (
-              <p className="personnelWaiver">
-                {s.personnelCostWaivedToday ? (
-                  t('Bugünkü personel gideri ({tutar}) ücretsizleşti.', {
-                    tutar: tl(personnelDaily(s.store)),
-                  })
-                ) : (
-                  <>
-                    {t('Bugünkü personel gideri: {tutar}.', { tutar: tl(personnelDaily(s.store)) })}{' '}
-                    <button
-                      type="button"
-                      className="chip"
-                      disabled={s.rewardedAdPending === 'personnelWaiver'}
-                      onClick={() => s.requestPersonnelAdWaiver()}
-                    >
-                      <IconVideo size={14} />{' '}
-                      {s.rewardedAdPending === 'personnelWaiver'
-                        ? t(premium ? 'İşlem sürüyor…' : 'Reklam yükleniyor…')
-                        : t(premium ? 'Premium: bugün ücretsiz olsun' : 'Reklam izle, bugün ücretsiz olsun')}
-                    </button>
-                  </>
-                )}
-              </p>
-            )}
-          </div>}
-        </div>
+        <div className="group"><PersonnelShortcut /></div>
         <div className="group">
           <h2 className="group__title">{t('Günlük Akış')}</h2>
           <div className="group__body v5Controls">

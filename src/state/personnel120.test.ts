@@ -30,7 +30,7 @@ function running(overrides: Partial<GameState> = {}): void {
     workshopCapacity: 3, supplier: { ...initial.store.supplier, openInvoices: [] }, payables: [] },
     tab: 'shop', speed: 1, profileSetupDone: true, seenLessons: LESSONS.map(lesson => lesson.id),
     profileOpen: false, settingsOpen: false, rankingOpen: false, stockCatalogOpen: false,
-    shopTalentTreeOpen: false, dayCloseConfirmOpen: false, dayReportOpen: false,
+    shopTalentTreeOpen: false, personnelOpen: false, dayCloseConfirmOpen: false, dayReportOpen: false,
     rewardedAdPending: null, activeDeal: null, activeCustomer: null, recallableGuest: null,
     inventory: [], items: {}, jobs: [], jobCounter: 0, ledger: createLedger(), customers: {},
     rewardedDailyUses: {},
@@ -114,6 +114,7 @@ describe('1.2.0 personnel active-play integration', () => {
 
   it.each([
     ['management', { tab: 'business' as const }], ['modal', { rankingOpen: true }],
+    ['personnel management', { personnelOpen: true }],
     ['quick stock', { stockCatalogOpen: true }], ['rewarded ad', { rewardedAdPending: 'customerRush' as const }],
   ])('does not accrue or sell during %s', (_, patch) => {
     saleQueue();

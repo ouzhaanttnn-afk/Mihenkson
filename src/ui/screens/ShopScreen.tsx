@@ -128,6 +128,7 @@ import type {
   WorkbenchStage,
 } from '@domain/types';
 import { TalentTreePanel } from './TalentTreePanel';
+import { PersonnelShortcut } from './PersonnelPanel';
 import { RankingButton } from '@ui/shell/RankingDialog';
 
 const TOOL_ICON: Record<string, typeof IconScale> = {
@@ -806,6 +807,8 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
           </button>
         </div> : null}
       </section>
+
+      <PersonnelShortcut shop />
 
       {!s.inventory.some(p => {
         const item = s.items[p.itemId];

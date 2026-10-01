@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGame, setSimulationForeground } from '@state/gameStore';
 import { BottomNav } from '@ui/shell/BottomNav';
 import { BusinessScreen } from '@ui/screens/BusinessScreen';
+import { PersonnelSheet } from '@ui/screens/PersonnelPanel';
 import { ShopScreen } from '@ui/screens/ShopScreen';
 import { StockScreen } from '@ui/screens/StockScreen';
 import { WorkshopScreen } from '@ui/screens/WorkshopScreen';
@@ -79,6 +80,7 @@ export function App() {
   const profileOpen = useGame((s) => s.profileOpen);
   const settingsOpen = useGame((s) => s.settingsOpen);
   const rankingOpen = useGame((s) => s.rankingOpen);
+  const personnelOpen = useGame((s) => s.personnelOpen);
   const profileSetupDone = useGame((s) => s.profileSetupDone);
   const completeProfileSetup = useGame((s) => s.completeProfileSetup);
   const closeProfile = useGame((s) => s.closeProfile);
@@ -288,7 +290,7 @@ export function App() {
         <RecallDialog />
 
         {/*
-          CİHAZ SEVİYESİ MODAL ÖNCELİĞİ: welcome > profil > ayarlar.
+          CİHAZ SEVİYESİ MODAL ÖNCELİĞİ: welcome > profil > ayarlar > sıralama > personel.
 
           Bu yüzeyler ekranın içine konsa Dükkan'ın `overflow: hidden`
           gövdesine hapsolur. Tek zincir olmaları da yalnız normal akışı
@@ -312,6 +314,8 @@ export function App() {
           <SettingsDialog />
         ) : rankingOpen ? (
           <RankingDialog />
+        ) : personnelOpen ? (
+          <PersonnelSheet />
         ) : null}
 
         {/*

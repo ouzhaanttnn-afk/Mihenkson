@@ -262,7 +262,7 @@ export function WorkshopScreen() {
                   : t('{n} kişi', { n: s.store.staff.length + personnelRoles(s.store).filter(role => role === 'workshop').length })}
               </span>
             </div>
-            <p className="emptyNote">{t('Boş usta: {n}. İşletme → Personel bölümünden atölye görevi seç. Her boş usta yeni işin riskini 6 puan azaltır; kabul edilen işin sonucu sonradan değişmez.', { n: availableWorkshopStaff(s.store, s.jobs).length })}</p>
+            <p className="emptyNote">{t('Boş usta: {n}. Dükkan → Personel bölümünden atölye görevi seç. Her boş usta yeni işin riskini 6 puan azaltır; kabul edilen işin sonucu sonradan değişmez.', { n: availableWorkshopStaff(s.store, s.jobs).length })}</p>
             <div className="statLine">
               <span className="statLine__label">{t('Yoğunluk risk etkisi')}</span>
               <span className="statLine__value statLine__value--warning num">

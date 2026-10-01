@@ -2169,4 +2169,8 @@ export const EN: Record<string, string> = {
   'Sistem': 'System',
   'Açık tema': 'Light',
   'Koyu tema': 'Dark',
+  '{n} personel · Kapasite {kap}': '{n} staff · Queue capacity {kap}',
+  'Kadro ve görevler': 'Team and assignments',
+  'Personel ekranını kapat': 'Close staff management',
+  'Boş usta: {n}. Dükkan → Personel bölümünden atölye görevi seç. Her boş usta yeni işin riskini 6 puan azaltır; kabul edilen işin sonucu sonradan değişmez.': 'Available craftspeople: {n}. Select the workshop role in Shop → Staff. Each available craftsperson reduces new-job risk by 6 points; accepted outcomes never change afterwards.',
 };

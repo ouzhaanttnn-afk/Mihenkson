@@ -385,6 +385,9 @@ export interface GameState {
   /** Dükkan içindeki yetenek ağacı modalı (yalnız arayüz durumu). */
   shopTalentTreeOpen: boolean;
   setShopTalentTreeOpen: (open: boolean) => void;
+  /** Personnel sheet is transient UI; never persisted in player progress. */
+  personnelOpen: boolean;
+  setPersonnelOpen: (open: boolean) => void;
   /** Transient UI only; never saved with player progress. */
   rankingOpen: boolean;
   setRankingOpen: (open: boolean) => void;
@@ -713,6 +716,7 @@ export const useGame = create<GameState>((set, get) => {
     dayCloseIssue: null,
     stockCatalogOpen: false,
     shopTalentTreeOpen: false,
+    personnelOpen: false,
     rankingOpen: false,
     nextCustomerAtMinutes: DAY.openMinutes + 3,
 
@@ -753,17 +757,23 @@ export const useGame = create<GameState>((set, get) => {
             dayCloseIssue: null,
             stockCatalogOpen: false,
             shopTalentTreeOpen: false,
+            personnelOpen: false,
             rankingOpen: false,
           };
         }
-        return s.tab === tab ? { tabHomeSignal: s.tabHomeSignal + 1, rankingOpen: false } : { tab, rankingOpen: false };
+        return s.tab === tab
+          ? { tabHomeSignal: s.tabHomeSignal + 1, rankingOpen: false, personnelOpen: false }
+          : { tab, rankingOpen: false, personnelOpen: false };
       }),
     // Ana Dükkan'daki hızlı alım, oyuncuyu bağlamından koparmadan sheet açar.
     // Stok ekranındaki aynı katalog kendi açılır tezgâhı olarak yaşamaya devam eder.
-    openStockCatalog: () => set({ stockCatalogOpen: true }),
-    setStockCatalogOpen: (stockCatalogOpen) => set({ stockCatalogOpen }),
-    setShopTalentTreeOpen: (shopTalentTreeOpen) => set({ shopTalentTreeOpen }),
-    setRankingOpen: (rankingOpen) => set({ rankingOpen }),
+    openStockCatalog: () => set({ stockCatalogOpen: true, personnelOpen: false }),
+    setStockCatalogOpen: (stockCatalogOpen) => set({ stockCatalogOpen, ...(stockCatalogOpen ? { personnelOpen: false } : {}) }),
+    setShopTalentTreeOpen: (shopTalentTreeOpen) => set({ shopTalentTreeOpen, ...(shopTalentTreeOpen ? { personnelOpen: false } : {}) }),
+    setRankingOpen: (rankingOpen) => set({ rankingOpen, ...(rankingOpen ? { personnelOpen: false } : {}) }),
+    setPersonnelOpen: (personnelOpen) => set({ personnelOpen,
+      ...(personnelOpen ? { stockCatalogOpen: false, shopTalentTreeOpen: false, rankingOpen: false } : {}),
+    }),
     setPersonnelCount: (count) => {
       const s = get();
       if (!canSetPersonnel(s.store, count, s.market.day)) return;
@@ -916,7 +926,7 @@ export const useGame = create<GameState>((set, get) => {
      * Geçersiz ad sessizce yutulmaz: çağıran taraf zaten doğrulamış olmalı,
      * yine de burada son bir kez süzülür ki bozuk bir ad kayda giremesin.
      */
-    openProfile: () => set({ profileOpen: true }),
+    openProfile: () => set({ profileOpen: true, personnelOpen: false }),
     closeProfile: () => set({ profileOpen: false }),
 
     /*
@@ -935,7 +945,7 @@ export const useGame = create<GameState>((set, get) => {
       return true;
     },
 
-    openSettings: () => set({ settingsOpen: true }),
+    openSettings: () => set({ settingsOpen: true, personnelOpen: false }),
     closeSettings: () => set({ settingsOpen: false }),
 
     /*
@@ -3887,7 +3897,7 @@ export function clockPauseReason(s: GameState): ClockPauseReason | null {
   if (s.settingsOpen) return 'settings';
   if (s.dayCloseConfirmOpen || s.dayReportOpen) return 'day-close';
   if (s.stockCatalogOpen) return 'quick-stock';
-  if (s.shopTalentTreeOpen || s.rankingOpen) return 'shop-modal';
+  if (s.shopTalentTreeOpen || s.rankingOpen || s.personnelOpen) return 'shop-modal';
   if (s.rewardedAdPending !== null) return 'rewarded-ad';
   if (s.activeDeal !== null || s.recallableGuest !== null) return 'customer-deal';
   if (nextLesson(coachContextOf(s), s.seenLessons) !== null) return 'onboarding';
