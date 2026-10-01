@@ -36,7 +36,7 @@ import type {
   MarketState,
   StoreState,
 } from './types';
-import { defaultSkillProgress, startingPatience, type SkillProgress } from './skill-tree';
+import { defaultSkillProgress, startingPatience, visitSkills, type SkillProgress } from './skill-tree';
 
 export interface SpawnedCustomer {
   customer: Customer;
@@ -217,6 +217,7 @@ export function spawnCustomer(
   const base: Customer = {
     id,
     visitId: id,
+    skillSnapshot: visitSkills(skills),
     displayName,
     archetype: archetypeId,
     intent,

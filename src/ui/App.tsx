@@ -18,6 +18,7 @@ import { useGame, setSimulationForeground } from '@state/gameStore';
 import { BottomNav } from '@ui/shell/BottomNav';
 import { BusinessScreen } from '@ui/screens/BusinessScreen';
 import { PersonnelSheet } from '@ui/screens/PersonnelPanel';
+import { TalentTreeSheet } from '@ui/screens/TalentTreePanel';
 import { ShopScreen } from '@ui/screens/ShopScreen';
 import { StockScreen } from '@ui/screens/StockScreen';
 import { WorkshopScreen } from '@ui/screens/WorkshopScreen';
@@ -81,6 +82,7 @@ export function App() {
   const settingsOpen = useGame((s) => s.settingsOpen);
   const rankingOpen = useGame((s) => s.rankingOpen);
   const personnelOpen = useGame((s) => s.personnelOpen);
+  const talentOpen = useGame((s) => s.shopTalentTreeOpen);
   const profileSetupDone = useGame((s) => s.profileSetupDone);
   const completeProfileSetup = useGame((s) => s.completeProfileSetup);
   const closeProfile = useGame((s) => s.closeProfile);
@@ -316,6 +318,8 @@ export function App() {
           <RankingDialog />
         ) : personnelOpen ? (
           <PersonnelSheet />
+        ) : talentOpen ? (
+          <TalentTreeSheet />
         ) : null}
 
         {/*

@@ -98,7 +98,6 @@ import {
   IconVideo,
   IconWholesale,
   IconWorkshop,
-  IconBusiness,
 } from '@ui/icons';
 import { Art } from '@ui/Art';
 import { customerArt, NAV_ART, shopBadgeArt } from '@ui/assets';
@@ -127,7 +126,7 @@ import type {
   PurchaseSession,
   WorkbenchStage,
 } from '@domain/types';
-import { TalentTreePanel } from './TalentTreePanel';
+import { TalentShortcut } from './TalentTreePanel';
 import { PersonnelShortcut } from './PersonnelPanel';
 import { RankingButton } from '@ui/shell/RankingDialog';
 
@@ -565,32 +564,6 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-function TalentTreeSheet({ onClose }: { onClose: () => void }) {
-  const { dialogRef, initialFocusRef } = useModalSurface(onClose);
-
-  return (
-    <div className="talentTreeScrim" role="presentation" onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose();
-    }}>
-      <section
-        ref={dialogRef}
-        className="talentTreeSheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="shop-talent-title"
-        tabIndex={-1}
-      >
-        <header className="talentTreeSheet__head">
-          <div><span>{t('Uzmanlık')}</span><h2 id="shop-talent-title">{t('Yetenek Ağacı')}</h2></div>
-          <button ref={initialFocusRef} type="button" onClick={onClose} aria-label={t('Yetenek ağacını kapat')}>×</button>
-        </header>
-        <div className="talentTreeSheet__scroll"><TalentTreePanel /></div>
-        <button type="button" className="talentTreeSheet__done" onClick={onClose}>{t('Dükkana Dön')}</button>
-      </section>
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // IDLE — müşteri yok (GDD 23.10.1)
 // ---------------------------------------------------------------------------
@@ -765,12 +738,6 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         </button>
 
         {shopOverviewOpen ? <div className="shopOverview__details" id="shop-overview-details">
-          <button type="button" className="shopTalentButton" disabled>
-            <span><IconBusiness size={18} /> {t('Yetenek Ağacı')}</span>
-            <small>{t('Yakında')}</small>
-            <span aria-hidden="true">›</span>
-          </button>
-
           <button type="button" className="position" onClick={() => s.setTab('stock')}>
           <span className="position__cell">
             <span className="position__icon" aria-hidden="true"><IconCash size={15} /></span>
@@ -809,6 +776,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
       </section>
 
       <PersonnelShortcut shop />
+      <TalentShortcut />
 
       {!s.inventory.some(p => {
         const item = s.items[p.itemId];
@@ -848,9 +816,6 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
        * Pazar günü gizlenmez, söner — gerekçesi orada yazılı.
        */}
 
-      {s.shopTalentTreeOpen ? (
-        <TalentTreeSheet onClose={() => s.setShopTalentTreeOpen(false)} />
-      ) : null}
     </div>
   );
 }

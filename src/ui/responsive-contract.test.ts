@@ -53,10 +53,15 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(css).toMatch(/\.personnelSheet__scroll\s*\{[^}]*overflow-y: auto/);
     expect(css).toMatch(/\.personnelSheet__done\s*\{[^}]*min-height: var\(--touch-min\)/);
   });
-  it('ertelenen yetenek ağacı girişi Yakında etiketiyle pasiftir', () => {
+  it('yetenek ağacı ana ekrandan açılır ve cihaz seviyesinde çizilir', () => {
     const shop = projectFile('src/ui/screens/ShopScreen.tsx');
-    expect(shop).toContain('className="shopTalentButton" disabled');
-    expect(shop).toContain("<small>{t('Yakında')}</small>");
+    const app = projectFile('src/ui/App.tsx');
+    const talent = projectFile('src/ui/screens/TalentTreePanel.tsx');
+    expect(shop).toContain('<TalentShortcut />');
+    expect(shop).not.toContain('<TalentTreeSheet');
+    expect(app).toContain('<TalentTreeSheet />');
+    expect(talent).toContain('aria-haspopup="dialog"');
+    expect(talent).not.toContain("t('Yakında')");
   });
 
   it('oyun kabuğunda iOS odak ve pinch yakınlaştırmasını kapatır', () => {
@@ -388,10 +393,11 @@ describe('mobil kabuk sözleşmesi', () => {
       /restoreOutside\(\);\s*if \(previousFocus\?\.isConnected\) previousFocus\.focus/,
     );
     expect(modalSurface).toContain('previousFocus.focus({ preventScroll: true })');
-    expect(shop.match(/useModalSurface\(onClose\)/g)).toHaveLength(2);
-    expect(shop.match(/ref=\{dialogRef\}/g)).toHaveLength(2);
-    expect(shop.match(/ref=\{initialFocusRef\}/g)).toHaveLength(2);
-    expect(shop.match(/tabIndex=\{-1\}/g)).toHaveLength(2);
+    expect(shop.match(/useModalSurface\(onClose\)/g)).toHaveLength(1);
+    expect(shop.match(/ref=\{dialogRef\}/g)).toHaveLength(1);
+    expect(shop.match(/ref=\{initialFocusRef\}/g)).toHaveLength(1);
+    expect(shop.match(/tabIndex=\{-1\}/g)).toHaveLength(1);
+    expect(projectFile('src/ui/screens/TalentTreePanel.tsx')).toContain('useModalSurface<HTMLElement>(close)');
     expect(market).toContain('function MarketPurchaseDialog');
     expect(market).toContain('useModalSurface(onClose)');
     expect(market).toContain('ref={dialogRef}');

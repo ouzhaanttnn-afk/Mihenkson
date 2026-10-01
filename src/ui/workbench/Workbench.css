@@ -1182,8 +1182,8 @@
   text-align: left;
 }
 
-.shopTalentButton > span:first-child { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-caption); font-weight: var(--fw-semibold); white-space: nowrap; }
-.shopTalentButton small { overflow: hidden; color: var(--text-dark-3); font-size: var(--fs-micro); text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.shopTalentButton > span:first-child { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-caption); font-weight: var(--fw-semibold); white-space: normal; }
+.shopTalentButton small { min-width: 0; color: var(--text-dark-2); font-size: var(--fs-caption); text-align: right; overflow-wrap: anywhere; white-space: normal; }
 .shopTalentButton > span:last-child { color: var(--brass-300); font-size: 21px; }
 
 /* ---- Pozisyon paneli — sarrafın "kaç param, kaç malım var" sorusu ---- */

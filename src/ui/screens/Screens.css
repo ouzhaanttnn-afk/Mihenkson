@@ -2399,3 +2399,29 @@
 @media (max-width: 360px) {
   .personnelSheet .personnelChoiceRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Active mastery tree: root dialog, readable at small widths and text scaling. */
+.talentNode__heading { flex-wrap: wrap; }
+.talentNode p { color: var(--text-dark-2); font-size: var(--fs-caption); line-height: 1.45; overflow-wrap: anywhere; }
+.talentTreeScrim { grid-template-rows: minmax(0, 1fr); padding: max(8px, var(--safe-top)) 8px max(8px, var(--safe-bottom)); }
+.talentTreeSheet { min-height: 0; max-height: calc(100dvh - max(8px, var(--safe-top)) - max(8px, var(--safe-bottom))); overflow: hidden; border-bottom: 1px solid var(--brass-500); border-radius: var(--r-sheet); }
+.talentTreeSheet__head, .talentTreeSheet__head button, .talentTreeSheet__done { flex-shrink: 0; }
+.masterySummary { padding: var(--sp-3); border: 1px solid var(--brass-500); border-radius: var(--r-card); background: rgba(104, 63, 160, .12); display: grid; gap: 6px; }
+.masterySummary strong { color: var(--brass-300); font-size: var(--fs-title); }
+.masterySummary span, .masterySummary p { color: var(--text-dark-2); font-size: var(--fs-caption); margin: 0; }
+.masterySummary progress { width: 100%; accent-color: var(--brass-500); }
+.talentBranches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.talentBranches button { min-width: 0; min-height: var(--touch-min); padding: 8px 4px; border: 1px solid var(--brass-500); border-radius: var(--r-card); color: var(--text-dark-1); background: var(--ink-800); font: inherit; overflow-wrap: anywhere; }
+.talentBranches button[aria-pressed='true'] { background: rgba(104, 63, 160, .5); }
+.talentBranches small { display: block; font-size: var(--fs-caption); color: var(--text-dark-2); }
+.talentRankList { display: grid; gap: 8px; padding: 0; list-style: none; }
+.talentRankList li { display: grid; gap: 4px; padding: 8px; border: 1px solid rgba(255,255,255,.14); border-radius: 8px; font-size: var(--fs-caption); color: var(--text-dark-2); overflow-wrap: anywhere; }
+.talentRankList .talentLevel--earned { border-color: var(--brass-500); }
+.talentRankList b, .talentRankList small { color: var(--brass-300); }
+.talentLearn { width: 100%; min-height: var(--touch-min); border: 1px solid var(--brass-400); border-radius: var(--r-pill); padding: 8px; font: inherit; color: var(--palette-211706); background: var(--brass-300); }
+.talentLearn:disabled { background: var(--ink-800); color: var(--text-dark-2); opacity: .75; }
+.talentReset { border-top: 1px solid var(--brass-500); padding-top: var(--sp-3); color: var(--text-dark-2); font-size: var(--fs-caption); }
+.talentReset button { min-height: var(--touch-min); white-space: normal; margin: 4px 8px 4px 0; }
+.talentReset .chip { height: auto; max-width: 100%; overflow-wrap: anywhere; }
+.shopTalentButton small { white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 360px) { .talentNode { grid-template-columns: minmax(0, 1fr); } .talentNode__icon { display: none; } }

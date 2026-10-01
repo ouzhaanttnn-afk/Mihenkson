@@ -122,7 +122,6 @@ import {
 } from '@domain/service';
 import { getTool } from '@data/tools';
 import { getServiceType } from '@data/service-types';
-import { makeId } from '@domain/rng';
 import {
   createRecord,
   recordVisit,
@@ -166,10 +165,17 @@ import {
 } from '@domain/marketplace';
 import {
   defaultSkillProgress,
+  creditMasteryWork,
+  freezeVisitSkills,
+  learnTalent,
+  masterySummary,
+  resetTalents,
   tatliDilEffect,
   toolWithSkillBonuses,
   type SkillProgress,
 } from '@domain/skill-tree';
+import { paidTestCosts } from '@domain/mastery-history';
+import type { TalentId } from '@data/skills';
 import {
   clearSave,
   persistPreferences,
@@ -305,6 +311,8 @@ export interface GameState {
   playerMarket: PlayerMarketState;
   /** Gelecekteki yetenek ağacının kalıcı mekanik kademeleri. */
   skillProgress: SkillProgress;
+  learnSkill: (id: TalentId, expectedRank: number) => boolean;
+  resetSkills: (expectedRevision: number) => boolean;
   /** Ses / titreşim / dil — SUNUM tercihleri, oyun gücü vermez. */
   preferences: PlayerPreferences;
   /** Profil düzenleme penceresi açık mı (yalnız arayüz durumu). */
@@ -762,18 +770,43 @@ export const useGame = create<GameState>((set, get) => {
           };
         }
         return s.tab === tab
-          ? { tabHomeSignal: s.tabHomeSignal + 1, rankingOpen: false, personnelOpen: false }
-          : { tab, rankingOpen: false, personnelOpen: false };
+          ? { tabHomeSignal: s.tabHomeSignal + 1, rankingOpen: false, personnelOpen: false, shopTalentTreeOpen: false }
+          : { tab, rankingOpen: false, personnelOpen: false, shopTalentTreeOpen: false };
       }),
     // Ana Dükkan'daki hızlı alım, oyuncuyu bağlamından koparmadan sheet açar.
     // Stok ekranındaki aynı katalog kendi açılır tezgâhı olarak yaşamaya devam eder.
-    openStockCatalog: () => set({ stockCatalogOpen: true, personnelOpen: false }),
-    setStockCatalogOpen: (stockCatalogOpen) => set({ stockCatalogOpen, ...(stockCatalogOpen ? { personnelOpen: false } : {}) }),
-    setShopTalentTreeOpen: (shopTalentTreeOpen) => set({ shopTalentTreeOpen, ...(shopTalentTreeOpen ? { personnelOpen: false } : {}) }),
-    setRankingOpen: (rankingOpen) => set({ rankingOpen, ...(rankingOpen ? { personnelOpen: false } : {}) }),
+    openStockCatalog: () => set({ stockCatalogOpen: true, personnelOpen: false, shopTalentTreeOpen: false }),
+    setStockCatalogOpen: (stockCatalogOpen) => set({ stockCatalogOpen, ...(stockCatalogOpen ? { personnelOpen: false, shopTalentTreeOpen: false } : {}) }),
+    setShopTalentTreeOpen: (shopTalentTreeOpen) => set({ shopTalentTreeOpen,
+      ...(shopTalentTreeOpen ? { personnelOpen: false, stockCatalogOpen: false, rankingOpen: false, settingsOpen: false, profileOpen: false } : {}) }),
+    setRankingOpen: (rankingOpen) => set({ rankingOpen, ...(rankingOpen ? { personnelOpen: false, shopTalentTreeOpen: false } : {}) }),
     setPersonnelOpen: (personnelOpen) => set({ personnelOpen,
       ...(personnelOpen ? { stockCatalogOpen: false, shopTalentTreeOpen: false, rankingOpen: false } : {}),
     }),
+    learnSkill: (id, expectedRank) => {
+      const s = get(), block = talentActionBlock(s);
+      if (block) { pushToast(set, get, t(block), 'info'); return false; }
+      const next = learnTalent(s.skillProgress, id, expectedRank);
+      if (!next) { pushToast(set, get, t('Yetenek açılamadı; puanı ve mevcut kademeyi kontrol et.'), 'info'); return false; }
+      if (!writeSave({ ...s, skillProgress: next })) {
+        pushToast(set, get, t('Yetenek kaydedilemedi; puanın harcanmadı. Tekrar dene.'), 'negative'); return false;
+      }
+      set({ skillProgress: next });
+      pushToast(set, get, t('Yetenek öğrenildi. Yeni ziyaret ve işlerde geçerli.'), 'positive');
+      return true;
+    },
+    resetSkills: (expectedRevision) => {
+      const s = get(), block = talentActionBlock(s, true);
+      if (block) { pushToast(set, get, t(block), 'info'); return false; }
+      const next = resetTalents(s.skillProgress, s.market.day, expectedRevision);
+      if (!next) return false;
+      if (!writeSave({ ...s, skillProgress: next })) {
+        pushToast(set, get, t('Yetenek kaydedilemedi; puanın harcanmadı. Tekrar dene.'), 'negative'); return false;
+      }
+      set({ skillProgress: next });
+      pushToast(set, get, t('Yetenekler sıfırlandı; kazanılmış puanların geri geldi.'), 'positive');
+      return true;
+    },
     setPersonnelCount: (count) => {
       const s = get();
       if (!canSetPersonnel(s.store, count, s.market.day)) return;
@@ -926,7 +959,7 @@ export const useGame = create<GameState>((set, get) => {
      * Geçersiz ad sessizce yutulmaz: çağıran taraf zaten doğrulamış olmalı,
      * yine de burada son bir kez süzülür ki bozuk bir ad kayda giremesin.
      */
-    openProfile: () => set({ profileOpen: true, personnelOpen: false }),
+    openProfile: () => set({ profileOpen: true, personnelOpen: false, shopTalentTreeOpen: false }),
     closeProfile: () => set({ profileOpen: false }),
 
     /*
@@ -945,7 +978,7 @@ export const useGame = create<GameState>((set, get) => {
       return true;
     },
 
-    openSettings: () => set({ settingsOpen: true, personnelOpen: false }),
+    openSettings: () => set({ settingsOpen: true, personnelOpen: false, shopTalentTreeOpen: false }),
     closeSettings: () => set({ settingsOpen: false }),
 
     /*
@@ -1462,6 +1495,7 @@ export const useGame = create<GameState>((set, get) => {
 
       let head = s.queue[0];
       if (!head) return;
+      head = { ...head, customer: freezeVisitSkills(head.customer, s.skillProgress) };
       cue(set, get, 'customer');
       const targetId = head.customer.demand?.targetInventoryItemId;
       if (targetId && !showcaseStock(s.inventory, s.items).some(p => p.itemId === targetId)) {
@@ -1488,7 +1522,8 @@ export const useGame = create<GameState>((set, get) => {
         };
       });
 
-      const dealId = makeId('deal', s.seed, s.spawnCounter);
+      // Draining several queued arrivals cannot reuse the current global counter.
+      const dealId = head.customer.visitId ? `deal_${head.customer.visitId}` : `deal_${head.customer.id}_${s.market.day}`;
 
       // GDD 10 — ilk karşılaşmada kalıcı kayıt açılır. Kayıt açmadan güven
       // yazacak yer olmaz ve müşteri yine yabancı kalırdı.
@@ -1754,6 +1789,7 @@ export const useGame = create<GameState>((set, get) => {
 
       set({
         ...economyToState({ ...outcome.state, items, ledger }),
+        skillProgress: creditMasteryWork(s.skillProgress, `job:${job.jobId}`, delivery.netContribution, delivery.succeeded),
         toasts: s.toasts.filter((toast) => !readyJobsToastPattern().test(toast.text)),
         jobs: s.jobs.map((j) =>
           j.jobId === jobId ? { ...j, result: 'delivered' as const } : j,
@@ -1778,6 +1814,7 @@ export const useGame = create<GameState>((set, get) => {
       });
 
       pushToast(set, get, delivery.message, delivery.succeeded ? 'positive' : 'negative');
+      announceMasteryGain(set, get, s.skillProgress);
     },
 
     dismissServiceDelivery: () => set({ lastServiceDelivery: null }),
@@ -1882,6 +1919,8 @@ export const useGame = create<GameState>((set, get) => {
       // GDD 6.6 — ürün müşteriyle gider. Stoğa hiçbir an girmez.
       set({
         ...economyToState({ ...outcome.state, ledger }),
+        skillProgress: creditMasteryWork(s.skillProgress, `deal:${deal.dealId}`,
+          verdict.fee - paidTestCosts(ledger, deal.dealId), verdict.paid && verdict.accurate),
         activeCustomer: { ...customer, trust: clamp(customer.trust + verdict.trustDelta, 0, 100) },
         activeDeal: {
           ...deal,
@@ -1900,6 +1939,7 @@ export const useGame = create<GameState>((set, get) => {
           : t('Müşteri ücreti ödemedi.'),
         verdict.paid && verdict.accurate ? 'positive' : verdict.accurate ? 'info' : 'negative',
       );
+      announceMasteryGain(set, get, s.skillProgress);
     },
 
     /** Oyuncu işi almaz — rapor verilmez, ücret alınmaz, itibar oynamaz. */
@@ -1975,7 +2015,7 @@ export const useGame = create<GameState>((set, get) => {
       const item = s.items[line.itemId];
       if (!item) return;
 
-      const tool = toolWithSkillBonuses(getTool(toolId), s.skillProgress);
+      const tool = toolWithSkillBonuses(getTool(toolId), s.activeCustomer?.skillSnapshot ?? s.skillProgress);
       if (tool.unlockLevel > s.store.level) return;
       if (line.testResults.some((test) => test.toolId === tool.id)) {
         pushToast(set, get, t('{arac} bu üründe zaten uygulandı.', { arac: t(tool.name) }), 'info');
@@ -2182,7 +2222,7 @@ export const useGame = create<GameState>((set, get) => {
         purchase: deal.purchase!, customer, items: s.items, market: s.market,
         reputation: s.store.reputation, knowledge: line.knowledge,
         buyCeiling: effectiveCeiling(options, line.selectedThesis),
-        patienceLossTolerated: !!tatliDilEffect(s.skillProgress).patienceLossTolerated,
+        patienceLossTolerated: !!tatliDilEffect(customer.skillSnapshot ?? s.skillProgress).patienceLossTolerated,
       }) : {
         economicBand: s.items[line.itemId] ? customerPriceBand(s.items[line.itemId]!, s.market, 'shopBuys') ?? undefined : undefined,
         customer,
@@ -2193,7 +2233,7 @@ export const useGame = create<GameState>((set, get) => {
         fairValue: haggle.fairValue,
         haggleRoom: haggle.room,
         retailSpread: haggle.retailSpread,
-        patienceLossTolerated: !!tatliDilEffect(s.skillProgress).patienceLossTolerated,
+        patienceLossTolerated: !!tatliDilEffect(customer.skillSnapshot ?? s.skillProgress).patienceLossTolerated,
       };
 
       const result = applyMove(line.negotiation, ctx, move);
@@ -3514,8 +3554,17 @@ function settlePurchase(
   const revalued = revalueInventory(economy.inventory, economy.items, thesisContext(get()));
   set({
     ...economyToState({ ...economy, inventory: revalued }),
+    skillProgress: creditMasteryWork(s.skillProgress, `deal:${deal.dealId}`,
+      price - purchase.packageCost - paidTestCosts(economy.ledger, deal.dealId), accepted),
     activeDeal: { ...deal, settled: true },
   });
+  announceMasteryGain(set, get, s.skillProgress);
+}
+
+function announceMasteryGain(set: (partial: Partial<GameState>) => void, get: () => GameState, before: SkillProgress): void {
+  if (masterySummary(get().skillProgress).earned > masterySummary(before).earned) {
+    pushToast(set, get, t('Bir ustalık puanı kazandın! Yetenek Ağacı’ndan uzmanlığını seç.'), 'positive');
+  }
 }
 
 /**
@@ -3794,7 +3843,7 @@ export function canEnterStage(s: GameState, stage: WorkbenchStage): boolean {
 
 /** Tez/teklif bağlamı — kapasite ve likidite kararı değiştirir (GDD 6.4 / 17.3). */
 export function quoteContext(
-  s: Pick<GameState, 'store' | 'market' | 'jobs'>,
+  s: Pick<GameState, 'store' | 'market' | 'jobs'> & Partial<Pick<GameState, 'skillProgress' | 'activeCustomer'>>,
 ): QuoteContext {
   return {
     store: s.store,
@@ -3802,7 +3851,16 @@ export function quoteContext(
     workshopLoad: inHouseLoad(s.jobs),
     jobs: s.jobs,
     day: s.market.day,
+    skills: s.activeCustomer?.skillSnapshot ?? s.skillProgress,
   };
+}
+
+/** Learning is a deliberate between-visits choice; resets also require all jobs delivered. */
+export function talentActionBlock(s: GameState, reset = false): string | null {
+  if (s.activeDeal || s.activeCustomer || s.recallableGuest) return 'Önce mevcut müşteriyi uğurla.';
+  if (s.rewardedAdPending || s.dayCloseConfirmOpen || s.dayReportOpen || s.weekTransitionPending) return 'Önce açık işlemi tamamla.';
+  if (reset && s.jobs.some(job => job.result !== 'delivered')) return 'Yeniden dağıtmadan önce tüm atölye işlerini teslim et.';
+  return null;
 }
 
 function isDealFinished(deal: ActiveDeal): boolean {

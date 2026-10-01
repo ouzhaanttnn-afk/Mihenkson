@@ -34,11 +34,11 @@ import { normalizeProfile, type PlayerProfile } from '@domain/profile';
 import { normalizePreferences, type PlayerPreferences } from '@domain/preferences';
 import { defaultPlayerMarket, type PlayerMarketState } from '@domain/marketplace';
 import {
-  defaultSkillProgress,
-  normalizeSkillProgress,
+  freezeVisitSkills,
   startingPatience,
   type SkillProgress,
 } from '@domain/skill-tree';
+import { migrateMastery } from '@domain/mastery-history';
 import { getArchetype } from '@data/archetypes';
 import { PURCHASE } from '@domain/balance';
 import { packageCost } from '@domain/purchase';
@@ -264,9 +264,7 @@ export type LoadedState = Pick<
  */
 export function deserialize(file: SaveFile): LoadedState {
   const save = migrate(file);
-  const skillProgress = save.skillProgress
-    ? normalizeSkillProgress(save.skillProgress)
-    : defaultSkillProgress();
+  const skillProgress = migrateMastery(save.skillProgress, save.ledger, save.jobs);
   const market = isMarketSnapshot(save.market)
     ? normalizeMarketSnapshot(save.market, save.clockMinutes)
     : rebuildMarket(save.seed, save.day, save.clockMinutes);
@@ -304,9 +302,10 @@ export function deserialize(file: SaveFile): LoadedState {
     playerMarket: save.playerMarket ?? defaultPlayerMarket(),
     skillProgress,
     // Aktif ziyaret ve yarım pazarlık aynı durumdan devam eder.
-    queue: (save.queue ?? []).map(entry => ({
+    queue: (save.queue ?? []).map((entry, index) => ({
       ...entry,
-      customer: normalizeCustomerPatience(entry.customer, skillProgress),
+      customer: normalizeCustomerPatience({ ...entry.customer,
+        visitId: entry.customer.visitId ?? `legacy_${save.seed}_${save.day}_${save.spawnCounter}_${index}_${entry.customer.id}` }, skillProgress),
     })),
     activeCustomer: save.activeCustomer
       ? normalizeCustomerPatience(save.activeCustomer, skillProgress)
@@ -320,7 +319,8 @@ export function deserialize(file: SaveFile): LoadedState {
     rewardedSupplyExpressReady: save.rewardedSupplyExpressReady ?? false,
     rewardedFreeShippingReady: save.rewardedFreeShippingReady ?? false,
     rewardedCosmeticTrial: save.rewardedCosmeticTrial ?? null,
-    recallableGuest: save.recallableGuest?.deal ? save.recallableGuest : null,
+    recallableGuest: save.recallableGuest?.deal ? { ...save.recallableGuest,
+      customer: normalizeCustomerPatience(save.recallableGuest.customer, skillProgress) } : null,
     lastDayReport: save.lastDayReport ?? null,
     dayReportOpen: !!save.dayReportOpen && !!save.lastDayReport,
     customerMessage: save.customerMessage ?? '',
@@ -537,14 +537,19 @@ function normalizeCustomerPatience(
   customer: NonNullable<GameState['activeCustomer']>,
   skills: SkillProgress,
 ): NonNullable<GameState['activeCustomer']> {
+  const frozen = freezeVisitSkills(customer, skills);
+  if (Number.isFinite(customer.patienceMax) && customer.patienceMax > 0 && Number.isFinite(customer.patience)) {
+    return { ...frozen, patience: Math.max(0, Math.min(customer.patienceMax, customer.patience)) };
+  }
   const archetype = getArchetype(customer.archetype);
-  const base = startingPatience(archetype.patienceBand[0], skills);
+  const base = startingPatience(archetype.patienceBand[0], frozen.skillSnapshot ?? skills);
   const max = customer.demand?.isBulk
     ? Math.round(base * PURCHASE.bulk.patienceFactor)
     : base;
-  const remainingRatio = customer.patience / Math.max(1, customer.patienceMax);
+  const remainingRatio = Number.isFinite(customer.patience) && Number.isFinite(customer.patienceMax)
+    ? customer.patience / Math.max(1, customer.patienceMax) : 1;
   return {
-    ...customer,
+    ...frozen,
     patienceMax: max,
     patience: Math.max(0, Math.min(max, Math.round(remainingRatio * max))),
   };

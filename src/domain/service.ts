@@ -22,6 +22,7 @@
 
 import { t } from '@i18n/index';
 import { availableWorkshopStaff } from './personnel';
+import { workshopRiskReduction, type SkillProgress } from './skill-tree';
 import { CONDITION_DEDUCTION, CONDITION_ORDER, SERVICE } from './balance';
 import { getTemplate } from '@data/item-templates';
 import { rulesFor } from '@data/product-classes';
@@ -142,6 +143,7 @@ export function improveCondition(from: ConditionGrade, steps: number): Condition
 // ---------------------------------------------------------------------------
 
 export interface QuoteContext {
+  skills?: SkillProgress;
   jobs?: ServiceJob[];
   store: StoreState;
   market: MarketState;
@@ -175,7 +177,7 @@ export function errorRisk(
   const equipmentBonus = SERVICE.equipmentBonusByTier[ctx.store.storeTier] ?? 0;
 
   const raw =
-    type.difficulty + load * SERVICE.loadRiskWeight - staffSkill - equipmentBonus;
+    type.difficulty + load * SERVICE.loadRiskWeight - staffSkill - equipmentBonus - workshopRiskReduction(ctx.skills);
 
   return clamp01(raw);
 }

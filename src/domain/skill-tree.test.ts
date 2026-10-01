@@ -24,7 +24,7 @@ describe('ayar testi yetenek altyapısı', () => {
   });
 
   it('bozuk veya sınır dışı kayıtları güvenli aralığa çeker', () => {
-    expect(normalizeSkillProgress()).toEqual({ assayAccuracyRank: 0, tatliDilLevel: 0 });
+    expect(normalizeSkillProgress()).toEqual(defaultSkillProgress());
     expect(normalizeSkillProgress({ assayAccuracyRank: -4 }).assayAccuracyRank).toBe(0);
     expect(normalizeSkillProgress({ assayAccuracyRank: 99 }).assayAccuracyRank).toBe(3);
   });

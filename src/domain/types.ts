@@ -379,6 +379,8 @@ export interface Customer {
   id: string;
   /** Spawn identity for this visit; returning customers keep their person id. */
   visitId?: string;
+  /** Immutable skill effects captured when this visit arrives. */
+  skillSnapshot?: import('./skill-tree').VisitSkills;
   displayName: string;
   archetype: ArchetypeId;
   intent: CustomerIntent;
