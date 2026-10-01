@@ -129,7 +129,13 @@ export function grams(n: number): string {
 /** Havuz / HAS bakiyeleri miligram görünürlüğünü korur. */
 export function preciseGrams(n: number): string {
   const locale = getLanguage() === 'en' ? 'en-US' : 'tr-TR';
-  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 3 }).format(n)} g`;
+  const key = `${locale}|milligrams`;
+  let formatter = formatterCache.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 3 });
+    formatterCache.set(key, formatter);
+  }
+  return `${formatter.format(n)} g`;
 }
 
 /**

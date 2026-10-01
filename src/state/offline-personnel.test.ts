@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@ui/ads', () => ({ showRewardedAd: vi.fn(), showInterstitialAd: vi.fn() }));
+vi.mock('@ui/session-ad-runtime', () => ({ noteCompletedSessionTrade: vi.fn(),
+  resetSessionAds: vi.fn(), trySessionAdBreak: vi.fn().mockResolvedValue(false) }));
 import { offlineFixture } from '@domain/offline-personnel-fixture';
 import { emptyOfflineClock, OFFLINE_ATTEMPT_MS, OFFLINE_MAX_MS } from '@domain/offline-personnel';
 import { LESSONS } from '@domain/onboarding';

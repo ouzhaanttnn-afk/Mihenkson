@@ -13,7 +13,7 @@ import { MonthlyLeaderboard } from './MonthlyLeaderboard';
 
 import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { customerDensity, shopPresentationBonus } from '@domain/customer-traffic';
 import { availablePoolSupply, poolSupplyItem } from '@domain/pool-supply';
 
@@ -65,6 +65,7 @@ import {
 import { Art } from '@ui/Art';
 import { NAV_ART, merchantArt } from '@ui/assets';
 import { clock, moneyUnit, multiplier, pct, pctChange, price, priceRawTl, tl, tlSigned } from '@ui/format';
+import { journalWindow } from '@ui/journal-window';
 import { TalentTreePanel } from './TalentTreePanel';
 import { PersonnelShortcut } from './PersonnelPanel';
 import { WholesalerLiquidationList } from './WholesalerLiquidation';
@@ -1417,9 +1418,20 @@ function Sparkline({ points }: { points: number[] }) {
  * GDD 23.20: "Liste: kısa işlem satırı — ürün, kapanış, kâr/zarar, güven delta."
  * "Öğrenme: işlem öncesi cevabı vermez; sonuçtan sonra 'neden' gösterir."
  */
-function JournalRoute({ onBack }: { onBack: () => void }) {
-  const s = useGame();
-  const deals = s.ledger.deals.slice().reverse();
+export function JournalRoute({ onBack }: { onBack: () => void }) {
+  const history = useGame((s) => s.ledger.deals);
+  const items = useGame((s) => s.items);
+  useGame((s) => s.preferences.language);
+  useGame((s) => s.preferences.currency);
+  const [requestedPage, setRequestedPage] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { entries: deals, page, pageCount, total } = useMemo(
+    () => journalWindow(history, requestedPage), [history, requestedPage],
+  );
+  const changePage = (nextPage: number) => {
+    setRequestedPage(nextPage);
+    scrollRef.current?.scrollTo({ top: 0 });
+  };
 
   return (
     <div className="page">
@@ -1429,11 +1441,12 @@ function JournalRoute({ onBack }: { onBack: () => void }) {
         </button>
         <h1 className="pageHead__title" id="ledger-page-title">{t('İşlem Defteri')}</h1>
         <p className="pageHead__sub">
-          {t('{n} kayıt · her işlemin gerekçesi ve sonucu', { n: deals.length })}
+          {t('{n} kayıt · her işlemin gerekçesi ve sonucu', { n: total })}
         </p>
       </header>
 
       <div
+        ref={scrollRef}
         className="page__scroll"
         role="region"
         aria-labelledby="ledger-page-title"
@@ -1454,7 +1467,7 @@ function JournalRoute({ onBack }: { onBack: () => void }) {
         ) : (
           <div className="rowList">
             {deals.map((deal) => {
-              const item = s.items[deal.itemIds[0] ?? ''];
+              const item = items[deal.itemIds[0] ?? ''];
               const accepted = deal.finalState === 'ACCEPTED';
               const delta = accepted ? deal.actualValue - deal.price : 0;
 
@@ -1518,6 +1531,17 @@ function JournalRoute({ onBack }: { onBack: () => void }) {
           </div>
         )}
       </div>
+      {pageCount > 1 && (
+        <nav className="journalPagination" aria-label={t('İşlem Defteri')}>
+          <button type="button" className="chip" disabled={page === 0}
+            onClick={() => changePage(page - 1)}>{t('Önceki')}</button>
+          <span className="num" role="status" aria-live="polite">
+            {t('Sayfa {simdi}/{toplam}', { simdi: page + 1, toplam: pageCount })}
+          </span>
+          <button type="button" className="chip" disabled={page === pageCount - 1}
+            onClick={() => changePage(page + 1)}>{t('Sonraki')}</button>
+        </nav>
+      )}
     </div>
   );
 }

@@ -45,7 +45,7 @@ import {
   type SpeedStep,
 } from '@domain/balance';
 import { createMarketForDay, stepMarketIntraday } from '@domain/market';
-import { isShopOpen, weekdayOf } from '@domain/calendar';
+import { isShopOpen } from '@domain/calendar';
 import { nextCustomerDelay, spawnCustomer } from '@domain/customer-spawn';
 import {
   dayCharacter,
@@ -190,7 +190,8 @@ import {
   writeSave,
 } from './save';
 import type { SoundId } from '@ui/audio';
-import { showInterstitialAd, showRewardedAd, type RewardKind } from '@ui/ads';
+import { showRewardedAd, type RewardKind } from '@ui/ads';
+import { noteCompletedSessionTrade, resetSessionAds, trySessionAdBreak } from '@ui/session-ad-runtime';
 import { rewardedFailureMessage } from '@ui/ad-feedback';
 import type {
   ActiveDeal,
@@ -391,6 +392,8 @@ export interface GameState {
   cancelDayClose: () => void;
   startNewDay: () => void;
   weekTransitionPending: boolean;
+  /** Neutral ad-break transition, not game progress; never serialized. */
+  interstitialAdPending: boolean;
   stockCatalogOpen: boolean;
   openStockCatalog: () => void;
   setStockCatalogOpen: (open: boolean) => void;
@@ -700,6 +703,7 @@ export const useGame = create<GameState>((set, get) => {
     speed4xUnlocked: false,
     rankingSeason: null,
     weekTransitionPending: false,
+    interstitialAdPending: false,
     customerRushUntilMinutes: null,
     rewardedAdPending: null,
     sponsorRewardClaimedDay: null,
@@ -2315,6 +2319,7 @@ export const useGame = create<GameState>((set, get) => {
     // -----------------------------------------------------------------------
     finishDeal: () => {
       const s = get();
+      if (s.interstitialAdPending) return;
       if (
         s.activeDeal?.flow === 'purchase' &&
         s.activeDeal.purchase &&
@@ -2357,6 +2362,16 @@ export const useGame = create<GameState>((set, get) => {
         lastReview: null,
         recallableGuest,
       });
+      // One completed customer visit, not each package line/worker/offline sale.
+      const deal = s.activeDeal;
+      const manualTrade = deal && (deal.flow === 'trade' || deal.flow === 'purchase') &&
+        outcome === 'accepted' && s.ledger.transactions.some(tx => tx.dealId === deal.dealId &&
+          (tx.txId.startsWith('settle_') || tx.txId.startsWith('sale_')));
+      if (manualTrade && savesEnabled() && writeSave(get())) {
+        noteCompletedSessionTrade(deal.dealId);
+        void trySessionAdBreak('trade-complete', () => sessionAdSurfaceSafe(get()),
+          pending => set({ interstitialAdPending: pending }));
+      }
     },
 
     // -----------------------------------------------------------------------
@@ -2908,16 +2923,14 @@ export const useGame = create<GameState>((set, get) => {
     },
     startNewDay: () => {
       const s = get();
-      if (!s.dayReportOpen || s.weekTransitionPending) return;
+      if (!s.dayReportOpen || s.weekTransitionPending || s.interstitialAdPending) return;
       if (!writeSave({ ...s, dayReportOpen: false })) {
         pushToast(set, get, t('Kayıt yazılamadı; gün özeti açık tutuldu.'), 'negative'); return;
       }
-      if (s.lastDayReport && weekdayOf(s.lastDayReport.day) === 6) {
-        set({ weekTransitionPending: true });
-        void showInterstitialAd().catch(() => undefined).finally(() => {
-          if (get().lastDayReport === s.lastDayReport) set({ dayReportOpen: false, weekTransitionPending: false });
-        });
-      } else set({ dayReportOpen: false });
+      set({ dayReportOpen: false });
+      // Replaces the old weekly-only placement; all automatic ads share two slots.
+      if (savesEnabled()) void trySessionAdBreak('day-report', () => sessionAdSurfaceSafe(get()),
+        pending => set({ interstitialAdPending: pending }));
     },
     advanceDay: () => {
       cue(set, get, 'chime');
@@ -3075,14 +3088,8 @@ export const useGame = create<GameState>((set, get) => {
         pushToast(set, get, t(READY_JOBS_TOAST, { n: ready }), 'info');
       }
 
-      /*
-        Pazartesi açılış geçiş reklamı — kullanıcı isteği: "pazardan
-        pazartesiye geçtiğimizde reklam verecez". `s.market.day` burada hâlâ
-        KAPANAN gündür; Pazar (weekdayOf === 6) kapanıp yeni gün açıldığında
-        tetiklenir. FIRE-AND-FORGET: reklam hiçbir state/ekonomi kararını
-        beklemez, bloklamaz — yüklenmezse veya web/dev ortamındaysa sessizce
-        hiçbir şey olmaz (bkz. `showInterstitialAd`).
-      */
+      // No ad during economic day settlement. The saved report's continuation
+      // routes through the same bounded session policy as completed trades.
 
     },
 
@@ -3219,6 +3226,7 @@ export const useGame = create<GameState>((set, get) => {
     },
 
     resetGame: () => {
+      resetSessionAds();
       clearSave();
       /*
         SİLMEK YETMİYOR. Ekrandaki oyun kapanmıyor ve otomatik kayıt
@@ -3227,7 +3235,7 @@ export const useGame = create<GameState>((set, get) => {
         altındaki söz, "yeni oyun bir sonraki açılışta başlar", tutmuyordu.
       */
       suspendSaves();
-      set({ offlinePersonnelClock: emptyOfflineClock(), offlinePersonnelReport: null, offlineSaveIssue: false, offlineResumeAtMs: null });
+      set({ interstitialAdPending: false, offlinePersonnelClock: emptyOfflineClock(), offlinePersonnelReport: null, offlineSaveIssue: false, offlineResumeAtMs: null });
       pushToast(set, get, t('Kayıt silindi. Yeni oyun bir sonraki açılışta başlar.'), 'info');
     },
 
@@ -3265,14 +3273,14 @@ export function setSimulationForeground(active: boolean): void { simulationForeg
 export function offlinePersonnelEligible(s: GameState): boolean {
   return s.profileSetupDone && isShopOpen(s.market.day) && s.market.clockMinutes >= DAY.openMinutes &&
     s.market.clockMinutes < DAY.closeMinutes && !s.activeCustomer && !s.activeDeal && !s.recallableGuest &&
-    !s.dayCloseConfirmOpen && !s.dayReportOpen && !s.weekTransitionPending && s.rewardedAdPending === null &&
+    !s.dayCloseConfirmOpen && !s.dayReportOpen && !s.weekTransitionPending && !s.interstitialAdPending && s.rewardedAdPending === null &&
     nextLesson(coachContextOf(s), s.seenLessons) === null;
 }
 
 export function offlinePersonnelSurfaceVisible(s: GameState): boolean {
   return !!(s.offlinePersonnelReport || s.offlineSaveIssue) && s.profileSetupDone && !s.activeCustomer &&
     !s.activeDeal && !s.recallableGuest && !s.dayCloseConfirmOpen && !s.dayReportOpen &&
-    !s.weekTransitionPending && s.rewardedAdPending === null;
+    !s.weekTransitionPending && !s.interstitialAdPending && s.rewardedAdPending === null;
 }
 
 function refreshPendingServiceQuote(set: (partial: Partial<GameState>) => void, get: () => GameState): void {
@@ -4044,10 +4052,20 @@ export function clockPauseReason(s: GameState): ClockPauseReason | null {
   if (s.dayCloseConfirmOpen || s.dayReportOpen) return 'day-close';
   if (s.stockCatalogOpen) return 'quick-stock';
   if (s.shopTalentTreeOpen || s.rankingOpen || s.personnelOpen) return 'shop-modal';
+  if (s.interstitialAdPending) return 'shop-modal';
   if (s.rewardedAdPending !== null) return 'rewarded-ad';
   if (s.activeDeal !== null || s.recallableGuest !== null) return 'customer-deal';
   if (nextLesson(coachContextOf(s), s.seenLessons) !== null) return 'onboarding';
   return null;
+}
+
+/** Pending itself is allowed here; every player decision/modal remains protected. */
+function sessionAdSurfaceSafe(s: GameState): boolean {
+  return simulationForeground && s.profileSetupDone && s.tab === 'shop' && !s.activeCustomer &&
+    !s.activeDeal && !s.recallableGuest && !s.dayCloseConfirmOpen && !s.dayReportOpen &&
+    !s.profileOpen && !s.settingsOpen && !s.stockCatalogOpen && !s.shopTalentTreeOpen &&
+    !s.rankingOpen && !s.personnelOpen && !s.offlinePersonnelReport && !s.offlineSaveIssue &&
+    s.rewardedAdPending === null && nextLesson(coachContextOf(s), s.seenLessons) === null;
 }
 
 // UI'nin ihtiyaç duyduğu türetilmiş seçiciler.

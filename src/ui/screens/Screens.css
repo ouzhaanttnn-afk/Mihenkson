@@ -2140,9 +2140,7 @@
 }
 
 .talentNode {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: var(--sp-3);
+  display: block;
   padding: var(--sp-3);
   border: 1px solid rgba(242, 236, 222, 0.13);
   border-radius: var(--r-card);
@@ -2151,19 +2149,9 @@
 
 .talentNode--active { border-color: rgba(215, 170, 74, 0.48); }
 
-.talentNode__icon {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(215, 170, 74, 0.28);
-  border-radius: 13px;
-  background: radial-gradient(circle, rgba(104, 63, 160, 0.25), color-mix(in srgb, var(--ink-800) 70%, transparent));
-}
-
 .talentNode__body { min-width: 0; }
 .talentNode__heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
-.talentNode__heading strong { color: var(--text-dark-1); font-family: var(--font-display); font-size: var(--fs-label); }
+.talentNode__heading h3 { margin: 0; color: var(--text-dark-1); font-family: var(--font-display); font-size: var(--fs-subtitle); }
 .talentNode__heading > span { flex: 0 0 auto; color: var(--brass-300); font-size: var(--fs-micro); }
 .talentNode p { margin: 4px 0 var(--sp-2); color: var(--text-dark-3); font-size: var(--fs-micro); line-height: 1.4; }
 .talentNode p b { color: var(--text-dark-1); }
@@ -2328,6 +2316,39 @@
 .offerRow__credit { min-height: var(--touch-min, 44px); display: flex; align-items: center; gap: 8px; }
 .personnelRole select { min-height: var(--touch-min, 44px); font: inherit; }
 
+/* Keep journal navigation reachable without scrolling through a whole page. */
+.journalPagination {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--gutter);
+  border-top: 1px solid var(--page-line);
+  color: var(--text-dark-2);
+  font-size: var(--fs-caption);
+}
+.journalPagination .chip {
+  height: auto;
+  min-height: var(--touch-min);
+  max-width: 100%;
+  padding: var(--sp-2);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.journalPagination .chip:disabled { opacity: .45; }
+.journalPagination > span { text-align: center; overflow-wrap: anywhere; }
+
+/* Native WebKit need not repaint the full game through a blur on every tick. */
+:root[data-native-platform='ios'] :is(
+  .profileScrim, .settingsScrim, .quickStockScrim, .talentTreeScrim,
+  .marketConfirmScrim, .personnelScrim
+),
+:root[data-native-platform='ios'] .dayCloseDialog::backdrop {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 /* Main-shop entry stays outside the collapsed finance summary. */
 .shopPersonnelButton {
   min-height: 58px;
@@ -2412,22 +2433,28 @@
 .talentTreeScrim { grid-template-rows: minmax(0, 1fr); padding: max(8px, var(--safe-top)) 8px max(8px, var(--safe-bottom)); }
 .talentTreeSheet { min-height: 0; max-height: calc(100dvh - max(8px, var(--safe-top)) - max(8px, var(--safe-bottom))); overflow: hidden; border-bottom: 1px solid var(--brass-500); border-radius: var(--r-sheet); }
 .talentTreeSheet__head, .talentTreeSheet__head button, .talentTreeSheet__done { flex-shrink: 0; }
-.masterySummary { padding: var(--sp-3); border: 1px solid var(--brass-500); border-radius: var(--r-card); background: rgba(104, 63, 160, .12); display: grid; gap: 6px; }
-.masterySummary strong { color: var(--brass-300); font-size: var(--fs-title); }
+.masterySummary { padding-bottom: var(--sp-3); border-bottom: 1px solid var(--page-line, var(--line-dark)); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px var(--sp-2); align-items: baseline; }
+.masterySummary strong { color: var(--brass-300); font-size: var(--fs-body); overflow-wrap: anywhere; }
 .masterySummary span, .masterySummary p { color: var(--text-dark-2); font-size: var(--fs-caption); margin: 0; }
-.masterySummary progress { width: 100%; accent-color: var(--brass-500); }
+.masterySummary p, .masterySummary progress { grid-column: 1 / -1; }
+.masterySummary progress { width: 100%; height: 6px; accent-color: var(--brass-500); }
 .talentBranches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.talentBranches button { min-width: 0; min-height: var(--touch-min); padding: 8px 4px; border: 1px solid var(--brass-500); border-radius: var(--r-card); color: var(--text-dark-1); background: var(--ink-800); font: inherit; overflow-wrap: anywhere; }
-.talentBranches button[aria-pressed='true'] { background: rgba(104, 63, 160, .5); }
+.talentBranches button { min-width: 0; min-height: var(--touch-min); padding: 8px 4px; border: 1px solid var(--page-line, var(--line-dark)); border-radius: var(--r-md); color: var(--text-dark-1); background: var(--ink-800); font: inherit; overflow-wrap: anywhere; }
+.talentBranches button[aria-pressed='true'] { border-color: var(--brass-400); background: rgba(196, 141, 43, .12); }
 .talentBranches small { display: block; font-size: var(--fs-caption); color: var(--text-dark-2); }
-.talentRankList { display: grid; gap: 8px; padding: 0; list-style: none; }
-.talentRankList li { display: grid; gap: 4px; padding: 8px; border: 1px solid rgba(255,255,255,.14); border-radius: 8px; font-size: var(--fs-caption); color: var(--text-dark-2); overflow-wrap: anywhere; }
-.talentRankList .talentLevel--earned { border-color: var(--brass-500); }
-.talentRankList b, .talentRankList small { color: var(--brass-300); }
+.talentNode .talentNode__effectLabel { margin: var(--sp-3) 0 var(--sp-1); font-size: var(--fs-micro); color: var(--brass-300); }
+.talentNode .talentNode__effect { margin: 0 0 var(--sp-3); color: var(--text-dark-1); font-size: var(--fs-body); }
+.talentDetails { border-top: 1px solid var(--page-line, var(--line-dark)); font-size: var(--fs-caption); color: var(--text-dark-2); }
+.talentDetails summary { min-height: var(--touch-min); padding: var(--sp-3) 0; color: var(--text-dark-1); cursor: pointer; overflow-wrap: anywhere; }
+.talentDetails summary:focus-visible { outline: 2px solid var(--brass-400); outline-offset: 2px; }
+.talentDetails p { margin: 0 0 var(--sp-2); line-height: var(--lh-relaxed); overflow-wrap: anywhere; }
+.talentRankList { display: grid; padding: 0; list-style: none; }
+.talentRankList li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px var(--sp-3); padding: var(--sp-2) 0; border-top: 1px solid var(--page-line, var(--line-dark)); font-size: var(--fs-caption); color: var(--text-dark-2); overflow-wrap: anywhere; }
+.talentRankList b { color: var(--text-dark-1); background: none; }
+.talentRankList small { grid-column: 2; font-size: var(--fs-micro); }
 .talentLearn { width: 100%; min-height: var(--touch-min); border: 1px solid var(--brass-400); border-radius: var(--r-pill); padding: 8px; font: inherit; color: var(--palette-211706); background: var(--brass-300); }
 .talentLearn:disabled { background: var(--ink-800); color: var(--text-dark-2); opacity: .75; }
-.talentReset { border-top: 1px solid var(--brass-500); padding-top: var(--sp-3); color: var(--text-dark-2); font-size: var(--fs-caption); }
+.talentReset { color: var(--text-dark-2); font-size: var(--fs-caption); }
 .talentReset button { min-height: var(--touch-min); white-space: normal; margin: 4px 8px 4px 0; }
 .talentReset .chip { height: auto; max-width: 100%; overflow-wrap: anywhere; }
 .shopTalentButton small { white-space: normal; overflow-wrap: anywhere; }
-@media (max-width: 360px) { .talentNode { grid-template-columns: minmax(0, 1fr); } .talentNode__icon { display: none; } }

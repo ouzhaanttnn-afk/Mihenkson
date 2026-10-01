@@ -397,6 +397,12 @@ ol {
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.55));
 }
 
+/* Native screens retain panel/icon shadows without large image filter layers. */
+:root[data-native-platform='ios'] .art--hero,
+:root[data-native-platform='ios'] .art--onDark {
+  filter: none;
+}
+
 /*
  * Portre yuvası: dairesel, omuz hizalı. Paketin README'si
  * "object-position: center top" öneriyor — portreler omuzdan kadrajlı,

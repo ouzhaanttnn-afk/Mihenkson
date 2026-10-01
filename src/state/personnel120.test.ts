@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const ads = vi.hoisted(() => ({ showRewardedAd: vi.fn(), showInterstitialAd: vi.fn() }));
 vi.mock('@ui/ads', () => ads);
+vi.mock('@ui/session-ad-runtime', () => ({ noteCompletedSessionTrade: vi.fn(),
+  resetSessionAds: vi.fn(), trySessionAdBreak: vi.fn().mockResolvedValue(false) }));
 
 import { bullionMeta } from '@data/bullion';
 import { getServiceType } from '@data/service-types';

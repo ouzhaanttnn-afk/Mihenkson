@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const ads = vi.hoisted(() => ({ showRewardedAd: vi.fn(), showInterstitialAd: vi.fn() }));
 vi.mock('@ui/ads', () => ads);
+vi.mock('@ui/session-ad-runtime', () => ({ noteCompletedSessionTrade: vi.fn(),
+  resetSessionAds: vi.fn(), trySessionAdBreak: vi.fn().mockResolvedValue(false) }));
 import { useGame } from './gameStore';
 import { deserialize, serialize } from './save';
 import { rankingWealth, calendarMonth, seasonFor } from '@domain/ranking';

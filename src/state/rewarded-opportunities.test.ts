@@ -3,9 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const adMocks = vi.hoisted(() => ({
   showRewardedAd: vi.fn(),
   showInterstitialAd: vi.fn(),
+  trySessionAdBreak: vi.fn(),
 }));
 
 vi.mock('@ui/ads', () => adMocks);
+vi.mock('@ui/session-ad-runtime', () => ({ noteCompletedSessionTrade: vi.fn(),
+  resetSessionAds: vi.fn(), trySessionAdBreak: adMocks.trySessionAdBreak }));
 
 import { createMarketForDay } from '@domain/market';
 import { useGame } from './gameStore';
@@ -22,6 +25,7 @@ beforeEach(() => {
   });
   adMocks.showRewardedAd.mockReset().mockResolvedValue(true);
   adMocks.showInterstitialAd.mockReset().mockResolvedValue(undefined);
+  adMocks.trySessionAdBreak.mockReset().mockResolvedValue(false);
   useGame.setState({
     ...initial,
     market: createMarketForDay(initial.seed, 1),
@@ -87,8 +91,8 @@ describe('isteğe bağlı ödüllü reklam fırsatları', () => {
   });
 });
 
-describe('haftalık zorunlu geçiş reklamı', () => {
-  it('yalnız Pazar kapanıp Pazartesi açılırken interstitial çağırır', () => {
+describe('ortak oturum bütçesine bağlı geçiş reklamı', () => {
+  it('hafta açılışı bütçeyi atlamaz; kaydedilmiş rapor ortak politikaya gider', () => {
     useGame.setState({ market: createMarketForDay(initial.seed, 6) });
     useGame.getState().advanceDay();
     expect(adMocks.showInterstitialAd).not.toHaveBeenCalled();
@@ -102,7 +106,9 @@ describe('haftalık zorunlu geçiş reklamı', () => {
 
     expect(adMocks.showInterstitialAd).not.toHaveBeenCalled();
     useGame.getState().startNewDay();
-    expect(adMocks.showInterstitialAd).toHaveBeenCalledTimes(1);
+    expect(adMocks.showInterstitialAd).not.toHaveBeenCalled();
+    expect(adMocks.trySessionAdBreak).toHaveBeenCalledOnce();
+    expect(adMocks.trySessionAdBreak).toHaveBeenCalledWith('day-report', expect.any(Function), expect.any(Function));
     expect(useGame.getState().market.day).toBe(8);
   });
 });

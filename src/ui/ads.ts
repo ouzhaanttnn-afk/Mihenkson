@@ -32,8 +32,9 @@
  * `.env`'e taşınma sebebi ortam-özgü yapılandırma olmalarıdır. Oyuncunun
  * isteyerek başlattığı bütün ödüller AYNI ödüllü reklam birimini paylaşır —
  * hangi ödülün verileceği reklam biriminin kendisinden değil,
- * `showRewardedAd(kind)`in çağrıldığı yerden gelir. Pazartesi açılış geçiş reklamı
- * (`showInterstitialAd`) AYRI ve FARKLI TÜRDE bir reklam birimi kullanır
+ * `showRewardedAd(kind)`in çağrıldığı yerden gelir. Tamamlanan işlem / gün
+ * raporu arasındaki geçiş reklamı (`showInterstitialAd`) AYRI ve FARKLI
+ * TÜRDE bir reklam birimi kullanır
  * (bkz. aşağıdaki INTERSTITIAL bölümü) — rewarded birimle karıştırılmamalı.
  * ═══════════════════════════════════════════════════════════════════════════
  */
@@ -97,6 +98,8 @@ export function setAdMobTestMode(enabled: boolean): void {
   testModeActive = enabled;
   console.info(`[ADMOB][CONFIG] Test ad mode set to: ${enabled}`);
   resetRewardedAdState();
+  resetInterstitialAdState();
+  initPromise = null;
 }
 
 export function isAdMobTestMode(): boolean {
@@ -257,6 +260,7 @@ interface AdConsentGate {
 }
 
 let initPromise: Promise<AdConsentGate> | null = null;
+let privacyOptionsOpen = false;
 
 /**
  * SDK'yı ve Google UMP onay akışını tek seferlik hazırlar. Reklam isteği
@@ -264,7 +268,7 @@ let initPromise: Promise<AdConsentGate> | null = null;
  * AdMob konsolundaki UMP mesajı tarafından yönetilir; burada ayrıca sistem
  * istemi çağırıp kullanıcıya iki farklı onay akışı göstermeyiz.
  */
-function ensureInitialized(): Promise<AdConsentGate> {
+function ensureInitialized(allowConsentForm = true): Promise<AdConsentGate> {
   if (!initPromise) {
     initPromise = (async () => {
       try {
@@ -281,7 +285,7 @@ function ensureInitialized(): Promise<AdConsentGate> {
       }
 
       let consent = await AdMob.requestConsentInfo();
-      if (!consent?.canRequestAds && consent?.isConsentFormAvailable) {
+      if (allowConsentForm && !consent?.canRequestAds && consent?.isConsentFormAvailable) {
         console.info('[ADMOB][CONSENT] Consent form available, presenting to user...');
         consent = await AdMob.showConsentForm();
       }
@@ -309,10 +313,11 @@ export async function initializeAds(): Promise<void> {
     return;
   }
   try {
+    if (await premiumEntitlement() !== false) return;
     const consent = await ensureInitialized();
     console.info('[ADMOB][INIT] Initialization complete. canRequestAds:', consent.canRequestAds);
     if (consent.canRequestAds) {
-      await preloadRewardedAd();
+      await Promise.all([preloadRewardedAd(), preloadInterstitialAd()]);
     }
   } catch (error) {
     console.error('[ADMOB][INIT_ERROR] initializeAds failed:', error);
@@ -323,7 +328,8 @@ export type AdPrivacyOptionsResult = 'shown' | 'not-required' | 'unavailable' | 
 
 /** Native Ayarlar'daki Google UMP gizlilik tercihleri giriş noktası. */
 export async function showAdPrivacyOptions(): Promise<AdPrivacyOptionsResult> {
-  if (!Capacitor.isNativePlatform()) return 'unavailable';
+  if (!Capacitor.isNativePlatform() || privacyOptionsOpen) return 'unavailable';
+  let opened = false;
   try {
     const consent = await ensureInitialized();
     if (consent.privacyOptionsRequirement === 'UNKNOWN') {
@@ -332,12 +338,25 @@ export async function showAdPrivacyOptions(): Promise<AdPrivacyOptionsResult> {
     if (consent.privacyOptionsRequirement === 'NOT_REQUIRED') {
       return 'not-required';
     }
-    await AdMob.showPrivacyOptionsForm();
+    if (privacyOptionsOpen) return 'unavailable';
+    privacyOptionsOpen = true;
+    opened = true;
+    // Invalidate before presentation too: no old creative may race a changed privacy choice.
+    resetRewardedAdState();
+    resetInterstitialAdState();
     initPromise = null;
+    await AdMob.showPrivacyOptionsForm();
     return 'shown';
   } catch (error) {
     console.warn('[ads] Gizlilik tercihleri açılamadı:', error);
     return 'failed';
+  } finally {
+    if (opened) {
+      privacyOptionsOpen = false;
+      resetRewardedAdState();
+      resetInterstitialAdState();
+      initPromise = null;
+    }
   }
 }
 
@@ -352,12 +371,14 @@ let isRewardedAdLoading = false;
 let rewardedLoadPromise: Promise<boolean> | null = null;
 let loadedAdUnitId: string | null = null;
 let lastLoadFailure: RewardedFeedback = null;
+let rewardedGeneration = 0;
 
 export function isRewardedAdReady(): boolean {
   return isRewardedAdLoaded;
 }
 
 function resetRewardedAdState(): void {
+  rewardedGeneration++;
   isRewardedAdLoaded = false;
   isRewardedAdLoading = false;
   rewardedLoadPromise = null;
@@ -371,7 +392,8 @@ function resetRewardedAdState(): void {
  */
 export async function preloadRewardedAd(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
-  if (await premiumEntitlement() === true) return false;
+  const generation = rewardedGeneration;
+  if (await premiumEntitlement() !== false || generation !== rewardedGeneration) return false;
 
   const unitId = getRewardedAdUnitId();
   if (!unitId) {
@@ -392,10 +414,11 @@ export async function preloadRewardedAd(): Promise<boolean> {
   isRewardedAdLoading = true;
   rewardedLoadPromise = (async () => {
     try {
-      if (!(await ensureInitialized()).canRequestAds) return false;
+      if (!(await ensureInitialized()).canRequestAds || generation !== rewardedGeneration) return false;
 
       console.info(`[ADMOB][REWARDED] Preloading ad (Unit: ${unitId}, TestMode: ${testModeActive})...`);
       await AdMob.prepareRewardVideoAd({ adId: unitId });
+      if (generation !== rewardedGeneration) return false;
       lastLoadFailure = null;
       isRewardedAdLoaded = true;
       loadedAdUnitId = unitId;
@@ -403,6 +426,7 @@ export async function preloadRewardedAd(): Promise<boolean> {
       console.info(`[ADMOB][REWARDED] Preload successful (Unit: ${unitId}).`);
       return true;
     } catch (error: any) {
+      if (generation !== rewardedGeneration) return false;
       isRewardedAdLoaded = false;
       loadedAdUnitId = null;
       isRewardedAdLoading = false;
@@ -410,8 +434,10 @@ export async function preloadRewardedAd(): Promise<boolean> {
       lastLoadFailure = adFailureReason(error);
       return false;
     } finally {
-      isRewardedAdLoading = false;
-      rewardedLoadPromise = null;
+      if (generation === rewardedGeneration) {
+        isRewardedAdLoading = false;
+        rewardedLoadPromise = null;
+      }
     }
   })();
 
@@ -504,47 +530,138 @@ async function presentRewardedAd(kind: RewardKind): Promise<boolean> {
   });
 }
 
-/**
- * Pazartesi açılış geçiş reklamını gösterir. ÖDÜL DÖNDÜRMEZ — bu bir
- * rewarded değil, interstitial: oyuncu başlatmıyor, kapanışını Google'ın
- * kendi reklam çerçevesi yönetiyor.
- *
- * Hafta özeti kapatıldığında çağrılır. Kapatma/hata olayı yeni haftaya geçişi
- * serbest bırakır; native değilse veya yüklenemiyorsa hemen devam edilir.
- */
-async function presentInterstitialAd(): Promise<void> {
-  if (await premiumEntitlement() !== false) return;
-  if (!Capacitor.isNativePlatform()) return;
+export const INTERSTITIAL_LOAD_TIMEOUT_MS = 8_000;
+export const INTERSTITIAL_PREFLIGHT_TIMEOUT_MS = 1_000;
+export const INTERSTITIAL_SHOW_START_TIMEOUT_MS = 5_000;
+export const INTERSTITIAL_CACHE_MAX_AGE_MS = 3_600_000;
+let interstitialGeneration = 0;
+let interstitialLoadPromise: Promise<boolean> | null = null;
+let interstitialCreative: { unitId: string; loadedAtMs: number } | null = null;
+// Native prepares cannot be cancelled and use one cache entry per unit. Keep them serialized
+// even after a JS timeout, so an old response cannot overwrite a newer prepared creative.
+let interstitialNativeLoadPending = false;
 
-  const unitId = getDayOpenAdUnitId();
-  if (!unitId) return;
+function adMonotonicNow(): number {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now();
+}
 
-  try {
-    if (!(await ensureInitialized()).canRequestAds) return;
-    await AdMob.prepareInterstitial({ adId: unitId });
-    if (await premiumEntitlement() !== false) return;
-  } catch (err) {
-    console.warn('[ads] Geçiş reklamı yüklenemedi:', err);
-    return;
+function resetInterstitialAdState(): void {
+  interstitialGeneration++;
+  interstitialCreative = null;
+  interstitialLoadPromise = null;
+}
+
+function boundedAdOperation<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Ad operation timeout')), timeoutMs);
+    operation.then(value => { clearTimeout(timer); resolve(value); }, error => { clearTimeout(timer); reject(error); });
+  });
+}
+
+export function isInterstitialAdReady(): boolean {
+  if (!interstitialCreative) return false;
+  const age = adMonotonicNow() - interstitialCreative.loadedAtMs;
+  if (interstitialCreative.unitId !== getDayOpenAdUnitId() || age < 0 || age >= INTERSTITIAL_CACHE_MAX_AGE_MS) {
+    interstitialCreative = null;
+    return false;
   }
+  return true;
+}
 
-  return new Promise<void>((resolve) => {
+/** Background preparation only. A loaded callback never opens an ad. */
+export function preloadInterstitialAd(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform() || privacyOptionsOpen || adBusy) return Promise.resolve(false);
+  if (interstitialLoadPromise) return interstitialLoadPromise;
+  if (interstitialNativeLoadPending) return Promise.resolve(false);
+  const generation = interstitialGeneration;
+  const unitId = getDayOpenAdUnitId();
+  if (!unitId) return Promise.resolve(false);
+  const operation = (async () => {
+    if (await premiumEntitlement() !== false || generation !== interstitialGeneration) return false;
+    if (!(await ensureInitialized(false)).canRequestAds || generation !== interstitialGeneration || privacyOptionsOpen || adBusy) return false;
+    if (isInterstitialAdReady()) return true;
+    interstitialNativeLoadPending = true;
+    try { await AdMob.prepareInterstitial({ adId: unitId }); }
+    finally { interstitialNativeLoadPending = false; }
+    if (generation !== interstitialGeneration || await premiumEntitlement() !== false) return false;
+    if (generation !== interstitialGeneration) return false;
+    interstitialCreative = { unitId, loadedAtMs: adMonotonicNow() };
+    return true;
+  })();
+  interstitialLoadPromise = boundedAdOperation(operation, INTERSTITIAL_LOAD_TIMEOUT_MS)
+    .catch(error => {
+      if (generation === interstitialGeneration) resetInterstitialAdState();
+      console.warn('[ads] Geçiş reklamı yüklenemedi:', error);
+      return false;
+    })
+    .finally(() => { if (generation === interstitialGeneration) interstitialLoadPromise = null; });
+  return interstitialLoadPromise;
+}
+
+function surfaceSafe(isSurfaceSafe: () => boolean): boolean {
+  try {
+    return !privacyOptionsOpen && (typeof document === 'undefined' || document.visibilityState === 'visible') && isSurfaceSafe();
+  } catch { return false; }
+}
+
+/** Checks/registration have one shared deadline; the already-visible creative has no duration timer. */
+function presentInterstitialAd(isSurfaceSafe: () => boolean): Promise<boolean> {
+  const generation = interstitialGeneration;
+  return new Promise<boolean>((resolve) => {
     let settled = false;
+    let shown = false;
+    let requested = false;
+    let showTimer: ReturnType<typeof setTimeout> | null = null;
     const handles: Promise<{ remove: () => void }>[] = [];
-
-    const finish = () => {
+    const finish = (result: boolean) => {
       if (settled) return;
       settled = true;
-      resolve();
-      for (const h of handles) h.then((handle) => handle.remove());
+      clearTimeout(preflightTimer);
+      if (showTimer !== null) clearTimeout(showTimer);
+      for (const handle of handles) void handle.then(value => value.remove()).catch(() => undefined);
+      resolve(result);
     };
-
-    handles.push(
-      AdMob.addListener(InterstitialAdPluginEvents.Dismissed, finish),
-      AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, finish),
-    );
-
-    Promise.all(handles).then(() => AdMob.showInterstitial()).catch(finish);
+    const preflightTimer = setTimeout(() => finish(false), INTERSTITIAL_PREFLIGHT_TIMEOUT_MS);
+    const run = async () => {
+      // Refresh UMP without opening a consent form at a gameplay break.
+      const [premium, consent] = await Promise.all([premiumEntitlement(), AdMob.requestConsentInfo()]);
+      if (settled) return;
+      if (premium !== false || !consent?.canRequestAds) {
+        resetInterstitialAdState();
+        if (!consent?.canRequestAds) initPromise = null;
+        finish(false);
+        return;
+      }
+      if (generation !== interstitialGeneration || !isInterstitialAdReady() || !surfaceSafe(isSurfaceSafe)) {
+        finish(false); return;
+      }
+      handles.push(
+        AdMob.addListener(InterstitialAdPluginEvents.Showed, () => {
+          if (settled || !requested) return;
+          shown = true;
+          if (showTimer !== null) clearTimeout(showTimer);
+        }),
+        AdMob.addListener(InterstitialAdPluginEvents.Dismissed, () => { if (requested) finish(true); }),
+        AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, () => { if (requested) finish(shown); }),
+      );
+      await Promise.all(handles);
+      if (settled) return;
+      // Listener registration can cross a foreground/navigation/entitlement transition.
+      if (await premiumEntitlement() !== false) { resetInterstitialAdState(); finish(false); return; }
+      if (settled) return;
+      if (generation !== interstitialGeneration || !isInterstitialAdReady() || !surfaceSafe(isSurfaceSafe)) {
+        finish(false); return;
+      }
+      const unitId = interstitialCreative!.unitId;
+      interstitialCreative = null;
+      requested = true;
+      clearTimeout(preflightTimer);
+      // This bounds a missing presentation acknowledgement, not ad length. The native SDK
+      // cannot cancel an issued show request; a native acknowledgement arriving late is a limitation.
+      showTimer = setTimeout(() => { if (!shown) finish(false); }, INTERSTITIAL_SHOW_START_TIMEOUT_MS);
+      await AdMob.showInterstitial({ adId: unitId });
+    };
+    void run().catch(() => finish(shown));
   });
 }
 
@@ -553,6 +670,9 @@ export const REWARDED_INTERSTITIAL_GAP_MS = 120_000;
 let adBusy = false;
 let rewardedEndedAt: number | null = null;
 let interstitialEndedAt: number | null = null;
+
+/** Includes checks and a pending native presentation, so session time never accrues during either. */
+export function isAdPresenting(): boolean { return adBusy; }
 
 export function interstitialAllowed(now = Date.now()): boolean {
   return !adBusy &&
@@ -574,11 +694,11 @@ export async function showRewardedAd(kind: RewardKind): Promise<boolean> {
   }
 }
 
-export async function showInterstitialAd(): Promise<void> {
-  if (!interstitialAllowed()) return;
+export async function showInterstitialAd(isSurfaceSafe: () => boolean = () => true): Promise<boolean> {
+  if (!Capacitor.isNativePlatform() || !interstitialAllowed() || !isInterstitialAdReady() || !surfaceSafe(isSurfaceSafe)) return false;
   adBusy = true;
   setAdAudioPaused(true);
-  try { await presentInterstitialAd(); }
+  try { return await presentInterstitialAd(isSurfaceSafe); }
   finally {
     interstitialEndedAt = Date.now();
     adBusy = false;

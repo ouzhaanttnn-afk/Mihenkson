@@ -14,7 +14,8 @@
  */
 
 import { TERM } from '@ui/terms';
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 import { DAY, NEGOTIATION, PATIENCE_PER_TEST_SECOND } from '@domain/balance';
 import { isBlindTradingDay, isShopOpen, nextMarketOpenDay, weekdayLabel } from '@domain/calendar';
@@ -573,15 +574,26 @@ function QuickStockSheet({ onClose }: { onClose: () => void }) {
  * yaklaşan servis teslimi veya düşük likidite gibi. EN FAZLA 3 kompakt uyarı
  * satırı bulunur; ayrı büyük kartlar kullanılmaz."
  */
-function IdleWorkbench({ coaching }: { coaching: boolean }) {
-  const s = useGame();
+const IdleWorkbench = memo(function IdleWorkbench({ coaching }: { coaching: boolean }) {
+  const s = useGame(useShallow(state => {
+    const position = selectors.position(state);
+    return {
+      day: state.market.day, activeEvent: state.market.activeEvent,
+      store: state.store, inventory: state.inventory, items: state.items,
+      profile: state.profile, playerMarket: state.playerMarket, dayCharacter: state.dayCharacter,
+      queueCount: state.queue.length, setTab: state.setTab, openStockCatalog: state.openStockCatalog,
+      liquidity: selectors.liquidity(state), band: selectors.liquidityBand(state),
+      metalShare: position.metalShare, metalValue: position.metalValue,
+      language: state.preferences.language, currency: state.preferences.currency,
+    };
+  }));
   const [shopOverviewOpen, setShopOverviewOpen] = useState(false);
-  const liquidity = selectors.liquidity(s);
-  const band = selectors.liquidityBand(s);
+  const liquidity = s.liquidity;
+  const band = s.band;
 
   const alerts: { key: string; title: string; detail: string; tone: string; Icon: typeof IconWarning }[] =
     [];
-  const shopOpen = isShopOpen(s.market.day);
+  const shopOpen = isShopOpen(s.day);
 
   if (!shopOpen) {
     /*
@@ -592,7 +604,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
     */
     alerts.push({
       key: 'closed',
-      title: t('{gun} · piyasa da kapalı', { gun: t(weekdayLabel(s.market.day)) }),
+      title: t('{gun} · piyasa da kapalı', { gun: t(weekdayLabel(s.day)) }),
       detail: t('Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.'),
       tone: 'warning',
       Icon: IconClock,
@@ -613,24 +625,24 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
     (pazar); burası dükkânın AÇIK, piyasanın kapalı olduğu gündür. İkisi aynı
     anda çıkmaz.
   */
-  if (isBlindTradingDay(s.market.day)) {
+  if (isBlindTradingDay(s.day)) {
     alerts.push({
       key: 'blind',
-      title: t('{gun} · piyasa kapalı, dükkân açık', { gun: t(weekdayLabel(s.market.day)) }),
+      title: t('{gun} · piyasa kapalı, dükkân açık', { gun: t(weekdayLabel(s.day)) }),
       detail: t(
         'Fiyat cuma kapanışında donuk. Bugün aldığın mal {gun} açılışına kadar fiyat riski taşır.',
-        { gun: t(weekdayLabel(nextMarketOpenDay(s.market.day))) },
+        { gun: t(weekdayLabel(nextMarketOpenDay(s.day))) },
       ),
       tone: 'warning',
       Icon: IconClock,
     });
   }
 
-  if (s.market.activeEvent) {
+  if (s.activeEvent) {
     alerts.push({
       key: 'event',
-      title: t(s.market.activeEvent.label),
-      detail: t(s.market.activeEvent.description),
+      title: t(s.activeEvent.label),
+      detail: t(s.activeEvent.description),
       tone: 'warning',
       Icon: IconWarning,
     });
@@ -661,7 +673,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
     ne zaman kapandığı. Kapanış saati oyuncunun günü planlamasına yarar,
     geri sayım ise yalnız bekletir.
   */
-  if (shopOpen && alerts.length < 3 && s.queue.length === 0) {
+  if (shopOpen && alerts.length < 3 && s.queueCount === 0) {
     alerts.push({
       key: 'schedule',
       title: t('Dükkân açık'),
@@ -671,13 +683,12 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
     });
   }
 
-  const position = selectors.position(s);
-  const metalShare = Math.round(position.metalShare * 100);
+  const metalShare = Math.round(s.metalShare * 100);
   const stockCount = s.inventory.length;
   const equippedShopBadge = shopBadgeArt(s.playerMarket.equipped.shopBadge);
 
   return (
-    <div className={`idle ${coaching ? 'idle--coaching' : ''} ${s.queue.length > 0 ? 'idle--hasQueue' : ''}`}>
+    <div className={`idle ${coaching ? 'idle--coaching' : ''} ${s.queueCount > 0 ? 'idle--hasQueue' : ''}`}>
       {/*
         Dükkanın kimlik görseli, başlıkla AYNI SATIRDA.
         Bu ekranın "çok yer kapladığı" daha önce bildirilmişti; görsel bu
@@ -725,8 +736,8 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
               {shopOverviewOpen
                 ? t('{karakter} · Gün {gun} · {haftaGunu} · Semt itibarı {itibar}', {
                     karakter: t(s.dayCharacter.label),
-                    gun: s.market.day,
-                    haftaGunu: t(weekdayLabel(s.market.day)),
+                    gun: s.day,
+                    haftaGunu: t(weekdayLabel(s.day)),
                     itibar: Math.round(s.store.reputation),
                   })
                 : t('{karakter} · Finans özetini göster', {
@@ -750,7 +761,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
             <span className="position__icon" aria-hidden="true"><IconCollection size={15} /></span>
             <span className="position__copy">
               <span className="position__label">{t('Stok Değeri')}</span>
-              <span className="position__value num">{tl(position.metalValue)}</span>
+              <span className="position__value num">{tl(s.metalValue)}</span>
             </span>
           </span>
           <span className="position__cell">
@@ -788,7 +799,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
         </div>
       )}
       <ReadyJobsReminder />
-      {s.queue.length > 0 && <WaitingCustomerQueue />}
+      {s.queueCount > 0 && <WaitingCustomerQueue />}
 
       <div className="alerts">
         {alerts.slice(0, 3).map(({ key, title, detail, tone, Icon }) => (
@@ -818,7 +829,7 @@ function IdleWorkbench({ coaching }: { coaching: boolean }) {
 
     </div>
   );
-}
+});
 
 /**
  * Kullanıcı: "açılır bir uyarı paneli eklesek tamirlerini teslim etmeyi

@@ -37,6 +37,8 @@ import { playHaptic, stopHaptics } from '@ui/haptics';
 import { syncMusic, setAudioForeground } from '@ui/audio';
 import { App as NativeApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { sampleSessionEngagement } from '@ui/session-ad-runtime';
+import { InterstitialBreakDialog } from '@ui/shell/InterstitialBreakDialog';
 
 import '@ui/tokens.css';
 import '@ui/shell/AppShell.css';
@@ -99,6 +101,7 @@ export function App() {
     const foreground = () => {
       const active = nativeActive && !pageAway && document.visibilityState === 'visible';
       setAudioForeground(active); setSimulationForeground(active);
+      sampleSessionEngagement(active && useGame.getState().profileSetupDone);
       if (!useGame.getState().handlePersonnelLifecycle(active) && !active)
         useGame.getState().notify(t('Mesai başlangıcı kaydedilemedi; çevrimdışı satış başlatılmadı.'), 'negative');
     };
@@ -109,15 +112,21 @@ export function App() {
     window.addEventListener('pagehide', hide);
     window.addEventListener('pageshow', show);
     visible();
+    const sessionTimer = window.setInterval(() => {
+      sampleSessionEngagement(nativeActive && !pageAway && document.visibilityState === 'visible' &&
+        useGame.getState().profileSetupDone);
+    }, 1000);
     const handle = Capacitor.isNativePlatform()
       ? NativeApp.addListener('appStateChange', state => { nativeActive = state.isActive; foreground(); }) : null;
     return () => {
       document.removeEventListener('visibilitychange', visible);
       window.removeEventListener('pagehide', hide);
       window.removeEventListener('pageshow', show);
+      window.clearInterval(sessionTimer);
       void handle?.then(listener => listener.remove());
       setAudioForeground(false);
       setSimulationForeground(false);
+      sampleSessionEngagement(false);
     };
   }, []);
   useGame((s) => s.preferences.currency);
@@ -303,6 +312,7 @@ export function App() {
           workshopBadge={workshopAttention}
         />
         <DayCloseDialog />
+        <InterstitialBreakDialog />
         <RecallDialog />
 
         {/*

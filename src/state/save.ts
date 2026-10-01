@@ -455,9 +455,17 @@ export function migrate(file: SaveFile): SaveFile {
 const STORAGE_KEY = 'mihenkaynak.save.v1';
 const BACKUP_STORAGE_KEY = 'mihenkaynak.save.v1.backup';
 const COMPRESSED_PREFIX = 'mihenk-gzip-v1:';
+// Immutable byte caches only: mutable state/ledger references are never trusted.
+// Every hit must still match the actual primary stored by this origin.
+let validatedPrimary: string | null = null;
+let lastCommittedPrimary: string | null = null;
+let lastSnapshotBody: string | null = null;
+let lastSnapshotEncoded: string | null = null;
 
 function encodeSave(raw: string): string {
-  const bytes = gzipSync(strToU8(raw));
+  // Same lossless format, less foreground CPU for long trading histories.
+  // Quota-safe replacement/backup fallback below remains unchanged.
+  const bytes = gzipSync(strToU8(raw), { level: 1 });
   // btoa's argument is built in chunks so long-running saves do not overflow
   // the JavaScript call stack on iPhone WebKit.
   let binary = '';
@@ -512,7 +520,7 @@ export function resumeSaves(): void {
  * Bir önceki sağlam kayıt yedekte tutulur; sekme kapanması veya kota hatası
  * yarım bir JSON bırakırsa oyuncunun son checkpoint'i kaybolmaz.
  */
-function commitRawSave(raw: string): boolean {
+function commitRawSave(raw: string, validEnvelope: boolean): boolean {
   if (savesSuspended) return true;
   try {
     const previous = localStorage.getItem(STORAGE_KEY);
@@ -520,7 +528,7 @@ function commitRawSave(raw: string): boolean {
     // A full origin quota must not make the optional backup prevent progress.
     // setItem replaces the primary atomically, so the previous save survives a
     // failed primary write even when there is no room for its second copy.
-    if (previous && parseSave(previous)) {
+    if (previous && (previous === validatedPrimary || parseSave(previous))) {
       try { localStorage.setItem(BACKUP_STORAGE_KEY, previous); } catch { /* keep primary */ }
     }
     try {
@@ -536,6 +544,8 @@ function commitRawSave(raw: string): boolean {
       if (previous) localStorage.setItem(STORAGE_KEY, previous);
       return false;
     }
+    lastCommittedPrimary = encoded;
+    validatedPrimary = validEnvelope ? encoded : null;
     return true;
   } catch {
     return false;
@@ -626,7 +636,29 @@ function parseSave(raw: string): SaveFile | null {
 
 /** Tarayıcı deposuna yazar. Depo yoksa sessizce atlar (SSR / test). */
 export function writeSave(state: GameState): boolean {
-  return commitRawSave(JSON.stringify({ ...serialize(state), savedAt: Date.now() }));
+  if (savesSuspended) return true;
+  try {
+    const snapshot = serialize(state);
+    const body = JSON.stringify(snapshot);
+    if (body === lastSnapshotBody && lastSnapshotEncoded !== null &&
+        localStorage.getItem(STORAGE_KEY) === lastSnapshotEncoded) return true;
+    // serialize() always returns an object. Append metadata without stringifying
+    // the entire history twice; no economic fields are dropped or truncated.
+    const saved = commitRawSave(`${body.slice(0, -1)},"savedAt":${Date.now()}}`, validSaveEnvelope(snapshot));
+    if (saved) {
+      lastSnapshotBody = body;
+      lastSnapshotEncoded = lastCommittedPrimary;
+    }
+    return saved;
+  } catch {
+    return false;
+  }
+}
+
+function validSaveEnvelope(file: SaveFile): boolean {
+  // JSON turns non-finite numbers into null; these must never prime backup trust.
+  return Number.isFinite(file.version) && file.version <= SAVE_VERSION &&
+    Number.isFinite(file.day) && !!file.store && Array.isArray(file.inventory);
 }
 
 /** Economic offline commits cannot treat a intentionally suspended write as durable. */
@@ -696,7 +728,7 @@ function patchSave(state: GameState, patch: (file: SaveFile) => void): boolean {
     if (!file) return writeSave(state);
     patch(file);
     file.savedAt = Date.now();
-    return commitRawSave(JSON.stringify(file));
+    return commitRawSave(JSON.stringify(file), validSaveEnvelope(file));
   } catch {
     return false;
   }
@@ -720,6 +752,7 @@ export function persistPreferences(state: GameState): boolean {
 }
 
 export function clearSave(): void {
+  validatedPrimary = lastCommittedPrimary = lastSnapshotBody = lastSnapshotEncoded = null;
   try {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(BACKUP_STORAGE_KEY);

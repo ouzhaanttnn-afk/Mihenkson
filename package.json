@@ -1,7 +1,7 @@
 {
   "name": "mihenkaynak",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "description": "MIHENKAYNAK — Kuyumcu Simülatörü. Mobil öncelikli portrait tycoon / shop management oyunu.",
   "scripts": {

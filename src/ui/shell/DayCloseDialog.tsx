@@ -10,6 +10,12 @@ import { clock, pct, tl, tlSigned } from '@ui/format';
 
 /** Top-layer dialog: focus stays inside; the paused world cannot receive taps. */
 export function DayCloseDialog() {
+  const open = useGame(s => s.dayCloseConfirmOpen || s.dayReportOpen);
+  return open ? <OpenDayCloseDialog /> : null;
+}
+
+/** Closed days do not recalculate the whole portfolio on each idle clock tick. */
+function OpenDayCloseDialog() {
   const s = useGame();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const report = s.dayReportOpen ? s.lastDayReport : null;

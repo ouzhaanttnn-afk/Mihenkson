@@ -666,6 +666,21 @@ describe('GDD 14.3 — Stok bugünkü piyasaya göre yeniden değerlenir', () =>
     const b = revalueInventory(economy.inventory, economy.items, thesisCtx());
     expect(b).toEqual(a);
   });
+
+  it('aynı ekonomik değerler ve yalnız saat değişince stok referansını korur', () => {
+    const economy = stocked();
+    const ctx = thesisCtx();
+    const first = revalueInventory(economy.inventory, economy.items, ctx);
+    const same = revalueInventory(first, economy.items, { ...ctx,
+      market: { ...ctx.market, clockMinutes: ctx.market.clockMinutes + 1 } });
+    expect(same).toBe(first);
+    expect(same[0]).toBe(first[0]);
+    const richer = revalueInventory(first, economy.items, { ...ctx,
+      market: { ...ctx.market, goldSpot: ctx.market.goldSpot * 1.1 } });
+    expect(richer).not.toBe(first);
+    expect(richer[0]!.currentValue).toBeGreaterThan(first[0]!.currentValue);
+    expect(first[0]!.currentValue).toBe(same[0]!.currentValue);
+  });
 });
 
 // ===========================================================================

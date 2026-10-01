@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@ui/ads', () => ({ showRewardedAd: vi.fn(), showInterstitialAd: vi.fn() }));
+vi.mock('@ui/session-ad-runtime', () => ({ noteCompletedSessionTrade: vi.fn(),
+  resetSessionAds: vi.fn(), trySessionAdBreak: vi.fn().mockResolvedValue(false) }));
 import { bullionMeta } from '@data/bullion';
 import { DAY } from '@domain/balance';
 import { spawnItem } from '@domain/item-spawn';

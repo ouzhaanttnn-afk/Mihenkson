@@ -423,7 +423,8 @@ export function revalueInventory(
   items: Record<string, ItemInstance>,
   ctx: ThesisContext,
 ): InventoryPosition[] {
-  return inventory.map((position) => {
+  let changed = false;
+  const next = inventory.map((position) => {
     const item = items[position.itemId];
     if (!item) return position;
 
@@ -442,15 +443,25 @@ export function revalueInventory(
     const expectedExitValues: Partial<Record<ExitChannel, Money>> = {};
     for (const option of options) expectedExitValues[option.channel] = option.expectedNet;
 
+    // Keep references on clock-only ticks. Recompute all economic values above;
+    // this is structural sharing, not a cache that can hide changed market input.
+    const currentValue = mark.expectedNet * position.quantity;
+    const oldExits = position.expectedExitValues ?? {};
+    const exitKeys = Object.keys(expectedExitValues) as ExitChannel[];
+    if (position.currentValue === currentValue && Object.keys(oldExits).length === exitKeys.length &&
+        exitKeys.every(key => oldExits[key] === expectedExitValues[key])) return position;
+    changed = true;
+
     return {
       ...position,
       // Pozisyon toplam taşır; kanal ekonomisi BİRİM üzerinden kuruluyor.
       // Adetle çarpmayı unutmak, 40 çeyreklik yığını tek çeyrek gibi
       // değerlemek olurdu (Addendum §4.1).
-      currentValue: mark.expectedNet * position.quantity,
+      currentValue,
       expectedExitValues,
     };
   });
+  return changed ? next : inventory;
 }
 
 /** Sahip olunan üründe belirsizlik yoktur; band gerçek değere oturur. */

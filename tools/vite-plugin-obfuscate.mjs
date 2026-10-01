@@ -16,10 +16,9 @@
  * karşı "savunma" yapmaya kalkarsa uygulama çöker gibi görünür. Caydırıcılık
  * için güvenilirlikten ödün verilmedi.
  *
- * `controlFlowFlattening`/`deadCodeInjection` eşikleri BİLEREK ORTA düzeyde
- * (maksimum değil): tam güçte bu ayarlar paket boyutunu birkaç katına
- * çıkarabilir ve CPU yükünü artırabilir — mobil bir oyun için yükleme/
- * çalışma hızından ödün vermeye değmez.
+ * Kontrol akışı düzleştirme, ölü kod ve çalışma anında metin çözme kapalıdır.
+ * React, kayıt ve hesap döngülerini yavaşlatmadan adları anlamsızlaştıran
+ * caydırıcılık korunur; üretim source map'i yine yayımlanmaz.
  *
  * Yalnız `vite build` sırasında çalışır (`apply: 'build'`) — `vite dev` ve
  * `vitest` etkilenmez, kaynak kodun kendisi hiç değişmez.
@@ -36,24 +35,17 @@ export function obfuscate() {
 
       const result = JavaScriptObfuscator.obfuscate(code, {
         compact: true,
-        controlFlowFlattening: true,
-        controlFlowFlatteningThreshold: 0.4,
-        deadCodeInjection: true,
-        deadCodeInjectionThreshold: 0.2,
-        stringArray: true,
-        stringArrayEncoding: ['base64'],
-        stringArrayThreshold: 0.75,
-        stringArrayRotate: true,
-        stringArrayShuffle: true,
+        controlFlowFlattening: false,
+        deadCodeInjection: false,
+        stringArray: false,
         identifierNamesGenerator: 'hexadecimal',
         renameGlobals: false,
         selfDefending: false,
         debugProtection: false,
         disableConsoleOutput: false,
-        numbersToExpressions: true,
+        numbersToExpressions: false,
         simplify: true,
-        splitStrings: true,
-        splitStringsChunkLength: 12,
+        splitStrings: false,
         target: 'browser',
       });
 

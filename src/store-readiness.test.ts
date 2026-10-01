@@ -162,8 +162,9 @@ describe('reklam gizliliği', () => {
     const ads = read('src/ui/ads.ts');
 
     expect(ads).toContain('consent.canRequestAds');
-    expect(ads).toMatch(/if \(!\(await ensureInitialized\(\)\)\.canRequestAds\) return false;/);
-    expect(ads).toMatch(/if \(!\(await ensureInitialized\(\)\)\.canRequestAds\) return;/);
+    expect(ads).toMatch(/if \(!\(await ensureInitialized\(\)\)\.canRequestAds\)/);
+    expect(ads).toContain('(await ensureInitialized(false)).canRequestAds');
+    expect(ads).toContain('premium !== false || !consent?.canRequestAds');
     expect(ads).toContain('AdMob.showPrivacyOptionsForm()');
     expect(ads).not.toContain('AdMob.requestTrackingAuthorization()');
     expect(ads).toContain("consent.privacyOptionsRequirement === 'UNKNOWN'");
