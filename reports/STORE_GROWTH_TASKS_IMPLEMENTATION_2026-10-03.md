@@ -35,7 +35,7 @@ Marketing version remains **1.3.0**, build **37**.
 - GitHub Actions: https://github.com/ouzhaanttnn-afk/Mihenkson/actions/runs/37129345418 — completed successfully, job duration 7m42s.
 - Validation passed at 2026-10-03 14:28:26 UTC. Apple upload confirmed at 14:29:53 UTC (17:29:53 Istanbul): `UPLOAD SUCCEEDED with no errors`.
 - Delivery UUID: `c97a2576-7ead-4525-aa5d-f35409198c51`.
-- Apple processing/internal-group availability **not yet verified**: browser session expired and is waiting at the Apple password screen. This is not proof of an upload failure; CI upload itself is confirmed.
-- Test notes prepared in `store/ios/testflight-1.3.0-compact-tasks.md`; not saved to Apple's form while logged out.
+- After the user restored the Apple session, processing was verified complete: build 37 appears under iOS Builds as Ready to Submit (external beta status, not an App Review submission). The build detail shows the existing Betatest internal group with 3 testers attached.
+- Turkish What to Test notes were saved and Apple's Saved state was verified. Proof: `C:/Users/Gaming/.codex/visualizations/2026/10/03/mihenk-1.3.0/testflight-37-ready.png`.
 - New build **not submitted to App Review**. User's okay is required. Older build 36's existing review submission was not modified; the separate cancellation question has not been answered.
 - CI annotations: runner-capacity advisory and action runtime deprecation warning were non-blocking. No credential/access/signing change was made.
