@@ -52,3 +52,14 @@ The user approved the shared rail and requested only a slight top/bottom reducti
 - Apple processing completed. iOS Builds shows build 38 as Ready to Submit (external beta status, not an App Review submission). Build detail verifies the existing Betatest internal group with 3 testers attached; its automatic Xcode-build distribution setting was preserved.
 - Turkish What to Test notes were saved; Apple's disabled Saved button was verified. Proof: `C:/Users/Gaming/.codex/visualizations/2026/10/03/mihenk-1.3.0/testflight-38-ready.png`. Build detail was left open for the user.
 - App Review was not submitted, replaced or cancelled. The user must explicitly approve the new build before any review submission.
+
+## App Review 1.3.0 (38) submission
+
+- The user's subsequent "Yükle baba" approved submitting the delivered build 38. This approval supersedes the earlier App Review hold above.
+- The prior pending 1.3.0 (36) submission (`55c47bfc-e0c6-4439-93ad-fb56f631d9de`) was cancelled to replace its selected build. Apple's intermediate Developer Rejected status resulted from that developer cancellation, not a new Apple rejection.
+- App Store Connect now selects 1.3.0 (38), UUID `07c24663-4518-4609-b063-65f4061a2b99`, built from `a41c53ce8b126bdfc6cf69b37e3a5b86b7dd855f`. No new source changes or binary upload were needed.
+- Turkish What's New and English reviewer notes were updated to describe the slim shared store/Talents rail and six career tasks plus a separate investment gate accurately. Only Turkish is localized in the current product metadata; no localization was added.
+- Submitted 2026-10-03 at 19:42 Istanbul (16:42 UTC). Submission ID: `89b9cbf0-bfa5-4507-a104-56ac40a01e37`.
+- Apple showed "1 Item Submitted"; the submission detail then explicitly showed `1.3.0 (38)` and **Waiting for Review**. This is an actual App Review submission, not only Ready for Review or a TestFlight status.
+- Existing automatic release after approval, immediate release to all users, existing rating, Game Center association and other metadata were preserved. The version is not live yet; publication depends on Apple's approval.
+- Proof: `C:/Users/Gaming/.codex/visualizations/2026/10/03/mihenk-1.3.0/app-review-38-submitted.png`. The submitted review detail was left open for the user.
