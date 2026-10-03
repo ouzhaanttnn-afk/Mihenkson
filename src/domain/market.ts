@@ -33,16 +33,16 @@ const EVENT_POOL: Omit<MarketEvent, 'startedDay'>[] = [
   {
     id: 'wedding_season',
     label: 'Düğün Sezonu',
-    description: 'Bilezik ve set talebi ile birlikte servis yoğunluğu artıyor.',
-    affects: ['talep: klasik takı', 'atölye kapasitesi'],
-    counterplay: ['Önceden stok kur', 'Vitrin önceliğini değiştir', 'Servis kapasitesi ayır'],
+    description: 'Düğün müşterileri daha sık görülebilir; düğün ürünlerinin talep sinyali güçlü.',
+    affects: ['düğün müşterisi ilgisi', 'talep: düğün ürünleri'],
+    counterplay: ['Vitrin stoğunu gözden geçir', 'Stok ve nakit dengesini koru'],
     durationDays: 3,
   },
   {
     id: 'market_rally',
     label: 'Piyasa Rallisi',
-    description: 'Yatırım ürünü talebi artıyor, tedarik pahalanıyor.',
-    affects: ['talep: yatırım altını', 'toptancı fiyat bandı'],
+    description: 'Yatırımcı ilgisi artıyor; fiyatlarda yukarı yönlü baskı var.',
+    affects: ['yatırımcı ilgisi', 'fiyat yönü: yukarı baskı'],
     counterplay: ['Likiditeyi koru', 'Kısa vade riskini azalt'],
     durationDays: 2,
   },
@@ -50,19 +50,27 @@ const EVENT_POOL: Omit<MarketEvent, 'startedDay'>[] = [
     id: 'fx_calm',
     label: 'Kur Sakinleşmesi',
     description: 'Takı ve perakende talebi güçlenebilir.',
-    affects: ['talep: perakende', 'vitrin dönüş hızı'],
-    counterplay: ['Vitrin kampanyası', 'Servis + satış paketi'],
+    affects: ['talep: perakende', 'fiyat yönü: aşağı baskı'],
+    counterplay: ['Vitrin stoğunu gözden geçir', 'Yeni alımın maliyetini karşılaştır'],
     durationDays: 2,
   },
   {
     id: 'fake_wave',
     label: 'Sahte Ürün Dalgası',
-    description: 'Riskli müşteri oranı yükseliyor. Doğrulama daha değerli.',
-    affects: ['müşteri havuzu riski', 'ekspertiz değeri'],
+    description: 'Fırsatçı müşteri ilgisi artıyor; şüpheli ürünü doğrula.',
+    affects: ['fırsatçı müşteri ilgisi', 'fiyat yönü: aşağı baskı'],
     counterplay: ['Daha fazla doğrulama testi', 'Alış tavanını düşür'],
     durationDays: 2,
   },
 ];
+
+/** Public copy only. Old saves keep timing, prices and every economic input. */
+export function marketEventPresentation(event: MarketEvent | null): MarketEvent | null {
+  if (!event) return null;
+  const current = EVENT_POOL.find(candidate => candidate.id === event.id);
+  return current ? { ...event, label: current.label, description: current.description,
+    affects: current.affects, counterplay: current.counterplay } : event;
+}
 
 /**
  * Bir gün için piyasa durumunu deterministik olarak üretir.

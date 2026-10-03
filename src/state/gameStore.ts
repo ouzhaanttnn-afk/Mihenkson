@@ -11,6 +11,7 @@ import { rankingWealth, seasonFor, type RankingSeason } from '@domain/ranking';
  */
 
 import { create } from 'zustand';
+import { businessStoryDayProgress, createBusinessStoryBaseline, type BusinessStoryBaseline, type BusinessStoryContext } from '@domain/business-story';
 import { poolSupplyQuote, poolSupplyItem } from '@domain/pool-supply';
 import {
   queueCapacity,
@@ -384,6 +385,7 @@ export interface GameState {
   /** Bugün personel reklam kirası izlendi mi — gün kapanışında personel gideri 0 sayılır. */
   personnelCostWaivedToday: boolean;
   lastDayReport: import('@domain/settlement').DayReport | null;
+  businessStoryBaseline: BusinessStoryBaseline | null;
   weekReports: import('@domain/settlement').DayReport[];
   dayCloseConfirmOpen: boolean;
   dayReportOpen: boolean;
@@ -464,6 +466,8 @@ export interface GameState {
    * kaydına dokunmaz.
    */
   tabHomeSignal: number;
+  /** One-shot requested business subroute, UI only; never persisted. */
+  businessRouteRequested: 'root' | 'store' | 'wholesaler' | 'network' | 'market';
   /**
    * SES İŞARETİ — yalnız arayüz durumu, KAYDA GİRMEZ (`tabHomeSignal` deseni).
    *
@@ -478,6 +482,7 @@ export interface GameState {
 
   // --- Aksiyonlar ---
   setTab: (tab: RootTab) => void;
+  openBusinessRoute: (route: GameState['businessRouteRequested']) => void;
   setSpeed: (speed: SpeedStep) => void;
   unlock4x: () => void;
   /** Ödüllü reklamı gösterir; ödül kazanılırsa `unlock4x()`i çağırır. */
@@ -684,15 +689,18 @@ export const useGame = create<GameState>((set, get) => {
   if (restored) applyDisplayPreferences(restored.preferences);
   const seed = restored?.seed ?? freshSeed();
   const market = restored?.market ?? createMarketForDay(seed, 1);
+  const startingStore = createInitialStore();
+  const startingLedger = createLedger();
+  const startingSkills = defaultSkillProgress();
 
   return {
     seed,
     spawnCounter: 0,
     market,
-    store: createInitialStore(),
+    store: startingStore,
     inventory: [],
     items: {},
-    ledger: createLedger(),
+    ledger: startingLedger,
     offlinePersonnelClock: emptyOfflineClock(),
     offlinePersonnelReport: null,
     offlineSaveIssue: false,
@@ -722,7 +730,7 @@ export const useGame = create<GameState>((set, get) => {
     */
     profileSetupDone: restored ? (restored.profileSetupDone ?? true) : false,
     playerMarket: defaultPlayerMarket(),
-    skillProgress: defaultSkillProgress(),
+    skillProgress: startingSkills,
     preferences: defaultPreferences(),
     profileOpen: false,
 
@@ -737,6 +745,9 @@ export const useGame = create<GameState>((set, get) => {
     missedGuestCountToday: 0,
     personnelCostWaivedToday: false,
     lastDayReport: null,
+    businessStoryBaseline: restored ? null : createBusinessStoryBaseline({ day: market.day,
+      economy: { store: startingStore, ledger: startingLedger, inventory: [], items: {}, market },
+      skillProgress: startingSkills, customers: {}, jobs: [] }),
     weekReports: [],
     dayCloseConfirmOpen: false,
     dayReportOpen: false,
@@ -757,6 +768,7 @@ export const useGame = create<GameState>((set, get) => {
     lastReview: null,
     toasts: [],
     tabHomeSignal: 0,
+    businessRouteRequested: 'root',
     soundCue: null,
 
     // Kayıt varsa VARSAYILANLARIN ÜSTÜNE yazar. Sıra kritik: varsayılanları
@@ -780,6 +792,7 @@ export const useGame = create<GameState>((set, get) => {
         if (tab === 'shop' && s.market.clockMinutes >= DAY.closeMinutes) {
           return {
             tab,
+            businessRouteRequested: 'root',
             dayCloseConfirmOpen: true,
             dayCloseIssue: null,
             stockCatalogOpen: false,
@@ -789,9 +802,11 @@ export const useGame = create<GameState>((set, get) => {
           };
         }
         return s.tab === tab
-          ? { tabHomeSignal: s.tabHomeSignal + 1, rankingOpen: false, personnelOpen: false, shopTalentTreeOpen: false }
-          : { tab, rankingOpen: false, personnelOpen: false, shopTalentTreeOpen: false };
+          ? { tabHomeSignal: s.tabHomeSignal + 1, businessRouteRequested: 'root', rankingOpen: false, personnelOpen: false, shopTalentTreeOpen: false }
+          : { tab, businessRouteRequested: 'root', rankingOpen: false, personnelOpen: false, shopTalentTreeOpen: false };
       }),
+    openBusinessRoute: (businessRouteRequested) => set(s => ({ tab: 'business', businessRouteRequested,
+      tabHomeSignal: s.tabHomeSignal + 1, stockCatalogOpen: false, shopTalentTreeOpen: false, personnelOpen: false, rankingOpen: false })),
     // Ana Dükkan'daki hızlı alım, oyuncuyu bağlamından koparmadan sheet açar.
     // Stok ekranındaki aynı katalog kendi açılır tezgâhı olarak yaşamaya devam eder.
     openStockCatalog: () => set({ stockCatalogOpen: true, personnelOpen: false, shopTalentTreeOpen: false }),
@@ -2482,7 +2497,10 @@ export const useGame = create<GameState>((set, get) => {
         set(economyToState({ ...outcome.state, inventory: revalueInventory(outcome.state.inventory, outcome.state.items, thesisContext(s)) }));
         writeSave(get());
         cue(set, get, 'coins');
-        pushToast(set, get, t('Toptancı tedariki tamamlandı. Vade borcu İşletme bölümünde görünür.'), 'positive');
+        const invoice = outcome.state.store.supplier.openInvoices.find(invoice => invoice.id === outcome.state.ledger.transactions.at(-1)?.txId);
+        pushToast(set, get, invoice
+          ? t('Toptancı tedariki tamamlandı. Vade borcu İşletme bölümünde görünür.')
+          : t('Peşin tedarik tamamlandı; yeni vade borcu yok.'), 'positive');
         return;
       }
       const id = `poolbuy_${s.market.day}_${s.ledger.appliedTxIds.length}`;
@@ -2948,6 +2966,9 @@ export const useGame = create<GameState>((set, get) => {
         pushToast(set, get, t('Günlük gider karşılanamadı; gün kapatılmadı.'), 'negative');
         return;
       }
+      // Read the closing day before the next market, costs and arrivals exist.
+      const storyReport = { ...report, businessStoryProgress: businessStoryDayProgress(
+        businessStoryContextOf({ ...s, ...economyToState(closed) }), s.businessStoryBaseline) };
       const nextDay = s.market.day + 1;
       const market = createMarketForDay(s.seed, nextDay, s.market);
 
@@ -3015,8 +3036,9 @@ export const useGame = create<GameState>((set, get) => {
         queue: [],
         missedGuestCountToday: 0,
         personnelCostWaivedToday: false,
-        lastDayReport: { ...report, overnightSummary: overnightOutcome.summary },
-        weekReports: [...s.weekReports.filter(r => r.day < report.day && Math.floor((r.day - 1) / 7) === Math.floor((report.day - 1) / 7)), report],
+        lastDayReport: { ...storyReport, overnightSummary: overnightOutcome.summary },
+        weekReports: [...s.weekReports.filter(r => r.day < report.day && Math.floor((r.day - 1) / 7) === Math.floor((report.day - 1) / 7)), storyReport],
+        businessStoryBaseline: null as BusinessStoryBaseline | null,
         dayCloseConfirmOpen: false,
         dayReportOpen: true,
         dayCloseIssue: null,
@@ -3030,6 +3052,7 @@ export const useGame = create<GameState>((set, get) => {
         rewardedFreeShippingReady: false,
         recallableGuest: null,
       };
+      nextState.businessStoryBaseline = createBusinessStoryBaseline(businessStoryContextOf({ ...s, ...nextState }));
 
       // Gün değişimi ekrana uygulanmadan önce checkpoint'in gerçekten
       // yazılabildiğini doğrula. Kayıt başarısızsa oyuncu eski günde kalır;
@@ -3743,6 +3766,12 @@ function visitNote(outcome: VisitRecord['outcome'], volume: Money): string {
 
 function economyOf(s: GameState): EconomyState {
   return { store: s.store, inventory: s.inventory, items: s.items, ledger: s.ledger, market: s.market };
+}
+
+/** Derived presentation input. No time, random or economic mutation. */
+export function businessStoryContextOf(s: GameState): BusinessStoryContext {
+  return { day: s.market.day, economy: economyOf(s), customers: s.customers,
+    skillProgress: s.skillProgress, jobs: s.jobs, network: s.network, activeEvent: s.market.activeEvent };
 }
 
 function economyToState(e: EconomyState): Pick<GameState, 'store' | 'inventory' | 'items' | 'ledger'> {

@@ -1,0 +1,146 @@
+/* A compact part of the shop surface, rather than another dashboard card. */
+.businessIdentity {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-2) 0;
+  color: var(--text-dark-1);
+  border-top: 1px solid var(--line-dark-strong);
+  font-size: max(var(--fs-label), 0.875rem);
+  line-height: var(--lh-normal);
+}
+
+.businessIdentity__identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.businessContext { margin: 4px 0 8px; color: var(--text-dark-2); font-size: max(var(--fs-caption), .8125rem); line-height: 1.4; overflow-wrap: anywhere; }
+.businessAgenda { align-items: center; }
+.businessIdentity__actions { align-self: flex-end; }
+
+.businessIdentity__facade {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  color: var(--brass-300);
+}
+
+.businessIdentity__tier {
+  min-width: 0;
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+
+.businessIdentity__next,
+.businessIdentity__goal,
+.businessIdentity__guidance {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.businessIdentity__next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--sp-2);
+  color: var(--text-dark-2);
+}
+
+.businessIdentity__next strong {
+  color: var(--text-dark-1);
+  font-weight: var(--fw-semibold);
+}
+
+.businessIdentity__goal {
+  color: var(--text-dark-1);
+}
+
+.businessIdentity__guidance {
+  color: var(--text-dark-2);
+  font-size: max(var(--fs-caption), 0.8125rem);
+}
+
+.businessIdentity__actions {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+}
+
+.businessIdentity__action {
+  flex: 1 1 120px;
+  min-width: 0;
+  min-height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--brass-400);
+  border-radius: var(--r-sm);
+  background: var(--brass-300);
+  color: var(--ink-900);
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-normal);
+  text-align: center;
+  touch-action: manipulation;
+}
+
+.businessIdentity__action > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.businessIdentity__action > svg {
+  flex: 0 0 auto;
+}
+
+.businessIdentity__action--secondary {
+  background: var(--ink-800);
+  border-color: var(--line-dark-strong);
+  color: var(--text-dark-1);
+}
+
+.businessIdentity__action:focus-visible {
+  outline: 2px solid var(--brass-300);
+  outline-offset: 2px;
+}
+
+.businessIdentity--collapsed {
+  padding-block: var(--sp-1);
+  border-top: 0;
+}
+
+.businessIdentity--collapsed .businessIdentity__facade {
+  width: 20px;
+  height: 20px;
+  flex-basis: 20px;
+}
+
+@media (max-width: 430px) {
+  .businessIdentity__actions {
+    gap: var(--sp-1);
+  }
+
+  .businessIdentity__action {
+    padding-inline: var(--sp-2);
+  }
+}
+
+/* The frontage is static under every motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  .businessIdentity,
+  .businessIdentity * {
+    animation: none;
+    transition: none;
+  }
+}

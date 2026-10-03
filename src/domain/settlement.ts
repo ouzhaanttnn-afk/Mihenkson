@@ -102,14 +102,13 @@ export function applyTransaction(
   }
 
   let financedTerms: ReturnType<typeof financeTerms> | undefined;
-  let financedPurchasePrice = 0;
+  let poolPurchasePrice = 0;
   if (tx.poolPurchase) {
     const item = tx.itemsIn[0];
     const quantity = tx.poolPurchase.quantity;
     const quote = item && state.market && poolSupplyQuote(item.templateId, quantity, state.market, state.store);
     if (quote && tx.poolPurchase.financed) {
       financedTerms = financeTerms(state.store, quote.totalPrice, tx.day);
-      financedPurchasePrice = quote.totalPrice;
       if (financedTerms.blockedReason || financedTerms.totalDue > financedTerms.availableLimit)
         return { applied: false, state, reason: financedTerms.blockedReason ?? t('Vade ve farkı için limit yetersiz.') };
     }
@@ -121,6 +120,7 @@ export function applyTransaction(
         tx.cashDelta !== -(expectedCash ?? 0) || !Number.isFinite(item.buyCost) ||
         Math.abs((item.buyCost ?? 0) * quantity - expectedCost) > 1e-6)
       return { applied: false, state, reason: t('Geçersiz sarrafiye miktarı, tutarı veya stok kapasitesi.') };
+    poolPurchasePrice = quote.totalPrice;
   }
 
   const requested = new Map<string, number>();
@@ -204,11 +204,15 @@ export function applyTransaction(
   const store: StoreState = { ...state.store, cash, reputation, level, xp, xpToNext,
     hasBalanceMg, hasCostBasis: Math.max(0, (state.store.hasCostBasis ?? 0) + (tx.hasCostDelta ?? 0)) };
   if (financedTerms) {
-    const supplier = financedTerms.totalDue > 0
+    store.supplier = financedTerms.totalDue > 0
       ? openInvoice(store.supplier, { id: tx.txId, amount: financedTerms.totalDue, dueDay: financedTerms.dueDay })
       : store.supplier;
-    store.supplier = tradeTrustAfterPurchase(supplier, financedPurchasePrice, creditLimit(state.store));
   }
+  // 1.3.0: the same meaningful purchase earns the same capped relationship
+  // credit, regardless of cash-only or financed UI route. Only a validated,
+  // committed transaction gets it; invoice principal/fees remain unchanged.
+  if (tx.poolPurchase)
+    store.supplier = tradeTrustAfterPurchase(store.supplier, poolPurchasePrice, creditLimit(state.store));
 
   const ledger: Ledger = {
     ...state.ledger,
@@ -581,6 +585,7 @@ export interface DayCloseResult {
 }
 
 export interface DayReport {
+  businessStoryProgress?: import('./business-story').BusinessStoryDayProgress | null;
   closingCash?: Money;
   overnightSummary?: string;
   personnelExpense?: Money;

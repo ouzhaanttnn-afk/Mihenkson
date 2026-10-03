@@ -102,6 +102,7 @@ export function WorkshopScreen() {
             style={{ width: `${capacity > 0 ? Math.min(100, (load / capacity) * 100) : 0}%` }}
           />
         </div>
+        <p className="pageHead__sub">{t('Doluluk kapasiteyi gösterir. Risk her işte ayrı; kabul edilen iş sonradan yeniden hesaplanmaz.')}</p>
       </header>
 
       <div

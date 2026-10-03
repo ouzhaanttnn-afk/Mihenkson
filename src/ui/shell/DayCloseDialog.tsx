@@ -7,6 +7,8 @@ import { weekendRisk } from '@domain/overnight';
 import { lifestyleDailyExpense } from '@domain/marketplace';
 import { selectors, useGame } from '@state/gameStore';
 import { clock, pct, tl, tlSigned } from '@ui/format';
+import { dayProgressCopy } from '@ui/business-story-copy';
+import { tierDef } from '@data/store-tiers';
 
 /** Top-layer dialog: focus stays inside; the paused world cannot receive taps. */
 export function DayCloseDialog() {
@@ -20,7 +22,12 @@ function OpenDayCloseDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const report = s.dayReportOpen ? s.lastDayReport : null;
   const risk = weekendRisk(s.market.day, selectors.position(s));
-  const tomorrow = s.market.day + 1;
+  const tomorrow = report ? report.day + 1 : s.market.day + 1;
+  const storyLines = dayProgressCopy(report?.businessStoryProgress);
+  const tomorrowLabel = t('Yarın {haftaGunu} · dükkân {dukkan} · piyasa {piyasa}.', {
+    haftaGunu: t(weekdayLabel(tomorrow)), dukkan: isShopOpen(tomorrow) ? t('açık') : t('kapalı'),
+    piyasa: isMarketOpen(tomorrow) ? t('açık') : t('kapalı; sonraki açılış {gun}', { gun: t(weekdayLabel(nextMarketOpenDay(tomorrow))) }),
+  });
   const open = s.dayCloseConfirmOpen || !!report;
   const forcedClose = !report && s.market.clockMinutes >= DAY.closeMinutes;
   const lifestyleExpense = lifestyleDailyExpense(s.playerMarket);
@@ -59,6 +66,19 @@ function OpenDayCloseDialog() {
       <dl className="dayCloseDialog__stats">
         <Row label={t('Gerçekleşmiş kâr')} value={tlSigned(report.realizedTradeProfit)} tone={report.realizedTradeProfit >= 0 ? 'positive' : 'negative'} />
         <Row label={t('Günlük gider')} value={tlSigned(-report.overhead)} tone="negative" />
+        <Row label={t('Kapanış nakdi')} value={tl(report.closingCash ?? s.store.cash)} />
+      </dl>
+      <section className="dayCloseDialog__story" aria-label={t('İşletmenin ilerleyişi')}>
+        {storyLines.map(line => <p key={line}>{line}</p>)}
+        {storyLines.length === 0 && <p>{t('Mağaza: {kademe}', { kademe: t(tierDef(s.store.storeTier).name) })}</p>}
+        <p>{tomorrowLabel}</p>
+        {(Array.isArray(report.upcomingLiabilities) ? report.upcomingLiabilities : []).slice(0, 2).map((p, index) => <p key={`${p.dueDay}:${index}`}>
+          {t('Ödeme: {tutar} · Gün {gun}', { tutar: tl(p.amount), gun: p.dueDay })}
+        </p>)}
+      </section>
+      <details className="dayCloseDialog__details">
+        <summary>{t('Finans ayrıntıları')}</summary>
+        <dl className="dayCloseDialog__stats">
         <Row label={t('Personel payı (gidere dahil)')} value={tl(report.personnelExpense ?? 0)} />
         {(report.lifestyleExpense ?? 0) > 0 && <Row label={t('Şahsi bakım (gidere dahil)')} value={tl(report.lifestyleExpense ?? 0)} />}
         {(report.scaleMaintenanceExpense ?? 0) > 0 && <Row label={t('Terazi bakım gideri')} value={tl(report.scaleMaintenanceExpense ?? 0)} />}
@@ -75,18 +95,18 @@ function OpenDayCloseDialog() {
           tone={report.netCashChange >= 0 ? 'positive' : 'negative'}
           note={
             (report.stockPurchaseSpend ?? 0) > 0
-              ? t('Bunun {tutar} kadarı stoğa girdi — harcanmadı, mala döndü.', {
+              ? t('Bugünkü stok alımlarına ödenen nakit: {tutar}.', {
                   tutar: tl(report.stockPurchaseSpend ?? 0),
                 })
               : undefined
           }
         />
-        <Row label={t('Kapanış nakdi')} value={tl(report.closingCash ?? s.store.cash)} />
-        <Row label={t('Stok net çıkış farkı')} value={tlSigned(report.stockPotential)} tone={report.stockPotential >= 0 ? 'positive' : 'negative'} />
+        <Row label={t('Stok net çıkış farkı (gerçekleşmemiş)')} value={tlSigned(report.stockPotential)} tone={report.stockPotential >= 0 ? 'positive' : 'negative'} />
         <Row label={t('Nakit Durumu')} value={pct(report.liquidity)} />
         <Row label={t('Kaçırılan Misafir')} value={String(report.missedGuestCountToday ?? 0)} />
       </dl>
       {report.overnightSummary && <p>{report.overnightSummary}</p>}
+      </details>
       <button type="button" className="dayCloseDialog__primary" disabled={s.weekTransitionPending} onClick={s.startNewDay}>{report.day % 7 === 0 ? t('Yeni haftaya başla') : t('Yeni güne başla')}</button>
     </> : <>
       <h2 id="day-close-title">{t('Günü şimdi kapat?')}</h2>
@@ -123,17 +143,7 @@ function OpenDayCloseDialog() {
       {scaleMaintenanceDebt > 0 && (
         <p>{t('Vadesi gelen terazi bakım borcu: {tutar}.', { tutar: tl(scaleMaintenanceDebt) })}</p>
       )}
-      <p>
-        {t('Yarın {haftaGunu} · dükkân {dukkan} · piyasa {piyasa}.', {
-          haftaGunu: t(weekdayLabel(tomorrow)),
-          dukkan: isShopOpen(tomorrow) ? t('açık') : t('kapalı'),
-          piyasa: isMarketOpen(tomorrow)
-            ? t('açık')
-            : t('kapalı; sonraki açılış {gun}', {
-                gun: t(weekdayLabel(nextMarketOpenDay(tomorrow))),
-              }),
-        })}
-      </p>
+      <p>{tomorrowLabel}</p>
       {s.dayCloseIssue ? (
         <p role="alert">
           {s.dayCloseIssue === 'insufficient-funds'

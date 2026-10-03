@@ -52,7 +52,9 @@ check(
 );
 check(androidStrings.includes('ca-app-pub-4229088811556918~6302768552'), 'Android AdMob App ID hazır');
 check(/applicationId "com\.mihenkaynak\.app"/.test(androidGradle), 'Android uygulama kimliği doğru');
-check(/versionCode 2\b/.test(androidGradle) && /versionName "1\.2\.1"/.test(androidGradle), 'Android güncel sürüm 1.2.1 (2)');
+const releaseVersion = JSON.parse(read('package.json')).version;
+check(/versionCode 3\b/.test(androidGradle) && androidGradle.includes(`versionName "${releaseVersion}"`), `Android güncel sürüm ${releaseVersion} (3)`);
+check([...xcodeProject.matchAll(/MARKETING_VERSION = ([^;]+);/g)].every(match => match[1] === releaseVersion), 'iOS ve web sürüm numaraları aynı');
 check(androidGradle.includes("System.getenv('MIHENK_ANDROID_KEYSTORE_FILE')"), 'Android release imzası yalnız harici anahtar kullanıyor');
 check(androidManifest.includes('android:screenOrientation="portrait"'), 'Android oyun ekranı portre yönünde');
 check(infoPlist.includes('ca-app-pub-4229088811556918~3768104554'), 'iOS AdMob App ID hazır');

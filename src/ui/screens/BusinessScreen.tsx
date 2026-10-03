@@ -26,8 +26,11 @@ import {
   summarizeWealth,
 } from '@domain/settlement';
 import { marketSignals } from '@domain/overnight';
+import { marketEventPresentation } from '@domain/market';
 import { registrySummary } from '@domain/customer-memory';
 import { evaluateUpgrade, growthSnapshot } from '@domain/store-growth';
+import { businessStoryDirection } from '@domain/business-story';
+import { shopGoalCopy } from '@ui/business-story-copy';
 import { intentAlarm } from '@domain/intent';
 import { bullionMeta } from '@data/bullion';
 import { TEST_TOOLS } from '@data/tools';
@@ -50,7 +53,7 @@ import {
   networkLoanOffer,
 } from '@domain/trade-network';
 import type { ItemInstance, TradeNetworkMember } from '@domain/types';
-import { REWARDED_SHIPPING_DISCOUNT, selectors, useGame } from '@state/gameStore';
+import { businessStoryContextOf, REWARDED_SHIPPING_DISCOUNT, selectors, useGame } from '@state/gameStore';
 
 import {
   IconBusiness,
@@ -99,7 +102,8 @@ function assetPrice(asset: { id: string }, value: number): string {
 }
 
 export function BusinessScreen() {
-  const [route, setRoute] = useState<Route>('root');
+  const requestedRoute = useGame(s => s.businessRouteRequested);
+  const [route, setRoute] = useState<Route>(requestedRoute);
 
   /*
     ALT NAVİGASYONDAKİ "İŞLETME"YE TEKRAR DOKUNMAK KÖKE DÖNDÜRÜR.
@@ -114,8 +118,8 @@ export function BusinessScreen() {
   */
   const tabHomeSignal = useGame((s) => s.tabHomeSignal);
   useEffect(() => {
-    setRoute('root');
-  }, [tabHomeSignal]);
+    setRoute(requestedRoute);
+  }, [tabHomeSignal, requestedRoute]);
 
   if (route === 'market') return <MarketRoute onBack={() => setRoute('root')} />;
   if (route === 'journal') return <JournalRoute onBack={() => setRoute('root')} />;
@@ -196,6 +200,17 @@ function BusinessRoot({ onOpen }: { onOpen: (r: Route) => void }) {
             <StatLine label={t("HAS değeri (realize değil)")} value={tl(wealth.hasEstimatedValue)} />
           </div>
         </div>
+
+        {s.store.payables.length > 0 && <div className="group">
+          <h2 className="group__title">{t('Diğer yükümlülükler')}</h2>
+          <div className="group__body">
+            {s.store.payables.map(payable => <StatLine key={payable.id}
+              label={t(payable.label) + ' · ' + t('{gun}. gün', { gun: payable.dueDay })}
+              value={tl(payable.amount)} tone={payable.dueDay <= s.market.day ? 'warning' : undefined} />)}
+            {s.store.payables.some(payable => payable.id.startsWith('scale_maintenance_')) &&
+              <p className="emptyNote">{t('Terazi bakım borcu, nakit yeterliyse vadesinde gün kapanışında ödenir; nakit ayır.')}</p>}
+          </div>
+        </div>}
 
         {/* Addendum §5 — gecelik pozisyon ve sonucu */}
         <OvernightPanel />
@@ -701,6 +716,7 @@ function SupplyRow({ probe, today }: { probe: ItemInstance; today: number }) {
             })
           : t('Tamamı peşin')}
       </div>
+      {!terms.blockedReason && <div className="lotRow__terms">{t('Alım sonrası nakit: {tutar}', { tutar: tl(s.store.cash - terms.fromCash) })}</div>}
 
       <div className="lotRow__controls">
         <label className="lotRow__field">
@@ -1068,7 +1084,7 @@ function storeSub(s: ReturnType<typeof useGame.getState>): string {
   const evaluation = evaluateUpgrade(
     s.store,
     growthSnapshot(
-      { store: s.store, inventory: s.inventory, items: s.items, ledger: s.ledger },
+      { store: s.store, inventory: s.inventory, items: s.items, ledger: s.ledger, market: s.market },
       Object.keys(s.customers).length,
     ),
   );
@@ -1093,13 +1109,9 @@ function storeSub(s: ReturnType<typeof useGame.getState>): string {
  */
 function StoreRoute({ onBack }: { onBack: () => void }) {
   const s = useGame();
-  const evaluation = evaluateUpgrade(
-    s.store,
-    growthSnapshot(
-      { store: s.store, inventory: s.inventory, items: s.items, ledger: s.ledger },
-      Object.keys(s.customers).length,
-    ),
-  );
+  const direction = businessStoryDirection(businessStoryContextOf(s));
+  const evaluation = direction.upgrade;
+  const goal = shopGoalCopy(direction.nearGoal);
 
   const fmtGate = (g: (typeof evaluation.gates)[number]) =>
     g.unit === 'money'
@@ -1163,6 +1175,7 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
                 {t('{kademe} · koşullar', { kademe: t(evaluation.next.name) })}
               </h2>
               <div className="group__body">
+                <p className="emptyNote">{goal.label}{goal.guidance ? ` · ${goal.guidance}` : ''}</p>
                 {evaluation.gates.map((g) => (
                   <StatLine
                     key={g.key}
@@ -1173,7 +1186,7 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
                 ))}
                 {evaluation.gates.some((g) => !g.met && g.key === 'supplierTrust') && (
                   <p className="emptyNote">
-                    {t('Toptancı güveni 100 üzerindendir. Anlamlı alışlar güveni {sinir}’e kadar büyütür; üstü için vade alıp zamanında ödemek gerekir.', {
+                    {t('Anlamlı alışlar güveni {sinir}’e kadar büyütür. Zamanında vade ödemesi güveni ve limiti güçlendirir.', {
                       sinir: WHOLESALE.tradeTrustCap,
                     })}
                   </p>
@@ -1199,6 +1212,10 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
                   value={tl(evaluation.next.grants.dailyOverhead)}
                   tone="warning"
                 />
+                {s.store.cash >= evaluation.investment && <StatLine
+                  label={t('Yatırım sonrası nakit')}
+                  value={tl(s.store.cash - evaluation.investment)}
+                />}
                 <div className="lotRow">
                   <div className="lotRow__terms">
                     {t('Yükseltme kalıcı bir gider taahhüdüdür: kademe büyüdükçe günlük sabit gider de büyür.')}
@@ -1235,6 +1252,7 @@ function StoreRoute({ onBack }: { onBack: () => void }) {
 function MarketRoute({ onBack }: { onBack: () => void }) {
   const s = useGame();
   const market = s.market;
+  const publicEvent = marketEventPresentation(market.activeEvent);
   const regime = MARKET_REGIME[market.regime];
   // §5.2 — sinyaller karar desteğidir; yön garanti etmez.
   const signals = marketSignals(market, selectors.position(s));
@@ -1270,12 +1288,12 @@ function MarketRoute({ onBack }: { onBack: () => void }) {
           })}
         </p>
 
-        {market.activeEvent && (
+        {publicEvent && (
           <div className="eventCard">
-            <div className="eventCard__title">{t(market.activeEvent.label)}</div>
-            <div className="eventCard__text">{t(market.activeEvent.description)}</div>
+            <div className="eventCard__title">{t(publicEvent.label)}</div>
+            <div className="eventCard__text">{t(publicEvent.description)}</div>
             <div className="eventCard__list">
-              {market.activeEvent.counterplay.map((play) => (
+              {publicEvent.counterplay.map((play) => (
                 <span key={play} className="tag tag--neutral">
                   {t(play)}
                 </span>

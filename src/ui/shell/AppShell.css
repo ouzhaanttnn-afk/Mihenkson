@@ -1696,6 +1696,10 @@
 .dayCloseDialog__primary { width: 100%; border: 1px solid var(--brass-500); background: linear-gradient(var(--palette-dcaf45), var(--palette-ac7e1e)); color: var(--palette-20170a); }
 .dayCloseDialog__cancel { width: 100%; border: 1px solid var(--line-light); background: transparent; color: var(--text-light-1); }
 .dayCloseDialog button:focus-visible { outline: 3px solid var(--brass-500); outline-offset: 3px; }
+.dayCloseDialog__details { margin: 12px 0; }
+.dayCloseDialog__details summary { padding: 12px 0; min-height: 44px; cursor: pointer; font-weight: 600; }
+.dayCloseDialog__details summary:focus-visible { outline: 2px solid var(--brass-500); }
+.dayCloseDialog__story p { margin: 10px 0; }
 
 /*
  * Kuyruk varken aşırı kısa ekran: ray artık Canlandır için gerçek bir yuva

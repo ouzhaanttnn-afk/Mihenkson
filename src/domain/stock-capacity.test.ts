@@ -197,7 +197,11 @@ describe('canonical stock capacity', () => {
       itemsOut: [{ itemId: 'held-a', quantity: 1 }] }));
     expect(exit.applied).toBe(true);
     expect(stockUsage(exit.state.inventory).backStock).toBe(2);
-    expect(exit.state.store.supplier).toEqual(state.store.supplier);
+    // A meaningful top-up may earn the 1.3.0 capped relationship increment;
+    // the unrelated exit must not change it again or modify existing invoices.
+    expect(exit.state.store.supplier).toEqual(topped.state.store.supplier);
+    expect(exit.state.store.supplier.openInvoices).toEqual(state.store.supplier.openInvoices);
+    expect(exit.state.store.supplier.limit).toBe(state.store.supplier.limit);
     expect(exit.state.ledger.realizedProfitTotal).toBe(12_345);
   });
 

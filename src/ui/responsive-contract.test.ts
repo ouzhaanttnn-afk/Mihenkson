@@ -57,7 +57,10 @@ describe('mobil kabuk sözleşmesi', () => {
     const shop = projectFile('src/ui/screens/ShopScreen.tsx');
     const app = projectFile('src/ui/App.tsx');
     const talent = projectFile('src/ui/screens/TalentTreePanel.tsx');
-    expect(shop).toContain('<TalentShortcut />');
+    expect(shop).toContain('<ShopDirection />');
+    const direction = projectFile('src/ui/screens/BusinessStoryPanel.tsx');
+    expect(direction).toContain('onOpenSkills={() => openSkills(true)}');
+    expect(direction).toContain('s.setShopTalentTreeOpen');
     expect(shop).not.toContain('<TalentTreeSheet');
     expect(app).toContain('<TalentTreeSheet />');
     expect(talent).toContain('aria-haspopup="dialog"');

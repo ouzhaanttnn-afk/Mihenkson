@@ -386,7 +386,7 @@ export const WHOLESALE = {
   lateTrustPenalty: 9,
   /** Anlamlı peşin alışların küçük güven katkısı; kredi ilişkisinin yerini almaz. */
   tradeTrustGain: 1,
-  /** Peşin ticaret bu puanın üstüne taşımaz; üst kademeler için zamanında vade gerekir. */
+  /** Anlamlı tedarik alışları bu puanın üstüne taşımaz; vade ödemesinin ek katkısı korunur. */
   tradeTrustCap: 65,
   /** Güven katkısı için alışın güncel kredi limitindeki asgari payı. */
   tradeTrustMinShare: 0.25,

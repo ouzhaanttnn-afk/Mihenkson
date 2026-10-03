@@ -1,4 +1,5 @@
 import { normalizeRankingSeason } from '@domain/ranking';
+import { normalizeBusinessStoryBaseline, normalizeBusinessStoryDayProgress } from '@domain/business-story';
 import { gzipSync, gunzipSync, strFromU8, strToU8 } from 'fflate';
 /**
  * MIHENKAYNAK — Kayıt / yükleme
@@ -59,6 +60,7 @@ import type {
 export const SAVE_VERSION = 4;
 
 export interface SaveFile {
+  businessStoryBaseline?: GameState['businessStoryBaseline'];
   offlinePersonnelClock?: GameState['offlinePersonnelClock'];
   offlinePersonnelReport?: GameState['offlinePersonnelReport'];
   rankingSeason?: GameState['rankingSeason'];
@@ -168,6 +170,7 @@ export interface SaveFile {
 export function serialize(state: GameState): SaveFile {
   return {
     version: SAVE_VERSION,
+    businessStoryBaseline: state.businessStoryBaseline,
     offlinePersonnelClock: state.offlinePersonnelClock,
     offlinePersonnelReport: state.offlinePersonnelReport,
     rankingSeason: state.rankingSeason,
@@ -216,6 +219,7 @@ export function serialize(state: GameState): SaveFile {
 export type LoadedState = Pick<
   GameState,
   | 'offlinePersonnelClock'
+  | 'businessStoryBaseline'
   | 'offlinePersonnelReport'
   | 'rankingSeason'
   | 'weekReports'
@@ -275,12 +279,14 @@ export function deserialize(file: SaveFile): LoadedState {
   const market = isMarketSnapshot(save.market)
     ? normalizeMarketSnapshot(save.market, save.clockMinutes)
     : rebuildMarket(save.seed, save.day, save.clockMinutes);
+  const baseline = normalizeBusinessStoryBaseline(save.businessStoryBaseline);
 
   return {
     seed: save.seed,
     spawnCounter: save.spawnCounter,
     jobCounter: save.jobCounter,
     market,
+    businessStoryBaseline: baseline?.day === market.day ? baseline : null,
     store: save.store,
     inventory: save.inventory,
     items: save.items,
@@ -303,7 +309,7 @@ export function deserialize(file: SaveFile): LoadedState {
     profileSetupDone: save.profileSetupDone ?? true,
     preferences: normalizePreferences(save.preferences),
     rankingSeason: normalizeRankingSeason(save.rankingSeason),
-    weekReports: Array.isArray(save.weekReports) ? save.weekReports.filter(r => r && Number.isInteger(r.day) && [r.realizedTradeProfit, r.overhead, r.netCashChange].every(Number.isFinite)).slice(-7) : [],
+    weekReports: Array.isArray(save.weekReports) ? save.weekReports.filter(r => r && Number.isInteger(r.day) && [r.realizedTradeProfit, r.overhead, r.netCashChange].every(Number.isFinite)).slice(-7).map(normalizeReportStory) : [],
     customerRushUntilMinutes: typeof save.customerRushUntilMinutes === 'number' && Number.isFinite(save.customerRushUntilMinutes)
       ? Math.min(save.customerRushUntilMinutes, save.clockMinutes + 90) : null,
     playerMarket: save.playerMarket ?? defaultPlayerMarket(),
@@ -330,7 +336,7 @@ export function deserialize(file: SaveFile): LoadedState {
     rewardedCosmeticTrial: save.rewardedCosmeticTrial ?? null,
     recallableGuest: save.recallableGuest?.deal ? { ...save.recallableGuest,
       customer: normalizeCustomerPatience(save.recallableGuest.customer, skillProgress) } : null,
-    lastDayReport: save.lastDayReport ?? null,
+    lastDayReport: save.lastDayReport ? normalizeReportStory(save.lastDayReport) : null,
     dayReportOpen: !!save.dayReportOpen && !!save.lastDayReport,
     customerMessage: save.customerMessage ?? '',
     overnight: null,
@@ -450,6 +456,11 @@ export function migrate(file: SaveFile): SaveFile {
     recallableGuest: file.recallableGuest && silverVisit(file.recallableGuest.customer, file.recallableGuest.items) ? null : file.recallableGuest,
     customerMessage: retireActive ? '' : file.customerMessage,
     queue: file.queue?.filter(entry => !entry.items.some(item => item.metal === 'silver') && !entry.customer.demand?.templateId?.startsWith('silver_')).map(entry => ({ ...entry, customer: { ...entry.customer, demand: normalizeDemand(entry.customer.demand) } })) };
+}
+
+function normalizeReportStory(report: NonNullable<GameState['lastDayReport']>): NonNullable<GameState['lastDayReport']> {
+  const progress = normalizeBusinessStoryDayProgress(report.businessStoryProgress);
+  return { ...report, businessStoryProgress: progress?.day === report.day ? progress : null };
 }
 
 const STORAGE_KEY = 'mihenkaynak.save.v1';

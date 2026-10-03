@@ -204,6 +204,7 @@ export function QuoteStage({
           müşterinin ürününde kalır, ücreti buna göre değerlendirin.
         </div>
       )}
+      <p className="svc__note">{t('Kendi atölyende risk; zorluk, doluluk, ekipman ve uzmanlıkla hesaplanır. Dış ustanın riski kendi atölye doluluğundan bağımsızdır.')}</p>
     </div>
   );
 }

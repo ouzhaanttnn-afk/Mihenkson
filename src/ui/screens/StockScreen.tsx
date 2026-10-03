@@ -336,7 +336,7 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
   const ad = t(name);
   return <section className="offerRow" aria-label={ad}>
     <label className="offerRow__meta offerRow__credit"><input type="checkbox" aria-label={`${ad} · ${t('Toptancı vadesini kullan')}`} checked={credit} onChange={event => { setCredit(event.target.checked); setConfirmation(null); }} /> {t('Toptancı vadesini kullan')}</label>
-    {credit && terms && <p className="emptyNote">{t('Nakit {nakit} · Vade {vade} · Fark {fark} · Ödeme {gun}. gün', { nakit: tl(terms.fromCash), vade: tl(terms.totalDue), fark: tl(terms.financeCost), gun: terms.dueDay })}</p>}
+    {credit && terms && terms.financed > 0 && <p className="emptyNote">{t('Peşin ödeme {nakit} · Borç {vade} · Fark {fark} · Ödeme {gun}. gün', { nakit: tl(terms.fromCash), vade: tl(terms.totalDue), fark: tl(terms.financeCost), gun: terms.dueDay })}</p>}
     {suggestedQuantity !== undefined && <p className="offerRow__suggestion">{suggestedQuantity > 0
       ? t('Müşteri için eksik: {miktar}', { miktar: gramsPerUnit ? preciseGrams(suggestedQuantity * gramsPerUnit) : t('{n} adet', { n: suggestedQuantity }) })
       : t('Bu müşteri için yeterli stok var.')}</p>}
@@ -357,6 +357,9 @@ function BullionOffer({ product, suggestedQuantity }: { product: typeof POOL_SUP
       <span className="offerRow__total num">{lot ? tl(lot.totalPrice) : '—'}</span>
       <button type="button" className="offerRow__buy" disabled={!affordable} onClick={buy}>{expensive && confirmed ? t('Onayla') : t('Al')}</button>
     </div>
+    {lot && affordable && <p className="offerRow__meta">{t('Alım sonrası nakit: {tutar}', {
+      tutar: tl(s.store.cash - (credit && terms ? terms.fromCash : lot.totalPrice)),
+    })}</p>}
     {expensive && confirmed && <p className="offerRow__confirm" role="status">{t('Yüksek tutar: {tutar}. Satın almak için tekrar onayla.', { tutar: tl(lot.totalPrice) })}</p>}
     {!lot && <p className="offerRow__shortfall">{max === 0 && minimumQuote
       ? credit ? terms?.blockedReason ?? t('Vade ve farkı için limit yetersiz.') : t('Yetersiz nakit; işlem uygulanmadı.')

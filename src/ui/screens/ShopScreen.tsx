@@ -14,18 +14,18 @@
  */
 
 import { TERM } from '@ui/terms';
+import { ShopDirection, ShopAgenda, ReturningCustomerContext, SaleMasteryNote } from './BusinessStoryPanel';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { DAY, NEGOTIATION, PATIENCE_PER_TEST_SECOND } from '@domain/balance';
-import { isBlindTradingDay, isShopOpen, nextMarketOpenDay, weekdayLabel } from '@domain/calendar';
+import { NEGOTIATION, PATIENCE_PER_TEST_SECOND } from '@domain/balance';
+import { isShopOpen, weekdayLabel } from '@domain/calendar';
 import { DEFAULT_JEWELER_NAME, SHOP_SUFFIX, shopDisplayName } from '@domain/profile';
 import { effectiveCeiling, suggestedChannel } from '@domain/thesis';
 import { isTerminal } from '@domain/negotiation';
 import { liquidityRatio } from '@domain/settlement';
 import { toolsForLevel } from '@data/tools';
 import { getArchetype } from '@data/archetypes';
-import { tierDef } from '@data/store-tiers';
 import { getServiceType } from '@data/service-types';
 import { expectedCompletionDay, findQuote, overdueJobs, readyJobs } from '@domain/service';
 import { activeLine, canEnterStage, selectors, useGame } from '@state/gameStore';
@@ -75,7 +75,6 @@ import {
 } from '@ui/workbench/OfferControl';
 
 import {
-  IconClock,
   IconCash,
   IconCollection,
   IconCounter,
@@ -95,7 +94,6 @@ import {
   IconSpectrometer,
   IconStock,
   IconTouchstone,
-  IconWarning,
   IconVideo,
   IconWholesale,
   IconWorkshop,
@@ -109,7 +107,7 @@ import { showcaseStock } from '@domain/purchase';
 import { poolForItem, poolForTemplate } from '@domain/stock-pools';
 import { customerPriceBand } from '@domain/customer-pricing';
 import { BullionCatalog } from '@ui/screens/StockScreen';
-import { clock, grams, moneyUnit, pct, tl, tlBare, tlSigned, tonWord } from '@ui/format';
+import { grams, moneyUnit, pct, tl, tlBare, tlSigned, tonWord } from '@ui/format';
 import { getLanguage, localizeCustomerName, t } from '@i18n/index';
 import { offerUnitLabel } from '@ui/offer-view';
 import { useModalSurface } from '@ui/useModalSurface';
@@ -127,7 +125,6 @@ import type {
   PurchaseSession,
   WorkbenchStage,
 } from '@domain/types';
-import { TalentShortcut } from './TalentTreePanel';
 import { PersonnelShortcut } from './PersonnelPanel';
 import { RankingButton } from '@ui/shell/RankingDialog';
 
@@ -292,6 +289,7 @@ export function ShopScreen() {
         aria-label={t('Dükkan')}
       >
         <div className="wb">
+          {deal && stage !== 'negotiate' && stage !== 'result' && <ReturningCustomerContext />}
           {/* Çoklu ürün kalem şeridi — dikey scroll yerine yatay pill (GDD 23.13) */}
           {deal && deal.lines.length > 1 && (
             <div className="lineStrip" role="tablist" aria-label={t('Müşterinin ürünleri')}>
@@ -360,7 +358,8 @@ export function ShopScreen() {
               />
             ) : stage === 'result' ? (
               line.negotiation.state === 'ACCEPTED' ? (
-                <SaleResult price={line.negotiation.settledPrice ?? 0} cost={deal.purchase.packageCost} />
+                <><SaleResult price={line.negotiation.settledPrice ?? 0} cost={deal.purchase.packageCost} />
+                  <SaleMasteryNote dealId={deal.dealId} /></>
               ) : (
                 <div className="result">
                   <span className="result__badge result__badge--neutral">{t('İşlem kapanmadı')}</span>
@@ -591,98 +590,6 @@ const IdleWorkbench = memo(function IdleWorkbench({ coaching }: { coaching: bool
   const liquidity = s.liquidity;
   const band = s.band;
 
-  const alerts: { key: string; title: string; detail: string; tone: string; Icon: typeof IconWarning }[] =
-    [];
-  const shopOpen = isShopOpen(s.day);
-
-  if (!shopOpen) {
-    /*
-      "Dükkân kapalı" cümlesini alttaki Karar Dock'u söylüyor ("Dükkân ve
-      müşteri akışı kapalı"); burada TEKRARLAMAYIZ. Bu satırın işi, kapalı
-      günün ne getirdiğini söylemek: piyasa da donuk, ama gün boş değil —
-      stok, atölye ve toptancı açık.
-    */
-    alerts.push({
-      key: 'closed',
-      title: t('{gun} · piyasa da kapalı', { gun: t(weekdayLabel(s.day)) }),
-      detail: t('Fiyat cuma kapanışında donuk. Stok, atölye ve toptancı açık.'),
-      tone: 'warning',
-      Icon: IconClock,
-    });
-  }
-
-  /*
-    B1 — CUMARTESİ RİSKİ OYUNCUNUN BAKTIĞI YERDE YAZMIYORDU.
-
-    Hafta sonu boşluğu mekaniğinin bütün amacı, cuma kapanışıyla pazartesi
-    açılışı arasında körlemesine alım yapmanın riskini yaşatmak. Alan katmanı
-    bu günü adıyla tanıyor — `isBlindTradingDay` — ama bu yordam PROJEDE HİÇ
-    ÇAĞRILMIYORDU: mekanik işliyor, oyuncuya görünmüyordu. Tek işaret üst
-    şeritteki "Cmt · Piyasa Kapalı" damgasıydı; bugün alınan malın pazartesiye
-    kadar fiyat riski taşıdığını hiçbir yer söylemiyordu.
-
-    Yukarıdaki "kapalı gün" uyarısı dükkânın KAPALI olduğu günü anlatır
-    (pazar); burası dükkânın AÇIK, piyasanın kapalı olduğu gündür. İkisi aynı
-    anda çıkmaz.
-  */
-  if (isBlindTradingDay(s.day)) {
-    alerts.push({
-      key: 'blind',
-      title: t('{gun} · piyasa kapalı, dükkân açık', { gun: t(weekdayLabel(s.day)) }),
-      detail: t(
-        'Fiyat cuma kapanışında donuk. Bugün aldığın mal {gun} açılışına kadar fiyat riski taşır.',
-        { gun: t(weekdayLabel(nextMarketOpenDay(s.day))) },
-      ),
-      tone: 'warning',
-      Icon: IconClock,
-    });
-  }
-
-  if (s.activeEvent) {
-    alerts.push({
-      key: 'event',
-      title: t(s.activeEvent.label),
-      detail: t(s.activeEvent.description),
-      tone: 'warning',
-      Icon: IconWarning,
-    });
-  }
-
-  if (band === 'red' || band === 'caution') {
-    alerts.push({
-      key: 'liquidity',
-      title: `${t(TERM.liquidity)} ${pct(liquidity)}`,
-      detail:
-        band === 'red'
-          ? t('Büyük alış öncesi hızlı likidasyon gerekebilir.')
-          : t('İşlem yapılabilir ama tedarik ve büyük müşteri riski yükseliyor.'),
-      tone: band === 'red' ? 'negative' : 'warning',
-      Icon: IconLiquidity,
-    });
-  }
-
-  /*
-    GERİ SAYIM KALDIRILDI — kullanıcı isteği.
-
-    Burada "Sonraki müşteri ~7 dk" yazıyordu. Sayının kendisi doğruydu ama
-    yaptığı iş yanlıştı: oyuncuyu tezgâhta saat saymaya, yani BEKLEMEYE
-    davet ediyordu. Sarrafın işi müşteri saymak değil; boş vakitte stok
-    kurmak, atölyeye bakmak, pozisyonunu tartmaktır.
-
-    Satırın kendisi kaldı çünkü ikinci yarısı hâlâ bilgi taşıyor: dükkânın
-    ne zaman kapandığı. Kapanış saati oyuncunun günü planlamasına yarar,
-    geri sayım ise yalnız bekletir.
-  */
-  if (shopOpen && alerts.length < 3 && s.queueCount === 0) {
-    alerts.push({
-      key: 'schedule',
-      title: t('Dükkân açık'),
-      detail: t("Dükkan {saat}'da kapanıyor.", { saat: clock(DAY.closeMinutes) }),
-      tone: 'positive',
-      Icon: IconClock,
-    });
-  }
-
   const metalShare = Math.round(s.metalShare * 100);
   const stockCount = s.inventory.length;
   const equippedShopBadge = shopBadgeArt(s.playerMarket.equipped.shopBadge);
@@ -732,7 +639,6 @@ const IdleWorkbench = memo(function IdleWorkbench({ coaching }: { coaching: bool
               )}
             </h2>
             <p className="idle__sub">
-              <span className="tag">{t(tierDef(s.store.storeTier).name)}</span>{' '}
               {shopOverviewOpen
                 ? t('{karakter} · Gün {gun} · {haftaGunu} · Semt itibarı {itibar}', {
                     karakter: t(s.dayCharacter.label),
@@ -787,7 +693,7 @@ const IdleWorkbench = memo(function IdleWorkbench({ coaching }: { coaching: bool
       </section>
 
       <PersonnelShortcut shop />
-      <TalentShortcut />
+      <ShopDirection />
 
       {!s.inventory.some(p => {
         const item = s.items[p.itemId];
@@ -802,17 +708,10 @@ const IdleWorkbench = memo(function IdleWorkbench({ coaching }: { coaching: bool
       {s.queueCount > 0 && <WaitingCustomerQueue />}
 
       <div className="alerts">
-        {alerts.slice(0, 3).map(({ key, title, detail, tone, Icon }) => (
-          <div key={key} className={`alert alert--${tone}`}>
-            <span className="alert__icon">
-              <Icon size={16} />
-            </span>
-            <span className="alert__body">
-              <span className="alert__title">{title}</span>
-              <span className="alert__detail"> · {detail}</span>
-            </span>
-          </div>
-        ))}
+        <ShopAgenda />
+        {band === 'red' && <div className="alert alert--negative">
+          <span>{t('Nakit Durumu')} {pct(liquidity)} · {t('Büyük alış öncesi hızlı likidasyon gerekebilir.')}</span>
+        </div>}
       </div>
 
       {/*
@@ -1142,7 +1041,8 @@ function ContextualToolRail({ liquidity }: { liquidity: number }) {
 
       // "Kuyruk | Atölyeye Gönder; sonuç Atölye ekranında takip edilir."
       default:
-        return <ToolRail items={[]} disabled emptyLabel={t("İş emri oluşturuldu")} />;
+        return <ToolRail items={[]} disabled emptyLabel={deal.service?.outcome === 'declined'
+          ? t('İş kabul edilmedi') : t('İş emri oluşturuldu')} />;
     }
   }
 
