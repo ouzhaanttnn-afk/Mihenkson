@@ -1,5 +1,9 @@
 # Mihenk 1.3.0 — store and beta copy
 
+## Turkish Promotional Text
+
+Yaşayan Dükkân: tanıdık müşteriler, gerçek ilerleme ve bir sonraki mağaza hedefin. Ustalığını geliştir, kasanı koru, semtin güvenilen kuyumcusu ol.
+
 ## Turkish What's New
 
 1.3.0 — Yaşayan Dükkân
@@ -39,6 +43,17 @@ Gameplay, pricing RNG, negotiation rights, staff/offline limits, ad eligibility,
 Premium entitlements and existing rewarded choices are unchanged. No new IAP,
 ad placement, analytics SDK, permission or data category was added. Progress is
 stored on the device.
+
+The approved 1.2.1 advertising rules remain: at most two actual fullscreen
+presentations per engaged foreground session, only after settled and saved
+successful manual visits or continuing a saved day report. First slot requires
+five real active minutes and five unique accepted manual trades; second requires
+twelve active minutes, five further trades and five active minutes between
+presentations. Staff/offline/service/rejected visits do not count, game speed does
+not accelerate eligibility, and Premium/unknown entitlement, unavailable consent,
+no-fill or failure skips the break. Negotiation and decision dialogs remain
+protected. Offline staff shifts are calculated on return, not through continuous
+background execution; existing four-hour/16-attempt limits and daily wages are unchanged.
 
 ## Turkish What to Test
 
