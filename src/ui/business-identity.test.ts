@@ -63,7 +63,7 @@ describe('slim store identity presentation', () => {
     const action = css.match(/\.businessIdentity__action\s*\{([^}]*)\}/)![1]!;
     expect(row).toContain('display: flex;');
     expect(row).toContain('align-items: stretch;');
-    expect(row).toContain('padding: var(--sp-1);');
+    expect(row).toContain('padding: 2px var(--sp-1);');
     expect(row).toContain('border: 1px solid var(--line-glass);');
     expect(row).not.toMatch(/space-between|flex-wrap|gap:|(?:^|\n)\s*(?:(?:min-|max-)?height|margin(?:-[\w-]+)?):/);
     expect(tile).toContain('flex: 1 1 0;');
@@ -73,6 +73,16 @@ describe('slim store identity presentation', () => {
     expect(action).toContain('max-width: max(104px, 34%);');
     expect(action).toContain('border-inline-start: 1px solid var(--line-glass);');
     expect(css).not.toMatch(/margin-(left|inline-start):\s*auto/);
+  });
+
+  it('thins only vertical padding while preserving horizontal spacing and touch targets', () => {
+    const css = readFileSync(new URL('./components/BusinessIdentity.css', import.meta.url), 'utf8');
+    const tile = css.match(/\.businessIdentity__tile\s*\{([^}]*)\}/)![1]!;
+    const action = css.match(/\.businessIdentity__action\s*\{([^}]*)\}/)![1]!;
+    expect(tile).toContain('padding: 2px var(--sp-2);');
+    expect(action).toContain('padding: 2px var(--sp-3);');
+    for (const control of [tile, action]) expect(control).toContain('min-height: var(--touch-min);');
+    expect(css).toContain('.businessIdentity--collapsed { padding: 2px var(--sp-1); }');
   });
 
   it('removes growth and skills actions entirely when collapsed', () => {

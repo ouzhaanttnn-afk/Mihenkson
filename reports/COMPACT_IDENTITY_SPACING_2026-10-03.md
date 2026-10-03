@@ -31,3 +31,14 @@ The user rejected the screenshot of the first spacing correction. Merely moving 
 - Final `npm test`: 1,643 tests in 107 Vitest suites plus 5 release-preparation tests passed. Final production build/typecheck passed, with only the existing chunk advisory. React guidance preserved separate accessible buttons, stateless presentation and existing callbacks.
 - Final screenshot: `C:/Users/Gaming/.codex/visualizations/2026/10/03/mihenk-1.3.0/slim-home-store-talents.png`. Viewport override reset, temporary test tabs closed.
 - This redesign is source/local-build complete, not yet uploaded to TestFlight and not submitted to Apple review.
+
+## Approved rail — minor vertical thinning
+
+The user approved the shared rail and requested only a slight top/bottom reduction before TestFlight. Outer and inner block padding changed from 4 to 2 px; horizontal spacing, art, typography, divider and both callbacks are unchanged. The collapsed rail uses the same padding. Both controls retain the 44 px minimum; no fixed height or clipping was introduced.
+
+- `npm test`: 1,644 Vitest tests in 107 suites and 5 release-preparation tests passed. Production build/typecheck and all 82 `release:check` checks passed; existing chunk-size advisory remains. No lint script is present.
+- All four Turkish stages at actual CSS viewport widths 320/390/430: 50.21 px rail, approximately 44 px controls, no horizontal overflow or clipped text. Normal English at 320 also stays at 50.21 px.
+- 200% root text at 320: Turkish rows 123.59 px, English 85.80–123.59 px, no overflow or clipped text. Collapsed identities have no interactive controls.
+- Real App at 390×844 with simulated iOS 59/34 px safe areas: 50.21 px rail and 44 px controls. Talents open/close, store tasks and home return work; no console errors. No other home spacing, safe areas, economy or ads changed.
+- Screenshot: `C:/Users/Gaming/.codex/visualizations/2026/10/03/mihenk-1.3.0/thin-home-store-talents.png`. Temporary viewport override reset and QA tabs closed.
+- New TestFlight upload authorized. App Review remains on hold until the user explicitly says okay; this is not authorization to cancel or replace an older review submission.

@@ -5,7 +5,7 @@
   max-width: 100%;
   display: flex;
   align-items: stretch;
-  padding: var(--sp-1);
+  padding: 2px var(--sp-1);
   border: 1px solid var(--line-glass);
   border-radius: var(--r-md);
   background: var(--surface-glass-strong);
@@ -23,7 +23,7 @@
   grid-template-columns: 36px minmax(0, 1fr);
   align-items: center;
   gap: var(--sp-2);
-  padding: var(--sp-1) var(--sp-2);
+  padding: 2px var(--sp-2);
   border: 0;
   border-radius: var(--r-sm);
   background: transparent;
@@ -77,7 +77,7 @@ button.businessIdentity__tile:active,
   align-items: center;
   justify-content: center;
   gap: var(--sp-1);
-  padding: var(--sp-1) var(--sp-3);
+  padding: 2px var(--sp-3);
   border: 0;
   border-inline-start: 1px solid var(--line-glass);
   border-radius: var(--r-sm);
@@ -99,7 +99,7 @@ button.businessIdentity__tile:active,
   outline-offset: 2px;
 }
 
-.businessIdentity--collapsed { padding: var(--sp-1); }
+.businessIdentity--collapsed { padding: 2px var(--sp-1); }
 .businessContext { margin: 4px 0 8px; color: var(--text-dark-2); font-size: max(var(--fs-caption), .8125rem); line-height: 1.4; overflow-wrap: anywhere; }
 .businessAgenda { align-items: center; }
 
