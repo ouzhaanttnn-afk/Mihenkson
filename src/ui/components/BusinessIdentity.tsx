@@ -14,7 +14,7 @@ export interface BusinessIdentityProps {
   readonly onOpenSkills?: () => void;
 }
 
-/** Compact square store tile; upgrade requirements remain on the Store screen. */
+/** One slim store/talents rail; upgrade requirements remain on the Store screen. */
 export function BusinessIdentity({
   tier = 1,
   tierName,
@@ -24,8 +24,10 @@ export function BusinessIdentity({
 }: BusinessIdentityProps) {
   const tile = (
     <>
-      <Art art={NAV_ART.business} size={28} decorative
-        className="businessIdentity__art" fallback={<StoreFacade tier={tier} />} />
+      <span className="businessIdentity__icon" aria-hidden="true">
+        <Art art={NAV_ART.business} size={24} decorative
+          className="businessIdentity__art" fallback={<StoreFacade tier={tier} />} />
+      </span>
       <span className="businessIdentity__tier">{t(tierName)}</span>
     </>
   );

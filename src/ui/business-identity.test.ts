@@ -17,17 +17,18 @@ function buttons(node: ReactNode): ReactElement<{ onClick: () => void; type: str
   });
 }
 
-describe('square store identity presentation', () => {
-  it('shows only a square store identity rather than a long goal panel', () => {
+describe('slim store identity presentation', () => {
+  it('shows a slim identity with a square icon rather than a long goal panel', () => {
     const html = renderToStaticMarkup(createElement(BusinessIdentity, identity));
     expect(html).toContain('Semt Kuyumcusu');
     expect(html).toContain('businessIdentity__tile');
+    expect(html).toContain('businessIdentity__icon');
     expect(html).toContain('realistic/navigation/investments.webp');
     expect(html).not.toMatch(/Sıradaki|Ustalık|businessIdentity__goal|businessIdentity__guidance/);
     expect(html).not.toContain('<button');
   });
 
-  it('keeps the square store and skills actions separate and operable', () => {
+  it('keeps the store and skills actions separate and operable in one rail', () => {
     const onOpenGrowth = vi.fn();
     const onOpenSkills = vi.fn();
     const props = { ...identity, onOpenGrowth, onOpenSkills };
@@ -46,25 +47,31 @@ describe('square store identity presentation', () => {
     expect(html).not.toMatch(/<button[^>]*>(?:(?!<\/button>)[\s\S])*<button/);
   });
 
-  it('uses a compact 88 px tile without allocating a tall identity row', () => {
+  it('uses a 36 px square icon and 44 px controls instead of a tall store card', () => {
     const css = readFileSync(new URL('./components/BusinessIdentity.css', import.meta.url), 'utf8');
     const html = renderToStaticMarkup(createElement(BusinessIdentity, identity));
-    expect(css).toMatch(/\.businessIdentity\s*\{[^}]*padding: 0;/);
-    expect(css).toMatch(/\.businessIdentity__tile\s*\{[^}]*width: 88px;[^}]*aspect-ratio: 1;/);
-    expect(css).not.toContain('width: 112px;');
-    expect(html).toContain('width="28" height="28"');
+    expect(css).toMatch(/\.businessIdentity__icon\s*\{[^}]*width: 36px;[^}]*aspect-ratio: 1;/);
+    expect(css).toMatch(/\.businessIdentity__tile\s*\{[^}]*min-height: var\(--touch-min\);/);
+    expect(css).not.toMatch(/width: (88|112)px;/);
+    expect(html).toContain('width="24" height="24"');
   });
 
-  it('keeps skills next to the tile with an 8 px gap without adding row height', () => {
+  it('groups both actions in one frame without an empty gap or stacked controls', () => {
     const css = readFileSync(new URL('./components/BusinessIdentity.css', import.meta.url), 'utf8');
-    const tokens = readFileSync(new URL('./tokens.css', import.meta.url), 'utf8');
     const row = css.match(/\.businessIdentity\s*\{([^}]*)\}/)![1]!;
+    const tile = css.match(/\.businessIdentity__tile\s*\{([^}]*)\}/)![1]!;
     const action = css.match(/\.businessIdentity__action\s*\{([^}]*)\}/)![1]!;
-    expect(row).toContain('justify-content: flex-start;');
-    expect(row).toContain('gap: var(--sp-2);');
-    expect(tokens).toContain('--sp-2: 8px;');
-    expect(row).not.toMatch(/space-between|(?:^|\n)\s*(?:(?:min-|max-)?height|margin(?:-[\w-]+)?):/);
+    expect(row).toContain('display: flex;');
+    expect(row).toContain('align-items: stretch;');
+    expect(row).toContain('padding: var(--sp-1);');
+    expect(row).toContain('border: 1px solid var(--line-glass);');
+    expect(row).not.toMatch(/space-between|flex-wrap|gap:|(?:^|\n)\s*(?:(?:min-|max-)?height|margin(?:-[\w-]+)?):/);
+    expect(tile).toContain('flex: 1 1 0;');
+    expect(tile).toContain('grid-template-columns: 36px minmax(0, 1fr);');
+    expect(tile).toContain('gap: var(--sp-2);');
     expect(action).toContain('flex: 0 1 auto;');
+    expect(action).toContain('max-width: max(104px, 34%);');
+    expect(action).toContain('border-inline-start: 1px solid var(--line-glass);');
     expect(css).not.toMatch(/margin-(left|inline-start):\s*auto/);
   });
 
@@ -117,8 +124,8 @@ describe('square store identity presentation', () => {
     const props = Object.freeze({ ...identity, tierName: name, onOpenGrowth: () => undefined });
     expect(renderToStaticMarkup(createElement(BusinessIdentity, props))).toContain(name);
     const css = readFileSync(new URL('./components/BusinessIdentity.css', import.meta.url), 'utf8');
-    for (const rule of ['overflow-wrap: anywhere', 'flex-wrap: wrap', 'min-height: var(--touch-min)',
-      'aspect-ratio: 1', 'width: 88px', 'min-height: auto', 'object-fit: contain', ':focus-visible',
+    for (const rule of ['overflow-wrap: anywhere', 'min-height: var(--touch-min)',
+      'aspect-ratio: 1', 'width: 36px', 'minmax(0, 1fr)', 'object-fit: contain', ':focus-visible',
       '@media (max-width: 430px)', '@media (prefers-reduced-motion: reduce)']) expect(css).toContain(rule);
     expect(css).not.toMatch(/max-height:|text-overflow:|overflow:\s*hidden|position:\s*(fixed|absolute)/);
   });
