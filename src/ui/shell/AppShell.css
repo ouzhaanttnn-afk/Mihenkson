@@ -1988,51 +1988,40 @@
     background: color-mix(in srgb, var(--ink-600) 62%, transparent);
   }
 
-  /*
-   * iOS uygulamasında durum çubuğu gizli, WebView gerçek tam ekrandır.
-   * Başlığı 76 px'te tutup avatarı sol üst lobda; profil metni ile sağdaki
-   * saat/hız kümesini Dynamic Island'ın alt çizgisinde konumlandırırız.
-   * Böylece 59 px'lik boş bant yoktur, fakat merkezdeki fiziksel kesite de
-   * okunur metin gönderilmez.
-   */
-  :root[data-native-platform='ios'] .statusStrip {
-    flex-basis: 76px;
-    height: 76px;
-    align-items: flex-end;
-    padding-top: 0;
-    padding-bottom: 2px;
-  }
+}
 
-  :root[data-native-platform='ios'] .profileChip {
-    flex: 0 1 116px;
-    max-width: 116px;
-    height: 72px;
-  }
+/* Native portrait headers stay compact even when the viewport exceeds 430px.
+ * Height and top padding deliberately inherit the inset-aware base rule above;
+ * never position controls beside a presumed cutout with fixed pixel offsets. */
+:root[data-native-platform='ios'] .statusStrip {
+  justify-content: space-between;
+}
 
-  :root[data-native-platform='ios'] .profileChip__text {
-    padding-top: 26px;
-  }
+:root[data-native-platform='ios'] .statusStrip__meta {
+  flex: 0 0 auto;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+}
 
-  :root[data-native-platform='ios'] .statusStrip__meta {
-    width: 115px;
-    max-width: 115px;
-    justify-content: flex-end;
-    padding-bottom: 3px;
-  }
+:root[data-native-platform='ios'] .statusStrip__clock {
+  flex: 0 0 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
 
-  :root[data-native-platform='ios'] .speed {
-    width: 115px;
-    justify-content: space-between;
-  }
-
-  :root[data-native-platform='ios'] .speed__step {
-    min-width: 22px;
-    padding-inline: 3px;
-  }
-
-  :root[data-native-platform='ios'] .speed__settings {
-    width: 24px;
-  }
+:root[data-native-platform='ios'] .statusStrip__weekday { margin: 0; }
+:root[data-native-platform='ios'] .statusStrip__clockSep {
+  display: inline;
+  color: var(--text-dark-3);
+  font-size: 9px;
 }
 
 @media (max-width: 340px) {

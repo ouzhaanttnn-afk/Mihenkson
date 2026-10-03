@@ -142,9 +142,8 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   /*
-   * Web/PWA sistem çubuklarını korur. Native iOS'ta SystemBars gizlidir ve
-   * kontroller notch çevresine özel yerleştiği için güvenli alan ayrıca
-   * şerit yüksekliğine eklenmez.
+   * Status bars may be hidden, but the camera cutout is still physical.
+   * Every platform consumes its actual inset once inside the header surface.
    */
   --chrome-top-inset: var(--safe-top);
   --chrome-bottom-inset: var(--safe-bottom);
@@ -278,7 +277,6 @@ body,
 }
 
 :root[data-native-platform='ios'] {
-  --chrome-top-inset: 0px;
   /*
    * Home indicator etkileşim sırasında yeniden görünebilir. Tam 34 px'lik
    * boş bant yerine en fazla 24 px'i alt menünün kendi yüzeyine katarız;

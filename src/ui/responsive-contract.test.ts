@@ -77,7 +77,7 @@ describe('mobil kabuk sözleşmesi', () => {
     expect(viewport).toContain('user-scalable=no');
   });
 
-  it('native iPhone güvenli alanlarını ekstra üst ve alt banda dönüştürmez', () => {
+  it('native iPhone üst kesitini başlığın içinde tek kez korur, sabit Ada telafisi kullanmaz', () => {
     const shellCss = projectFile('src/ui/shell/AppShell.css');
     const tokens = projectFile('src/ui/tokens.css');
     const main = projectFile('src/main.tsx');
@@ -95,16 +95,16 @@ describe('mobil kabuk sözleşmesi', () => {
       /\.bottomNav\s*\{[\s\S]*?padding:[\s\S]*?calc\(5px \+ var\(--chrome-bottom-inset\)\)/,
     );
     expect(tokens).toMatch(
-      /:root\[data-native-platform='ios'\]\s*\{[\s\S]*?--chrome-top-inset:\s*0px;[\s\S]*?--chrome-bottom-inset:\s*min\(var\(--safe-bottom\), 24px\);/,
+      /:root\[data-native-platform='ios'\]\s*\{[\s\S]*?--chrome-bottom-inset:\s*min\(var\(--safe-bottom\), 24px\);/,
     );
+    expect(tokens).toContain('--chrome-top-inset: var(--safe-top);');
+    expect(tokens).not.toMatch(/--chrome-top-inset:\s*0px/);
+    const nativeHeader = shellCss.match(/:root\[data-native-platform='ios'\] \.statusStrip\s*\{([^}]+)\}/)?.[1] ?? '';
+    expect(nativeHeader).toContain('justify-content: space-between;');
+    expect(nativeHeader).not.toMatch(/height:|flex-basis:|padding-top:/);
+    expect(shellCss).not.toContain('padding-top: 26px;');
     expect(shellCss).toMatch(
-      /:root\[data-native-platform='ios'\] \.statusStrip\s*\{[\s\S]*?height:\s*76px;/,
-    );
-    expect(shellCss).toMatch(
-      /:root\[data-native-platform='ios'\] \.profileChip\s*\{[\s\S]*?max-width:\s*116px;/,
-    );
-    expect(shellCss).toMatch(
-      /:root\[data-native-platform='ios'\] \.statusStrip__meta\s*\{[\s\S]*?width:\s*115px;/,
+      /:root\[data-native-platform='ios'\] \.statusStrip__meta\s*\{[^}]*display: flex;[^}]*flex-direction: column;/,
     );
     expect(main).toContain('document.documentElement.dataset.nativePlatform');
   });
