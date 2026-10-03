@@ -14,10 +14,11 @@ import { MonthlyLeaderboard } from './MonthlyLeaderboard';
 import { t } from '@i18n/index';
 import { TERM } from '@ui/terms';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { customerDensity, shopPresentationBonus } from '@domain/customer-traffic';
 import { availablePoolSupply, poolSupplyItem } from '@domain/pool-supply';
 
-import { MARKET_REGIME, WHOLESALE } from '@domain/balance';
+import { MARKET_REGIME } from '@domain/balance';
 import { DEFAULT_JEWELER_NAME, SHOP_SUFFIX, shopDisplayName } from '@domain/profile';
 import {
   LIQUIDITY_BAND_LABEL,
@@ -29,8 +30,7 @@ import { marketSignals } from '@domain/overnight';
 import { marketEventPresentation } from '@domain/market';
 import { registrySummary } from '@domain/customer-memory';
 import { evaluateUpgrade, growthSnapshot } from '@domain/store-growth';
-import { businessStoryDirection } from '@domain/business-story';
-import { shopGoalCopy } from '@ui/business-story-copy';
+import { storeGrowthInputs, storeGrowthTasks } from '@ui/store-growth-tasks';
 import { intentAlarm } from '@domain/intent';
 import { bullionMeta } from '@data/bullion';
 import { TEST_TOOLS } from '@data/tools';
@@ -53,7 +53,7 @@ import {
   networkLoanOffer,
 } from '@domain/trade-network';
 import type { ItemInstance, TradeNetworkMember } from '@domain/types';
-import { businessStoryContextOf, REWARDED_SHIPPING_DISCOUNT, selectors, useGame } from '@state/gameStore';
+import { REWARDED_SHIPPING_DISCOUNT, selectors, useGame } from '@state/gameStore';
 
 import {
   IconBusiness,
@@ -72,6 +72,7 @@ import { journalWindow } from '@ui/journal-window';
 import { TalentTreePanel } from './TalentTreePanel';
 import { PersonnelShortcut } from './PersonnelPanel';
 import { WholesalerLiquidationList } from './WholesalerLiquidation';
+import { StoreGrowthTasks } from './StoreGrowthTasks';
 
 type Route = 'root' | 'market' | 'journal' | 'wholesaler' | 'network' | 'store' | 'career' | 'save';
 
@@ -125,7 +126,7 @@ export function BusinessScreen() {
   if (route === 'journal') return <JournalRoute onBack={() => setRoute('root')} />;
   if (route === 'wholesaler') return <WholesalerRoute onBack={() => setRoute('root')} />;
   if (route === 'network') return <NetworkRoute onBack={() => setRoute('root')} />;
-  if (route === 'store') return <StoreRoute onBack={() => setRoute('root')} />;
+  if (route === 'store') return <StoreRoute onBack={() => setRoute('root')} onWholesaler={() => setRoute('wholesaler')} />;
   if (route === 'career') return <CareerRoute onBack={() => setRoute('root')} />;
   if (route === 'save') return <SaveRoute onBack={() => setRoute('root')} />;
   return <BusinessRoot onOpen={setRoute} />;
@@ -1090,11 +1091,12 @@ function storeSub(s: ReturnType<typeof useGame.getState>): string {
   );
   if (!evaluation.next)
     return t('{kademe} · son kademe', { kademe: t(evaluation.current.name) });
-  const acik = evaluation.gates.filter((g) => g.met).length;
-  return t('{kademe} · {acik}/{toplam} koşul hazır', {
+  const tasks = storeGrowthTasks(evaluation);
+  const acik = tasks.filter((g) => g.met).length;
+  return t('{kademe} · {acik}/{toplam} görev hazır', {
     kademe: t(evaluation.current.name),
     acik,
-    toplam: evaluation.gates.length,
+    toplam: tasks.length,
   });
 }
 
@@ -1107,137 +1109,23 @@ function storeSub(s: ReturnType<typeof useGame.getState>): string {
  * Ekran bu yüzden tek bir ilerleme çubuğu göstermiyor: her kapı ayrı satır.
  * Tek çubuk, "şu kadar daha XP" hissi verirdi — GDD'nin açıkça reddettiği şey.
  */
-function StoreRoute({ onBack }: { onBack: () => void }) {
-  const s = useGame();
-  const direction = businessStoryDirection(businessStoryContextOf(s));
-  const evaluation = direction.upgrade;
-  const goal = shopGoalCopy(direction.nearGoal);
-
-  const fmtGate = (g: (typeof evaluation.gates)[number]) =>
-    g.unit === 'money'
-      ? `${tl(g.current)} / ${tl(g.needed)}`
-      : g.unit === 'points'
-        ? `${g.current} → ${g.needed}`
-        : `${g.current} / ${g.needed}`;
-
-  return (
-    <div className="page">
-      <header className="pageHead">
-        <button type="button" className="chip" onClick={onBack} style={{ marginBottom: 8 }}>
-          {t('← İşletme')}
-        </button>
-        <h1 className="pageHead__title" id="store-tier-page-title">{t(evaluation.current.name)}</h1>
-        <p className="pageHead__sub">
-          {t('Kademe {kademe} · {tema}', {
-            kademe: evaluation.current.tier,
-            tema: t(evaluation.current.theme),
-          })}
-        </p>
-      </header>
-
-      <div
-        className="page__scroll"
-        role="region"
-        aria-labelledby="store-tier-page-title"
-        tabIndex={0}
-      >
-        <div className="group">
-          <h2 className="group__title">{t('Bu kademede açık')}</h2>
-          <div className="group__body">
-            {evaluation.current.unlocks.map((u) => (
-              <StatLine key={u} label={t(u)} value="" />
-            ))}
-            <StatLine label={t("Vitrin / arka stok")} value={`${s.store.displaySlots} / ${s.store.backStockSlots}`} />
-            <StatLine
-              label={t('Atölye kapasitesi')}
-              value={t('{n} slot', { n: s.store.workshopCapacity })}
-            />
-            <StatLine label={t("Günlük gider")} value={tl(s.store.dailyOverhead)} />
-            <StatLine label={t('Müşteri yoğunluğu')} value={`${customerDensity(s.store, s.playerMarket).toFixed(2)}×`} />
-            <StatLine label={t('Dükkan sunum katkısı')} value={`+${Math.round(shopPresentationBonus(s.playerMarket) * 100)}%`} />
-            <p className="emptyNote">{t('Tema, dekorasyon ve koleksiyon kategorilerinin her biri müşteri yoğunluğuna %4 katkı verir; toplam en fazla %12. Şahsi ve gerçek para kozmetikleri güç vermez.')}</p>
-            <p className="emptyNote">{t('250–1000 g siparişler: kademe 3, itibar 65 ve toptancı güveni 65. Talep hacmi nakit ve kullanılabilir vadeye bağlıdır.')}</p>
-          </div>
-        </div>
-
-        {!evaluation.next ? (
-          <div className="group">
-            <h2 className="group__title">{t('Sonraki kademe')}</h2>
-            <div className="group__body">
-              {/* GDD 19.3 — Marka Ağı post-1.0 kapsamı. */}
-              <p className="emptyNote">{evaluation.blockedReason}</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="group">
-              <h2 className="group__title">
-                {t('{kademe} · koşullar', { kademe: t(evaluation.next.name) })}
-              </h2>
-              <div className="group__body">
-                <p className="emptyNote">{goal.label}{goal.guidance ? ` · ${goal.guidance}` : ''}</p>
-                {evaluation.gates.map((g) => (
-                  <StatLine
-                    key={g.key}
-                    label={`${g.met ? '✓' : '·'} ${g.label}`}
-                    value={fmtGate(g)}
-                    tone={g.met ? 'positive' : undefined}
-                  />
-                ))}
-                {evaluation.gates.some((g) => !g.met && g.key === 'supplierTrust') && (
-                  <p className="emptyNote">
-                    {t('Anlamlı alışlar güveni {sinir}’e kadar büyütür. Zamanında vade ödemesi güveni ve limiti güçlendirir.', {
-                      sinir: WHOLESALE.tradeTrustCap,
-                    })}
-                  </p>
-                )}
-                {evaluation.gates.some((g) => !g.met && g.key === 'reputation') && (
-                  <p className="emptyNote">
-                    {t('Semt itibarı 100 üzerindendir. İyi kapanan işlemler yükseltir; kırıcı teklif ve müşteriyi kaçırmak düşürür.')}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="group">
-              <h2 className="group__title">
-                {t('{kademe} · açılım', { kademe: t(evaluation.next.name) })}
-              </h2>
-              <div className="group__body">
-                {evaluation.next.unlocks.map((u) => (
-                  <StatLine key={u} label={t(u)} value="" />
-                ))}
-                <StatLine
-                  label={t("Yeni günlük gider")}
-                  value={tl(evaluation.next.grants.dailyOverhead)}
-                  tone="warning"
-                />
-                {s.store.cash >= evaluation.investment && <StatLine
-                  label={t('Yatırım sonrası nakit')}
-                  value={tl(s.store.cash - evaluation.investment)}
-                />}
-                <div className="lotRow">
-                  <div className="lotRow__terms">
-                    {t('Yükseltme kalıcı bir gider taahhüdüdür: kademe büyüdükçe günlük sabit gider de büyür.')}
-                  </div>
-                  <button
-                    type="button"
-                    className="lotRow__buy"
-                    onClick={() => s.upgradeStore()}
-                    disabled={!evaluation.ready}
-                  >
-                    {evaluation.ready
-                      ? t('{tutar} öde ve yükselt', { tutar: tl(evaluation.investment) })
-                      : (evaluation.blockedReason ?? t('Hazır değil'))}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
+function StoreRoute({ onBack, onWholesaler }: { onBack: () => void; onWholesaler: () => void }) {
+  const inputs = useGame(useShallow(storeGrowthInputs));
+  const upgrade = useGame(s => s.upgradeStore);
+  const setTab = useGame(s => s.setTab);
+  const evaluation = useMemo(() => {
+    const s = useGame.getState();
+    return evaluateUpgrade(s.store, growthSnapshot(
+      { store: s.store, inventory: s.inventory, items: s.items, ledger: s.ledger, market: s.market },
+      Object.keys(s.customers).length,
+    ));
+  }, [inputs]);
+  const s = useGame.getState();
+  return <StoreGrowthTasks evaluation={evaluation}
+    displaySlots={s.store.displaySlots} backStockSlots={s.store.backStockSlots}
+    workshopCapacity={s.store.workshopCapacity} dailyOverhead={s.store.dailyOverhead}
+    customerDensity={customerDensity(s.store, s.playerMarket)} presentationBonus={shopPresentationBonus(s.playerMarket)}
+    onBack={onBack} onWholesaler={onWholesaler} onTrade={() => setTab('shop')} onUpgrade={upgrade} />;
 }
 
 // ---------------------------------------------------------------------------

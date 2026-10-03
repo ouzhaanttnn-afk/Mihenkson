@@ -1,0 +1,36 @@
+.page.storeGrowthPage { min-width: 0; font-size: max(var(--fs-label), .875rem); }
+.page.storeGrowthPage > .pageHead.storeGrowthPage__head {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 10px;
+  padding: max(8px, var(--safe-top)) max(var(--gutter), var(--safe-right)) 10px max(var(--gutter), var(--safe-left));
+}
+.storeGrowthPage__head > * { min-width: 0; }
+.storeGrowthPage .pageHead__title { font-size: max(var(--fs-title), 1.25rem); overflow-wrap: anywhere; }
+.storeGrowthPage .pageHead__sub { font-size: max(var(--fs-caption), .875rem); line-height: 1.4; }
+.storeGrowthPage__back { min-width: 44px; min-height: 44px; border: 1px solid var(--page-line); border-radius: 12px; background: var(--ink-800); color: var(--text-dark-1); font-size: 1.25rem; cursor: pointer; }
+.page.storeGrowthPage > .page__scroll.storeGrowthPage__body {
+  flex: 1 1 0%; min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 8px max(var(--gutter), var(--safe-right)) 12px max(var(--gutter), var(--safe-left));
+}
+.storeGrowthTasks__title { margin: 8px 0 4px; font-size: inherit; font-weight: 600; }
+.storeGrowthTasks__list { margin: 0; padding: 0; list-style: none; }
+.storeGrowthTasks__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding-block: 8px; border-bottom: 1px solid var(--page-line); line-height: 1.4; }
+.storeGrowthTasks__label { flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; }
+.storeGrowthTasks__value { flex: 0 1 auto; min-width: 0; max-width: 100%; margin-inline-start: auto; color: var(--text-dark-1); font-weight: 600; font-variant-numeric: tabular-nums; text-align: end; overflow-wrap: anywhere; }
+.storeGrowthTasks__disclosure { border-bottom: 1px solid var(--page-line); }
+.storeGrowthTasks__disclosure > summary { min-height: 44px; align-content: center; padding-block: 8px; color: var(--text-dark-1); line-height: 1.4; overflow-wrap: anywhere; cursor: pointer; }
+.storeGrowthTasks__disclosure p, .storeGrowthTasks__disclosure li { line-height: 1.5; overflow-wrap: anywhere; }
+.storeGrowthTasks__disclosure ul:not(.storeGrowthTasks__list) { padding-inline-start: 20px; }
+.storeGrowthTasks__hints li + li { margin-top: 8px; }
+.storeGrowthTasks__note { color: var(--text-dark-2); }
+.storeGrowthTasks__success { margin: 8px 0; line-height: 1.4; }
+.storeGrowthTasks__investment { padding-block: 10px; }
+.storeGrowthTasks__moneyRow { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.storeGrowthTasks__moneyRow h2 { margin: 0; font-size: inherit; }
+.storeGrowthTasks__moneyRow > *, .storeGrowthTasks__links button { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.storeGrowthTasks__investment p { margin: 4px 0 0; line-height: 1.4; overflow-wrap: anywhere; }
+.storeGrowthTasks__links { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; }
+.storeGrowthTasks__links button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--page-line); border-radius: 10px; color: var(--text-dark-1); background: var(--ink-800); font-size: inherit; cursor: pointer; }
+.storeGrowthPage__footer { flex: 0 0 auto; min-width: 0; padding: 8px max(var(--gutter), var(--safe-right)) 8px max(var(--gutter), var(--safe-left)); border-top: 1px solid var(--page-line); background: var(--ink-800); }
+.storeGrowthPage__upgrade { width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid var(--brass-500); border-radius: 12px; color: var(--ink-900); background: linear-gradient(180deg, var(--brass-300), var(--brass-500)); font-size: max(var(--fs-body), .9375rem); font-weight: 600; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; cursor: pointer; }
+.storeGrowthPage__upgrade:disabled { color: var(--text-dark-2); background: var(--ink-700); border-color: var(--page-line); cursor: default; }
+.storeGrowthPage__back:focus-visible, .storeGrowthTasks__disclosure > summary:focus-visible, .storeGrowthTasks__links button:focus-visible, .storeGrowthPage__upgrade:focus-visible { outline: 2px solid var(--brass-300); outline-offset: 2px; }
