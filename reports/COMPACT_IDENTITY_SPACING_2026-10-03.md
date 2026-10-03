@@ -42,3 +42,13 @@ The user approved the shared rail and requested only a slight top/bottom reducti
 - Real App at 390×844 with simulated iOS 59/34 px safe areas: 50.21 px rail and 44 px controls. Talents open/close, store tasks and home return work; no console errors. No other home spacing, safe areas, economy or ads changed.
 - Screenshot: `C:/Users/Gaming/.codex/visualizations/2026/10/03/mihenk-1.3.0/thin-home-store-talents.png`. Temporary viewport override reset and QA tabs closed.
 - New TestFlight upload authorized. App Review remains on hold until the user explicitly says okay; this is not authorization to cancel or replace an older review submission.
+
+## TestFlight 1.3.0 (38) delivery
+
+- Source: `a41c53ce8b126bdfc6cf69b37e3a5b86b7dd855f`, branch `codex/mihenk-personnel-home`. Includes the approved slim shared rail and compact store tasks.
+- CI: https://github.com/ouzhaanttnn-afk/Mihenkson/actions/runs/37135095845 — success, 5m34s. All 1,644 Vitest tests and release checks also passed on the macOS runner.
+- Apple validation: 2026-10-03 16:02:12 UTC. Upload: 16:03:27 UTC (19:03:27 Istanbul), `UPLOAD SUCCEEDED with no errors`.
+- Delivery UUID: `07c24663-4518-4609-b063-65f4061a2b99`.
+- Apple processing completed. iOS Builds shows build 38 as Ready to Submit (external beta status, not an App Review submission). Build detail verifies the existing Betatest internal group with 3 testers attached; its automatic Xcode-build distribution setting was preserved.
+- Turkish What to Test notes were saved; Apple's disabled Saved button was verified. Proof: `C:/Users/Gaming/.codex/visualizations/2026/10/03/mihenk-1.3.0/testflight-38-ready.png`. Build detail was left open for the user.
+- App Review was not submitted, replaced or cancelled. The user must explicitly approve the new build before any review submission.
