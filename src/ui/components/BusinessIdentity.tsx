@@ -1,79 +1,58 @@
 import { t } from '@i18n/index';
 import { IconChevronRight } from '@ui/icons';
+import { Art } from '@ui/Art';
+import { NAV_ART } from '@ui/assets';
 import './BusinessIdentity.css';
 
 export interface BusinessIdentityProps {
   /** The four shipped store stages; this does not grant or unlock a stage. */
   readonly tier?: 1 | 2 | 3 | 4;
   readonly tierName: string;
-  /** The caller supplies only an available, in-scope next stage. */
-  readonly nextTierName?: string | null;
-  readonly goalLabel?: string | null;
-  readonly guidanceLabel?: string | null;
   /** Keep the trading surface free of growth actions during a customer visit. */
   readonly collapsed?: boolean;
   readonly onOpenGrowth?: () => void;
   readonly onOpenSkills?: () => void;
 }
 
-/** Presentation only: one store identity and the caller's current nearby goal. */
+/** Compact square store tile; upgrade requirements remain on the Store screen. */
 export function BusinessIdentity({
   tier = 1,
   tierName,
-  nextTierName,
-  goalLabel,
-  guidanceLabel,
   collapsed = false,
   onOpenGrowth,
   onOpenSkills,
 }: BusinessIdentityProps) {
+  const tile = (
+    <>
+      <Art art={NAV_ART.business} size={56} decorative
+        className="businessIdentity__art" fallback={<StoreFacade tier={tier} />} />
+      <span className="businessIdentity__tier">{t(tierName)}</span>
+    </>
+  );
   return (
     <section
       className={`businessIdentity${collapsed ? ' businessIdentity--collapsed' : ''}`}
       aria-label={t('Mağaza')}
+      data-store-tier={tier}
     >
-      <div className="businessIdentity__identity">
-        <StoreFacade tier={tier} />
-        <span className="businessIdentity__tier">{t(tierName)}</span>
-      </div>
-
-      {!collapsed && (
-        <>
-          {nextTierName && (
-            <p className="businessIdentity__next">
-              <span>{t('Sıradaki')}</span>
-              <strong>{t(nextTierName)}</strong>
-            </p>
-          )}
-          {goalLabel && <p className="businessIdentity__goal">{t(goalLabel)}</p>}
-          {guidanceLabel && <p className="businessIdentity__guidance">{t(guidanceLabel)}</p>}
-          {(onOpenGrowth || onOpenSkills) && (
-            <div className="businessIdentity__actions">
-              {onOpenGrowth && (
-                <button type="button" className="businessIdentity__action" onClick={onOpenGrowth}>
-                  <span>{t('Mağaza')}</span>
-                  <IconChevronRight size={14} />
-                </button>
-              )}
-              {onOpenSkills && (
-                <button
-                  type="button"
-                  className="businessIdentity__action businessIdentity__action--secondary"
-                  onClick={onOpenSkills}
-                >
-                  <span>{t('Yetenekler')}</span>
-                  <IconChevronRight size={14} />
-                </button>
-              )}
-            </div>
-          )}
-        </>
-      )}
+      {!collapsed && onOpenGrowth ? (
+        <button type="button" className="businessIdentity__tile"
+          onClick={onOpenGrowth} aria-label={`${t('Mağaza')} · ${t(tierName)}`}>
+          {tile}
+        </button>
+      ) : <div className="businessIdentity__tile">{tile}</div>}
+      {!collapsed && onOpenSkills ? (
+        <button type="button" className="businessIdentity__action"
+          onClick={onOpenSkills} aria-haspopup="dialog">
+          <span>{t('Yetenekler')}</span>
+          <IconChevronRight size={14} />
+        </button>
+      ) : null}
     </section>
   );
 }
 
-/** Small static frontage: extra windows distinguish the existing four stages. */
+/** A missing image never blocks access or leaves a broken-image glyph. */
 function StoreFacade({ tier }: { tier: 1 | 2 | 3 | 4 }) {
   const width = 12 + tier * 4;
   const left = (36 - width) / 2;

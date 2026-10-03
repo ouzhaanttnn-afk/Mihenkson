@@ -5,7 +5,7 @@ import { businessStoryAgenda, businessStoryDirection, customerReturnContext } fr
 import { masterySummary, normalizeSkillProgress } from '@domain/skill-tree';
 import { businessStoryContextOf, useGame } from '@state/gameStore';
 import { BusinessIdentity } from '@ui/components/BusinessIdentity';
-import { customerReturnCopy, shopAgendaCopy, shopGoalCopy } from '@ui/business-story-copy';
+import { customerReturnCopy, shopAgendaCopy } from '@ui/business-story-copy';
 import { businessStoryInputs } from '@ui/business-story-inputs';
 
 /** No full-ledger traversal on the 500 ms clock: subscribe to economic inputs. */
@@ -23,12 +23,9 @@ export const ShopDirection = memo(function ShopDirection() {
   const { direction } = useStory();
   const openGrowth = useGame(s => s.openBusinessRoute);
   const openSkills = useGame(s => s.setShopTalentTreeOpen);
-  const copy = shopGoalCopy(direction.nearGoal);
   return <BusinessIdentity tier={Math.min(4, direction.upgrade.current.tier) as 1 | 2 | 3 | 4}
     tierName={direction.upgrade.current.name}
-    nextTierName={copy.skills ? null : direction.upgrade.next?.name}
-    goalLabel={copy.label}
-    onOpenGrowth={copy.skills ? undefined : () => openGrowth('store')}
+    onOpenGrowth={() => openGrowth('store')}
     onOpenSkills={() => openSkills(true)} />;
 });
 
