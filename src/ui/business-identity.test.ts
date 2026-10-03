@@ -46,6 +46,15 @@ describe('square store identity presentation', () => {
     expect(html).not.toMatch(/<button[^>]*>(?:(?!<\/button>)[\s\S])*<button/);
   });
 
+  it('uses a compact 88 px tile without allocating a tall identity row', () => {
+    const css = readFileSync(new URL('./components/BusinessIdentity.css', import.meta.url), 'utf8');
+    const html = renderToStaticMarkup(createElement(BusinessIdentity, identity));
+    expect(css).toMatch(/\.businessIdentity\s*\{[^}]*padding: 0;/);
+    expect(css).toMatch(/\.businessIdentity__tile\s*\{[^}]*width: 88px;[^}]*aspect-ratio: 1;/);
+    expect(css).not.toContain('width: 112px;');
+    expect(html).toContain('width="28" height="28"');
+  });
+
   it('removes growth and skills actions entirely when collapsed', () => {
     const props = { ...identity, collapsed: true, onOpenGrowth: vi.fn(), onOpenSkills: vi.fn() };
     const html = renderToStaticMarkup(createElement(BusinessIdentity, props));
@@ -96,7 +105,7 @@ describe('square store identity presentation', () => {
     expect(renderToStaticMarkup(createElement(BusinessIdentity, props))).toContain(name);
     const css = readFileSync(new URL('./components/BusinessIdentity.css', import.meta.url), 'utf8');
     for (const rule of ['overflow-wrap: anywhere', 'flex-wrap: wrap', 'min-height: var(--touch-min)',
-      'aspect-ratio: 1', 'width: 112px', 'min-height: auto', 'object-fit: contain', ':focus-visible',
+      'aspect-ratio: 1', 'width: 88px', 'min-height: auto', 'object-fit: contain', ':focus-visible',
       '@media (max-width: 430px)', '@media (prefers-reduced-motion: reduce)']) expect(css).toContain(rule);
     expect(css).not.toMatch(/max-height:|text-overflow:|overflow:\s*hidden|position:\s*(fixed|absolute)/);
   });

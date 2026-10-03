@@ -38,3 +38,7 @@ Later follow-up: both this tile and the safe-area fix were compiled from
 `d91c7cb96064c6bf5844347d8ab79b865413e7d5` into **1.3.0 (36)**, uploaded successfully
 on 2026-10-03. See [safe-area and build 36 delivery record](SAFE_AREA_BUILD_36_2026-10-03.md)
 for the separately verified Apple processing, tester availability and review status.
+
+The subsequent screenshot feedback requested less screen usage. See
+[88 px compact follow-up](STORE_TILE_COMPACT_FOLLOWUP_2026-10-03.md) for that
+separately tested local source change; it is not included in uploaded build 36.

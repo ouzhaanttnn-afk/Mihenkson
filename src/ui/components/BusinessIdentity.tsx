@@ -24,7 +24,7 @@ export function BusinessIdentity({
 }: BusinessIdentityProps) {
   const tile = (
     <>
-      <Art art={NAV_ART.business} size={56} decorative
+      <Art art={NAV_ART.business} size={28} decorative
         className="businessIdentity__art" fallback={<StoreFacade tier={tier} />} />
       <span className="businessIdentity__tier">{t(tierName)}</span>
     </>
