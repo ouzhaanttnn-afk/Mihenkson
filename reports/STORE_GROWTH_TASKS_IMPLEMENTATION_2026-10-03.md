@@ -29,4 +29,13 @@ The React review guidance influenced narrow subscriptions and derived state. Bro
 
 ## Release delivery
 
-Marketing version remains **1.3.0**; a new CI build number will include these changes. Build/upload and Apple processing are recorded after completion. TestFlight only; no new App Review submission authorized.
+Marketing version remains **1.3.0**, build **37**.
+
+- Source commit: `8924ab8f25c28487263aa5ff6baf63402b283cb7` (`codex/mihenk-personnel-home`). Includes earlier compact-home and safe-area commits.
+- GitHub Actions: https://github.com/ouzhaanttnn-afk/Mihenkson/actions/runs/37129345418 — completed successfully, job duration 7m42s.
+- Validation passed at 2026-10-03 14:28:26 UTC. Apple upload confirmed at 14:29:53 UTC (17:29:53 Istanbul): `UPLOAD SUCCEEDED with no errors`.
+- Delivery UUID: `c97a2576-7ead-4525-aa5d-f35409198c51`.
+- Apple processing/internal-group availability **not yet verified**: browser session expired and is waiting at the Apple password screen. This is not proof of an upload failure; CI upload itself is confirmed.
+- Test notes prepared in `store/ios/testflight-1.3.0-compact-tasks.md`; not saved to Apple's form while logged out.
+- New build **not submitted to App Review**. User's okay is required. Older build 36's existing review submission was not modified; the separate cancellation question has not been answered.
+- CI annotations: runner-capacity advisory and action runtime deprecation warning were non-blocking. No credential/access/signing change was made.
