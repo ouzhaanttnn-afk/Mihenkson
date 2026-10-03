@@ -116,3 +116,13 @@ Existing internal testers can exercise build 35; no claim is made that those peo
 have already tested it. Physical-iPhone touch/performance remains a beta check.
 Temporary local QA servers and tabs were closed; only the Apple result and beta
 detail tabs were retained for the publisher.
+
+### Superseding build 36 follow-up
+
+Build 35 and its review record above are historical. On 2026-10-03 at 15:35 GMT+3,
+the square store tile and Dynamic Island safe-area follow-up were uploaded as
+**1.3.0 (36)**, made available to the same internal Betatest group, and submitted
+as replacement review `55c47bfc-e0c6-4439-93ad-fb56f631d9de`, **Waiting for Review**.
+No tester or access was added. The old build was not deleted. See
+[build 36 delivery record](SAFE_AREA_BUILD_36_2026-10-03.md) for source SHA,
+verification limits, CI result, saved notes and the new confirmation screenshot.

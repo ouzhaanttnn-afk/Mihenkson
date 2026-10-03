@@ -30,6 +30,11 @@ Screenshot: `C:/Users/Gaming/.codex/visualizations/2026/10/03/mihenk-1.3.0/squar
 
 ## Release boundary
 
-This is a local source/UI change, not a new signed native upload. The previously submitted 1.3.0 build 35 has not been replaced or withdrawn. No App Store Connect actions were taken for this change.
+At commit `8a93a19`, this was a local source/UI change, not a new signed native upload. The previously submitted 1.3.0 build 35 had not been replaced or withdrawn. No App Store Connect actions had been taken for this change.
 
-The Dynamic Island safe-area issue is separate and was not changed here. Browser checks do not certify a physical iPhone cutout layout.
+The Dynamic Island safe-area issue was separate and was not changed in that commit. Browser checks do not certify a physical iPhone cutout layout.
+
+Later follow-up: both this tile and the safe-area fix were compiled from
+`d91c7cb96064c6bf5844347d8ab79b865413e7d5` into **1.3.0 (36)**, uploaded successfully
+on 2026-10-03. See [safe-area and build 36 delivery record](SAFE_AREA_BUILD_36_2026-10-03.md)
+for the separately verified Apple processing, tester availability and review status.
