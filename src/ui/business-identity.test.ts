@@ -55,6 +55,19 @@ describe('square store identity presentation', () => {
     expect(html).toContain('width="28" height="28"');
   });
 
+  it('keeps skills next to the tile with an 8 px gap without adding row height', () => {
+    const css = readFileSync(new URL('./components/BusinessIdentity.css', import.meta.url), 'utf8');
+    const tokens = readFileSync(new URL('./tokens.css', import.meta.url), 'utf8');
+    const row = css.match(/\.businessIdentity\s*\{([^}]*)\}/)![1]!;
+    const action = css.match(/\.businessIdentity__action\s*\{([^}]*)\}/)![1]!;
+    expect(row).toContain('justify-content: flex-start;');
+    expect(row).toContain('gap: var(--sp-2);');
+    expect(tokens).toContain('--sp-2: 8px;');
+    expect(row).not.toMatch(/space-between|(?:^|\n)\s*(?:(?:min-|max-)?height|margin(?:-[\w-]+)?):/);
+    expect(action).toContain('flex: 0 1 auto;');
+    expect(css).not.toMatch(/margin-(left|inline-start):\s*auto/);
+  });
+
   it('removes growth and skills actions entirely when collapsed', () => {
     const props = { ...identity, collapsed: true, onOpenGrowth: vi.fn(), onOpenSkills: vi.fn() };
     const html = renderToStaticMarkup(createElement(BusinessIdentity, props));
